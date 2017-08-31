@@ -39,7 +39,7 @@ using std::endl;
 
 HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay, bool acceptedBid)
 							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
-							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay),acceptedBid(acceptedBid)
+							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay),acceptedBid(acceptedBid), buySellInterval(buySellInterval)
 							{
 
 	//Freelance agents are active by default.
@@ -49,30 +49,11 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     	seller->setActive(true);
 
 
-    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-    bool resume = config.ltParams.resume;
-
-    //Freelance agents do not bid on any units. They'll only sell their list of unoccupied units
     if ( marketSeller == false )
     {
         bidder = new HouseholdBidderRole(this);
     }
 
-
-    //We do not want the seller role to be activated at the same time as the bidder role.
-    //The bidder role will be active first. And then after x number of days, the seller role will be activated.
-    buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
-
-
-
-    if(resume && household != nullptr)
-    	householdBiddingWindow = householdBiddingWindow - household->getTimeOnMarket();
-    else
-    {
-    	//We do not want the bidder role to be active indefinitely.
-    	//The householdBiddingWindow will specify for how many days a household will bid before giving up
-    	householdBiddingWindow = ( config.ltParams.housingModel.housingMoveInDaysInterval + config.ltParams.housingModel.householdBiddingWindow ) * (double)rand() / RAND_MAX + 1;
-    }
 
     futureTransitionOwn = false;
 
@@ -81,9 +62,6 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     //That is because the database household income is inconsistent with the sum of the individual incomes
     if( household )
     {
-    	(const_cast<Household*>(household))->setTimeOnMarket(householdBiddingWindow);
-
-
 		double householdIncome = 0;
 		vector<BigSerial> individuals = household->getIndividuals();
 		for(int n = 0; n < individuals.size(); n++)
@@ -200,8 +178,13 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 			//That's because we want that unit to be available for sale as soon as the bidder role is active
 			if( id < model->FAKE_IDS_START )
 			{
+				/*
+				 * beware, next two limits are reset subsequently in householdseller role
+				 * so this for loop is not doing anything beyond initializing limits and the next day as market entry day
+				 */
 				unit->setbiddingMarketEntryDay(day + 1);
 				unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+				unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
 			}
 		}
 
@@ -227,6 +210,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 			{
 				HousingMarket::Entry *entry = const_cast<HousingMarket::Entry*>( getMarket()->getEntryById( unit->getId()) );
 
+				// pointer is not null if unit has been entered into the market
 				if( entry != nullptr)
 					entry->setBuySellIntervalCompleted(true);
 			}
@@ -245,6 +229,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
         bidder->update(now);
         householdBiddingWindow--;
        	buySellInterval--;
+       	household->updateTimeOnMarket();
     }
 
 	//If 1) the bidder is active and 2) it is not waiting to move into a unit and 3) it has exceeded it's bidding time frame,
@@ -266,6 +251,12 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     if(config.ltParams.resume)
     {
     	startDay = model->getLastStoppedDay();
+    }
+
+    //if a bid is accepted, time off the market is set to 210 + 30 days. if not it is set to 210 days. Then this value is decremented each day.
+    if (bidder && household->getTimeOffMarket() > 0)
+    {
+    	household->updateTimeOffMarket();
     }
 
     if(config.ltParams.schoolAssignmentModel.enabled)

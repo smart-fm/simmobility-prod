@@ -83,8 +83,8 @@
 	-->
 
 	<file-based-credential id="fm_remote_mt">
-	 <file path="private/fm_local.cred"/> 
-	  <!--   <file path="private/fm_local.cred"/>-->
+	 <!--<file path="private/fm_remote.cred"/> -->
+	  <file path="private/fm_local.cred"/>
 	</file-based-credential>
 
 	<plaintext-credential id="LT_cred">
@@ -109,7 +109,7 @@
     	<tickStep value="1"/>  
 	<year value = "2012" />   
 	<resume value ="false"/> 
-	<currentOutputSchema value = "baseline_2012_20160225034344"/> <!--if resume is true give the current op schema name-->
+	<currentOutputSchema value = "baseline_2012_20170811023744"/> <!--if resume is true give the current op schema name-->
         <opSchemaloadingInterval value = "365"/>
         <initialLoading value = "true" />
     	<developerModel enabled="true">
@@ -138,14 +138,18 @@
                     <awakeningOffMarketSuccessfulBid value="210"/>
  	            <awakeningOffMarketUnsuccessfulBid value="210"/>
 	    </awakeningModel>
+<<<<<<< HEAD
 	    <vacantUnitActivationProbability value="0.2"/>
+=======
+	    <vacantUnitActivationProbability value="0.2000"/>
+>>>>>>> master
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>	   
 	    <bidderUnitsChoiceSet value = "50"/>
 	    <bidderBTOUnitsChoiceSet value = "10"/>
 	    <householdBiddingWindow value = "30" />
 	    <householdBTOBiddingWindow value = "5" />
-	    <householdAwakeningPercentageByBTO value = "0.025" />
+	    <householdAwakeningPercentageByBTO value = "0.020" />
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
             <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
 	    <hedonicPriceModel enabled = "true">
@@ -164,9 +168,9 @@
 
 	<scenario enabled= 'true'>
                 <name value="baseline" />
-		<!-- <name value="ToaPayohScenario"/> --> <!--right now we have baseline and tp scenario-->
-                <scenarioSchema value = 'configuration2012.' />
-		<parcelsTable value = "fm_parcel_study_area" /> 
+		<!-- <name value="ToaPayohScenario"/>-->  <!--right now we have baseline and tp scenario-->
+                <scenarioSchema value = 'synpop12.' />
+		<parcelsTable value = "fm_parcel" /> 
 		<!-- <parcelsTable value = "fm_parcel_study_area" /> --> <!-- in tp scenario : fm_parcel_scenario_toapayoh -->
 	</scenario>
 

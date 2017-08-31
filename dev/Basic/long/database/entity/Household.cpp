@@ -35,7 +35,7 @@ Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, Big
 Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), childUnder4(0), childUnder15(0), adult(0),income(0), housingDuration(0), workers(0), ageOfHead(0),
 						pendingStatusId(0),pendingFromDate(std::tm()),unitPending(0), twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0),taxiAvailability(false),
 						vehicleOwnershipOptionId(0), logsum(0),  currentUnitPrice(0),householdAffordabilityAmount(0),buySellInterval(0), moveInDate(std::tm()),timeOnMarket(0),timeOffMarket(0),isBidder(0),
-						isSeller(0),hasMoved(0), tenureStatus(0), awakenedDay(0),existInDB(false), lastAwakenedDay(-INT_MAX),lastBidStatus(0),randomNum(0),liveInToaPayoh(false),workInToaPayoh(false),numWhiteCollars(0),numWorkers(0),numElderly(0)
+						isSeller(0),hasMoved(0), tenureStatus(0), awakenedDay(0),existInDB(false), lastAwakenedDay(-INT_MAX),lastBidStatus(-1),randomNum(0),liveInToaPayoh(false),workInToaPayoh(false),numWhiteCollars(0),numWorkers(0),numElderly(0)
 {
 
 }
@@ -127,6 +127,51 @@ void Household::serialize(Archive & ar,const unsigned int version)
 
 }
 
+Household::Household( const Household &source)
+{
+	this->id = source.id;
+	this->lifestyleId = source.lifestyleId;
+	this->unitId = source.unitId;
+	this->ethnicityId = source.ethnicityId;
+	this->vehicleCategoryId = source.vehicleCategoryId;
+	this->income = source.income;
+	this->size = source.size;
+	this->childUnder4 = source.childUnder15;
+	this->childUnder15 = source.childUnder15;
+	this->adult = source.adult;
+	this->housingDuration = source.housingDuration;
+	this->workers = source.workers;
+	this->ageOfHead = source.ageOfHead;
+	this->pendingStatusId = source.pendingStatusId;
+	this->pendingFromDate = source.pendingFromDate;
+	this->unitPending = source.unitPending;
+	this->taxiAvailability = source.taxiAvailability;
+	this->vehicleOwnershipOptionId = source.vehicleOwnershipOptionId;
+	this->logsum = source.logsum;
+	this->currentUnitPrice = source.currentUnitPrice;
+	this->householdAffordabilityAmount = source.householdAffordabilityAmount;
+	this->timeOnMarket = source.timeOnMarket;
+	this->timeOffMarket = source.timeOffMarket;
+	this->isBidder = source.isBidder;
+	this->isSeller = source.isSeller;
+	this->buySellInterval = source.buySellInterval;
+	this->moveInDate = source.moveInDate;
+	this->tenureStatus = source.tenureStatus;
+	this->awakenedDay = source.awakenedDay;
+	this->randomNum = source.randomNum;
+	this->liveInToaPayoh = source.liveInToaPayoh;
+	this->workInToaPayoh = source.workInToaPayoh;
+	this->numWhiteCollars = source.numWhiteCollars;
+	this->numWorkers = source.numWorkers;
+	this->numElderly = source.numElderly;
+	this->individuals = source.individuals;
+	for(size_t i = 0; i < individuals.size(); i++)
+	{
+		this->individuals[i] = source.individuals[i];
+	}
+
+
+}
 
 Household& Household::operator=(const Household& source)
 {
@@ -165,6 +210,11 @@ Household& Household::operator=(const Household& source)
     this->numWhiteCollars = source.numWhiteCollars;
     this->numWorkers = source.numWorkers;
     this->numElderly = source.numElderly;
+    this->individuals = source.individuals;
+    for(size_t i = 0; i < individuals.size(); i++)
+    	{
+    		this->individuals[i] = source.individuals[i];
+    	}
 
     return *this;
 }
@@ -629,6 +679,17 @@ bool Household::isWorkInToaPayoh() const
 void Household::setWorkInToaPayoh(bool workInToaPayoh)
 {
 	this->workInToaPayoh = workInToaPayoh;
+}
+
+void Household::updateTimeOffMarket()
+{
+	--this->timeOffMarket;
+
+}
+
+void Household::updateTimeOnMarket()
+{
+	--this->timeOnMarket;
 }
 
 namespace sim_mob

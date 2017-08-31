@@ -19,6 +19,7 @@
 #include <vector>
 #include "util/PrintLog.hpp"
 #include "util/SharedFunctions.hpp"
+#include "agent/impl/HouseholdAgent.hpp"
 
 using namespace std;
 
@@ -101,6 +102,11 @@ namespace sim_mob
 
 		void AwakeningSubModel::InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day)
 		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			if (config.ltParams.resume)
+			{
+				return;
+			}
 			boost::mutex::scoped_lock lock( mtx );
 
 			if( agent->getId() >= model->FAKE_IDS_START )
@@ -115,7 +121,7 @@ namespace sim_mob
 				return;
 			}
 
-			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
 
 			if(household == nullptr)
 			{
@@ -135,7 +141,6 @@ namespace sim_mob
 				if( random < 0.5 )
 					return;
 
-				bidder->setActive(true);
 
 				printAwakening(day, household);
 
@@ -143,20 +148,6 @@ namespace sim_mob
 				PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 				#endif
 
-				IdVector unitIds = agent->getUnitIds();
-
-				for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
-				{
-					BigSerial unitId = *itr;
-					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
-
-					unit->setbiddingMarketEntryDay(day);
-					unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
-					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
-				}
-
-				household->setLastAwakenedDay(day);
-				model->incrementAwakeningCounter();
 				model->incrementLifestyle3HHs();
 			}
 			else
@@ -210,7 +201,6 @@ namespace sim_mob
 
 				if( lifestyle == 1 && r2 < awaken_class1)
 				{
-					bidder->setActive(true);
 
 					printAwakening(day, household);
 
@@ -218,24 +208,11 @@ namespace sim_mob
 					PrintOutV("[day " << day << "] Lifestyle 1. Household " << getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);
 					#endif
 
-					for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
-					{
-						BigSerial unitId = *itr;
-						Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
-
-						unit->setbiddingMarketEntryDay(day);
-						unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
-						unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
-					}
-
-					household->setLastAwakenedDay(day);
-					model->incrementAwakeningCounter();
 					model->incrementLifestyle1HHs();
 				}
 				else
 				if( lifestyle == 2 && r2 < awaken_class2)
 				{
-					bidder->setActive(true);
 
 					printAwakening(day, household);
 
@@ -243,25 +220,11 @@ namespace sim_mob
 					PrintOutV("[day " << day << "] Lifestyle 2. Household " << getId() << " has been awakened. "  << model->getNumberOfBidders() << std::endl);
 					#endif
 
-
-					for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
-					{
-						BigSerial unitId = *itr;
-						Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
-
-						unit->setbiddingMarketEntryDay(day);
-						unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
-						unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
-					}
-
-					household->setLastAwakenedDay(day);
-					model->incrementAwakeningCounter();
 					model->incrementLifestyle2HHs();
 				}
 				else
 				if( lifestyle == 3 && r2 < awaken_class3)
 				{
-					bidder->setActive(true);
 
 					printAwakening(day, household);
 
@@ -269,18 +232,6 @@ namespace sim_mob
 					PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 					#endif
 
-					for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
-					{
-						BigSerial unitId = *itr;
-						Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
-
-						unit->setbiddingMarketEntryDay(day);
-						unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
-						unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
-					}
-
-					household->setLastAwakenedDay(day);
-					model->incrementAwakeningCounter();
 					model->incrementLifestyle3HHs();
 				}
 
@@ -303,34 +254,36 @@ namespace sim_mob
 				if( success == false )
 					return;
 
-				household->setAwakenedDay(0);
-				household->setLastBidStatus(0);
-				household->setLastAwakenedDay(day);
-
-				bidder->setActive(true);
-
 				printAwakeningJingsi(day, household, futureTransitionRate, futureTransitionRandomDraw, movingRate, randomDrawMovingRate);
 
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 				#endif
 
-				IdVector unitIds = agent->getUnitIds();
-
-				for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
-				{
-					BigSerial unitId = *itr;
-					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
-
-					unit->setbiddingMarketEntryDay(day);
-					unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
-					unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
-				}
-
-				household->setLastAwakenedDay(day);
-				model->incrementAwakeningCounter();
 				model->incrementLifestyle3HHs();
 			}
+
+			IdVector unitIds = agent->getUnitIds();
+
+			for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+			{
+				BigSerial unitId = *itr;
+				Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+				unit->setbiddingMarketEntryDay(day);
+				unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
+				unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+			}
+
+			bidder->setActive(true);
+			household->setAwakenedDay(0);
+			household->setLastBidStatus(0);
+			household->setLastAwakenedDay(0);
+			int householdBiddingWindow = ( config.ltParams.housingModel.householdBiddingWindow ) * (double)rand() / RAND_MAX + 1;
+			household->setTimeOnMarket(householdBiddingWindow);
+			agent->setHouseholdBiddingWindow(householdBiddingWindow);
+			//note :: what happens if a household never bids during the bidding window?? where do we set the time off market for those households?
+			model->incrementAwakeningCounter();
 		}
 
 
@@ -389,13 +342,10 @@ namespace sim_mob
 		    	int awakenDay = household->getLastAwakenedDay();
 
 
-		    	if( household->getLastBidStatus() == 0 && day < awakenDay + config.ltParams.housingModel.householdBiddingWindow )
+		    	if( household->getLastBidStatus() == 0 && day < awakenDay + household->getTimeOnMarket() )
 		    		continue;
 
-				if( household->getLastBidStatus() == 1 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid + awakenDay )
-					continue;
-
-				if( household->getLastBidStatus() == 2 && day < config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid + awakenDay )
+				if( (household->getLastBidStatus() == 1 ||  household->getLastBidStatus() == 2) && household->getTimeOffMarket() > 0)
 					continue;
 
                 double futureTransitionRate = 0;
@@ -418,6 +368,12 @@ namespace sim_mob
 				household->setLastBidStatus(0);
 				household->setAwakenedDay(day);
 		    	household->setLastAwakenedDay(day);
+		    	int householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow;
+		    	household->setTimeOnMarket(householdBiddingWindow);
+
+		    	AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
+		    	const HouseholdAgent *householdAgent = lookup.getHouseholdAgentById(household->getId());
+		    	(const_cast<HouseholdAgent*>(householdAgent))->setHouseholdBiddingWindow(householdBiddingWindow);
                 model->incrementAwakeningCounter();
 
 		    	printAwakeningJingsi(day, household, futureTransitionRate, futureTransitionRandomDraw, movingRate, movingRateRandomDraw);

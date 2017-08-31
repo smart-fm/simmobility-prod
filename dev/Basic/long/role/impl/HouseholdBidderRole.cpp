@@ -692,9 +692,10 @@ bool HouseholdBidderRole::pickEntryToBid()
     		screenedEntriesVec.push_back(*itr);
 
 
+    	//btoEntries will contain pointers all the units in our 'units' vector that are marked as BTOs.
     	set<BigSerial> btoEntries = market->getBTOEntries();
 
-        //Add x BTO units to the screenedUnit vector if the household is eligible for it
+        //Add x number of BTO units to the screenedUnit vector if the household is eligible for it
         for(int n = 0; n < config.ltParams.housingModel.bidderBTOUnitsChoiceSet && btoEntries.size() != 0; n++)
         {
         	int offset = (float)rand() / RAND_MAX * ( btoEntries.size() - 1 );
@@ -719,7 +720,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	printChoiceset(day, household->getId(), choiceset);
     }
 
-   //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
+    //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
 
     // Choose the unit to bid with max surplus. However, we are not iterating through the whole list of available units.
     // We choose from a subset of units set by the housingMarketSearchPercentage parameter in the long term XML file.

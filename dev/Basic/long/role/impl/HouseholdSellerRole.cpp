@@ -255,10 +255,8 @@ void HouseholdSellerRole::update(timeslice now)
 
 
 
-            BigSerial tazId = model->getUnitTazId(unitId);
-
-
             bool buySellInvtervalCompleted = false;
+
 
             //entry day is applied only to the vacant units assigned with freelance agents. Units assigned with households are put on the market when the household bidding window is completed.
             bool entryDay = true;
@@ -275,6 +273,8 @@ void HouseholdSellerRole::update(timeslice now)
 
                	buySellInvtervalCompleted = true;
             }
+
+
 
 
             TimeCheck hedonicPriceTiming;
@@ -295,7 +295,12 @@ void HouseholdSellerRole::update(timeslice now)
             	if( firstExpectation.hedonicPrice  < 0.05 )
             		continue;
 
+
+            	BigSerial tazId = model->getUnitTazId(unitId);
+
+
             	unit->setAskingPrice(firstExpectation.askingPrice);
+
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted, unit->getZoneHousingType() ));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
@@ -433,7 +438,7 @@ void HouseholdSellerRole::adjustNotSoldUnits()
     const HM_Model* model = getParent()->getModel();
     HousingMarket* market = getParent()->getMarket();
     const IdVector& unitIds = getParent()->getUnitIds();
-    const Unit* unit = nullptr;
+    Unit* unit = nullptr;
     const HousingMarket::Entry* unitEntry = nullptr;
 
     for (IdVector::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
@@ -459,6 +464,9 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 					sellingUnitsMap.erase(unitId);
 
 					market->removeEntry(unitId);
+
+					unit->setbiddingMarketEntryDay((int)currentTime.ms() + unit->getTimeOffMarket() + 1 );
+
 					continue;
 				 }
 			 }
@@ -567,6 +575,8 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, Expecta
             }
         }
     }
+
+
     return false;
 }
 

@@ -162,15 +162,21 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
 			if( id < model->FAKE_IDS_START )
 			{
+				/*
+				 * beware, next two limits are reset subsequently in householdseller role
+				 * so this for loop is not doing anything beyond initializing limits and the next day as market entry day
+				 */
 				unit->setbiddingMarketEntryDay(day + 1);
 				unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+				unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
 			}
 		}
 
+		// activate all as potential sellers; when unit is available for sale is determined later in the next for loop
 		seller->setActive(true);
 	}
 
-	//has 7 days elapsed since the bidder was activted OR the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
+	//has 7 days elapsed since the bidder was activated OR the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
 	if(buySellInterval == 0 || (acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
 	{
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
@@ -182,6 +188,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 			{
 				HousingMarket::Entry *entry = const_cast<HousingMarket::Entry*>( getMarket()->getEntryById( unit->getId()) );
 
+				// pointer is not null if unit has been entered into the market
 				if( entry != nullptr)
 					entry->setBuySellIntervalCompleted(true);
 			}

@@ -30,23 +30,26 @@ namespace sim_mob
             void saveData(std::vector<IndLogsumJobAssignment*> &logsums, const std::string filename);
             std::vector<IndLogsumJobAssignment*> loadSerializedData(const std::string filename);
 
-            BigSerial getIndividualId() const;
-            float getLogsum() const;
-            std::string getTazId() const;
-
-            void setIndividualId(BigSerial individualId);
-            void setLogsum(float logsum);
-            void setTazId(std::string tazId);
-
             /**
              * Getters and Setters
              */
+            BigSerial getIndividualId() const;
+            double getLogsum() const;
+            std::string getTazId() const;
+
+            void setIndividualId(BigSerial individualId);
+            void setLogsum(double logsum);
+            void setTazId(std::string tazId);
+
+
+        private:
+            friend class IndLogsumJobAssignmentDao;
 
 
         private:
             BigSerial individualId;
             std::string tazId;
-            float	logsum;
+            double	logsum;
          };
     }
 }

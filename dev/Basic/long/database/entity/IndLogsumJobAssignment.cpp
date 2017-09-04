@@ -71,12 +71,12 @@ void IndLogsumJobAssignment::setIndividualId(BigSerial individualId)
 	this->individualId = individualId;
 }
 
-float IndLogsumJobAssignment::getLogsum() const
+double IndLogsumJobAssignment::getLogsum() const
 {
 	return logsum;
 }
 
-void IndLogsumJobAssignment::setLogsum(float logsum)
+void IndLogsumJobAssignment::setLogsum(double logsum)
 {
 	this->logsum = logsum;
 }

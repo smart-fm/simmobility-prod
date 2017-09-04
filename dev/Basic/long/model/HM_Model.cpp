@@ -56,6 +56,7 @@
 #include "database/dao/HHCoordinatesDao.hpp"
 #include "database/dao/HouseholdUnitDao.hpp"
 #include "database/dao/IndvidualEmpSecDao.hpp"
+#include "database/dao/IndLogsumJobAssignmentDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -76,6 +77,7 @@
 #include "SOCI_ConvertersLong.hpp"
 #include <DatabaseHelper.hpp>
 #include "model/VehicleOwnershipModel.hpp"
+#include "model/JobAssignmentModel.hpp"
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -1445,7 +1447,7 @@ void HM_Model::setTaxiAccess2012(const Household *household)
 
 void HM_Model::startImpl()
 {
-	PredayLT_LogsumManager::getInstance();
+	//PredayLT_LogsumManager::getInstance();
 
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -1580,7 +1582,7 @@ void HM_Model::startImpl()
 		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
 
-		//Load units
+		//Load unit types
 		loadData<UnitTypeDao>(conn, unitTypes, unitTypesById, &UnitType::getId);
 		PrintOutV("Number of unit types: " << unitTypes.size() << std::endl);
 
@@ -1681,9 +1683,8 @@ void HM_Model::startImpl()
 	    loadData<PreSchoolDao>( conn_calibration, preSchools, preSchoolById, &PreSchool::getPreSchoolId);
 	    PrintOutV("Number of Pre School rows: " << preSchools.size() << std::endl );
 
-		//::TODO::uncomment after Diem finalized job and emp sec tables. gishara
-		//loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
-		//PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
+		loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
+		PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
 
 		if(resume)
 		{
@@ -2093,6 +2094,8 @@ void HM_Model::startImpl()
 				setTaxiAccess2012(households[n]);
 			}
 		}
+
+
 
 		if(initialLoading && config.ltParams.vehicleOwnershipModel.enabled)
 		{
@@ -3463,31 +3466,24 @@ HM_Model::TazList&  HM_Model::getTazList()
 	return tazs;
 }
 
-void HM_Model::loadIndLogsumJobAssignmentList(BigSerial individualId)
+void HM_Model::loadIndLogsumJobAssignments(BigSerial individuaId)
 {
 	{
 		boost::mutex::scoped_lock lock( mtx );
-		// Loads necessary data from database.
-		DB_Config dbConfig(LT_DB_CONFIG_FILE);
+	DB_Config dbConfig(LT_DB_CONFIG_FILE);
 		dbConfig.load();
-		DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-		conn.connect();
-
+	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
+		conn_calibration.connect();
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-		conn.setSchema(config.schemas.calibration_schema);
+		conn_calibration.setSchema(config.schemas.calibration_schema);
+		IndLogsumJobAssignmentDao logsumDao(conn_calibration);
+		indLogsumJobAssignmentList = logsumDao.loadLogsumByIndividualId(individuaId);
 
-		soci::session sql;
-		sql.open(soci::postgresql, conn.getConnectionStr());
-		std::string tableName = "ind_logsums_job_assignment";
-		//SQL statement
-		std::string individualIdStr = std::to_string(individualId);
-		soci::rowset<IndLogsumJobAssignment> logsumObj = (sql.prepare << "select * from "  + conn.getSchema() + tableName + "where individual_id = " + individualIdStr);
-
-		for (soci::rowset<IndLogsumJobAssignment>::const_iterator itLogsums = logsumObj.begin(); itLogsums != logsumObj.end(); ++itLogsums)
+		for (IndLogsumJobAssignmentList::iterator it = indLogsumJobAssignmentList.begin(); it != indLogsumJobAssignmentList.end(); it++)
 		{
-			IndLogsumJobAssignment* logsum = new IndLogsumJobAssignment(*itLogsums);
-			indLogsumJobAssignmentList.push_back(logsum);
-			indLogsumJobAssignmentByTaz.insert(std::make_pair(logsum->getTazId(), logsum));
+			//CompositeKey indTazIdPair = make_pair((*it)->getIndividualId(), (*it)->getTazId());
+			//indLogsumJobAssignmentByTaz.insert(make_pair(indTazIdPair, *it));
+			indLogsumJobAssignmentByTaz.insert(std::make_pair((*it)->getTazId(), *it));
 		}
 
 	}
@@ -3503,8 +3499,9 @@ IndLogsumJobAssignment* HM_Model::getIndLogsumJobAssignmentByTaz(BigSerial tazId
 	{
 		boost::mutex::scoped_lock lock( mtx3 );
 		string tazIdStr = 'X' + std::to_string(tazId);
-		IndLogsumJobAssignmentByTaz::const_iterator itr = indLogsumJobAssignmentByTaz.find(tazIdStr);
+		//CompositeKey indTazIdKey = make_pair(individualId, tazIdStr);
 
+		IndLogsumJobAssignmentByTaz::const_iterator itr = indLogsumJobAssignmentByTaz.find(tazIdStr);
 		if (itr != indLogsumJobAssignmentByTaz.end())
 		{
 			return (*itr).second;

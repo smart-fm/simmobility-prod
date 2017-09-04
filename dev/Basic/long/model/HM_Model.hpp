@@ -218,6 +218,9 @@ namespace sim_mob
             typedef boost::unordered_map<BigSerial, JobsBySectorByTaz*>JobsBySectorByTazMap;
 
             typedef std::vector<IndLogsumJobAssignment*> IndLogsumJobAssignmentList;
+            //typedef pair<BigSerial, std::string> CompositeKey;
+            //typedef std::multimap<CompositeKey, IndLogsumJobAssignment*> IndLogsumJobAssignmentByTaz;
+
             typedef boost::unordered_map<string, IndLogsumJobAssignment*>IndLogsumJobAssignmentByTaz;
 
             /**
@@ -487,7 +490,7 @@ namespace sim_mob
 
             TazList& getTazList();
 
-            void loadIndLogsumJobAssignmentList(BigSerial individualId);
+            void loadIndLogsumJobAssignments(BigSerial individuaId);
             IndLogsumJobAssignmentList& getIndLogsumJobAssignment();
             IndLogsumJobAssignment* getIndLogsumJobAssignmentByTaz(BigSerial tazId);
 

@@ -9,6 +9,9 @@
 #include "util/SharedFunctions.hpp"
 #include "util/PrintLog.hpp"
 #include "database/entity/IndLogsumJobAssignment.hpp"
+#include <iostream>
+#include <fstream>
+#include <string>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -21,7 +24,8 @@ JobAssignmentModel::~JobAssignmentModel() {}
 void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 {
 	vector<Taz*> tazs = model->getTazList();
-	model->loadIndLogsumJobAssignmentList(individualId);
+
+	model->loadIndLogsumJobAssignments(individualId);
 	double totalExp = 0;
 	map<BigSerial,double> expValMap;
 	for(Taz *taz : tazs)
@@ -48,7 +52,7 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		}
 
 
-		IndLogsumJobAssignment *logsumObj = 	model->getIndLogsumJobAssignmentByTaz(tazId);
+		IndLogsumJobAssignment *logsumObj = model->getIndLogsumJobAssignmentByTaz(tazId);
 		double logsum = 0;
 		if(logsumObj != nullptr)
 		{
@@ -75,6 +79,7 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		int sector11 = 0;
 		int sector98 = 0;
 
+		//set the relevant sector id to 1 based on the sector id of the individual.
 		switch(sectorId)
 		{
 		case 1: sector1 = 1;
@@ -105,10 +110,13 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		}
 
 		std::vector<JobAssignmentCoeffs*> jobAssignmentCoeffs = model->getJobAssignmentCoeffs();
-		JobAssignmentCoeffs *jobAssignmentCoeffsObj = jobAssignmentCoeffs[1];
+		JobAssignmentCoeffs *jobAssignmentCoeffsObj = jobAssignmentCoeffs.at(0);
 
 		const JobsBySectorByTaz* jobsBySecByTaz = model->getJobsBySectorByTazId(tazId);
 		int numJobsInSector = 0;
+
+		if(jobsBySecByTaz != nullptr)
+		{
 		switch(sectorId)
 		{
 		case 1: numJobsInSector = jobsBySecByTaz->getSector1();
@@ -137,6 +145,7 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		break;
 
 		}
+		}
 
 		double lgNumJobsInSector = 0;
 		if(numJobsInSector == 0)
@@ -149,10 +158,10 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		}
 
 		double expCurrent = exp ((jobAssignmentCoeffsObj->getBetaInc1() * incomecat1 * logsum) + (jobAssignmentCoeffsObj->getBetaInc2() * incomeCat2 * logsum) + (jobAssignmentCoeffsObj->getBetaInc3() * incomeCat3 * logsum) +
-				(jobAssignmentCoeffsObj->getBetaLgs()* logsum) + (jobAssignmentCoeffsObj->getBetaS1() * jobsBySecByTaz->getSector1()  * logsum) + (jobAssignmentCoeffsObj->getBetaS1() * jobsBySecByTaz->getSector1() * logsum)+
+				(jobAssignmentCoeffsObj->getBetaLgs()* logsum) +
 				(jobAssignmentCoeffsObj->getBetaS1() * sector1 * logsum) + (jobAssignmentCoeffsObj->getBetaS2() * sector2 * logsum)+ (jobAssignmentCoeffsObj->getBetaS3() * sector3 * logsum)+
 				(jobAssignmentCoeffsObj->getBetaS4() * sector4 * logsum)+ (jobAssignmentCoeffsObj->getBetaS5() * sector5  * logsum)+ (jobAssignmentCoeffsObj->getBetaS6() * sector6 * logsum)+
-				(jobAssignmentCoeffsObj->getBetaS7() * sector7)+ (jobAssignmentCoeffsObj->getBetaS8() * jobsBySecByTaz->getSector8() * sector8)+ (jobAssignmentCoeffsObj->getBetaS9() * sector9)+
+				(jobAssignmentCoeffsObj->getBetaS7() * sector7 * logsum)+ (jobAssignmentCoeffsObj->getBetaS8() * sector8 * logsum)+ (jobAssignmentCoeffsObj->getBetaS9() * sector9 * logsum)+
 				(jobAssignmentCoeffsObj->getBetaS10() * sector10 * logsum) + (jobAssignmentCoeffsObj->getBetaS11() * sector11 * logsum) + (jobAssignmentCoeffsObj->getBetaS98() * sector98 * logsum) +
 				(jobAssignmentCoeffsObj->getBetaLnJob() * lgNumJobsInSector));
 		expValMap.insert(std::pair<BigSerial, double>( tazId, expCurrent));
@@ -166,9 +175,10 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 			{
 				double probVal = (expVal.second / totalExp);
 				probValMap.insert(std::pair<BigSerial, double>( expVal.first, probVal));
-				writeJobAssignmentProbsToFile(individaulId, expVal.first, probVal);
+				writeJobAssignmentProbsToFile(individualId, expVal.first, probVal);
 			}
 		}
+
 
 		//generate a random number with uniform real distribution.
 		std::random_device rd;

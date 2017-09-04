@@ -402,6 +402,10 @@ void HouseholdBidderRole::TakeUnitOwnership()
 	HM_Model* model = getParent()->getModel();
 	model->addHouseholdsTo_OPSchema(houseHold);
 
+	Unit *unit = model->getUnitById(unitIdToBeOwned);
+	unit->setTenureStatus(1);
+
+
     biddingEntry.invalidate();
     Statistics::increment(Statistics::N_ACCEPTED_BIDS);
 }
@@ -746,13 +750,13 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             bool flatEligibility = true;
 
- 			if( household->getTenureStatus() == 0 && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
+ 			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
 				flatEligibility = false;
 
-			if( household->getTenureStatus() == 0 && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
 				flatEligibility = false;
 
-			if( household->getTenureStatus() == 0 && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+			if( unit->getTenureStatus() == 0 && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
 				flatEligibility = false;
 
 

@@ -138,11 +138,7 @@
                     <awakeningOffMarketSuccessfulBid value="210"/>
  	            <awakeningOffMarketUnsuccessfulBid value="210"/>
 	    </awakeningModel>
-<<<<<<< HEAD
-	    <vacantUnitActivationProbability value="0.2"/>
-=======
 	    <vacantUnitActivationProbability value="0.2000"/>
->>>>>>> master
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>	   
 	    <bidderUnitsChoiceSet value = "50"/>

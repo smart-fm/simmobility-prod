@@ -103,14 +103,14 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="365"/>
+    	<days value="30"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>  
 	<year value = "2012" />   
 	<resume value ="false"/> 
 	<currentOutputSchema value = "baseline_2012_20170811023744"/> <!--if resume is true give the current op schema name-->
-        <opSchemaloadingInterval value = "365"/>
+        <opSchemaloadingInterval value = "30"/>
         <initialLoading value = "true" />
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
@@ -138,11 +138,7 @@
                     <awakeningOffMarketSuccessfulBid value="210"/>
  	            <awakeningOffMarketUnsuccessfulBid value="210"/>
 	    </awakeningModel>
-<<<<<<< HEAD
 	    <vacantUnitActivationProbability value="0.2"/>
-=======
-	    <vacantUnitActivationProbability value="0.2000"/>
->>>>>>> master
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>	   
 	    <bidderUnitsChoiceSet value = "50"/>

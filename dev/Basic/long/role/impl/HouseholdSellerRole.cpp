@@ -455,7 +455,8 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 			 {
 				 SellingUnitInfo& info = it->second;
 
-				 if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
+				 //if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
+				 if(unit->getTimeOnMarket() == 0)
 				 {
 					#ifdef VERBOSE
 					PrintOutV("[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
@@ -465,7 +466,7 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 
 					market->removeEntry(unitId);
 
-					unit->setbiddingMarketEntryDay((int)currentTime.ms() + unit->getTimeOffMarket() + 1 );
+					//unit->setbiddingMarketEntryDay((int)currentTime.ms() + unit->getTimeOffMarket() + 1 );
 
 					continue;
 				 }

@@ -320,7 +320,8 @@ void RealEstateSellerRole::adjustNotSoldUnits()
 			 {
 				 SellingUnitInfo& info = it->second;
 
-				 if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
+				// if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
+				 if(unit->getTimeOnMarket() == 0)
 				 {
 					#ifdef VERBOSE
 					PrintOutV("[day " << this->currentTime.ms() << "] RealEstate Agent. Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );

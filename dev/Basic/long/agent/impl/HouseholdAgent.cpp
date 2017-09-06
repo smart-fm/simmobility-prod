@@ -189,6 +189,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		}
 
 		//As soon as the bidder becomes active, the seller also becomes active
+		//even the seller is set to active here, he will not start to put units in the market until the buy sell interval is completed.
 		seller->setActive(true);
 	}
 

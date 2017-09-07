@@ -432,14 +432,34 @@ void Unit::setAskingPrice(double askingPrice)
 	this->askingPrice = askingPrice;
 }
 
-void Unit::updateTimeOnMarket()
+void Unit::updateRemainingTimeOnMarket()
 {
-	--this->timeOnMarket;
+	--this->remainingTimeOnMarket;
 }
 
-void Unit::updateTimeOffMarket()
+void Unit::updateRemainingTimeOffMarket()
 {
-	--this->timeOffMarket;
+	--this->remainingTimeOffMarket;
+}
+
+int Unit::getRemainingTimeOffMarket() const
+{
+	return remainingTimeOffMarket;
+}
+
+void Unit::setRemainingTimeOffMarket(int remainingTimeOffMarket)
+{
+	this->remainingTimeOffMarket = remainingTimeOffMarket;
+}
+
+int Unit::getRemainingTimeOnMarket() const
+{
+	return remainingTimeOnMarket;
+}
+
+void Unit::setRemainingTimeOnMarket(int remainingTimeOnMarket)
+{
+	this->remainingTimeOnMarket = remainingTimeOnMarket;
 }
 
 namespace sim_mob

@@ -106,13 +106,19 @@ namespace sim_mob
             bool isBto() const;
             bool isExistInDb() const ;
             double getAskingPrice() const;
-            void updateTimeOnMarket();
-            void updateTimeOffMarket();
+            void updateRemainingTimeOnMarket();
+            void updateRemainingTimeOffMarket();
 
             template<class Archive>
             void serialize(Archive & ar,const unsigned int version);
             void saveData(std::vector<Unit*> &units);
             std::vector<Unit*> loadSerializedData();
+
+            int getRemainingTimeOffMarket() const;
+            void setRemainingTimeOffMarket(int remainingTimeOffMarket);
+
+            int getRemainingTimeOnMarket() const;
+            void setRemainingTimeOnMarket(int remainingTimeOnMarket);
             /**
              * Operator to print the Unit data.  
              */
@@ -151,6 +157,8 @@ namespace sim_mob
             bool existInDB;
             bool isBTO;
             double askingPrice;
+            int remainingTimeOnMarket;
+            int remainingTimeOffMarket;
 
 
             static constexpr auto filename = "units";

@@ -2871,29 +2871,25 @@ void HM_Model::update(int day)
 			//update unit's time on and off market values.
 
 			//unit is on the market if it is on or passed the bidding market entry day.
-			if ( (*it)->getTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay())
+			if ( (*it)->getRemainingTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay())
 			{
-				(*it)->updateTimeOnMarket();
+				(*it)->updateRemainingTimeOnMarket();
 			}
 			//unit is off the market if it has already completed the time on the market or if it has not yet entered the market.
-			else if((*it)->getTimeOnMarket() == 0 || day < (*it)->getbiddingMarketEntryDay())
+			else if((*it)->getRemainingTimeOnMarket() == 0 || day < (*it)->getbiddingMarketEntryDay())
 			{
 
-				//If a unit is off the market and unoccupied, we should put it back on the market after its timeOffMarket value is exceeded.
-				//if( day > (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket()  )
-
 				//unit is off the market and has completed the waiting time.
-				if((*it)->getTimeOffMarket() <= 0)
+				if((*it)->getRemainingTimeOffMarket() <= 0)
 				{
-					//PrintOutV("A unit is being re-awakened" << std::endl);
-					(*it)->setbiddingMarketEntryDay(day + 1);
+
 					//when a unit is re-awakened it will have the full amount of time on and off market.
-					(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket);
-					(*it)->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket);
+					(*it)->setRemainingTimeOnMarket( (*it)->getTimeOnMarket());
+					(*it)->setRemainingTimeOffMarket( (*it)->getTimeOffMarket());
 				}
 				else // unit is off the market.
 				{
-					(*it)->updateTimeOffMarket();
+					(*it)->updateRemainingTimeOffMarket();
 				}
 			}
 

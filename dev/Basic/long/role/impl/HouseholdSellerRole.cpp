@@ -455,8 +455,8 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 			 {
 				 SellingUnitInfo& info = it->second;
 
-				 //if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
-				 if(unit->getTimeOnMarket() == 0)
+				 //unit has already completed its time on market. So we can remove it from the list.
+				 if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
 				 {
 					#ifdef VERBOSE
 					PrintOutV("[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
@@ -466,7 +466,10 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 
 					market->removeEntry(unitId);
 
-					//unit->setbiddingMarketEntryDay((int)currentTime.ms() + unit->getTimeOffMarket() + 1 );
+					unit->setbiddingMarketEntryDay((int)currentTime.ms() + unit->getTimeOffMarket() + 1 );
+					unit->setRemainingTimeOffMarket((int)currentTime.ms() + unit->getTimeOffMarket());
+					const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+					unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 
 					continue;
 				 }

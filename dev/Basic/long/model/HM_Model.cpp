@@ -1894,11 +1894,17 @@ void HM_Model::startImpl()
 			}
 
 			//(*it)->setbiddingMarketEntryDay( unitStartDay );
+			int timeOnMarket = 0;
+			int timeOffMarket = 0;
 			if(!resume)
 			{
-				(*it)->setTimeOnMarket(  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
-				(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
+				int timeOnMarket =  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket;
+				int timeOffMarket = 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket;
+				(*it)->setTimeOnMarket(timeOnMarket );
+				(*it)->setTimeOffMarket(timeOffMarket );
 				(*it)->setbiddingMarketEntryDay(999999);
+				(*it)->setRemainingTimeOnMarket(timeOnMarket);
+				(*it)->setRemainingTimeOffMarket(timeOffMarket);
 			}
 
 			//this unit is a vacancy
@@ -1913,10 +1919,11 @@ void HM_Model::startImpl()
 					if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 					{
 						/*if awakened, time on the market was set to randomized number above,
-											and subsequent time off the market is fixed via setTimeOffMarket.
+						and subsequent time off the market is fixed via setTimeOffMarket.
 						 */
 						(*it)->setbiddingMarketEntryDay( unitStartDay );
 						(*it)->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
+						(*it)->setRemainingTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 						onMarket++;
 					}
 					else
@@ -1924,8 +1931,9 @@ void HM_Model::startImpl()
 						/*If not awakened, time off the market was set to randomized number above,
 						and subsequent time on market is fixed via setTimeOnMarket.
 						 */
-						(*it)->setbiddingMarketEntryDay( unitStartDay + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
+						(*it)->setbiddingMarketEntryDay( 1+ timeOffMarket);
 						(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+						(*it)->setRemainingTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 						offMarket++;
 					}
 					}

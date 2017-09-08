@@ -56,7 +56,6 @@
 #include "database/dao/HHCoordinatesDao.hpp"
 #include "database/dao/HouseholdUnitDao.hpp"
 #include "database/dao/IndvidualEmpSecDao.hpp"
-#include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
@@ -1443,6 +1442,12 @@ void HM_Model::setTaxiAccess2012(const Household *household)
 }
 
 
+std::vector<HouseholdAgent*> HM_Model::getFreelanceAgents()
+{
+	return freelanceAgents;
+}
+
+
 void HM_Model::startImpl()
 {
 	PredayLT_LogsumManager::getInstance();
@@ -1743,7 +1748,6 @@ void HM_Model::startImpl()
 	//
 	//Create freelance seller agents to sell vacant units.
 	//
-	std::vector<HouseholdAgent*> freelanceAgents;
 	for (int i = 0; i < numWorkers ; i++)
 	{
 		HouseholdAgent* freelanceAgent = new HouseholdAgent((FAKE_IDS_START + i),this, nullptr, &market, true, startDay, config.ltParams.housingModel.householdBiddingWindow);

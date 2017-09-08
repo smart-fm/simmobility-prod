@@ -177,16 +177,17 @@ local beta_shopothers_ss = 0
 
 --choiceset
 local choice = {
-        {0,0,0,0},
-        {1,0,0,0},
-        {0,1,0,0},
-        {0,0,1,0},
-        {0,0,0,1},
-        {1,0,1,0},
-        {1,0,0,1},
-        {0,1,1,0},
-        {0,1,0,1},
-        {0,0,1,1},
+        {0,0,0,0,0},
+        {1,0,0,0,0},
+        {0,1,0,0,0},
+        {0,0,1,0,0},
+        {0,0,0,1,0},
+        {0,0,0,0,1},
+        {1,0,1,0,0},
+        {1,0,0,1,0},
+        {0,1,1,0,0},
+        {0,1,0,1,0}
+
         
 }        
 
@@ -498,9 +499,13 @@ local scale = 1 -- for all choices
 -- params table contains data passed from C++
 -- to check variable bindings in params, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function choose_dps(params)
-	computeUtilities(params) 
+	
+	computeUtilities(params)
+	
 	computeAvailabilities(params)
+	
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
+	
 	idx = make_final_choice(probability)
 	return choice[idx]
 end

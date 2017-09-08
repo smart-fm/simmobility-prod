@@ -183,20 +183,20 @@ local activity_types = { ["Work"] = 1, ["Education"] = 2, ["Shop"] = 3, ["Others
 
 --choiceset
 local choice = {
-        {1,0,0,0},
-        {0,1,0,0},
-        {0,0,1,0},
-        {0,0,0,1},
-        {1,1,0,0},
-        {1,0,1,0},
-        {1,0,0,1},
-        {0,1,1,0},
-        {0,1,0,1},
-        {0,0,1,1},
-        {1,1,0,1},
-        {1,0,1,1},
-        {1,1,1,0},
-        {0,1,1,1}
+        {1,0,0,0,0},
+        {0,1,0,0,0},
+        {0,0,1,0,0},
+        {0,0,0,1,0},
+        {1,0,0,0,1},
+        {1,0,1,0,0},
+        {1,0,0,1,0},
+        {0,1,1,0,0},
+        {0,1,0,1,1},
+        {0,0,1,1,0},
+        {1,1,0,1,1},
+        {1,0,1,1,0},
+        {1,1,1,0,0},
+        {0,1,1,1,1}
 }        
 
   -- WorkTi,EduTi,ShopTi,OthersTi 
@@ -510,8 +510,11 @@ local scale = 1 -- for all choices
 function choose_dpt(params)
 	computeUtilities(params) 
 	computeAvailabilities(params)
+
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
+
 	idx = make_final_choice(probability)
+
 	return choice[idx]
 end
 

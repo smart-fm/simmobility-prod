@@ -81,8 +81,8 @@
     
     <system>         
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
-        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
-        <population_database  database="fm_hpchead" credentials="fm_hpchead" proc_map=""/> 
+        <network_database database="fm_remote" credentials="fm_local" proc_map="simmobcity"/>
+        <population_database  database="fm_remote" credentials="fm_local" proc_map=""/> 
 
         <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->
         <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
@@ -164,6 +164,7 @@
 	    <activity_type name="Education" withinday_mode_choice="wdme" num_tours="nte" tour_mode_dest="" tour_mode="tme" tour_time_of_day="ttde" type="2" logsum_table_column="education"/>
 	    <activity_type name="Shop" withinday_mode_choice="wdmso" num_tours="nts" tour_mode_dest="tmds" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="shop"/>
 	    <activity_type name="Other" withinday_mode_choice="wdmso" num_tours="nto" tour_mode_dest="tmdo" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="other"/>
+	    <activity_type name="NewType" withinday_mode_choice="wdmso" num_tours="nto" tour_mode_dest="tmdo" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="newtype"/>
     </activity_types>
 
     <!-- config specific to supply simulator -->                    
@@ -223,17 +224,17 @@
         <run_mode value="logsum"/>
         <!-- Number of threads to create for processing the population in-->
         <!-- the preday demand simulator -->
-        <threads value="6"/>
+        <threads value="12"/>
         <!-- outputs the preday predictions as activity schedule in CSV format if enabled with simulation run_mode -->
         <output_activity_schedule enabled="true"/>
         <!-- prints person ids and tour details in console for each person if enabled -->
         <console_output enabled="true"/>
         
         <!-- table containing logsums for each individual in the population. NOTE:  -->
-        <logsum_table name="demand.preday_logsum_test"/>
+        <logsum_table name="demand.preday_logsum_test_new_activity_aditi"/>
 
         <!-- model scripts for preday -->
-        <model_scripts path="scripts/lua/mid/behavior-models_new_modes" format="lua">
+        <model_scripts path="scripts/lua/mid/behavior_vc" format="lua">
             <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
             <script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
             <script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
@@ -273,7 +274,7 @@
             <SPSA>
                 <!-- max number of iterations that spsa must run for -->
                 <iterations value="20"/>
-                <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
+                <!-- termination condition for spsa is (F(X_kint+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
                 <tolerence value="0.000001"/>
                 <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->
                 <gradient_step_size initial_value="0.1" algorithm_coefficient2="0.101"/>

@@ -1402,7 +1402,7 @@ void PredaySystem::calculateTourEndTime(Tour& tour)
 }
 
 void PredaySystem::constructTours() {
-	if(numTours.size() != 4) {
+	if(numTours.size() != activityTypeConfigMap.size()) {
 		// Probably predictNumTours() was not called prior to this function
 		throw std::runtime_error("Tours cannot be constructed before predicting number of tours for each tour type");
 	}

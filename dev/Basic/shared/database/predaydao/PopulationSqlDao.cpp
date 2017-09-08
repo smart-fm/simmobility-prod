@@ -5,6 +5,8 @@
 #include "PopulationSqlDao.hpp"
 
 #include <boost/lexical_cast.hpp>
+#include "conf/ConfigManager.hpp"
+#include <conf/ConfigParams.hpp>
 #include "DatabaseHelper.hpp"
 #include "logging/Log.hpp"
 
@@ -169,12 +171,25 @@ void PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<6> >& vehi
 		}
 	}
 }
+std::string var_value()
+{
 
+    const std::unordered_map<StopType, ActivityTypeConfig>& activityTypeConfig = ConfigManager::GetInstance().FullConfig().getActivityTypeConfigMap();
+    int num_activity= activityTypeConfig.size();
+    std::string column_name =" VALUES ( :v1, ";  // for first column person_id
+    for(int i=1;i<=num_activity;i++)
+    {
+        column_name += ":v" + std::to_string(i+1) + ", ";
+    }
+    column_name += ":v" + std::to_string( num_activity + 2 ) + ", :v" + std::to_string( num_activity + 3 ) + ") ";
+
+    return column_name;
+}
 SimmobSqlDao::SimmobSqlDao(db::DB_Connection& connection, const std::string& tableName, const std::vector<std::string>& activityLogsumColumns) :
 		SqlAbstractDao<PersonParams>(
 				connection,
 				tableName,
-				("INSERT INTO " + tableName + " VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)"), //insert
+				("INSERT INTO " + tableName + var_value()), //" VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8)"), //insert
 				"", //update
 				("TRUNCATE " + tableName), //delete
 				"", //get all

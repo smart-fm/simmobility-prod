@@ -1626,12 +1626,20 @@ void sim_mob::medium::PredaySystem::computeLogsums()
 	{
 		TourModeParams tmParams;
         constructTourModeParams(tmParams, personParams.getFixedWorkLocation(), cfg.getActivityTypeId("Work"));
-        PredayLuaProvider::getPredayModel().computeTourModeLogsum(personParams, activityTypeConfigMap, tmParams);
+        PredayLuaProvider::getPredayModel().computeTourModeLogsumWork(personParams, activityTypeConfigMap, tmParams);
 	}
     TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, numModes, unavailableODs);
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
     PredayLuaProvider::getPredayModel().initializeLogsums(personParams, activityTypeConfigMap);
     PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, activityTypeConfigMap, tmdParams, zoneMap.size());
+    	// ISABEL
+	if(personParams.isStudent())
+	{
+		TourModeParams tmParams;
+	        constructTourModeParams(tmParams, personParams.getFixedSchoolLocation(), cfg.getActivityTypeId("Education"));
+        	PredayLuaProvider::getPredayModel().computeTourModeLogsumEducation(personParams, activityTypeConfigMap, tmParams);
+	}
+
 	PredayLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);
 
     logStream << "Person: " << personParams.getPersonId() << "|updated logsums- ";

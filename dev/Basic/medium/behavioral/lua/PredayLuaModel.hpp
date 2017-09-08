@@ -96,8 +96,9 @@ public:
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object
 	 * @param tourModeParams parameters specific to tour mode model
 	 */
-    void computeTourModeLogsum(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes, TourModeParams& tourModeParams) const;
+    void computeTourModeLogsumWork(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes, TourModeParams& tourModeParams) const;
 
+    void computeTourModeLogsumEducation(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes, TourModeParams& tourModeParams) const;
 	/**
 	 * Computes logsums from day-pattern tours and day-pattern stops models
 	 *

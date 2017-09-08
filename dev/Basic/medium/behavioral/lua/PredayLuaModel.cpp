@@ -53,6 +53,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses()
                 .addFunction("activity_logsum", &PersonParams::getActivityLogsum)
 				.addProperty("dptour_logsum", &PersonParams::getDptLogsum)
 				.addProperty("dpstop_logsum", &PersonParams::getDpsLogsum)
+				.addProperty("studentTypeId", &PersonParams::getStudentTypeId)
 				.addFunction("getTimeWindowAvailabilityTour", &PersonParams::getTimeWindowAvailability)
 			.endClass()
 
@@ -125,7 +126,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses()
 			.endClass()
 
 			.beginClass<StopModeDestinationParams>("StopModeDestinationParams")
-				.addFunction("stop_type", &StopModeDestinationParams::getTourPurpose)
+				.addProperty("stop_type", &StopModeDestinationParams::getTourPurpose)
 				.addFunction("cost_public", &StopModeDestinationParams::getCostPublic)
 				.addFunction("cost_car_ERP", &StopModeDestinationParams::getCarCostERP)
 				.addFunction("cost_car_OP", &StopModeDestinationParams::getCostCarOP)
@@ -162,6 +163,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses()
 			.endClass()
 
 			.beginClass<StopTimeOfDayParams>("StopTimeOfDayParams")
+				.addProperty("stop_type", &StopTimeOfDayParams::getStopType)
 				.addFunction("TT", &StopTimeOfDayParams::getTravelTime)
 				.addFunction("cost", &StopTimeOfDayParams::getTravelCost)
 				.addProperty("high_tod", &StopTimeOfDayParams::getTodHigh)
@@ -343,7 +345,7 @@ int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams,
 	}
 }
 
-void sim_mob::medium::PredayLuaModel::computeTourModeLogsum(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
+void sim_mob::medium::PredayLuaModel::computeTourModeLogsumWork(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
                                                             TourModeParams& tourModeParams) const
 {
     for (const auto& activity : activityTypes)
@@ -351,12 +353,32 @@ void sim_mob::medium::PredayLuaModel::computeTourModeLogsum(PersonParams& person
         const ActivityTypeConfig& actConfig = activity.second;
         if (actConfig.type == WORK_ACTIVITY_TYPE && personParams.hasFixedWorkPlace())
         {
-            if (!actConfig.tourModeDestModel.empty())
+            if (!actConfig.tourModeModel.empty())
             {
                 std::string luaFunc = "compute_logsum_" + actConfig.tourModeModel;
                 LuaRef computeLogsumTMW = getGlobal(state.get(), luaFunc.c_str());
                 LuaRef workLogSum = computeLogsumTMW(&personParams, &tourModeParams);
                 personParams.setActivityLogsum(activity.first, workLogSum.cast<double>());
+            }
+        }
+    }
+}
+
+void sim_mob::medium::PredayLuaModel::computeTourModeLogsumEducation(PersonParams& personParams, const std::unordered_map<int, ActivityTypeConfig> &activityTypes,
+                                                            TourModeParams& tourModeParams) const
+{
+    for (const auto& activity : activityTypes)
+    {
+        const ActivityTypeConfig& actConfig = activity.second;
+      
+        if (actConfig.type == EDUCATION_ACTIVITY_TYPE && personParams.isStudent())
+        {
+        	if (!actConfig.tourModeModel.empty())
+            {
+                std::string luaFunc = "compute_logsum_" + actConfig.tourModeModel;
+                LuaRef computeLogsumTME = getGlobal(state.get(), luaFunc.c_str());
+                LuaRef eduLogSum = computeLogsumTME(&personParams, &tourModeParams);
+                personParams.setActivityLogsum(activity.first, eduLogSum.cast<double>());
             }
         }
     }
@@ -370,7 +392,7 @@ void sim_mob::medium::PredayLuaModel::computeTourModeDestinationLogsum(PersonPar
         const ActivityTypeConfig& actConfig = activity.second;
         if (actConfig.type == EDUCATION_ACTIVITY_TYPE)
         {
-            continue;
+               	continue;
         }
 
         if (actConfig.type == WORK_ACTIVITY_TYPE && !personParams.hasFixedWorkPlace())
@@ -387,7 +409,7 @@ void sim_mob::medium::PredayLuaModel::computeTourModeDestinationLogsum(PersonPar
         {
             if (!actConfig.tourModeDestModel.empty())
             {
-                std::string luaFunc = "compute_logsum_" + actConfig.tourModeDestModel;
+      			 std::string luaFunc = "compute_logsum_" + actConfig.tourModeDestModel;
                 LuaRef computeLogsumTMD = getGlobal(state.get(), luaFunc.c_str());
                 LuaRef logsum = computeLogsumTMD(&personParams, &tourModeDestinationParams, zoneSize);
                 personParams.setActivityLogsum(activity.first, logsum.cast<double>());

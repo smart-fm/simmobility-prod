@@ -1477,6 +1477,7 @@ void HM_Model::startImpl()
 		loadStudyAreas(conn);
 		loadJobsBySectorByTaz(conn_calibration);
 		loadJobAssignments(conn);
+		loadJobsByTazAndIndustryType(conn);
 
 		{
 			soci::session sql;
@@ -2837,7 +2838,6 @@ void HM_Model::update(int day)
 			//If a unit is off the market and unoccupied, we should put it back on the market after its timeOffMarket value is exceeded.
 			if( day > (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket()  )
 			{
-				//PrintOutV("A unit is being re-awakened" << std::endl);
 				(*it)->setbiddingMarketEntryDay(day + 1);
 				(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
 			}
@@ -3470,9 +3470,9 @@ void HM_Model::loadIndLogsumJobAssignments(BigSerial individuaId)
 {
 	{
 		boost::mutex::scoped_lock lock( mtx );
-	DB_Config dbConfig(LT_DB_CONFIG_FILE);
+		DB_Config dbConfig(LT_DB_CONFIG_FILE);
 		dbConfig.load();
-	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
+		DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
 		conn_calibration.connect();
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 		conn_calibration.setSchema(config.schemas.calibration_schema);
@@ -3509,6 +3509,31 @@ IndLogsumJobAssignment* HM_Model::getIndLogsumJobAssignmentByTaz(BigSerial tazId
 
 		return nullptr;
 	}
+
+}
+
+void HM_Model::loadJobsByTazAndIndustryType(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+
+	const std::string storedProc = conn.getSchema() + "getJobsWithIndustryTypeAndTazId()";
+	//SQL statement
+	soci::rowset<JobsWithIndustryTypeAndTazId> jobsWithIndTypeAndTazObj = (sql.prepare << "select * from " + storedProc);
+	for (soci::rowset<JobsWithIndustryTypeAndTazId>::const_iterator itJobs = jobsWithIndTypeAndTazObj.begin(); itJobs != jobsWithIndTypeAndTazObj.end(); ++itJobs)
+	{
+		JobsWithIndustryTypeAndTazId* job = new JobsWithIndustryTypeAndTazId(*itJobs);
+		TazAndIndustryTypeKey tazIdIndTypePair = make_pair(job->getTazId(), job->getIndustryTypeId());
+		jobsByTazAndIndustryType.insert(make_pair(tazIdIndTypePair, job));
+	}
+
+	PrintOutV("Number of Jobs with Taz Id and Industry Type: " << jobsByTazAndIndustryType.size() << std::endl );
+}
+
+HM_Model::JobsByTazAndIndustryTypeMap& HM_Model::getJobsByTazAndIndustryTypeMap()
+{
+	return this->jobsByTazAndIndustryType;
 
 }
 

@@ -58,6 +58,7 @@
 #include "database/entity/JobAssignmentCoeffs.hpp"
 #include "database/entity/JobsBySectorByTaz.hpp"
 #include "database/entity/IndLogsumJobAssignment.hpp"
+#include "database/entity/JobsWithIndustryTypeAndTazId.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -222,6 +223,9 @@ namespace sim_mob
             //typedef std::multimap<CompositeKey, IndLogsumJobAssignment*> IndLogsumJobAssignmentByTaz;
 
             typedef boost::unordered_map<string, IndLogsumJobAssignment*>IndLogsumJobAssignmentByTaz;
+
+            typedef pair<BigSerial, int> TazAndIndustryTypeKey;
+            typedef std::multimap<TazAndIndustryTypeKey, JobsWithIndustryTypeAndTazId*> JobsByTazAndIndustryTypeMap;
 
             /**
              * Taz statistics
@@ -494,6 +498,10 @@ namespace sim_mob
             IndLogsumJobAssignmentList& getIndLogsumJobAssignment();
             IndLogsumJobAssignment* getIndLogsumJobAssignmentByTaz(BigSerial tazId);
 
+            void loadJobsByTazAndIndustryType(DB_Connection &conn);
+            JobsByTazAndIndustryTypeMap& getJobsByTazAndIndustryTypeMap();
+
+
         protected:
             /**
              * Inherited from Model.
@@ -697,6 +705,8 @@ namespace sim_mob
 
 			IndLogsumJobAssignmentList indLogsumJobAssignmentList;
 			IndLogsumJobAssignmentByTaz indLogsumJobAssignmentByTaz;
+
+			JobsByTazAndIndustryTypeMap jobsByTazAndIndustryType;
 
         };
     }

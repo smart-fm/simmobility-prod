@@ -127,6 +127,11 @@ struct LongTermParams
 		unsigned int schoolChangeWaitingTimeInDays;
 	}schoolAssignmentModel;
 
+	struct JobAssignmentModel{
+		JobAssignmentModel();
+		bool enabled;
+		}jobAssignmentModel;
+
 
 	struct OutputFiles{
 

@@ -105,6 +105,12 @@ private:
 	void processSchoolAssignmentModelNode(DOMElement *schoolAssignModel);
 
 	/**
+	 * Processes the jobAssignmentModel element in the config file
+	 * @param node node corresponding to the jobAssignmentModel element in the xml file
+	 */
+	void processJobAssignmentModelNode(DOMElement *jobAssignModel);
+
+	/**
 	 * Processes the scenario element in the config file
 	 * @param node node corresponding to the scenario element in the xml file
 	 */

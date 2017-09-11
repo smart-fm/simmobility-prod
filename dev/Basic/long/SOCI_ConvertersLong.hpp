@@ -24,6 +24,7 @@
 #include "database/entity/TAOByUnitType.hpp"
 #include "database/entity/StudyArea.hpp"
 #include "database/entity/JobsBySectorByTaz.hpp"
+#include "database/entity/JobsWithIndustryTypeAndTazId.hpp"
 
 using namespace sim_mob;
 using namespace long_term;
@@ -298,6 +299,21 @@ struct type_conversion<sim_mob::long_term::IndLogsumJobAssignment>
     	indLogsumJobAssignment.setIndividualId(values.get<BigSerial>("individual_id",0));
     	indLogsumJobAssignment.setTazId(values.get<std::string>("taz_id",0));
     	indLogsumJobAssignment.setLogsum(values.get<float>("logsum",.0));
+
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::JobsWithIndustryTypeAndTazId>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::JobsWithIndustryTypeAndTazId& jobsWithIndustryTypeAndTazId)
+    {
+    	jobsWithIndustryTypeAndTazId.setJobId(values.get<BigSerial>("job_id",0));
+    	jobsWithIndustryTypeAndTazId.setIndustryTypeId(values.get<int>("industry_type_id",0));
+    	jobsWithIndustryTypeAndTazId.setTazId(values.get<BigSerial>("taz_id",0));
 
     }
 };

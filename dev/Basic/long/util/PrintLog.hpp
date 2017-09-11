@@ -636,13 +636,23 @@ namespace sim_mob
 	    }
 
 	    inline void writeJobAssignmentProbsToFile(BigSerial individualId,BigSerial tazId, float probability)
-	    	    {
-	    			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	    			//if(!config.ltParams.outputFiles.log_vehicle_ownership)
-	    			//	return;
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	    	//if(!config.ltParams.outputFiles.log_vehicle_ownership)
+	    	//	return;
 
-	    	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % tazId % probability;
-	    	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_JOB_ASIGN,fmtr.str());
-	    	    }
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % tazId % probability;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_JOB_ASIGN_PROBS,fmtr.str());
+	    }
+
+	    inline void writeIndividualJobAssignmentsToFile(BigSerial individualId, BigSerial jobId)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	    	//if(!config.ltParams.outputFiles.log_vehicle_ownership)
+	    	//	return;
+
+	    	boost::format fmtr = boost::format("%1%, %2%") % individualId % jobId;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_JOB_ASSIGN,fmtr.str());
+	    }
 	}
 }

@@ -63,7 +63,8 @@ namespace sim_mob
 				LOG_NON_ELIGIBLE_PARCELS,
 				LOG_ELIGIBLE_PARCELS,
 				LOG_GPR,
-				LOG_JOB_ASIGN
+				LOG_JOB_ASIGN_PROBS,
+				LOG_INDIVIDUAL_JOB_ASSIGN
             };
 
             LoggerAgent();

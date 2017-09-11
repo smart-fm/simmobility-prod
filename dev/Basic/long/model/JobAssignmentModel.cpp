@@ -56,7 +56,8 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		double logsum = 0;
 		if(logsumObj != nullptr)
 		{
-			logsum = logsumObj->getLogsum();
+			//logsums are scaled by  factor of 100 in the model calculation.
+			logsum = logsumObj->getLogsum() * 100;
 		}
 
 		IndvidualEmpSec* empSecofIndividual = model->getIndvidualEmpSecByIndId(individualId);
@@ -202,6 +203,26 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 				pTemp = pTemp + probVal.second;
 			}
 		}
+
+		//draw a random job in selected taz id and the relevant industry type of the individual.
+		HM_Model::JobsByTazAndIndustryTypeMap jobsByTazAndIndustryType = model->getJobsByTazAndIndustryTypeMap();
+		Individual *worker = model->getIndividualById(individualId);
+		BigSerial industryId = worker->getIndustryId();
+		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
+		auto range = jobsByTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
+		size_t sz = distance(range.first, range.second);
+
+		std::random_device rdInGen;
+		std::mt19937 genRdInd(rdInGen());
+		std::uniform_int_distribution<int> disRdInd(0, sz);
+		const unsigned int random_index = disRdInd(gen);
+		std::advance(range.first, random_index);
+
+		writeIndividualJobAssignmentsToFile(individualId,range.first->second->getJobId());
+
+		//remove the selected job id from the map.
+		jobsByTazAndIndustryType.erase(range.first);
+
 
 
 }

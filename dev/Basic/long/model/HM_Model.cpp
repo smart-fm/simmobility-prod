@@ -1462,13 +1462,14 @@ void HM_Model::startImpl()
 	// Connect to database and load data for this model.
 	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
 	conn.connect();
+	resume = config.ltParams.resume;
 	conn.setSchema(config.schemas.main_schema);
 
 	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
 	conn_calibration.connect();
 	conn_calibration.setSchema(config.schemas.calibration_schema);
 
-	resume = config.ltParams.resume;
+
 	std::string  outputSchema = config.ltParams.currentOutputSchema;
 	BigSerial simYear = config.ltParams.year;
 	std::tm currentSimYear = getDateBySimDay(simYear,1);
@@ -1551,6 +1552,7 @@ void HM_Model::startImpl()
 		loadData<ScreeningModelCoefficientsDao>( conn_calibration, screeningModelCoefficientsList, screeningModelCoefficicientsMap, &ScreeningModelCoefficients::getId );
 		PrintOutV("Number of screening Model Coefficients: " << screeningModelCoefficientsList.size() << std::endl );
 
+		//if initial loading load data from database. otherwise load data from binary files saved in the disk from the initial run.
 		if(initialLoading)
 		{
 
@@ -1688,47 +1690,6 @@ void HM_Model::startImpl()
 		//loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
 		//PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
 
-		if(resume)
-		{
-			SimulationStoppedPointDao simStoppedPointDao(conn);
-			const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema+ "."+"simulation_stopped_point;";
-			simStoppedPointDao.getByQuery(getAllSimStoppedPointParams,simStoppedPointList);
-			if(!simStoppedPointList.empty())
-			{
-				bidId = simStoppedPointList[simStoppedPointList.size()-1]->getBidId();
-				unitSaleId = simStoppedPointList[simStoppedPointList.size()-1]->getUnitSaleId();
-			}
-			BidDao bidDao(conn);
-			db::Parameters params;
-		    params.push_back(lastStoppedDay-1);
-			const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + outputSchema+ "."+"bids" + " WHERE simulation_day = :v1;";
-			bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
-
-			const std::string getAllResumptionHouseholds = "SELECT * FROM " + outputSchema+ "."+"household;";
-
-			HouseholdDao hhDao(conn);
-			hhDao.getByQuery(getAllResumptionHouseholds,resumptionHouseholds);
-			//Index all resumed households.
-			for (HouseholdList::iterator it = resumptionHouseholds.begin(); it != resumptionHouseholds.end(); ++it) {
-				resumptionHHById.insert(std::make_pair((*it)->getId(), *it));
-			}
-
-			const std::string getAllVehicleOwnershipChanges = "SELECT * FROM " + outputSchema+ "."+"vehicle_ownership_changes;";
-			VehicleOwnershipChangesDao vehicleOwnershipChangesDao(conn);
-			vehicleOwnershipChangesDao.getByQuery(getAllVehicleOwnershipChanges,vehOwnershipChangesList);
-			for (VehicleOwnershipChangesList::iterator it = vehOwnershipChangesList.begin(); it != vehOwnershipChangesList.end(); ++it) {
-				vehicleOwnershipChangesById.insert(std::make_pair((*it)->getHouseholdId(), *it));
-			}
-
-			const std::string getHHUnits = "SELECT DISTINCT ON(household_id) * FROM " + outputSchema + ".household_unit ORDER  BY household_id,move_in_date DESC;";
-			HouseholdUnitDao hhUnitDao(conn);
-			hhUnitDao.getByQuery(getHHUnits,householdUnits);
-
-			//Index all household units.
-			for (HouseholdUnitList::iterator it = householdUnits.begin(); it != householdUnits.end(); ++it) {
-				householdUnitByHHId.insert(std::make_pair((*it)->getHouseHoldId(), *it));
-			}
-		}
 	}
 
 
@@ -1783,31 +1744,7 @@ void HM_Model::startImpl()
 	for (HouseholdList::iterator it = households.begin();	it != households.end(); it++)
 	{
 		Household* household = *it;
-		Household *resumptionHH = getResumptionHouseholdById(household->getId());
 		BigSerial unitIdToBeOwned = INVALID_ID;
-		if(resume)
-		{
-			if (resumptionHH != nullptr)
-			{
-				household = resumptionHH;
-//				if(resumptionHH->getUnitPending() == 1)//household has done an advanced purchase
-//				{
-//					HouseholdUnit *hhUnit = getHouseholdUnitByHHId(resumptionHH->getId());
-//					unitIdToBeOwned = hhUnit->getUnitId();
-//					household->setTimeOnMarket(resumptionHH->getTimeOnMarket());
-//					household->setAwakenedDay(resumptionHH->getAwaknedDay());
-//					household->setLastAwakenedDay(resumptionHH->getLastAwakenedDay());
-//				}
-//
-//				household->setUnitId(resumptionHH->getUnitId());//update the unit id of the households moved to new units.
-			}
-
-			if(getVehicleOwnershipChangesByHHId(household->getId()) != nullptr) //update the vehicle ownership option of the households that change vehicles.
-			{
-				household->setVehicleOwnershipOptionId(getVehicleOwnershipChangesByHHId(household->getId())->getNewVehicleOwnershipOptionId());
-			}
-
-		}
 
 
 		//These households with tenure_status 3 are considered to be occupied by foreign workers
@@ -1819,26 +1756,27 @@ void HM_Model::startImpl()
 
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
 
-		if (resumptionHH != nullptr)
+		//if this is a resume update params based on the last run.
+		if (resume)
 		{
 			//awaken the household if the household was on the market at the time simulation stopped in previous run.
-			if(resumptionHH->getLastBidStatus() == 0 && resumptionHH->getIsBidder())
+			if(household->getLastBidStatus() == 0 && household->getIsBidder())
 			{
 				hhAgent->getBidder()->setActive(true);
-				hhAgent->setHouseholdBiddingWindow(resumptionHH->getTimeOnMarket());
-				hhAgent->setAwakeningDay(resumptionHH->getAwaknedDay());
+				hhAgent->setHouseholdBiddingWindow(household->getTimeOnMarket());
+				hhAgent->setAwakeningDay(household->getAwaknedDay());
 
 			}
 
 			//household has done a successful bid and was waiting to move in when the simulation stopped.
-			if(resumptionHH->getIsBidder() && resumptionHH->getLastBidStatus() == 1 && resumptionHH->getUnitPending())
+			if(household->getIsBidder() && household->getLastBidStatus() == 1 && household->getUnitPending())
 			{
 
-				hhAgent->getBidder()->setMoveInWaitingTimeInDays(resumptionHH->getMoveInDate().tm_mday - startDay);
-				hhAgent->getBidder()->setUnitIdToBeOwned(unitIdToBeOwned);
+				hhAgent->getBidder()->setMoveInWaitingTimeInDays(household->getMoveInDate().tm_mday - startDay);
+				hhAgent->getBidder()->setUnitIdToBeOwned(household->getUnitId());
 
 			}
-			else if(resumptionHH->getIsSeller())
+			else if(household->getIsSeller())
 			{
 				hhAgent->getSeller()->setActive(true);
 			}
@@ -1960,11 +1898,17 @@ void HM_Model::startImpl()
 			}
 
 			//(*it)->setbiddingMarketEntryDay( unitStartDay );
+			int timeOnMarket = 0;
+			int timeOffMarket = 0;
 			if(!resume)
 			{
-				(*it)->setTimeOnMarket(  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
-				(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
+				int timeOnMarket =  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket;
+				int timeOffMarket = 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket;
+				(*it)->setTimeOnMarket(timeOnMarket );
+				(*it)->setTimeOffMarket(timeOffMarket );
 				(*it)->setbiddingMarketEntryDay(999999);
+				(*it)->setRemainingTimeOnMarket(timeOnMarket);
+				(*it)->setRemainingTimeOffMarket(timeOffMarket);
 			}
 
 			//this unit is a vacancy
@@ -1979,10 +1923,11 @@ void HM_Model::startImpl()
 					if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 					{
 						/*if awakened, time on the market was set to randomized number above,
-											and subsequent time off the market is fixed via setTimeOffMarket.
+						and subsequent time off the market is fixed via setTimeOffMarket.
 						 */
 						(*it)->setbiddingMarketEntryDay( unitStartDay );
 						(*it)->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
+						(*it)->setRemainingTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 						onMarket++;
 					}
 					else
@@ -1990,8 +1935,9 @@ void HM_Model::startImpl()
 						/*If not awakened, time off the market was set to randomized number above,
 						and subsequent time on market is fixed via setTimeOnMarket.
 						 */
-						(*it)->setbiddingMarketEntryDay( unitStartDay + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
+						(*it)->setbiddingMarketEntryDay( 1+ timeOffMarket);
 						(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+						(*it)->setRemainingTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 						offMarket++;
 					}
 					}
@@ -2863,7 +2809,44 @@ void HM_Model::unitsFiltering()
 	PrintOutV( "Total units " << units.size() << std::endl );
 }
 
-void HM_Model::update(int day){}
+void HM_Model::update(int day)
+{
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
+	{
+		//this unit is a vacancy
+		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
+		{
+			//update unit's time on and off market values.
+
+			//unit is on the market if it is on or passed the bidding market entry day.
+			if ( (*it)->getRemainingTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay())
+			{
+				(*it)->updateRemainingTimeOnMarket();
+			}
+			//unit is off the market if it has already completed the time on the market or if it has not yet entered the market.
+			else if((*it)->getRemainingTimeOnMarket() == 0 || day < (*it)->getbiddingMarketEntryDay())
+			{
+
+				//unit is off the market and has completed the waiting time.
+				if((*it)->getRemainingTimeOffMarket() <= 0)
+				{
+
+					//when a unit is re-awakened it will have the full amount of time on and off market.
+					(*it)->setRemainingTimeOnMarket( (*it)->getTimeOnMarket());
+					(*it)->setRemainingTimeOffMarket( (*it)->getTimeOffMarket());
+				}
+				else // unit is off the market.
+				{
+					(*it)->updateRemainingTimeOffMarket();
+				}
+			}
+
+		}
+	}
+
+}
 
 
 void HM_Model::hdbEligibilityTest(int index)

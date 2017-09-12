@@ -189,6 +189,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		}
 
 		//As soon as the bidder becomes active, the seller also becomes active
+
 		//Be advised: The seller's unit will not be on the market until the buySellInterval has been completed
 		//The only reason the seller is active now is so that it's unit can be added to its own choiceset.
 		seller->setActive(true);

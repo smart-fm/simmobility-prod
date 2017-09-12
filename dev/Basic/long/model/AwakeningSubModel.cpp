@@ -271,8 +271,8 @@ namespace sim_mob
 				Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
 				unit->setbiddingMarketEntryDay(day);
-				unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX);
-				unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+				unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket);
+				unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket);
 			}
 
 			bidder->setActive(true);

@@ -189,6 +189,8 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		}
 
 		//As soon as the bidder becomes active, the seller also becomes active
+		//Be advised: The seller's unit will not be on the market until the buySellInterval has been completed
+		//The only reason the seller is active now is so that it's unit can be added to its own choiceset.
 		seller->setActive(true);
 	}
 
@@ -238,6 +240,12 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	{
 		PrintExit( day, household, 0);
 		bidder->setActive(false);
+
+		if( bidder->getMoveInWaitingTimeInDays() > 0 )
+			bidder->TakeUnitOwnership();
+
+		if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 )
+			TransferUnitToFreelanceAgent();
 
 	    //The seller becomes inactive when the bidder is inactive. This is alright
 		//because the bidder has a move in waiting time of 30 days
@@ -296,6 +304,22 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 }
 
 void HouseholdAgent::onFrameOutput(timeslice now) {}
+
+void HouseholdAgent::TransferUnitToFreelanceAgent()
+{
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	int numFreelanceAgents = config.ltParams.workers;
+
+	int agentChosen = rand() / RAND_MAX * numFreelanceAgents;
+
+	HouseholdAgent *freelanceAgent = model->getFreelanceAgents()[agentChosen];
+
+	for( auto uitr = seller->sellingUnitsMap.begin(); uitr != seller->sellingUnitsMap.end(); uitr++ )
+	{
+		freelanceAgent->addUnitId( uitr->first );
+	}
+}
 
 void HouseholdAgent::onEvent(EventId eventId, Context ctxId, EventPublisher*, const EventArgs& args)
 {

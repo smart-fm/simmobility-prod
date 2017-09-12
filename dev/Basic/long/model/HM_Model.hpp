@@ -58,11 +58,14 @@
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
+#include "agent/impl/HouseholdAgent.hpp"
 
 namespace sim_mob
 {
     namespace long_term
     {
+
+    	class HouseholdAgent;
         /**
          * Class that contains Housing market model logic.
          */
@@ -469,9 +472,11 @@ namespace sim_mob
             StudyAreaMultiMap& getStudyAreaByScenarioName();
 
 
+            std::vector<HouseholdAgent*> getFreelanceAgents();
 
         protected:
             /**
+             *
              * Inherited from Model.
              */
             void startImpl();
@@ -479,6 +484,9 @@ namespace sim_mob
             void update(int day);
 
         private:
+
+            std::vector<HouseholdAgent*> freelanceAgents;
+
             // Data
             HousingMarket market;
 

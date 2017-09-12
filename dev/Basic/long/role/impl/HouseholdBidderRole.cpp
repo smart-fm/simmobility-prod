@@ -442,7 +442,6 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
             		getParent()->setAcceptedBid(true);
 
                 	if(simulationEndDay < (moveInWaitingTimeInDays))
-
                 	{
                 		getParent()->getHousehold()->setUnitId(unitIdToBeOwned);
                 		getParent()->getHousehold()->setHasMoved(0);

@@ -103,14 +103,14 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="30"/>
+    	<days value="365"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>  
 	<year value = "2012" />   
 	<resume value ="false"/> 
 	<currentOutputSchema value = "baseline_2012_20170811023744"/> <!--if resume is true give the current op schema name-->
-        <opSchemaloadingInterval value = "30"/>
+        <opSchemaloadingInterval value = "365"/>
         <initialLoading value = "true" />
     	<developerModel enabled="true">
     		<timeInterval value="30"/>

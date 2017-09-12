@@ -416,20 +416,20 @@ void HouseholdAgent::onWorkerEnter()
 	JobAssignmentModel jobAssignModel(model);
 	const Household *hh = this->getHousehold();
 
+	if( config.ltParams.jobAssignmentModel.enabled == true )
+	{
 	if( hh != NULL )
 	{
 		vector<BigSerial> individuals = household->getIndividuals();
 		for(int n = 0; n < individuals.size(); n++)
 		{
 			const Individual *individual = getModel()->getIndividualById(individuals[n]);
-			if(individual->getId() == 60408)
-							{
-			if(individual->getEmploymentStatusId() < 4)
-			{
-				jobAssignModel.computeJobAssignmentProbability(individual->getId());
-			}
-							}
+				if(individual->getEmploymentStatusId() < 4)
+				{
+					jobAssignModel.computeJobAssignmentProbability(individual->getId());
+				}
 		}
+	}
 	}
 
 

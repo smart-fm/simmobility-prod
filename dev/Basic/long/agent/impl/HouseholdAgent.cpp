@@ -319,6 +319,7 @@ void HouseholdAgent::TransferUnitToFreelanceAgent()
 	for( auto uitr = seller->sellingUnitsMap.begin(); uitr != seller->sellingUnitsMap.end(); uitr++ )
 	{
 		freelanceAgent->addUnitId( uitr->first );
+		this->removeUnitId( uitr->first );
 	}
 }
 

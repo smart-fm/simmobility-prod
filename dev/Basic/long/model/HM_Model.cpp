@@ -1701,7 +1701,10 @@ void HM_Model::startImpl()
 	}
 
 
-	unitsFiltering();
+	if(!resume)
+	{
+		unitsFiltering();
+	}
 
 	workGroup.assignAWorker(&market);
 	int numWorkers = workGroup.size();
@@ -1897,13 +1900,21 @@ void HM_Model::startImpl()
 					(*it)->setBto(true);
 			}
 
-			//(*it)->setbiddingMarketEntryDay( unitStartDay );
-			int timeOnMarket = 0;
-			int timeOffMarket = 0;
 			if(!resume)
 			{
-				int timeOnMarket =  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket;
-				int timeOffMarket = 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket;
+
+				std::random_device rd;
+				std::mt19937 gen(rd());
+				std::uniform_int_distribution<> dis(1, config.ltParams.housingModel.timeOnMarket);
+				int timeOnMarket = dis(gen);
+
+				std::random_device rd2;
+				std::mt19937 gen2(rd2());
+				std::uniform_int_distribution<> dis2(1, config.ltParams.housingModel.timeOffMarket);
+				int timeOffMarket = dis2(gen2);
+
+
+
 				(*it)->setTimeOnMarket(timeOnMarket );
 				(*it)->setTimeOffMarket(timeOffMarket );
 				(*it)->setbiddingMarketEntryDay(999999);
@@ -1935,7 +1946,7 @@ void HM_Model::startImpl()
 						/*If not awakened, time off the market was set to randomized number above,
 						and subsequent time on market is fixed via setTimeOnMarket.
 						 */
-						(*it)->setbiddingMarketEntryDay( 1+ timeOffMarket);
+						(*it)->setbiddingMarketEntryDay( 1+ (*it)->getTimeOffMarket());
 						(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
 						(*it)->setRemainingTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 						offMarket++;

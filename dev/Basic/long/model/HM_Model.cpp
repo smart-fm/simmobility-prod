@@ -1935,7 +1935,7 @@ void HM_Model::startImpl()
 						/*If not awakened, time off the market was set to randomized number above,
 						and subsequent time on market is fixed via setTimeOnMarket.
 						 */
-						(*it)->setbiddingMarketEntryDay( 1+ timeOffMarket);
+						(*it)->setbiddingMarketEntryDay( 1+ (*it)->getTimeOffMarket() );
 						(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
 						(*it)->setRemainingTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 						offMarket++;

@@ -638,7 +638,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	if( numUnits == 0 )
     		continue;
 
-    	int offset = (float)rand() / RAND_MAX * numUnits;
+    	int offset = (float)rand() / RAND_MAX * (numUnits - 1);
     	advance( range.first, offset ); // change a random unit in that zoneHousingType
 
     	const BigSerial unitId = (range.first)->second;

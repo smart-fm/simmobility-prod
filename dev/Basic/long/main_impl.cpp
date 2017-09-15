@@ -415,6 +415,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelRandom " << config.ltParams.housingModel.awakeningModel.awakenModelRandom << endl);
         PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelShan " << config.ltParams.housingModel.awakeningModel.awakenModelShan << endl);
         PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelJingsi " << config.ltParams.housingModel.awakeningModel.awakenModelJingsi << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel awakeningOffMarketSuccessfulBid " << config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel awakeningOffMarketUnsuccessfulBid " << config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid << endl);
 
         PrintOutV("XML Config HousingModel enabled " << config.ltParams.housingModel.enabled << endl);
         PrintOutV("XML Config HousingModel householdBiddingWindow " << config.ltParams.housingModel.householdBiddingWindow << endl);

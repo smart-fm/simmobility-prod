@@ -106,6 +106,10 @@ void PopulationSqlDao::getAddresses(std::map<long, sim_mob::Address>& addressMap
 			zoneAddressesMap[address.getTazCode()].push_back(addressId);
 		}
 	}
+	else
+	{
+		std::cout << "Zone lookup Not connected!! " << std::endl;
+	}
 }
 
 void PopulationSqlDao::getIncomeCategories(double incomeLowerLimits[])

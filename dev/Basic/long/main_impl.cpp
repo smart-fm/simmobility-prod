@@ -306,27 +306,27 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     timeinfo = localtime (&rawtime);
     BigSerial simVersionId = 1;
 
-//    if(resume)
-//    {
-//    	currentOutputSchema = config.ltParams.currentOutputSchema;
-//    	if(conn.isConnected())
-//    	{
-//    		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(currentOutputSchema);
-//    		if(!simulationStartPointList.empty())
-//    		{
-//    			simVersionId = simulationStartPointList[simulationStartPointList.size()-1]->getId() + 1;
-//    			lastStoppedDay = simulationStartPointList[simulationStartPointList.size()-1]->getSimStoppedTick() + 1;
-//    		}
-//    	}
-//    }
-//    else
-//    {
+    if(resume)
+    {
+    	currentOutputSchema = config.ltParams.currentOutputSchema;
+    	if(conn.isConnected())
+    	{
+    		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(currentOutputSchema);
+    		if(!simulationStartPointList.empty())
+    		{
+    			simVersionId = simulationStartPointList[simulationStartPointList.size()-1]->getId() + 1;
+    			lastStoppedDay = simulationStartPointList[simulationStartPointList.size()-1]->getSimStoppedTick() + 1;
+    		}
+    	}
+    }
+    else
+    {
     	char buffer[80];
     	strftime(buffer,80,"%Y%m%d%I%M%S",timeinfo);
     	std::string dateTimeStr(buffer);
     	currentOutputSchema = simScenario +"_"+ dateTimeStr;
 
- //   }
+    }
 
 
     vector<Model*> models;

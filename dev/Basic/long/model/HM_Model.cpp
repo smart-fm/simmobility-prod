@@ -2830,10 +2830,9 @@ void HM_Model::update(int day)
 			//unit is on the market if it is on or passed the bidding market entry day.
 			if ( (*it)->getRemainingTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay())
 			{
-<<<<<<< HEAD
+
 				(*it)->setbiddingMarketEntryDay(day + 1);
 				(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
-=======
 				(*it)->updateRemainingTimeOnMarket();
 			}
 			//unit is off the market if it has already completed the time on the market or if it has not yet entered the market.
@@ -2852,7 +2851,6 @@ void HM_Model::update(int day)
 				{
 					(*it)->updateRemainingTimeOffMarket();
 				}
->>>>>>> master
 			}
 
 		}

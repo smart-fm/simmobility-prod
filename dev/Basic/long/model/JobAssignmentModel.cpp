@@ -230,15 +230,18 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 int JobAssignmentModel::getIncomeCategoryId(float income)
 {
 	int incomeCatId = 0;
-	if((income > 0) && (income < 2000))
+	const int incomeCatLimit1 = 2000;
+	const int incomeCatLimit2 = 4000;
+
+	if((income > 0) && (income < incomeCatLimit1))
 	{
 		incomeCatId = 1;
 	}
-	else if ((income > 2000) && (income <= 4000))
+	else if ((income > incomeCatLimit1) && (income <= incomeCatLimit2))
 	{
 		incomeCatId = 2;
 	}
-	else if (income > 4000)
+	else if (income > incomeCatLimit2)
 	{
 		incomeCatId = 3;
 	}

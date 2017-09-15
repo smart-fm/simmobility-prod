@@ -56,6 +56,8 @@
 #include "database/dao/HHCoordinatesDao.hpp"
 #include "database/dao/HouseholdUnitDao.hpp"
 #include "database/dao/IndvidualEmpSecDao.hpp"
+#include "database/dao/IndLogsumJobAssignmentDao.hpp"
+#include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
@@ -75,6 +77,7 @@
 #include "SOCI_ConvertersLong.hpp"
 #include <DatabaseHelper.hpp>
 #include "model/VehicleOwnershipModel.hpp"
+#include "model/JobAssignmentModel.hpp"
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -1450,7 +1453,7 @@ std::vector<HouseholdAgent*> HM_Model::getFreelanceAgents()
 
 void HM_Model::startImpl()
 {
-	PredayLT_LogsumManager::getInstance();
+	//PredayLT_LogsumManager::getInstance();
 
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -1475,10 +1478,13 @@ void HM_Model::startImpl()
 	std::tm currentSimYear = getDateBySimDay(simYear,1);
 	initialLoading = config.ltParams.initialLoading;
 
-	if (conn.isConnected())
+	if (conn.isConnected() && conn_calibration.isConnected())
 	{
 		loadLTVersion(conn);
 		loadStudyAreas(conn);
+		loadJobsBySectorByTaz(conn_calibration);
+		loadJobAssignments(conn);
+		loadJobsByTazAndIndustryType(conn);
 
 		{
 			soci::session sql;
@@ -1585,7 +1591,7 @@ void HM_Model::startImpl()
 		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
 
-		//Load units
+		//Load unit types
 		loadData<UnitTypeDao>(conn, unitTypes, unitTypesById, &UnitType::getId);
 		PrintOutV("Number of unit types: " << unitTypes.size() << std::endl);
 
@@ -1686,9 +1692,8 @@ void HM_Model::startImpl()
 	    loadData<PreSchoolDao>( conn_calibration, preSchools, preSchoolById, &PreSchool::getPreSchoolId);
 	    PrintOutV("Number of Pre School rows: " << preSchools.size() << std::endl );
 
-		//::TODO::uncomment after Diem finalized job and emp sec tables. gishara
-		//loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
-		//PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
+		loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
+		PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
 
 	}
 
@@ -2080,6 +2085,8 @@ void HM_Model::startImpl()
 				setTaxiAccess2012(households[n]);
 			}
 		}
+
+
 
 		if(initialLoading && config.ltParams.vehicleOwnershipModel.enabled)
 		{
@@ -2823,6 +2830,10 @@ void HM_Model::update(int day)
 			//unit is on the market if it is on or passed the bidding market entry day.
 			if ( (*it)->getRemainingTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay())
 			{
+<<<<<<< HEAD
+				(*it)->setbiddingMarketEntryDay(day + 1);
+				(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
+=======
 				(*it)->updateRemainingTimeOnMarket();
 			}
 			//unit is off the market if it has already completed the time on the market or if it has not yet entered the market.
@@ -2841,6 +2852,7 @@ void HM_Model::update(int day)
 				{
 					(*it)->updateRemainingTimeOffMarket();
 				}
+>>>>>>> master
 			}
 
 		}
@@ -3406,6 +3418,143 @@ void  HM_Model::loadStudyAreas(DB_Connection &conn)
 	}
 
 	PrintOutV("Number of Study Area rows: " << studyAreas.size() << std::endl );
+}
+
+void HM_Model::loadJobAssignments(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "job_assignment_coefficients";
+
+	//SQL statement
+	soci::rowset<JobAssignmentCoeffs> jobAssignmentCoeffsObj = (sql.prepare << "select * from calibration2012."  + tableName);
+
+	for (soci::rowset<JobAssignmentCoeffs>::const_iterator itJobAssignmentCoeffs = jobAssignmentCoeffsObj.begin(); itJobAssignmentCoeffs != jobAssignmentCoeffsObj.end(); ++itJobAssignmentCoeffs)
+	{
+		JobAssignmentCoeffs* jobAssignCoeff = new JobAssignmentCoeffs(*itJobAssignmentCoeffs);
+		jobAssignmentCoeffs.push_back(jobAssignCoeff);
+	}
+
+	PrintOutV("Number of Job Assignment Coeffs rows: " << jobAssignmentCoeffs.size() << std::endl );
+}
+
+HM_Model::JobAssignmentCoeffsList& HM_Model::getJobAssignmentCoeffs()
+{
+	return jobAssignmentCoeffs;
+}
+
+void HM_Model::loadJobsBySectorByTaz(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+	std::string tableName = "jobs_by_sector_by_taz";
+	//SQL statement
+	soci::rowset<JobsBySectorByTaz> jobsBySectorByTazObj = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
+
+	for (soci::rowset<JobsBySectorByTaz>::const_iterator itJobsBySecByTaz = jobsBySectorByTazObj.begin(); itJobsBySecByTaz != jobsBySectorByTazObj.end(); ++itJobsBySecByTaz)
+	{
+		JobsBySectorByTaz* jobsBySectorByTaz = new JobsBySectorByTaz(*itJobsBySecByTaz);
+		jobsBySectorByTazsList.push_back(jobsBySectorByTaz);
+		jobsBySectorByTazMap.insert(std::make_pair(jobsBySectorByTaz->getTazId(), jobsBySectorByTaz));
+	}
+
+	PrintOutV("Number of Jobs by Sector by Taz rows: " << jobsBySectorByTazsList.size() << std::endl );
+
+}
+
+HM_Model::JobsBySectorByTazList& HM_Model::getJobsBySectorByTazs()
+{
+	return jobsBySectorByTazsList;
+}
+
+JobsBySectorByTaz* HM_Model::getJobsBySectorByTazId(BigSerial tazId) const
+{
+	JobsBySectorByTazMap::const_iterator itr = jobsBySectorByTazMap.find(tazId);
+
+		if (itr != jobsBySectorByTazMap.end())
+		{
+			return (*itr).second;
+		}
+
+		return nullptr;
+
+}
+
+HM_Model::TazList&  HM_Model::getTazList()
+{
+	return tazs;
+}
+
+void HM_Model::loadIndLogsumJobAssignments(BigSerial individuaId)
+{
+	{
+		boost::mutex::scoped_lock lock( mtx );
+		DB_Config dbConfig(LT_DB_CONFIG_FILE);
+		dbConfig.load();
+		DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
+		conn_calibration.connect();
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+		conn_calibration.setSchema(config.schemas.calibration_schema);
+		IndLogsumJobAssignmentDao logsumDao(conn_calibration);
+		indLogsumJobAssignmentList = logsumDao.loadLogsumByIndividualId(individuaId);
+
+		for (IndLogsumJobAssignmentList::iterator it = indLogsumJobAssignmentList.begin(); it != indLogsumJobAssignmentList.end(); it++)
+		{
+			//CompositeKey indTazIdPair = make_pair((*it)->getIndividualId(), (*it)->getTazId());
+			//indLogsumJobAssignmentByTaz.insert(make_pair(indTazIdPair, *it));
+			indLogsumJobAssignmentByTaz.insert(std::make_pair((*it)->getTazId(), *it));
+		}
+
+	}
+}
+
+HM_Model::IndLogsumJobAssignmentList& HM_Model::getIndLogsumJobAssignment()
+{
+	return indLogsumJobAssignmentList;
+}
+
+IndLogsumJobAssignment* HM_Model::getIndLogsumJobAssignmentByTaz(BigSerial tazId)
+{
+	{
+		boost::mutex::scoped_lock lock( mtx3 );
+		string tazIdStr = 'X' + std::to_string(tazId);
+		//CompositeKey indTazIdKey = make_pair(individualId, tazIdStr);
+
+		IndLogsumJobAssignmentByTaz::const_iterator itr = indLogsumJobAssignmentByTaz.find(tazIdStr);
+		if (itr != indLogsumJobAssignmentByTaz.end())
+		{
+			return (*itr).second;
+		}
+
+		return nullptr;
+	}
+
+}
+
+void HM_Model::loadJobsByTazAndIndustryType(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+
+	const std::string storedProc = conn.getSchema() + "getJobsWithIndustryTypeAndTazId()";
+	//SQL statement
+	soci::rowset<JobsWithIndustryTypeAndTazId> jobsWithIndTypeAndTazObj = (sql.prepare << "select * from " + storedProc);
+	for (soci::rowset<JobsWithIndustryTypeAndTazId>::const_iterator itJobs = jobsWithIndTypeAndTazObj.begin(); itJobs != jobsWithIndTypeAndTazObj.end(); ++itJobs)
+	{
+		JobsWithIndustryTypeAndTazId* job = new JobsWithIndustryTypeAndTazId(*itJobs);
+		TazAndIndustryTypeKey tazIdIndTypePair = make_pair(job->getTazId(), job->getIndustryTypeId());
+		jobsByTazAndIndustryType.insert(make_pair(tazIdIndTypePair, job));
+	}
+
+	PrintOutV("Number of Jobs with Taz Id and Industry Type: " << jobsByTazAndIndustryType.size() << std::endl );
+}
+
+HM_Model::JobsByTazAndIndustryTypeMap& HM_Model::getJobsByTazAndIndustryTypeMap()
+{
+	return this->jobsByTazAndIndustryType;
+
 }
 
 void HM_Model::stopImpl()

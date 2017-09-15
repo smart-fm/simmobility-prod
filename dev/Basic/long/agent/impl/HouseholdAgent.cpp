@@ -25,6 +25,7 @@
 #include "model/VehicleOwnershipModel.hpp"
 #include "model/AwakeningSubModel.hpp"
 #include "model/SchoolAssignmentSubModel.hpp"
+#include "model/JobAssignmentModel.hpp"
 #include "util/PrintLog.hpp"
 #include <random>
 
@@ -456,6 +457,26 @@ void HouseholdAgent::onWorkerEnter()
 				model->getLogsumOfVaryingHomeOrWork(hh->getId());
 		}
 	}
+
+	JobAssignmentModel jobAssignModel(model);
+	const Household *hh = this->getHousehold();
+
+	if( config.ltParams.jobAssignmentModel.enabled == true )
+	{
+	if( hh != NULL )
+	{
+		vector<BigSerial> individuals = household->getIndividuals();
+		for(int n = 0; n < individuals.size(); n++)
+		{
+			const Individual *individual = getModel()->getIndividualById(individuals[n]);
+				if(individual->getEmploymentStatusId() < 4)
+				{
+					jobAssignModel.computeJobAssignmentProbability(individual->getId());
+				}
+		}
+	}
+	}
+
 
     if (!marketSeller)
     {

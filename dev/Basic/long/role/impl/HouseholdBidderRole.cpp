@@ -402,6 +402,10 @@ void HouseholdBidderRole::TakeUnitOwnership()
 	//update the unit tenure status to "owner occupied" when a household moved to a new unit.
 	unit->setTenureStatus(1);
 
+	Unit *unit = model->getUnitById(unitIdToBeOwned);
+	unit->setTenureStatus(1);
+
+
     biddingEntry.invalidate();
     Statistics::increment(Statistics::N_ACCEPTED_BIDS);
 }

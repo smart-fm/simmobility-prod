@@ -162,6 +162,8 @@
 	<schoolAssignmentModel enabled = 'false'>
 		<schoolChangeWaitingTimeInDays value ="1" />
 	</schoolAssignmentModel>
+	<jobAssignmentModel enabled = 'true'>
+	</jobAssignmentModel>
 
 	<scenario enabled= 'true'>
                 <name value="baseline" />

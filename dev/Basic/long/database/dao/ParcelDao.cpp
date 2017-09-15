@@ -91,7 +91,7 @@ std::vector<Parcel*>  ParcelDao::getEmptyParcels()
 
 std::vector<Parcel*> ParcelDao::getParcelsWithOngoingProjects(std::string schema)
 {
-	const std::string queryStr = "SELECT * FROM " + connection.getSchema() + schema + ".fm_parcel";
+	const std::string queryStr = "SELECT * FROM " + schema + ".fm_parcel";
 	std::vector<Parcel*> parcelsWithOngoingProjectsList;
 	getByQuery(queryStr,parcelsWithOngoingProjectsList);
 	return parcelsWithOngoingProjectsList;

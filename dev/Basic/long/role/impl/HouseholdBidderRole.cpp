@@ -394,13 +394,13 @@ void HouseholdBidderRole::TakeUnitOwnership()
 	#endif
 	getParent()->addUnitId( unitIdToBeOwned );
 
-	boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
-	houseHold->setUnitId(unitIdToBeOwned);
-	houseHold->setHasMoved(1);
-	houseHold->setUnitPending(0);
-	houseHold->setMoveInDate(getDateBySimDay(year,day));
-	HM_Model* model = getParent()->getModel();
-	model->addHouseholdsTo_OPSchema(houseHold);
+	getParent()->getHousehold()->setUnitId(unitIdToBeOwned);
+	getParent()->getHousehold()->setHasMoved(1);
+	getParent()->getHousehold()->setUnitPending(0);
+	getParent()->getHousehold()->setTenureStatus(1);
+	Unit *unit = getParent()->getModel()->getUnitById(unitIdToBeOwned);
+	//update the unit tenure status to "owner occupied" when a household moved to a new unit.
+	unit->setTenureStatus(1);
 
 	Unit *unit = model->getUnitById(unitIdToBeOwned);
 	unit->setTenureStatus(1);
@@ -413,6 +413,7 @@ void HouseholdBidderRole::TakeUnitOwnership()
 
 void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message& message)
 {
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     switch (type)
     {
         case LTMID_BID_RSP:// Bid response received 
@@ -422,7 +423,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
             {
                 case ACCEPTED:// Bid accepted 
                 {
-                	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
 
                 	unitIdToBeOwned = msg.getBid().getNewUnitId();
                 	const Unit *newUnit = getParent()->getModel()->getUnitById(unitIdToBeOwned);
@@ -441,21 +442,15 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
                 	getParent()->getHousehold()->setLastBidStatus(1);
+                	getParent()->getHousehold()->setTimeOffMarket(moveInWaitingTimeInDays + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid);
             		getParent()->setAcceptedBid(true);
-            		//getParent()->setBTOUnit(newUnit->isBto());
 
                 	if(simulationEndDay < (moveInWaitingTimeInDays))
-
                 	{
-                		boost::shared_ptr<Household> houseHold = boost::make_shared<Household>( *getParent()->getHousehold());
-                		houseHold->setUnitId(unitIdToBeOwned);
-                		houseHold->setHasMoved(0);
-                		houseHold->setUnitPending(1);
-                		int awakenDay = getParent()->getAwakeningDay();
-                		houseHold->setAwakenedDay(awakenDay);
-                		houseHold->setMoveInDate(getDateBySimDay(year,moveInWaitingTimeInDays));
-                		HM_Model* model = getParent()->getModel();
-                		model->addHouseholdsTo_OPSchema(houseHold);
+                		getParent()->getHousehold()->setUnitId(unitIdToBeOwned);
+                		getParent()->getHousehold()->setHasMoved(0);
+                		getParent()->getHousehold()->setUnitPending(1);
+                		getParent()->getHousehold()->setPendingFromDate(getDateBySimDay(year,moveInWaitingTimeInDays));
                 	}
 
                     break;
@@ -464,6 +459,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 {
                     biddingEntry.incrementTries();
                     getParent()->getHousehold()->setLastBidStatus(2);
+                    getParent()->getHousehold()->setTimeOffMarket(config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid);
                     break;
                 }
                 case BETTER_OFFER:
@@ -664,7 +660,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         if( thisUnit->getZoneHousingType() == zoneHousingType )
         {
 
-			if( thisUnit->getTenureStatus() == 1 && getParent()->getFutureTransitionOwn() == false ) //rented
+			if( thisUnit->getTenureStatus() == 2 && getParent()->getFutureTransitionOwn() == false ) //rented
 			{
 				std::set<const HousingMarket::Entry*>::iterator screenedEntriesItr;
 				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
@@ -673,7 +669,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 					screenedEntries.insert(entry);
 			}
 			else
-			if( thisUnit->getTenureStatus() == 2) //owner-occupied
+			if( thisUnit->getTenureStatus() == 1) //owner-occupied
 			{
 				std::set<const HousingMarket::Entry*>::iterator screenedEntriesItr;
 				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
@@ -699,9 +695,10 @@ bool HouseholdBidderRole::pickEntryToBid()
     		screenedEntriesVec.push_back(*itr);
 
 
+    	//btoEntries will contain pointers all the units in our 'units' vector that are marked as BTOs.
     	set<BigSerial> btoEntries = market->getBTOEntries();
 
-        //Add x BTO units to the screenedUnit vector if the household is eligible for it
+        //Add x number of BTO units to the screenedUnit vector if the household is eligible for it
         for(int n = 0; n < config.ltParams.housingModel.bidderBTOUnitsChoiceSet && btoEntries.size() != 0; n++)
         {
         	int offset = (float)rand() / RAND_MAX * ( btoEntries.size() - 1 );
@@ -726,7 +723,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	printChoiceset(day, household->getId(), choiceset);
     }
 
-   //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
+    //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
 
     // Choose the unit to bid with max surplus. However, we are not iterating through the whole list of available units.
     // We choose from a subset of units set by the housingMarketSearchPercentage parameter in the long term XML file.
@@ -833,7 +830,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
                 printHouseholdBiddingList( day, household->getId(), unit->getId(), oldPCStr, newPCStr, wp, entry->getAskingPrice(), maxAffordability, currentBid, currentSurplus);
 
-            	if( currentSurplus > maxSurplus && maxAffordability > currentBid )
+            	if( currentSurplus > maxSurplus && maxAffordability > currentBid  && currentSurplus > 0)
             	{
             		maxSurplus = currentSurplus;
             		finalBid = currentBid;

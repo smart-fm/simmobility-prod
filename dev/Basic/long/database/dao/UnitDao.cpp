@@ -37,6 +37,8 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
     outObj.totalPrice = result.get<double>("total_price", .0);
     outObj.valueDate = result.get<std::tm>("value_date", std::tm());
     outObj.tenureStatus = result.get<int>("tenure_status", 0);
+    outObj.isBTO = false;
+    outObj.btoPrice = result.get<double>("bto_price", 0);
 }
 
 void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)
@@ -55,9 +57,9 @@ void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getOccupancyStatus());
 	outParams.push_back(data.getLastChangedDate());
 	outParams.push_back(data.getTotalPrice());
+	outParams.push_back(data.getBTOPrice());
 	outParams.push_back(data.getValueDate());
 	outParams.push_back(data.getTenureStatus());
-
 }
 
 void UnitDao::insertUnit(Unit& unit,std::string schema)
@@ -80,6 +82,7 @@ void UnitDao::insertUnit(Unit& unit,std::string schema)
 		outParams.push_back(unit.getOccupancyStatus());
 		outParams.push_back(unit.getLastChangedDate());
 		outParams.push_back(unit.getTotalPrice());
+		outParams.push_back(unit.getBTOPrice());
 		outParams.push_back(unit.getValueDate());
 		outParams.push_back(unit.getTenureStatus());
 
@@ -98,10 +101,11 @@ void UnitDao::insertUnit(Unit& unit,std::string schema)
 				+ "occupancy_status" + "= :v12, "
 				+ "last_changed_date" + "= :v13, "
 				+ "total_price" + "= :v14, "
-				+ "value_date" + "= :v15, "
+				+ "bto_price" + "= :v15, "
+				+ "value_date" + "= :v16, "
 				+ "tenure_status"
-				+ "= :v16 WHERE "
-				+ "fm_unit_id" + "=:v17";
+				+ "= :v17 WHERE "
+				+ "fm_unit_id" + "=:v18";
 		executeQueryWithParams(unit,DB_UPDATE_UNIT,outParams);
 	}
 
@@ -113,8 +117,8 @@ void UnitDao::insertUnit(Unit& unit,std::string schema)
 								+ ", " + "unit_type" + ", " + "storey_range" + ", "
 								+ "construction_status" + ", " + "floor_area"  + ", "+ "storey" + ", " + "monthly_rent" + ", "
 								+ "sale_from_date" + ", " + "occupancy_from_date"  + ", " + "sale_status"
-								+ ", "+ "occupancy_status"  + ", " + "last_changed_date" + ", " + "total_price"+ ", " + "value_date" + ", " + "tenure_status"
-								+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16)";
+								+ ", "+ "occupancy_status"  + ", " + "last_changed_date" + ", " + "total_price"+ "bto_price"+ ", " + "value_date" + ", " + "tenure_status"
+								+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17)";
 		insertViaQuery(unit,DB_INSERT_UNIT_OP);
 		}
 

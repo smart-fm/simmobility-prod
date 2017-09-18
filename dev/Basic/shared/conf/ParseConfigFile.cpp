@@ -572,6 +572,10 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
 					houseModel, "householdBiddingWindow"), "value"), (int) 0);
 
+	housingModel.householdBTOBiddingWindow =
+			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
+					houseModel, "householdBTOBiddingWindow"), "value"), (int) 0);
+
 	housingModel.householdAwakeningPercentageByBTO =
 			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(
 					houseModel, "householdAwakeningPercentageByBTO"),"value"), (float) 0.0);
@@ -607,6 +611,14 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 	housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid =
 			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
 					houseModel, "awakeningModel"), "awakeningOffMarketUnsuccessfulBid"), "value"), (int) 0);
+
+	housingModel.hedonicPriceModel.a =
+			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
+					houseModel, "hedonicPriceModel"), "a"), "value"), (float) 0);
+
+	housingModel.hedonicPriceModel.b =
+			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
+					houseModel, "hedonicPriceModel"), "b"), "value"), (float) 0);
 
 	cfg.ltParams.housingModel = housingModel;
 }

@@ -321,7 +321,7 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
 
 					ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-					householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+					householdBiddingWindow = config.ltParams.housingModel.householdBTOBiddingWindow;
 					bidder->setMoveInWaitingTimeInDays(-1);
 					buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 				}
@@ -353,7 +353,7 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
 
 				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-				householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow * (double)rand() / RAND_MAX + 1;
+				householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow;
 
 				//A value of -1 means that this unit is *not* waiting to move in. Any value above 0 implies that the bidder
 				//has successfully bid on a unit and will move in in the number of days specified by the value of this variable.

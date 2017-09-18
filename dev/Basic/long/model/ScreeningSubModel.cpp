@@ -409,7 +409,7 @@ namespace sim_mob
 
 				int m = 0;
 
-				double probability =( logPopulationByHousingType* model->getScreeningModelCoefficientsList()[m]->getln_popdwl()	) +
+				double oddsRatio =  ( logPopulationByHousingType* model->getScreeningModelCoefficientsList()[m]->getln_popdwl()	) +
 									( populationDensity			* model->getScreeningModelCoefficientsList()[m]->getden_respop_ha() 	) +
 									( commercialLandFraction	* model->getScreeningModelCoefficientsList()[m]->getf_loc_com() 		) +
 									( residentialLandFraction	* model->getScreeningModelCoefficientsList()[m]->getf_loc_res()		 	) +
@@ -460,11 +460,11 @@ namespace sim_mob
 									 otherHousingHhSizeOne		<< " l " << DWL800  << std::endl);
 				*/
 
-				if( std::isnan(probability) )
-					probability = 0.0;
+				if( std::isnan(oddsRatio) )
+					oddsRatio = 0.0;
 
-				if( std::isinf( probability) )
-					probability = 0.0;
+				if( std::isinf( oddsRatio) )
+					oddsRatio = 0.0;
 
 
 				 const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -473,6 +473,8 @@ namespace sim_mob
 				 if( config.ltParams.scenario.enabled && config.ltParams.scenario.scenarioName == "ToaPayohScenario")
 					 bToaPayohScenario = true;
 
+				 double probability = exp(oddsRatio);
+
 				if(  bToaPayohScenario  && model->getAlternatives()[n]->getPlanAreaId() == 50 )
 				{
 					probability = probability * 2.0;
@@ -480,12 +482,12 @@ namespace sim_mob
 
 				probabilities.push_back(probability);
 
-				probabilitySum += exp(probability);
+				probabilitySum += probability;
 			}
 
 			for( int n = 0; n < probabilities.size(); n++)
 			{
-				probabilities[n] = exp(probabilities[n])/ probabilitySum;
+				probabilities[n] = probabilities[n]/ probabilitySum;
 			}
 
 

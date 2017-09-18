@@ -454,6 +454,10 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config year " << config.ltParams.year << endl);
 
 
+        PrintOutV("XML bid value a" << config.ltParams.housingModel.hedonicPriceModel.a << endl);
+        PrintOutV("XML bid value b" << config.ltParams.housingModel.hedonicPriceModel.b << endl);
+
+
         //Start work groups and all threads.
         wgMgr.startAllWorkGroups();
 

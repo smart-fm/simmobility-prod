@@ -75,6 +75,7 @@ struct LongTermParams
 		int bidderUnitsChoiceSet;
 		int bidderBTOUnitsChoiceSet;
 		int householdBiddingWindow;
+		int householdBTOBiddingWindow;
 		float householdAwakeningPercentageByBTO;
 		int offsetBetweenUnitBuyingAndSellingAdvancedPurchase;
 
@@ -89,6 +90,15 @@ struct LongTermParams
 			int awakeningOffMarketSuccessfulBid;
 			int awakeningOffMarketUnsuccessfulBid;
 		} awakeningModel;
+
+
+		struct HedonicPriceModel
+		{
+			HedonicPriceModel();
+			float a;
+			float b;
+		}hedonicPriceModel;
+
 	} housingModel;
 
 	struct OutputHouseholdLogsums

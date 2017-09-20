@@ -138,7 +138,7 @@ public:
 
 	const FleetController::FleetItem &getCurrentFleetItem() const
 	{
-		return currentFleetItem;
+		return serviceVehicle;
 	}
 
 	void setOriginNode(const Node *node)
@@ -196,7 +196,7 @@ private:
 	std::string personIdPickedUp;
 
 	/**The current fleet item*/
-	FleetController::FleetItem currentFleetItem;
+	FleetController::FleetItem serviceVehicle;
 
 	/**
 	 * assign taxi at original node
@@ -222,11 +222,6 @@ private:
 	 * @param selectedLink is a pointer to next select link
 	 */
 	void addCruisingPath(const Link *selectedLink);
-
-	/**
-	 * check fleet information for driver changing
-	 */
-	bool checkNextFleet();
 
 	/**
 	 * set break mode at destination node

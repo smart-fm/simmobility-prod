@@ -4,16 +4,18 @@
 
 #pragma once
 
+#include <boost/algorithm/string.hpp>
 #include <string>
 #include <vector>
+
 #include "behavioral/params/PersonParams.hpp"
-#include "entities/Person.hpp"
-#include "geospatial/network/Lane.hpp"
-#include "geospatial/network/Link.hpp"
-#include "entities/roles/Role.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "entities/FleetController.hpp"
-#include <boost/algorithm/string.hpp>
+#include "entities/Person.hpp"
+#include "entities/roles/Role.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Link.hpp"
+
 namespace sim_mob
 {
 
@@ -50,8 +52,8 @@ private:
 
 	Conflux * currentConflux;
 
-	/**store vehicle no*/
-	FleetController::FleetTimePriorityQueue taxiFleets;
+	/**Stores the service vehicle information*/
+	FleetController::FleetItem serviceVehicle;
 
 	/**Alters trip chain in accordance to route choice for public transit trips*/
 	void convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::string& ptPathsetStoredProcName);
@@ -271,18 +273,15 @@ public:
 		this->personInfo = personInfo;
 	}
 
-	void setTaxiFleet(const FleetController::FleetTimePriorityQueue& fleets)
+	void setServiceVehicle(const FleetController::FleetItem &svcVehicle)
 	{
-		taxiFleets = fleets;
+		serviceVehicle = svcVehicle;
 	}
 
-	const FleetController::FleetTimePriorityQueue& getTaxiFleet() const
+	const FleetController::FleetItem& getServiceVehicle() const
 	{
-		return taxiFleets;
+		return serviceVehicle;
 	}
-
-	FleetController::FleetItem taxiFleetPop();
-
 
 	/**
 	 * from current role, export service driver

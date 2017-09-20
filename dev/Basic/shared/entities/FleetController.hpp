@@ -1,12 +1,8 @@
-/*
- * TaxiFleetManager.hpp
- *
- *  Created on: Jan 11, 2017
- *      Author: zhang huai peng
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
-#ifndef TAXIFLEETMANAGER_HPP_
-#define TAXIFLEETMANAGER_HPP_
+#pragma once
 
 #include <map>
 #include <vector>
@@ -66,13 +62,6 @@ public:
 	virtual void initialise(std::set<sim_mob::Entity*>& agentList) = 0;
 
 	/**
-	 * Dispatches a taxi at the given current time
-	 * @param currentTimeSec is current time in seconds
-	 * @return a list include all taxi which need be dispatched currently
-	 */
-	std::vector<FleetItem> dispatchTaxiAtCurrentTime(const unsigned int currentTimeSec);
-
-	/**
 	 * Returns the vector of fleet items (taxis)
 	 */
 	const std::vector<FleetItem>& getTaxiFleet() const;
@@ -119,4 +108,4 @@ protected:
 	}
 };
 }
-#endif /* TAXIFLEETMANAGER_HPP_ */
+

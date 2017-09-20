@@ -1,16 +1,12 @@
-/*
- * TaxiFleetManager.cpp
- *
- *  Created on: Jan 11, 2017
- *      Author: zhang huai peng
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include <boost/date_time.hpp>
 
 #include "FleetController.hpp"
 #include "conf/ConfigManager.hpp"
 #include "util/Utils.hpp"
-#include "workers/Worker.hpp"
 
 namespace bt = boost::posix_time;
 using namespace sim_mob;
@@ -76,25 +72,6 @@ void FleetController::LoadTaxiFleetFromDB()
 		fleetItem.controllerSubscription = r.get<unsigned int>(COLUMN_CONTROLLER_SUBSCRIPTIONS);
 		taxiFleet.push_back(fleetItem);
    }
-}
-
-std::vector<FleetController::FleetItem> FleetController::dispatchTaxiAtCurrentTime(const unsigned int currentTimeSec)
-{
-	std::vector<FleetItem> res;
-	auto i = taxiFleet.begin();
-	while (i != taxiFleet.end())
-	{
-		if (i->startTime <= currentTimeSec)
-		{
-			res.push_back(*i);
-			i = taxiFleet.erase(i);
-		}
-		else
-		{
-			i++;
-		}
-	}
-	return res;
 }
 
 const std::vector<FleetController::FleetItem>& FleetController::getTaxiFleet() const

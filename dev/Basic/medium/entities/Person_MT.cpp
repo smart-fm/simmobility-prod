@@ -8,24 +8,21 @@
 #include "behavioral/WithindayHelper.hpp"
 #include "conf/ConfigManager.hpp"
 #include "config/MT_Config.hpp"
-#include "entities/TrainController.hpp"
-#include "entities/TripChainOutput.hpp"
-#include "path/PT_RouteChoiceLuaProvider.hpp"
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/PT_Statistics.hpp"
-#include "geospatial/streetdir/RailTransit.hpp"
+#include "entities/TrainController.hpp"
+#include "entities/TripChainOutput.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
+#include "geospatial/streetdir/RailTransit.hpp"
 #include "logging/ControllerLog.hpp"
-#include "util/Utils.hpp"
+#include "path/PT_RouteChoiceLuaProvider.hpp"
 #include "util/GeomHelpers.hpp"
-#include <mutex>
-
+#include "util/Utils.hpp"
 
 using namespace std;
 using namespace sim_mob;
 using namespace sim_mob::medium;
 
-std::mutex taxiFleetMutex;
 
 namespace
 {
@@ -1158,12 +1155,4 @@ void Person_MT::log(std::string line) const
 	Log() << line;
 }
 
-FleetController::FleetItem Person_MT::taxiFleetPop()
-{
-	FleetController::FleetItem retValue;
-	taxiFleetMutex.lock();
-	retValue = taxiFleets.top();
-	taxiFleets.pop();
-	taxiFleetMutex.unlock();
-	return retValue;
-}
+

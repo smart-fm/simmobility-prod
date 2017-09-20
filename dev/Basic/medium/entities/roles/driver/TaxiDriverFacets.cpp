@@ -50,7 +50,7 @@ void TaxiDriverMovement::frame_init()
 
 	assignFirstNode();
 
-	currentFleetItem = parentTaxiDriver->parent->taxiFleetPop();
+	serviceVehicle = parentTaxiDriver->getParent()->getServiceVehicle();
 
 	const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& controllers =
 			MobilityServiceControllerManager::GetInstance()->getControllers();
@@ -62,20 +62,13 @@ void TaxiDriverMovement::frame_init()
 	}
 
 	(isSubscribedToOnHail() && cruiseOrDriveToTaxiStand())?driveToTaxiStand():selectNextLinkWhileCruising();  // for 1 : drive_to_taxiStand or cruise
-
-
-	while (parentTaxiDriver->parent->getTaxiFleet().size() > 0)
-	{
-		FleetController::FleetItem fleet = parentTaxiDriver->parent->taxiFleetPop();
-		taxiFleets.push(fleet);
-	}
 }
 
 void TaxiDriverMovement::subscribeToOrIgnoreController(
 		const multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
 		MobilityServiceControllerType controllerType)
 {
-	if (currentFleetItem.controllerSubscription & controllerType)
+	if (serviceVehicle.controllerSubscription & controllerType)
 	{
 		auto range = controllers.equal_range(controllerType);
 
@@ -342,68 +335,20 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 
 bool TaxiDriverMovement::isSubscribedToOnHail() const
 {
-	if (currentFleetItem.controllerSubscription & MobilityServiceControllerType::SERVICE_CONTROLLER_ON_HAIL)
+	if (serviceVehicle.controllerSubscription & MobilityServiceControllerType::SERVICE_CONTROLLER_ON_HAIL)
 	{
 		return true;
 	}
-	else if (currentFleetItem.controllerSubscription & MobilityServiceControllerType::SERVICE_CONTROLLER_UNKNOWN)
+	else if (serviceVehicle.controllerSubscription & MobilityServiceControllerType::SERVICE_CONTROLLER_UNKNOWN)
 	{
 		stringstream msg;
-		msg << "Driver " << currentFleetItem.driverId << " subscribes to unknown service controller";
+		msg << "Driver " << serviceVehicle.driverId << " subscribes to unknown service controller";
 		throw runtime_error(msg.str());
 	}
 	else
 	{
 		return false;
 	}
-}
-
-bool TaxiDriverMovement::checkNextFleet()
-{
-	bool res = false;
-	DriverUpdateParams &params = parentTaxiDriver->getParams();
-
-	if (taxiFleets.size() > 0 && isSubscribedToOnHail())
-	{
-		currentFleetItem = taxiFleets.front();
-		if (currentFleetItem.startTime < params.now.ms() / 1000.0)
-		{
-			const Link *link = this->currLane->getParentSegment()->getParentLink();
-			SubTrip currSubTrip;
-			currSubTrip.origin = WayPoint(link->getFromNode());
-			currSubTrip.destination = WayPoint(currentFleetItem.startNode);
-			std::vector<WayPoint> currentRouteChoice =
-					PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, link,
-					                                                  parentTaxiDriver->parent->usesInSimulationTravelTime());
-
-			if (currentRouteChoice.size() > 0)
-			{
-				res = true;
-				taxiFleets.pop();
-				currentNode = link->getFromNode();
-				destinationNode = currentFleetItem.startNode;
-				addRouteChoicePath(currentRouteChoice);
-				parentTaxiDriver->parent->setDatabaseId(currentFleetItem.driverId);
-
-				parentTaxiDriver->setDriverStatus(DRIVE_FOR_DRIVER_CHANGE_SHIFT);
-
-				if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
-				{
-					for (auto it = subscribedControllers.begin(); it != subscribedControllers.end(); ++it)
-					{
-						MessageBus::PostMessage(*it, MSG_DRIVER_UNSUBSCRIBE, MessageBus::MessagePtr(
-								new DriverUnsubscribeMessage(parentTaxiDriver->getParent())));
-#ifndef NDEBUG
-						ControllerLog()<< __FILE__ <<":" <<__LINE__<<":"<< __FUNCTION__ << ": Driver "<<parentTaxiDriver->parent->getDatabaseId()<<
-								" unsubscribed because of checkNextFleet()"<< std::endl;
-#endif
-					}
-				}
-
-			}
-		}
-	}
-	return res;
 }
 
 void TaxiDriverMovement::frame_tick()
@@ -653,11 +598,6 @@ TaxiDriver *TaxiDriverMovement::getParentDriver()
 
 void TaxiDriverMovement::selectNextLinkWhileCruising()
 {
-	if (checkNextFleet())
-	{
-		return;
-	}
-
 	if (!currentNode)
 	{
 		currentNode = originNode;
@@ -1045,8 +985,8 @@ std::string TaxiDriverMovement::frame_tick_output()
 
 	if (originNode == currentNode && params.now.ms() == (uint32_t) 0)
 	{
-		out << currentFleetItem.vehicleNo << "," << parentTaxiDriver->parent->getDatabaseId() << ","
-			<< currentNode->getNodeId() << "," << DailyTime(currentFleetItem.startTime * 1000).getStrRepr()
+		out << serviceVehicle.vehicleNo << "," << parentTaxiDriver->parent->getDatabaseId() << ","
+			<< currentNode->getNodeId() << "," << DailyTime(serviceVehicle.startTime * 1000).getStrRepr()
 			<< ",NULL,NULL," << parentTaxiDriver->getDriverStatusStr()
 			<< ",No Passenger"
 			<< std::endl;
@@ -1062,7 +1002,7 @@ std::string TaxiDriverMovement::frame_tick_output()
 		const string timeStr = (DailyTime(params.now.ms()) + DailyTime(
 				ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
 
-		out << currentFleetItem.vehicleNo << "," << driverId << ","
+		out << serviceVehicle.vehicleNo << "," << driverId << ","
 			<< nodeId << ","
 			<< timeStr << ","
 			<< roadSegmentId << ","

@@ -375,9 +375,18 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 	{
 		choice = PredayLuaProvider::getPredayModel().predictWorkBasedSubTour(personParams, workBasedSubTourParams);
 		if(choice == 2) { break; } //QUIT
-		else { subToursList.push_back(Tour(NULL_STOP,true)); } //NON-QUIT
+		else
+		{
+		    if(parentTour.getTourType()== WORK_ACTIVITY_TYPE)
+		    {
+		        subToursList.push_back(Tour(WORK_BASED_SUBTOUR,true));
+		    }
+		    else
+		    {
+		        subToursList.push_back(Tour(NULL_STOP,true));
+		    }
+        } //NON-QUIT
 	}
-
 	// mode/destination and time of day for each sub tour
 	for(TourList::iterator tourIt=subToursList.begin(); tourIt!=subToursList.end(); tourIt++)
 	{
@@ -410,6 +419,7 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 		subTour.addStop(primaryActivity);
 		calculateSubTourTimeWindow(subTour, parentTour); // estimate travel time to/from activity location
 		workBasedSubTourParams.blockTime(subTour.getStartTime(), subTour.getEndTime());
+
 	}
 }
 
@@ -970,7 +980,7 @@ bool PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 	int zone_id = imdParams.getDestination(modeDest);
 	stop->setStopLocationId(zone_id);
 	stop->setStopLocation(zoneMap.at(zone_id)->getZoneCode());
-    if(stop->getStopLocation() == origin || stop->getStopMode() > numModes || stop->getStopMode() < 1)
+    if(stop->getStopMode() > numModes || stop->getStopMode() < 1)
 	{
 		throw std::runtime_error("o = d || invalid stop mode");
 	}
@@ -1373,6 +1383,7 @@ void PredaySystem::calculateSubTourTimeWindow(Tour& subTour, const Tour& parentT
 	tourEndTime = alignTime(tourEndTime, timeWindow, getTimeWindowFromIndex(parentTour.getPrimaryStop()->getDepartureTime()), personParams.getPersonId(), "calculateSubTourTimeWindow() - end");
 	tourEndTime = getIndexFromTimeWindow(tourEndTime);
 	subTour.setEndTime(tourEndTime);
+
 }
 
 void PredaySystem::calculateTourStartTime(Tour& tour, double lowerBoundIdx)
@@ -1666,6 +1677,30 @@ void sim_mob::medium::PredaySystem::computeLogsumsForLT(std::stringstream& outSt
 			<< "\n";
 }
 
+//function to calculate current stop zone and node
+void sim_mob::medium::PredaySystem::calculateZoneNodeMap(const ZoneNodeMap& zoneNodeMap,int& currStopZone, int& currStopNode)
+{
+	const std::vector<long>& addressesInZone =personParams.getAddressIdsInZone(currStopZone);
+	if(addressesInZone.empty())
+	{
+		ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(currStopZone);
+		if (zoneNodeMapIt != zoneNodeMap.end())
+		{
+			currStopNode = getRandomNodeInZone(zoneNodeMapIt->second);
+		}
+	}
+	else if(addressesInZone.size() == 1) //trivial
+	{
+		currStopNode = personParams.getSimMobNodeForAddressId(addressesInZone.front());
+	}
+	else
+	{
+		ZoneAddressParams znAddrParams = ZoneAddressParams(personParams.getAddressLookup(), addressesInZone);
+		long addressId = PredayLuaProvider::getPredayModel().predictAddress(znAddrParams);
+		currStopNode = personParams.getSimMobNodeForAddressId(addressId);
+	}
+}
+
 void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& outStream)
 {
 	size_t numTours = tours.size();
@@ -1679,6 +1714,8 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 	{
 		int homeZone = personParams.getHomeLocation();
 		int homeNode = 0;
+		int workZone;
+		int workNode;
 		long homeAddressId = personParams.getHomeAddressId();
 		if(homeAddressId < 0) //home address id is -1 if not explicitly set
 		{
@@ -1715,11 +1752,12 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 			double prevStopEndTime = homeActivityEndTime;
 			int currStopZone, currStopNode;
 			double currStopEndTime;
+			double workbasedST_stopEndTime;
 			long activityAddressId = 0;
 			for(StopList::const_iterator stopIt=stops.begin(); stopIt!=stops.end(); stopIt++)
 			{
 				const Stop* stop = (*stopIt);
-				currStopZone = stop->getStopLocation();
+                		currStopZone = stop->getStopLocation();
 				currStopNode = 0;
 				if(stop->isPrimaryActivity() && tour.isUsualLocation() &&
                         ((activityTypeConfigMap.at(stop->getStopType()).type == WORK_ACTIVITY_TYPE && personParams.getFixedWorkLocation() != 0)
@@ -1729,32 +1767,26 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 				}
 				else
 				{
-					const std::vector<long>& addressesInZone = personParams.getAddressIdsInZone(currStopZone);
-					if(addressesInZone.empty())
-					{
-						ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(currStopZone);
-						if (zoneNodeMapIt != zoneNodeMap.end())
-						{
-							currStopNode = getRandomNodeInZone(zoneNodeMapIt->second);
-						}
-					}
-					else if(addressesInZone.size() == 1) //trivial
-					{
-						currStopNode = personParams.getSimMobNodeForAddressId(addressesInZone.front());
-					}
-					else
-					{
-						ZoneAddressParams znAddrParams = ZoneAddressParams(personParams.getAddressLookup(), addressesInZone);
-						long addressId = PredayLuaProvider::getPredayModel().predictAddress(znAddrParams);
-						currStopNode = personParams.getSimMobNodeForAddressId(addressId);
-					}
+					calculateZoneNodeMap(zoneNodeMap,currStopZone, currStopNode);
 					if (currStopNode == 0)
 					{
 						nodeMappingFailed = true;
 						break; // if there is no next node, cut the trip chain for this tour here
 					}
 				}
-				currStopEndTime = getTimeWindowFromIndex(stop->getDepartureTime());
+				// If the Work Tour has Workbased Subtour store the Work Activity departure time and assign Current Stops end time as the Subtour start time
+				if((stop->isPrimaryActivity()) && (tour.hasSubTours()))
+				{
+					workbasedST_stopEndTime = getTimeWindowFromIndex(stop->getDepartureTime());
+					const Tour &subT = tour.subTours[0];
+					currStopEndTime=getTimeWindowFromIndex(subT.getStartTime());
+				}
+				// Otherwise the Stop end time will be the current stop's departure time
+				else
+				{
+					currStopEndTime = getTimeWindowFromIndex(stop->getDepartureTime());
+				}
+
 				stopNum++;
 				//person_id character,tour_no,tour_type,stop_no integer NOT NULL,stop_type,stop_location,stop_mode,is_primary_stop,arrival_time,departure_time,prev_stop_location,prev_stop_departure_time
 				tourStream << pid << ","
@@ -1774,11 +1806,76 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 				prevStopZone = currStopZone;
 				prevStopNode = currStopNode;
 				prevStopEndTime = currStopEndTime;
+
+               // If the Work Tour has Subtours then store the Current Stop (Work Stop)'s Node and Zone
+				if((tour.getTourType()==WORK_ACTIVITY_TYPE) && (stop->isPrimaryActivity())&& (tour.hasSubTours()))
+				{
+					workNode=currStopNode;
+					workZone=currStopZone;
+				}
+				// Print the Workbased Subtour stop's data to output stream
+				if(((*stopIt)->getStopType()==WORK_ACTIVITY_TYPE) && ((*stopIt)->isPrimaryActivity()== true)&& (tour.hasSubTours()))
+				{
+					for (int subId = 0; subId < tour.subTours.size(); subId++)
+					{
+						const Tour &subT = tour.subTours[subId];
+						list<Stop *>::const_iterator subT_it;
+						for (subT_it = subT.stops.begin(); subT_it != subT.stops.end(); subT_it++)
+						{
+							currStopZone = (*subT_it)->getStopLocation();
+							currStopNode = 0;
+							calculateZoneNodeMap(zoneNodeMap,currStopZone, currStopNode);
+							if (currStopNode == 0)
+							{
+								nodeMappingFailed = true;
+								break; // if there is no next node, cut the trip chain for this tour here
+							}
+							currStopEndTime = getTimeWindowFromIndex((*subT_it)->getDepartureTime());
+							tourStream << pid << ","
+									<< tourNum << ","
+									<< "WorkbasedSubTour" << ","
+									<< ++stopNum << ","
+									<< "WorkbasedSubTour"  << ","
+									<< currStopNode << ","
+									<< currStopZone << ","
+									<< cfg.getTravelModeStr(subT.getTourMode()) << ","
+									<< ((*subT_it)->isPrimaryActivity() ? "True" : "False")<< "," //Primary activity for subtour
+									<< getTimeWindowFromIndex((*subT_it)->getArrivalTime()) << ","
+									<< currStopEndTime << ","
+									<< prevStopNode << ","
+									<< prevStopZone << ","
+									<< prevStopEndTime << "\n";
+							prevStopZone = currStopZone;
+							prevStopNode = currStopNode;
+							prevStopEndTime = currStopEndTime;
+						}
+						currStopEndTime = getTimeWindowFromIndex((tour.getPrimaryStop())->getDepartureTime());
+						//Work stop at the end of the Workbased Subtour
+						//person_id character,tour_no,tour_type,stop_no,stop_type,stop_location,stop_mode,is_primary_stop,arrival_time,departure_time,prev_stop_location,prev_stop_departure_time
+						tourStream << pid << ","
+								<< tourNum << ","
+								<< "WorkbasedSubTour"  << ","
+								<< ++stopNum << ","
+								<< tour.getTourTypeStr() << ","
+								<< workNode << ","
+								<< workZone << ","
+								<< cfg.getTravelModeStr(subT.getTourMode()) << ","
+								<< "False" << ","
+								<< getTimeWindowFromIndex(subT.getEndTime()) << ","
+								<< currStopEndTime << ","
+								<< prevStopNode << ","
+								<< prevStopZone << ","
+								<< prevStopEndTime << "\n";
+						prevStopNode = workNode;
+						prevStopZone = workZone;
+						prevStopEndTime = workbasedST_stopEndTime;
+					}
+				}
 			}
 
-			if(stopNum > 0) // if there was atleast one stop (with valid node) in tour
+			if(stopNum > 0) // if there `was atleast one stop (with valid node) in tour
 			{
-				homeActivityEndTime = LAST_WINDOW;
+                		homeActivityEndTime = LAST_WINDOW;
 				TourList::const_iterator nextTourIt=tourIt; nextTourIt++; //copy and then increment
 				if(nextTourIt!=tours.end()) { homeActivityEndTime = getTimeWindowFromIndex((*nextTourIt).getStartTime()); }
 

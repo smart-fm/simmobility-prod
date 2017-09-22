@@ -199,6 +199,16 @@ private:
 	 */
 	void updateRoadSegmentTravelTime(const std::vector<const RoadSegment*>& segmentsPassed);
 
+	/**
+	 * This method updates the values recorded by the traffic sensor
+	 *
+	 * @param oldPos previous vehicle position w.r.t start of segment
+	 * @param newPos current vehicle position w.r.t start of segment
+	 * @param speed the speed of the vehicle
+	 * @param acceleration the acceleration of the vehicle
+	 */
+	void updateTrafficSensor(double oldPos, double newPos, double speed, double acceleration);
+
 protected:
 	/**Pointer to the lane changing model being used*/
 	LaneChangingModel *lcModel;
@@ -214,6 +224,9 @@ protected:
 
 	/**The speed which the vehicle will try to achieve.*/
 	double targetSpeed;
+
+	/**Iterator pointing to the next surveillance station on the segment*/
+	vector<SurveillanceStation *>::const_iterator nextSurveillanceStn;
 
 	/**
 	 * Updates the position of the driver

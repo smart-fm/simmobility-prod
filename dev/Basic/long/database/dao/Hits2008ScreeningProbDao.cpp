@@ -15,7 +15,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-Hits2008ScreeningProbDao::Hits2008ScreeningProbDao(DB_Connection& connection): SqlAbstractDao<Hits2008ScreeningProb>(connection, DB_TABLE_HITS2008SCREENINGPROB,"", "", "",DB_GETALL_HITS2008SCREENINGPROB, DB_GETBYID_HITS2008SCREENINGPROB){}
+Hits2008ScreeningProbDao::Hits2008ScreeningProbDao(DB_Connection& connection): SqlAbstractDao<Hits2008ScreeningProb>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"hits2008_screening_prob", ""){}
 
 Hits2008ScreeningProbDao::~Hits2008ScreeningProbDao() {}
 

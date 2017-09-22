@@ -191,7 +191,9 @@ void RealEstateSellerRole::update(timeslice now)
 
             if(getCurrentExpectation(unit->getId(), firstExpectation))
             {
-                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto() ));
+            	bool buySellInvtervalCompleted = true;
+
+                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted, unit->getZoneHousingType() ));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent " <<  this->getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
 				#endif
@@ -214,6 +216,8 @@ void RealEstateSellerRole::HandleMessage(Message::MessageType type, const Messag
             BigSerial unitId = msg.getBid().getNewUnitId();
             bool decision = false;
             ExpectationEntry entry;
+
+            const double dHalf = 0.5;
 
             if(getCurrentExpectation(unitId, entry))
             {
@@ -238,6 +242,26 @@ void RealEstateSellerRole::HandleMessage(Message::MessageType type, const Messag
                     {
                         maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
                     }
+        			else if( fabs(maxBidOfDay->getBidValue() - msg.getBid().getBidValue()) < EPSILON)
+        			{
+        				// bids are equal (i.e so close the difference is less that EPSILON). Randomly choose one.
+
+        				double randomDraw = (double)rand()/RAND_MAX;
+
+        				//drop the current bid
+        				if(randomDraw < dHalf)
+        				{
+        					replyBid(*dynamic_cast<RealEstateAgent*>(getParent()), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
+        					maxBidsOfDay.erase(unitId);
+
+        					//update the new bid and bidder.
+        					maxBidsOfDay.insert(std::make_pair(unitId, msg.getBid()));
+        				}
+        				else //keep the current bid
+        				{
+        					replyBid(*dynamic_cast<RealEstateAgent*>(getParent()), msg.getBid(), entry, BETTER_OFFER, dailyBidCounter);
+        				}
+        			}
                     else if(maxBidOfDay->getBidValue() < msg.getBid().getBidValue())
                     {
                         // bid is higher than the current one of the day.
@@ -301,8 +325,12 @@ void RealEstateSellerRole::adjustNotSoldUnits()
 					#ifdef VERBOSE
 					PrintOutV("[day " << this->currentTime.ms() << "] RealEstate Agent. Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
 					#endif
-					 market->removeEntry(unitId);
-					 continue;
+
+					sellingUnitsMap.erase(unitId);
+
+					market->removeEntry(unitId);
+
+					continue;
 				 }
 			 }
 
@@ -331,6 +359,11 @@ void RealEstateSellerRole::notifyWinnerBidders()
         Bid& maxBidOfDay = itr->second;
         ExpectationEntry entry;
         getCurrentExpectation(maxBidOfDay.getNewUnitId(), entry);
+
+
+        if(decide(maxBidOfDay, entry) == false)
+        	continue;
+
         replyBid(*dynamic_cast<RealEstateAgent*>(getParent()), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getNewUnitId()));
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
@@ -374,9 +407,9 @@ void RealEstateSellerRole::calculateUnitExpectations(const Unit& unit)
             //int dayToApply = currentTime.ms() + (i * info.interval);
             //printExpectation(currentTime, dayToApply, unit.getId(), *dynamic_cast<RealEstateAgent*>(getParent()), info.expectations[i]);
 
-        	double asking =unit.getTotalPrice();
-        	double hedonic = unit.getTotalPrice();
-        	double target = unit.getTotalPrice();
+        	double asking =unit.getBTOPrice();
+        	double hedonic = unit.getBTOPrice();
+        	double target = unit.getBTOPrice();
 
             ExpectationEntry expectation;
 
@@ -403,7 +436,14 @@ bool RealEstateSellerRole::getCurrentExpectation(const BigSerial& unitId, Expect
         SellingUnitInfo& info = it->second;
 
         //expectations are start on last element to the first.
-        unsigned int index = ((unsigned int)(floor(abs(info.startedDay - currentTime.ms()) / info.interval))) % info.expectations.size();
+        int index  = ((int)currentTime.ms() - info.startedDay)  / info.interval;
+
+        if( index > info.expectations.size() )
+        {
+        	//This is an edge case. The unit is about to leave the market.
+        	//Let's just return the last asking price.
+        	index = info.expectations.size() - 1;
+         }
 
         if (index < info.expectations.size())
         {

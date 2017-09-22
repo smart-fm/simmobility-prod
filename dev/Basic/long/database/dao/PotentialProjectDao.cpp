@@ -44,7 +44,7 @@ void PotentialProjectDao::toRow(PotentialProject& data, Parameters& outParams, b
 void PotentialProjectDao::insertPotentialProject(PotentialProject& potentialProject,std::string schema)
 {
 
-	const std::string DB_INSERT_POTENTIAL_PROJECT = "INSERT INTO " + APPLY_SCHEMA(schema, ".potential_project")
+	const std::string DB_INSERT_POTENTIAL_PROJECT = "INSERT INTO " + schema + ".potential_project"
 										+ " (" + "fm_parcel_id" + ", " + "profit" + ", " + "construction_cost"
 				                		+ ", " + "demolition_cost" + ", " + "gross_area" + ", "
 				                		+ "investment_return_ratio" + ", " + "total_units"  + ", "+ "acquisition_cost" + ", " + "land_value" + ", "

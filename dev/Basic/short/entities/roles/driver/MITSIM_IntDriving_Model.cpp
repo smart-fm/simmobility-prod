@@ -91,8 +91,9 @@ void MITSIM_IntDriving_Model::readDriverParameters(DriverUpdateParams &params)
 		}
 		catch (boost::bad_lexical_cast&)
 		{
-			std::string str = "Could not covert <" + *itStr + "> to double.";
-			throw std::runtime_error(str);
+			std::stringstream str;
+			str << __func__ << ": Could not covert " << *itStr << " to type double.";
+			throw std::runtime_error(str.str());
 		}
 
 		criticalGapAddOn[index] = res;

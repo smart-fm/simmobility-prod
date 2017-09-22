@@ -8,32 +8,29 @@
 
 using namespace sim_mob::long_term;
 
-VehicleOwnershipCoefficients::VehicleOwnershipCoefficients(BigSerial vehicleOwnershipOptionId, double HHInc2, double HHInc3, double HHInc4, double HHInc5, double malay, double indian,double otherRaces, double whiteCollar, double worker,
-		 	 	 	 	 	 	 	 	 	 	 	 	   double HHChild1, double HHChild2Plus, double elderlyHH, double taxi, double mrt500m , double mrt1000m, double privateProperty, double logsum, double constant):
-														   vehicleOwnershipOptionId(vehicleOwnershipOptionId),HHInc2(HHInc2),HHInc3(HHInc3),HHInc4(HHInc4), HHInc5(HHInc5), malay(malay),indian(indian), otherRaces(otherRaces),whiteCollar(whiteCollar),worker(worker),
-														   HHChild1(HHChild1),HHChild2Plus(HHChild2Plus), elderlyHH(elderlyHH), taxi(taxi), mrt500m(mrt500m), mrt1000m(mrt1000m), privateProperty(privateProperty), logsum(logsum), constant(constant){}
+VehicleOwnershipCoefficients::VehicleOwnershipCoefficients(BigSerial vehicleOwnershipOptionId, double incomeAdj, double malay, double indian, double otherRaces, double aboveSixty,  double privateProperty, double whiteCollar, double worker,
+		 	 	 	 	 	 	 	 	 	 	 	 	   double HHChild1, double HHChild2Plus, double taxi, double mrt500m , double mrt1000m, double logsum, double constant):
+														   vehicleOwnershipOptionId(vehicleOwnershipOptionId),incomeAdj(incomeAdj), malay(malay),indian(indian), otherRaces(otherRaces),aboveSixty(aboveSixty),privateProperty(privateProperty),whiteCollar(whiteCollar),worker(worker),
+														   HHChild1(HHChild1),HHChild2Plus(HHChild2Plus), taxi(taxi), mrt500m(mrt500m), mrt1000m(mrt1000m), logsum(logsum), constant(constant){}
 
 VehicleOwnershipCoefficients::~VehicleOwnershipCoefficients() {}
 
 VehicleOwnershipCoefficients& VehicleOwnershipCoefficients::operator=(const VehicleOwnershipCoefficients& source)
 {
 	this->vehicleOwnershipOptionId 		= source.vehicleOwnershipOptionId;
-	this->HHInc2						= source.HHInc2;
-	this->HHInc3 						= source.HHInc3;
-	this->HHInc4 						= source.HHInc4;
-	this->HHInc5 						= source.HHInc5;
+	this->incomeAdj					    = source.incomeAdj;
 	this->malay 						= source.malay;
 	this->indian 						= source.indian;
 	this->otherRaces 					= source.otherRaces;
+	this->aboveSixty					= source.aboveSixty;
+	this->privateProperty 				= source.privateProperty;
 	this->whiteCollar 					= source.whiteCollar;
 	this->worker 						= source.worker;
 	this->HHChild1 						= source.HHChild1;
 	this->HHChild2Plus 					= source.HHChild2Plus;
-	this->elderlyHH 					= source.elderlyHH;
 	this->taxi 							= source.taxi;
 	this->mrt500m 						= source.mrt500m;
 	this->mrt1000m 						= source.mrt1000m;
-	this->privateProperty 				= source.privateProperty;
 	this->logsum 						= source.logsum;
 	this->constant 						= source.constant;
 
@@ -48,16 +45,6 @@ double VehicleOwnershipCoefficients::getConstant() const
 void VehicleOwnershipCoefficients::setConstant(double constant)
 {
 	this->constant = constant;
-}
-
-double VehicleOwnershipCoefficients::getElderlyHh() const
-{
-	return elderlyHH;
-}
-
-void VehicleOwnershipCoefficients::setElderlyHh(double elderlyHh)
-{
-	elderlyHH = elderlyHh;
 }
 
 double VehicleOwnershipCoefficients::getHhChild1() const
@@ -78,46 +65,6 @@ double VehicleOwnershipCoefficients::getHhChild2Plus() const
 void VehicleOwnershipCoefficients::setHhChild2Plus(double hhChild2Plus)
 {
 	HHChild2Plus = hhChild2Plus;
-}
-
-double VehicleOwnershipCoefficients::getHhInc2() const
-{
-	return HHInc2;
-}
-
-void VehicleOwnershipCoefficients::setHhInc2(double hhInc2)
-{
-	HHInc2 = hhInc2;
-}
-
-double VehicleOwnershipCoefficients::getHhInc3() const
-{
-	return HHInc3;
-}
-
-void VehicleOwnershipCoefficients::setHhInc3(double hhInc3)
-{
-	HHInc3 = hhInc3;
-}
-
-double VehicleOwnershipCoefficients::getHhInc4() const
-{
-	return HHInc4;
-}
-
-void VehicleOwnershipCoefficients::setHhInc4(double hhInc4)
-{
-	HHInc4 = hhInc4;
-}
-
-double VehicleOwnershipCoefficients::getHhInc5() const
-{
-	return HHInc5;
-}
-
-void VehicleOwnershipCoefficients::setHhInc5(double hhInc5)
-{
-	HHInc5 = hhInc5;
 }
 
 double VehicleOwnershipCoefficients::getIndian() const
@@ -230,6 +177,26 @@ void VehicleOwnershipCoefficients::setWorker(double worker)
 	this->worker = worker;
 }
 
+double VehicleOwnershipCoefficients::getIncomeAdj() const
+{
+	return incomeAdj;
+}
+
+void VehicleOwnershipCoefficients::setIncomeAdj(double incomeAdj)
+{
+	this->incomeAdj = incomeAdj;
+}
+
+double VehicleOwnershipCoefficients::getAboveSixty() const
+{
+	return aboveSixty;
+}
+
+void VehicleOwnershipCoefficients::setAboveSixty(double aboveSixty)
+{
+	this->aboveSixty = aboveSixty;
+}
+
 namespace sim_mob
 {
     namespace long_term
@@ -238,17 +205,14 @@ namespace sim_mob
         {
             return strm << "{"
 						<< "\"vehicleOwnershipOptionId \":\"" << data.vehicleOwnershipOptionId 	<< "\","
-						<< "\"HHInc2 \":\"" 	<< data.HHInc2 	<< "\","
-						<< "\"HHInc3 \":\"" 	<< data.HHInc3 	<< "\","
-						<< "\"HHInc4 \":\"" 	<< data.HHInc4 	<< "\","
-						<< "\"HHInc5 \":\"" 	<< data.HHInc5 	<< "\","
+						<< "\"incomeAdj \":\"" 	<< data.incomeAdj 	<< "\","
 						<< "\"malay \":\"" 	<< data.malay 	<< "\","
 						<< "\"indian \":\"" 	<< data.indian 	<< "\","
 						<< "\"white_collar \":\"" 	<< data.whiteCollar	<< "\","
 						<< "\"worker \":\"" 	<< data.worker 	<< "\","
 						<< "\"HH_child1 \":\"" 	<< data.HHChild1 	<< "\","
 						<< "\"HH_child_2plus \":\"" 	<< data.HHChild2Plus 	<< "\","
-						<< "\"elderly_HH \":\"" 	<< data.elderlyHH 	<< "\","
+						<< "\"aboveSixty \":\"" 	<< data.aboveSixty 	<< "\","
 						<< "\"taxi \":\"" 	<< data.taxi 	<< "\","
 						<< "\"mrt_500m \":\"" 	<< data.mrt500m 	<< "\","
 						<< "\"mrt_1000m \":\"" 	<< data.mrt1000m 	<< "\","

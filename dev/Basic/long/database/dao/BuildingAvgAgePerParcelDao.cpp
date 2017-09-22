@@ -10,7 +10,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-BuildingAvgAgePerParcelDao::BuildingAvgAgePerParcelDao(DB_Connection& connection): SqlAbstractDao<BuildingAvgAgePerParcel>(connection, EMPTY_STR,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_BUILDING_AGES, EMPTY_STR) {}
+BuildingAvgAgePerParcelDao::BuildingAvgAgePerParcelDao(DB_Connection& connection): SqlAbstractDao<BuildingAvgAgePerParcel>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"fm_building_avg_age", "") {}
 
 BuildingAvgAgePerParcelDao::~BuildingAvgAgePerParcelDao() {}
 

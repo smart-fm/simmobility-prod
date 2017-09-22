@@ -16,7 +16,7 @@ namespace sim_mob {
 
         class VehicleOwnershipChanges {
         public:
-        	VehicleOwnershipChanges(BigSerial householdId = INVALID_ID, int oldehicleOwnershipOptionId = 0,int newVehicleOwnershipOptionId = 0,std::tm startDate = std::tm());
+        	VehicleOwnershipChanges(BigSerial householdId = INVALID_ID, int oldehicleOwnershipOptionId = 0,int newVehicleOwnershipOptionId = 0,std::tm startDate = std::tm(),bool liveInTp = false, bool workInTp = false, double randomNum = 0);
 
             virtual ~VehicleOwnershipChanges();
             VehicleOwnershipChanges( const VehicleOwnershipChanges &source);
@@ -41,6 +41,15 @@ namespace sim_mob {
 		void setOldVehicleOwnershipOptionId(int oldVehicleOwnershipOptionId);
 		void setNewVehicleOwnershipOptionId(int nwVehicleOwnershipOptionId);
 
+		bool isLiveInTp() const;
+		void setLiveInTp(bool liveInTp);
+
+		bool isWorkInTp() const;
+		void setWorkInTp(bool workInTp);
+
+		double getRandomNum() const;
+		void setRandomNum(double randomNum);
+
         private:
             friend class VehicleOwnershipChangesDao;
         private:
@@ -48,6 +57,9 @@ namespace sim_mob {
             int oldVehicleOwnershipOptionId;
             int newVehicleOwnershipOptionId;
             std::tm startDate;
+            bool liveInTp;
+            bool workInTp;
+            double randomNum;
         };
     }
 }

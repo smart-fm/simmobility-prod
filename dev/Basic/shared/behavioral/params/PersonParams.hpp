@@ -11,6 +11,8 @@
 #include <string>
 #include "behavioral/StopType.hpp"
 #include "behavioral/PredayUtils.hpp"
+#include "ZoneCostParams.hpp"
+#include <algorithm>
 
 namespace sim_mob
 {
@@ -614,20 +616,33 @@ public:
 		return incomeCategoryLowerLimits;
 	}
 
-	static std::map<long, sim_mob::Address>& getAddressLookup()
+	static const std::map<long, sim_mob::Address>& getAddressLookup()
 	{
 		return addressLookup;
 	}
 
-	static std::map<unsigned int, unsigned int>& getPostcodeNodeMap()
+    static void setAddressLookup(const sim_mob::Address& address);
+
+    static void removeInvalidAddress();
+
+    static void clearAddressLookup();
+
+	static const std::map<unsigned int, unsigned int>& getPostcodeNodeMap()
 	{
 		return postCodeToNodeMapping;
 	}
 
-	static std::map<int, std::vector<long> >& getZoneAddresses()
+    static void setPostCodeNodeMap(const sim_mob::Address& address,const ZoneNodeParams& nodeId);
+
+    static void clearPostCodeNodeMap();
+
+	static const std::map<int, std::vector<long> >& getZoneAddresses()
 	{
 		return zoneAddresses;
 	}
+    static void setZoneNodeAddressesMap(const sim_mob::Address& address);
+
+    static void clearZoneAddresses();
 
 	/**
 	 * makes all time windows to available

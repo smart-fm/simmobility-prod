@@ -344,12 +344,14 @@ void LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> co
 	size_t createdLDs = 0;
 	RoadSegment const * road = roads[count - 1]; //create LD only for the last road segment in the vector
 	std::vector<Lane *> const & lanes = road->getLanes();
+
 	if (!lanes.size())
 	{
 		std::ostringstream str;
-		str << " There is no lane associated with road segment " << road->getRoadSegmentId();
+		str << __func__ << ": There is no lane associated with road segment " << road->getRoadSegmentId();
 		throw std::runtime_error(str.str());
 	}
+
 	for (size_t i = 0; i < lanes.size(); ++i)
 	{
 		Lane const * lane = lanes[i];
@@ -373,12 +375,12 @@ void LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> co
 
 		createdLDs++;
 	}
+
 	if (createdLDs == 0)
 	{
 		std::ostringstream str;
-		str << " could not create any loop detector in road segment " << road->getRoadSegmentId()
-			<< " this will create problem for you later if you don't watch out !\n"
-				"for instance, while calculating laneDS";
+		str << __func__ << ": Could not create any loop detector in road segment " << road->getRoadSegmentId()
+			<< "\nNote: laneDS cannot be calculated...";
 		throw std::runtime_error(str.str());
 	}
 }
@@ -464,14 +466,18 @@ void LoopDetectorEntity::Impl::reset()
 void LoopDetectorEntity::Impl::reset(Lane const &lane)
 {
 	std::map<Lane const *, LoopDetector *>::const_iterator iter = loopDetectors_.find(&lane);
+
 	if (iter != loopDetectors_.end())
 	{
 		LoopDetector * detector = iter->second;
 		detector->reset();
 	}
-	std::ostringstream stream;
-	stream << "LoopDetectorEntity::Impl::reset() was called on invalid lane";
-	throw std::runtime_error(stream.str().c_str());
+	else
+	{
+		std::stringstream stream;
+		stream << __func__ << ": Lane does not contain Loop Detectors";
+		throw std::runtime_error(stream.str());
+	}
 }
 
 /** \endcond ignoreLoopDetectorInnards -- End of block to be ignored by doxygen.  */

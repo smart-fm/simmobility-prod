@@ -20,7 +20,8 @@ enum PT_StatsMessage
 	STORE_BUS_ARRIVAL = 6500000,
 	STORE_PERSON_WAITING,
 	STORE_WAITING_PERSON_COUNT,
-	STORE_PERSON_TRAVEL_TIME
+	STORE_PERSON_TRAVEL_TIME,
+	STORE_PERSON_REROUTE
 };
 
 /**
@@ -68,14 +69,14 @@ public:
 };
 
 /**
- * simple struct to store arrival time at bus stop and pertinent info for buses
+ * simple struct to store arrival time at bus stop or mrt station
  */
-struct BusArrivalTime
+struct PT_ArrivalTime
 {
 	/** bus stop number*/
-	std::string busStopNo;
+	std::string stopNo;
 	/** bus line*/
-	std::string busLine;
+	std::string serviceLine;
 	/** trip number for the bus line*/
 	std::string tripId;
 	/** bus stop sequence number*/
@@ -99,14 +100,51 @@ struct BusArrivalTime
 /**
  * Message to transfer bus arrival time at bus stop
  */
-class BusArrivalTimeMessage : public messaging::Message
+class PT_ArrivalTimeMessage : public messaging::Message
 {
 public:
-	BusArrivalTimeMessage(const BusArrivalTime& busArrivalInfo) : busArrivalInfo(busArrivalInfo) {}
-	virtual ~BusArrivalTimeMessage() {}
-	BusArrivalTime busArrivalInfo;
+	PT_ArrivalTimeMessage(const PT_ArrivalTime& arrivalInfo) : arrivalInfo(arrivalInfo) {}
+	virtual ~PT_ArrivalTimeMessage() {}
+	PT_ArrivalTime arrivalInfo;
 };
 
+struct PT_RerouteInfo
+{
+	/**person id*/
+	std::string personId;
+	/** bus stop number*/
+	std::string stopNo;
+	/** last role type*/
+	int lastRoleType;
+	/** mode choice result*/
+	std::string travelMode;
+	/** original node id*/
+	unsigned int originNodeId;
+	/** starting node for reroute*/
+	unsigned int startNodeId;
+	/** destination node id*/
+	unsigned int  destNodeId;
+	/** pt pathset loading result	 */
+	bool isPT_loaded;
+	/** current time */
+	std::string currentTime;
+	/**
+	 * constructs a string of comma separated values to be printed in output files
+	 * @returns printable csv string
+	 */
+	std::string getCSV() const;
+};
+
+/**
+ * Message to public reroute
+ */
+class PT_RerouteInfoMessage : public messaging::Message
+{
+public:
+	PT_RerouteInfoMessage(const PT_RerouteInfo& rerouteInfo) : rerouteInfo(rerouteInfo) {}
+	virtual ~PT_RerouteInfoMessage() {}
+	PT_RerouteInfo rerouteInfo;
+};
 /**
  * struct to store travel time of persons taking public transit
  */
@@ -258,7 +296,7 @@ public:
 	 * registers bus arrival and dwell time for a stop, bus line and interval
 	 * @param busArrival bus arrival info
 	 */
-	void addStopStats(const BusArrivalTime& busArrival);
+	void addStopStats(const PT_ArrivalTime& busArrival);
 
 	/**
 	 * registers person waiting time and count for a stop, bus line and interval
@@ -310,7 +348,7 @@ private:
 	PT_Statistics();
 
 	/**store stop to stop journey time. bus stop No. is key */
-	std::vector<BusArrivalTime> busJourneyTimes;
+	std::vector<PT_ArrivalTime> journeyTimes;
 
 	/**store for waiting time at bus stop*/
 	std::map<std::string, PersonWaitingTime> personWaitingTimes;
@@ -323,6 +361,9 @@ private:
 
 	/**PT stop statistics manager*/
 	StopStatsManager stopStatsMgr;
+
+	/**public reroute when disruption*/
+	std::vector<PT_RerouteInfo> personsReroutes;
 
 	static PT_Statistics* instance;
 };

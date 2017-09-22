@@ -42,6 +42,13 @@ namespace sim_mob
             float getLatitude() const;
             bool getPrimaryPostcode() const;
 
+            void setAddressId(BigSerial addressId);
+            void setLatitude(float latitude);
+            void setLongitude(float longitude);
+            void setPrimaryPostcode(bool primaryPostcode);
+            void setSlaPostcode(const std::string& slaPostcode);
+            void setTazId(BigSerial tazId);
+
             /**
              * Operator to print the Unit data.  
              */

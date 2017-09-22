@@ -44,7 +44,7 @@ void UnitSaleDao::toRow(UnitSale& data, Parameters& outParams, bool update)
 void UnitSaleDao::insertUnitSale(UnitSale& unitSale,std::string schema)
 {
 
-	const std::string DB_INSERT_UNIT_SALE = "INSERT INTO " + APPLY_SCHEMA(schema, ".unit_sale")
+	const std::string DB_INSERT_UNIT_SALE = "INSERT INTO " + schema + ".unit_sale"
                 		+ " (" + "unit_sale_id " + ", " + "unit_id " + ", " + "buyer_id" + ", " + "seller_id" + ", " + "unit_price" ", " + "transaction_day" ", " + "days_on_market_unit" ", " + "days_on_market_bidder"
                 		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8)";
 	insertViaQuery(unitSale,DB_INSERT_UNIT_SALE);

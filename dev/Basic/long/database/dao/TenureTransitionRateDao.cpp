@@ -15,8 +15,10 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-TenureTransitionRateDao::TenureTransitionRateDao(DB_Connection& connection): SqlAbstractDao<TenureTransitionRate>( connection, DB_TABLE_TENURETRANSITIONRATE, "", "", "",
-																													DB_GETALL_TENURETRANSITIONRATE, DB_GETBYID_TENURETRANSITIONRATE){}
+TenureTransitionRateDao::TenureTransitionRateDao(DB_Connection& connection): SqlAbstractDao<TenureTransitionRate>(  connection, "", "", "", "",
+																													"SELECT * FROM " + connection.getSchema()+"tenure_transition_rate",
+																													""){}
+
 
 TenureTransitionRateDao::~TenureTransitionRateDao(){}
 

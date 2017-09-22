@@ -11,8 +11,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-EstablishmentDao::EstablishmentDao(DB_Connection& connection): SqlAbstractDao<Establishment>(connection, DB_TABLE_ESTABLISHMENT,EMPTY_STR,
-																							 EMPTY_STR, EMPTY_STR,DB_GETALL_ESTABLISHMENT, DB_GETBYID_ESTABLISHMENT){}
+EstablishmentDao::EstablishmentDao(DB_Connection& connection): SqlAbstractDao<Establishment>(connection, "","","", "","SELECT * FROM " + connection.getSchema()+"establishment", ""){}
 
 EstablishmentDao::~EstablishmentDao() {}
 

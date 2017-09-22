@@ -16,8 +16,8 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-AlternativeHedonicPriceDao::AlternativeHedonicPriceDao(DB_Connection& connection): SqlAbstractDao<AlternativeHedonicPrice>( connection, DB_FUNC_GET_ALTERNATIVE_HEDONIC_PRICE, "", "", "",
-																									  DB_GETALL_ALTERNATIVE_HEDONIC_PRICE, DB_GETBYID_ALTERNATIVE_HEDONIC_PRICE){}
+AlternativeHedonicPriceDao::AlternativeHedonicPriceDao(DB_Connection& connection): SqlAbstractDao<AlternativeHedonicPrice>( connection, "", "", "", "",
+																															"SELECT * FROM " + connection.getSchema()+"getAlternativeHedonicPrice()",""){}
 
 AlternativeHedonicPriceDao::~AlternativeHedonicPriceDao(){}
 

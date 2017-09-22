@@ -8,6 +8,10 @@
 
 #include "Awakening.hpp"
 
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
@@ -94,6 +98,53 @@ Awakening& Awakening::operator=(const Awakening& source)
 	return *this;
 }
 
+template<class Archive>
+void  Awakening::serialize(Archive & ar,const unsigned int version)
+{
+
+	ar & id;
+	ar & class1;
+	ar & class2 ;
+	ar & class3;
+	ar & awakenClass1;
+	ar & awakenClass2;
+	ar & awakenClass3;
+}
+
+void  Awakening::saveData(std::vector<Awakening*> &awakenings)
+{
+	// make an archive
+	std::ofstream ofs(filename);
+	boost::archive::binary_oarchive oa(ofs);
+	oa & awakenings;
+
+}
+
+std::vector<Awakening*>  Awakening::loadSerializedData()
+{
+	std::vector<Awakening*> awakenings;
+	// Restore from saved data and print to verify contents
+	std::vector<Awakening*> restored_info;
+	{
+		// Create and input archive
+		std::ifstream ifs( filename );
+		boost::archive::binary_iarchive ar( ifs );
+
+		// Load the data
+		ar & restored_info;
+	}
+
+	std::vector<Awakening*>::const_iterator it = restored_info.begin();
+	for (; it != restored_info.end(); ++it)
+	{
+		Awakening *aw = *it;
+		awakenings.push_back(aw);
+	}
+
+	return awakenings;
+
+
+}
 
 namespace sim_mob
 {

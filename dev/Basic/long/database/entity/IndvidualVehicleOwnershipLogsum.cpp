@@ -10,8 +10,8 @@
 
 using namespace sim_mob::long_term;
 
-IndvidualVehicleOwnershipLogsum::IndvidualVehicleOwnershipLogsum(BigSerial householdId, BigSerial individualId, double logsumTransit, double logsumCar):
-		householdId(householdId),individualId(individualId),logsumTransit(logsumTransit),logsumCar(logsumCar){}
+IndvidualVehicleOwnershipLogsum::IndvidualVehicleOwnershipLogsum(BigSerial householdId, BigSerial individualId, double logsum0, double logsum1, double logsum2, double logsum3, double logsum4, double logsum5):
+		householdId(householdId),individualId(individualId),logsum0(logsum0),logsum1(logsum1),logsum2(logsum2),logsum3(logsum3),logsum4(logsum4),logsum5(logsum5){}
 
 IndvidualVehicleOwnershipLogsum::~IndvidualVehicleOwnershipLogsum() {}
 
@@ -19,8 +19,12 @@ IndvidualVehicleOwnershipLogsum& IndvidualVehicleOwnershipLogsum::operator=(cons
 {
 	this->householdId 			= source.householdId;
 	this->individualId = source.individualId;
-	this->logsumTransit = source.logsumTransit;
-	this->logsumCar = source.logsumCar;
+	this->logsum0 = source.logsum0;
+	this->logsum1 = source.logsum1;
+	this->logsum2 = source.logsum2;
+	this->logsum3 = source.logsum3;
+	this->logsum4 = source.logsum4;
+	this->logsum5 = source.logsum5;
 	return *this;
 }
 
@@ -44,26 +48,65 @@ void IndvidualVehicleOwnershipLogsum::setIndividualId(BigSerial individualId)
 	this->individualId = individualId;
 }
 
-double IndvidualVehicleOwnershipLogsum::getLogsumCar() const
+double IndvidualVehicleOwnershipLogsum::getLogsum0() const
 {
-	return logsumCar;
+	return logsum0;
 }
 
-void IndvidualVehicleOwnershipLogsum::setLogsumCar(double logsumCar)
+void IndvidualVehicleOwnershipLogsum::setLogsum0(double logsum0)
 {
-	this->logsumCar = logsumCar;
+	this->logsum0 = logsum0;
 }
 
-double IndvidualVehicleOwnershipLogsum::getLogsumTransit() const
+double IndvidualVehicleOwnershipLogsum::getLogsum1() const
 {
-	return logsumTransit;
+	return logsum1;
 }
 
-void IndvidualVehicleOwnershipLogsum::setLogsumTransit(double logsumTransit)
+void IndvidualVehicleOwnershipLogsum::setLogsum1(double logsum1)
 {
-	this->logsumTransit = logsumTransit;
+	this->logsum1 = logsum1;
 }
 
+double IndvidualVehicleOwnershipLogsum::getLogsum2() const
+{
+	return logsum2;
+}
+
+void IndvidualVehicleOwnershipLogsum::setLogsum2(double logsum2)
+{
+	this->logsum2 = logsum2;
+}
+
+double IndvidualVehicleOwnershipLogsum::getLogsum3() const
+{
+	return logsum3;
+}
+
+void IndvidualVehicleOwnershipLogsum::setLogsum3(double logsum3)
+{
+	this->logsum3 = logsum3;
+}
+
+double IndvidualVehicleOwnershipLogsum::getLogsum4() const
+{
+	return logsum4;
+}
+
+void IndvidualVehicleOwnershipLogsum::setLogsum4(double logsum4)
+{
+	this->logsum4 = logsum4;
+}
+
+double IndvidualVehicleOwnershipLogsum::getLogsum5() const
+{
+	return logsum5;
+}
+
+void IndvidualVehicleOwnershipLogsum::setLogsum5(double logsum5)
+{
+	this->logsum5 = logsum5;
+}
 
 namespace sim_mob
 {
@@ -74,8 +117,12 @@ namespace sim_mob
             return strm << "{"
 						<< "\"householdId \":\"" << data.householdId 	<< "\","
 						<< "\"individualId \":\"" 	<< data.individualId 	<< "\","
-						<< "\"logsumTransit \":\"" 	<< data.logsumTransit 	<< "\","
-						<< "\"logsumCar \":\"" 	<< data.logsumCar 	<< "\","
+						<< "\"logsum0 \":\"" 	<< data.logsum0 	<< "\","
+						<< "\"logsum1 \":\"" 	<< data.logsum1 	<< "\","
+						<< "\"logsum2 \":\"" 	<< data.logsum2 	<< "\","
+						<< "\"logsum3 \":\"" 	<< data.logsum3 	<< "\","
+						<< "\"logsum4 \":\"" 	<< data.logsum4 	<< "\","
+						<< "\"logsum5 \":\"" 	<< data.logsum5 	<< "\","
 						<< "}";
         }
     }

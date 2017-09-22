@@ -223,7 +223,7 @@ struct ScreenLineParams
 struct IncidentParams
 {
 	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0), capFactor(0), startTime(0),
-			duration(0), length(0), compliance(0), accessibility(0)
+	                   duration(0), length(0), compliance(0), accessibility(0)
 	{}
 
 	struct LaneParams
@@ -313,6 +313,22 @@ private:
 };
 
 /**
+ * Simple struct to store configuration setting related to TripChain outputs
+ */
+struct TripChainOutputConfig
+{
+	/// Flag to check whether trip chain output is enabled
+	bool enabled;
+	/// File name where the trips and activities are stored
+	std::string tripActivitiesFile;
+	/// File name where the subtrips are stored
+	std::string subTripsFile;
+
+	TripChainOutputConfig() : enabled(false), tripActivitiesFile(""), subTripsFile("")
+	{}
+};
+
+/**
  * Singleton class to hold Mid-term related configurations
  */
 class MT_Config : private ProtectedCopyable
@@ -351,6 +367,31 @@ public:
 	 * @param pedestrianWalkSpeed speed to be set
 	 */
 	void setPedestrianWalkSpeed(double pedestrianWalkSpeed);
+/**
+-	 * Retrieves model scripts map
+-	 *
+-	 * @return model scritps map
+-	 */
+			const ModelScriptsMap& getModelScriptsMap() const;
+
+			/**
+-	 * Sets model scripts map
+-	 *
+-	 * @param modelScriptsMap model scripts map to be set
+-	 */
+			void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
+
+	ModelScriptsMap modelScriptsMap;
+
+		/**
+ 	 * Retrieves Mongo Collection map
+ 	 *
+ 	 * @return mongo collections map
+ @@ -785,9 +772,6 @@ class MT_Config : private ProtectedCopyable
+ 	/// flag to indicate whether console output is required
+ 	bool consoleOutput;
+
+	/// Container for lua scripts
 
 	/**
 	 * Retrieves number of threads allocated for Preday
@@ -381,7 +422,7 @@ public:
 	void setMongoCollectionsMap(const MongoCollectionsMap& mongoCollectionsMap);
 
 	/**
-	 * the object of this class gets sealed when this function is called. No more changes will be allowed via the setters
+	 * the object of this class gets sealed when this function is called. No more changes will be allowed via the  setters
 	 */
 	void sealConfig();
 
@@ -582,27 +623,11 @@ public:
 	void setPopulationSource(const std::string& src);
 
 	/**
-	 * Retrieves number of workers for handling agents
-	 *
-	 * @return number of workers
-	 */
-	unsigned int& personWorkGroupSize();
-
-	/**
-	 * Retrieves number of workers for handling agents
-	 *
-	 * @return number of workers
-	 */
-	unsigned int personWorkGroupSize() const;
-
-	/**
 	 * Checks whether CBD area restriction enforced
 	 *
 	 * @return true if restriction enforced, else false
 	 */
 	bool isRegionRestrictionEnabled() const;
-
-	void setPublicTransitEnabled(bool val);
 
 	/**
 	 * Retrives the confluxes
@@ -619,9 +644,25 @@ public:
 	const std::set<Conflux*>& getConfluxes() const;
 
 	/**
-	 * Retrieves conflux nodes
+	 * Retrieves number of workers for handling agents
 	 *
-	 * @return conflux nodes
+	 * @return number of workers
+	 */
+	unsigned int& personWorkGroupSize();
+
+	/**
+	 * Retrieves number of workers for handling agents
+	 *
+	 * @return number of workers
+	 */
+	unsigned int personWorkGroupSize() const;
+
+	void setPublicTransitEnabled(bool val);
+
+	/**
+	 * Retrives the confluxes
+	 *
+	 * @return confluxes (const reference)
 	 */
 	std::map<const Node*, Conflux*>& getConfluxNodes();
 
@@ -647,12 +688,6 @@ public:
 	 * @return segment stats with bus stops
 	 */
 	std::set<SegmentStats*>& getSegmentStatsWithBusStops();
-
-	/**
-	 * Retrieves the segment stats with taxi stands
-	 * @return segment stats with taxi-stands
-	 */
-	std::set<SegmentStats*>& getSegmentStatsWithTaxiStands();
 
 	/**
 	 * Checks whether mid term supply is running
@@ -683,10 +718,23 @@ public:
 	std::vector<IncidentParams>& getIncidents();
 
 	/**
+	 * Retrieve the disruption params
+	 * @return disruption definition
+	 */
+	std::vector<DisruptionParams>& getDisruption_rw();
+
+	/**
 	 * get person timestep in milliseconds
 	 * @return timestep in milliseconds
 	 */
 	unsigned int personTimeStepInMilliSeconds() const;
+
+	/**
+	 * Retrieves the segment stats with taxi stands
+	 * @return segment stats with taxi-stands
+	 */
+	std::set<SegmentStats*>& getSegmentStatsWithTaxiStands();
+
 
 	const WorkerParams& getWorkerParams() const;
 
@@ -704,6 +752,7 @@ public:
 	 */
 	void setSpeedDensityParam(int linkCategory, SpeedDensityParams sdParams);
 
+
 	/**
 	 * get name of table storing logsums
 	 * @return name of table storing logsums
@@ -715,6 +764,18 @@ public:
 	 * @param name of table storing logsums
 	 */
 	void setLogsumTableName(const std::string& logsumTableName);
+
+	/**
+	 * get threads number for person loader
+	 * @return the threads number in use of person loader
+	 */
+	const unsigned int getThreadsNumInPersonLoader() const;
+
+	/**
+	 * set threads number for person loader
+	 * @param number is threads number for person loader
+	 */
+	void setThreadsNumInPersonLoader(unsigned int number);
 
 	/**
 	 * Enumerator for mid term run mode
@@ -735,6 +796,9 @@ public:
 
 	/// Generic properties, for testing new features.
 	std::map<std::string, std::string> genericProps;
+
+	/// Configuration for trip chain output
+	TripChainOutputConfig tripChainOutput;
 
 private:
 	/**
@@ -772,11 +836,17 @@ private:
 	/// flag to indicate whether console output is required
 	bool consoleOutput;
 
+	/// Container for service controller script
+	ModelScriptsMap ServiceControllerScriptsMap;
+
 	/// container for mongo collections
 	MongoCollectionsMap mongoCollectionsMap;
 
 	/** default capacity for bus*/
 	unsigned int busCapacity;
+
+	/** the threads number in person loader*/
+	unsigned int threadsNumInPersonLoader;
 
 	/// supply update interval in frames
 	unsigned supplyUpdateInterval;
@@ -822,8 +892,13 @@ private:
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;
 
+
+	///setting for disruptions
+	std::vector<DisruptionParams> disruptions;
+
 	/// set of confluxes
 	std::set<Conflux*> confluxes;
+
 
 	/// key:value (MultiNode:Conflux) map
 	std::map<const Node*, Conflux*> multinode_confluxes;

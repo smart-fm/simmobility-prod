@@ -32,6 +32,12 @@ namespace sim_mob
 			int getUnitType() const;
 			double getFloorArea() const;
 
+			template<class Archive>
+		    void serialize(Archive & ar,const unsigned int version);
+			void saveData(std::vector<PopulationPerPlanningArea*> &s);
+			std::vector<PopulationPerPlanningArea*> loadSerializedData();
+
+
 		private:
 			friend class PopulationPerPlanningAreaDao;
 
@@ -43,6 +49,7 @@ namespace sim_mob
 			int avgHhSize;
 			int unitType;
 			double floorArea;
+			static constexpr auto filename = "populationPerPlanningArea";
 		};
 	}
 }

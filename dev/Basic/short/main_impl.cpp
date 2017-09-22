@@ -20,9 +20,6 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread.hpp>
-#include <string>
-#include <sys/time.h>
-#include <vector>
 
 //main.cpp (top-level) files can generally get away with including GenConfig.h
 #include "GenConfig.h"
@@ -32,50 +29,31 @@
 #include "buffering/Locked.hpp"
 #include "buffering/Shared.hpp"
 #include "conf/ConfigManager.hpp"
-#include "conf/ConfigParams.hpp"
 #include "config/ExpandShortTermConfigFile.hpp"
 #include "config/ParseShortTermConfigFile.hpp"
-#include "config/ST_Config.hpp"
 #include "conf/ParseConfigFile.hpp"
-#include "entities/AuraManager.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/ClosedLoopRunManager.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/IntersectionManager.hpp"
-#include "entities/Person_ST.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/PT_Statistics.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
-#include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/driverCommunication/DriverComm.hpp"
-#include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "entities/roles/RoleFactory.hpp"
-#include "entities/roles/Role.hpp"
-#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
-#include "entities/signal/Signal.hpp"
-#include "entities/TravelTimeManager.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
-#include "geospatial/network/NetworkLoader.hpp"
-#include "logging/Log.hpp"
 #include "network/CommunicationManager.hpp"
 #include "network/ControlManager.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
-#include "partitions/PartitionManager.hpp"
 #include "partitions/ShortTermBoundaryProcessor.hpp"
-#include "path/PathSetManager.hpp"
-#include "perception/FixedDelayed.hpp"
-#include "util/DailyTime.hpp"
 #include "util/StateSwitcher.hpp"
 #include "util/Utils.hpp"
-#include "workers/Worker.hpp"
-#include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
 
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
-#include <iostream>
 
 using std::endl;
 using std::vector;
@@ -89,8 +67,6 @@ timeval start_time;
 
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
-
-
 
 /**
  * Main simulation loop.
@@ -111,7 +87,7 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
  */
 bool performMain(const std::string& configFileName, const std::string& shortConfigFile, std::list<std::string>& resLogFiles, const std::string& XML_OutPutFileName)
 {
-	Print() <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
+	Print() <<"Starting SimMobility, version " << SIMMOB_VERSION << endl;
 	DailyTime::initAllTimes();
 
     ST_Config& stCfg = ST_Config::getInstance();
@@ -173,20 +149,12 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 
 	//Load the configuration file
-	Print() << "Loading the configuration file..." << std::endl;
+	Print() << "\nLoading the configuration files: " << configFileName << ", " << shortConfigFile << "..." << std::endl;
 	ExpandShortTermConfigFile expand(stCfg, ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
-
-	Print() << "Configuration file loaded!" << std::endl;
 
     if (config.PathSetMode())
 	{
 		//Initialise path-set manager
-		//Get time
-		time_t t = time(0);
-		struct tm * now = localtime( & t );
-		
-		Print() <<"Begin time:"<<std::endl;
-		Print() <<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
 		PrivateTrafficRouteChoice* pvtRtChoice = PrivateTrafficRouteChoice::getInstance();
 		std::string name = configFileName;
 		pvtRtChoice->setScenarioName(name);
@@ -285,7 +253,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		//Create and initialise loop detectors
 		LoopDetectorEntity *loopDetectorEntity = new LoopDetectorEntity(mtx);
 		loopDetectorEntity->init(*signalScats);
-		Agent::all_agents.insert(loopDetectorEntity);
+		Agent::all_agents.insert((Entity *&&) loopDetectorEntity);
 		signalScats->setLoopDetector(loopDetectorEntity);
 		signalStatusWorkers->assignAWorker(it->second);
 	}
@@ -313,7 +281,13 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		personWorkers->assignAWorker(FMOD::FMOD_Controller::instance());
 	}
 
-	Print() << "Initial agents dispatched or pushed to pending." << endl;
+	if(config.simulation.closedLoop.enabled)
+	{
+		const ClosedLoopParams &params = config.simulation.closedLoop;
+		ClosedLoopRunManager::initialise(params.guidanceFile, params.tollFile, params.incentivesFile);
+	}
+	
+	Print() << "Simulating...\n";
 
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
@@ -333,15 +307,9 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	//       time ticks, the WorkGroups will return without performing
 	//       a barrier sync.
 	/////////////////////////////////////////////////////////////////
-	size_t numStartAgents = Agent::all_agents.size();
-	size_t maxAgents = Agent::all_agents.size();
-	size_t numPendingAgents = Agent::pending_agents.size();
-
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
-	int loop_start_offset = ProfileBuilder::diff_ms(loop_start_time, start_time);
-
-	ParitionDebugOutput debug;
+	int loop_start_offset = (int) ProfileBuilder::diff_ms(loop_start_time, start_time);
 
 	StateSwitcher<int> numTicksShown(0); //Only goes up to 10
 	StateSwitcher<int> lastTickPercent(0); //So we have some idea how much time is left.
@@ -362,70 +330,44 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 			}
 		}
 
-		//Flag
-		bool warmupDone = (currTick >= config.totalWarmupTicks);
-
-		//Save the maximum number of agents at any given time
-		maxAgents = std::max(maxAgents, Agent::all_agents.size());
-
-		//Output. We show the following:
-		//The first 10 time ticks. (for debugging purposes)
-		//Every 1% change after that. (to avoid flooding the console.)
-		//In "OutputDisabled" mode, every 10% change. (just to give some indication of progress)
-		int currTickPercent = (currTick*100)/config.totalRuntimeTicks;
-		
-		if (ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) 
-		{
-			currTickPercent /= 10; //Only update 10%, 20%, etc.
-		}
+		//Output. We show every 10% change. (just to give some indication of progress)
+		int currTickPercent = (currTick * 100) / config.totalRuntimeTicks;
+		currTickPercent /= 10; //Only update 10%, 20%, etc.
 
 		//Determine whether to print this time tick or not.
 		bool printTick = lastTickPercent.update(currTickPercent);
-		
-		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && !printTick) 
-		{
-			//OutputEnabled also shows the first 10 ticks.
-			printTick = numTicksShown.update(std::min(numTicksShown.get()+1, 10));
-		}
 
 		//Note that OutputEnabled also affects locking.
 		if (printTick) 
 		{
-			if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) 
-			{
-				std::stringstream msg;
-				msg << "Approximate Tick Boundary: " << currTick << ", ";
-				msg << (currTick * config.baseGranMS()) << " ms   [" <<currTickPercent <<"%]" << endl;
-				
-				if (!warmupDone) 
-				{
-					msg << "  Warmup... Output ignored..." << endl;
-				}
-				
-				PrintOut(msg.str());
-			} 
-			else 
-			{
-				//We don't need to lock this output if general output is disabled, since Agents won't
-				//perform any output (and hence there will be no contention)
-				Print() <<currTickPercent <<"0%" << ",agents:" << Agent::all_agents.size() <<std::endl;
-			}
+			std::stringstream msg;
+			msg << currTickPercent << "0%" << std::endl;
+			PrintOut(msg.str());
 		}
 
 		//Agent-based cycle, steps 1,2,3,4 of 4
 		wgMgr.waitAllGroups();
 		
 		unsigned long currTimeMS = currTick * config.baseGranMS();
+
+		//Check if we are running in closed loop with DynaMIT
+		if(config.simulation.closedLoop.enabled && (currTimeMS + config.baseGranMS()) % (config.simulation.closedLoop.sensorStepSize * 1000) == 0)
+		{
+			SurveillanceStation::writeSurveillanceOutput(config, currTimeMS + config.baseGranMS());
+			ClosedLoopRunManager::waitForDynaMIT(config);
+		}
+
 		if(stCfg.outputStats.segDensityMap.outputEnabled && ((currTimeMS + config.baseGranMS()) % stCfg.outputStats.segDensityMap.updateInterval == 0))
 		{
-			DriverMovement::outputDensityMap(currTimeMS / stCfg.outputStats.segDensityMap.updateInterval);
+			DriverMovement::outputDensityMap((unsigned int) (currTimeMS / stCfg.outputStats.segDensityMap.updateInterval));
 		}
 	}
 
 	timeval loop_end_time;
 	gettimeofday(&loop_end_time, nullptr);
-	int loop_time = ProfileBuilder::diff_ms(loop_end_time, loop_start_time);
-	Print() << "loop_time:" << std::dec << loop_time  << std::endl;
+	int loop_time = (int) ProfileBuilder::diff_ms(loop_end_time, loop_start_time);
+	Print() << "100%\n\nTime required to execute the simulation: "
+	        << DailyTime((uint32_t) loop_time).getStrRepr() << std::endl;
 
 	//Finalize partition manager
 	if (!config.MPI_Disabled() && config.using_MPI) 
@@ -450,64 +392,83 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		TravelTimeManager::getInstance()->dumpSegmentTravelTimeToFile(config.rsTTConfig.fileName);
 	}
 
-	Print() << "Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
-	Print() << "Max Agents at any given time: " <<maxAgents <<std::endl;
-	Print() << "Starting Agents: " << numStartAgents;
-	Print() << ",     Pending: " << numPendingAgents;
-	Print() << endl;
+	Print() << "Time required for initialisation [Loading configuration, network, demand ...]: "
+	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl;
 
-	if (Agent::all_agents.empty()) 
+	if(config.numPathNotFound > 0)
 	{
-		Print() << "All Agents have left the simulation.\n";
-	} 
-	else 
+		Print() << "\nPersons not simulated as the path was not found [Refer to warn.log for more details]: "
+		        << config.numPathNotFound << endl;
+	}
+
+	Print() << "\nNumber of trips/activities [demand] simulated: " << config.numTripsSimulated
+	        << "\nNumber of trips/activities [demand] completed: " << config.numTripsCompleted << "\n";
+
+	size_t numActivities = 0, numBusDriver = 0, numCarPassenger = 0, numDriver = 0, numPassenger = 0, numPedestrian = 0;
+	size_t numPersons = 0, numPrivateBusPassenger = 0, numTrainPassenger = 0, numWaitBus = 0;
+
+	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it)
 	{
-		size_t numPerson = 0;
-		size_t numDriver = 0;
-		size_t numPedestrian = 0;
-		size_t numPassenger = 0;
-		
-		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it) 
+		Person_ST *person = dynamic_cast<Person_ST *> (*it);
+
+		if (person)
 		{
-			Person_ST *person = dynamic_cast<Person_ST *> (*it);
-			if (person) 			
+			Role<Person_ST> *role = person->getRole();
+
+			if (role)
 			{
-				numPerson++;
-				
-				if (dynamic_cast<Driver*> (person->getRole()))
+				numPersons++;
+				switch (role->roleType)
 				{
+				case Role<Person_ST>::RL_ACTIVITY:
+					numActivities++;
+					break;
+				case Role<Person_ST>::RL_BUSDRIVER:
+					numBusDriver++;
+					break;
+				case Role<Person_ST>::RL_CARPASSENGER:
+					numCarPassenger++;
+					break;
+				case Role<Person_ST>::RL_DRIVER:
 					numDriver++;
-				}
-				
-				if (dynamic_cast<Pedestrian*> (person->getRole()))
-				{
-					numPedestrian++;
-				}
-				
-				if (dynamic_cast<Passenger*> (person->getRole()))
-				{
+					break;
+				case Role<Person_ST>::RL_PASSENGER:
 					numPassenger++;
+					break;
+				case Role<Person_ST>::RL_PEDESTRIAN:
+					numPedestrian++;
+					break;
+				case Role<Person_ST>::RL_PRIVATEBUSPASSENGER:
+					numPrivateBusPassenger++;
+					break;
+				case Role<Person_ST>::RL_TRAINPASSENGER:
+					numTrainPassenger++;
+					break;
+				case Role<Person_ST>::RL_WAITBUSACTIVITY:
+					numWaitBus++;
+					break;
 				}
 			}
 		}
-		
-		Print() << "Remaining Agents: " << numPerson << " (Person)   "
-				<< (Agent::all_agents.size() - numPerson) << " (Other)" << endl;
-		
-		Print() << "   Person Agents: " << numDriver << " (Driver)   "
-				<< numPedestrian << " (Pedestrian)   " << numPassenger << " (Passenger) " << (numPerson
-				- numDriver - numPedestrian) << " (Other)" << endl;
 	}
 
-    if (config.numAgentsSkipped > 0)
+	Print() << "\nPersons still in the simulation: " << numPersons << "\n"
+			<< numActivities << " Performing activity,\t" << numBusDriver << " BusDrivers,\t"
+			<< numCarPassenger << " CarPassengers,\t" << numDriver << " Drivers,\t"
+			<< numPassenger << " Passengers,\t" << numPedestrian << " Pedestrians,\t"
+			<< numPrivateBusPassenger << " PrivateBusPassenger,\t"
+			<< numTrainPassenger << " TrainPassengers,\t"	<< numWaitBus << " Waiting for bus\n";
+
+    if (config.numAgentsKilled > 0)
 	{
-		Print() <<"Agents SKIPPED due to invalid route assignment: " << config.numAgentsSkipped <<endl;
+		Print() << "\nAgents removed from simulation due to errors [Refer to warn.log for more details]: "
+		        << config.numAgentsKilled << endl;
 	}
 
 	if (!Agent::pending_agents.empty()) 
 	{
-		Print() << "WARNING! There are still " << Agent::pending_agents.size()
-				<< " Agents waiting to be scheduled; next start time is: "
+		Print() << "\nWARNING! There are still " << Agent::pending_agents.size()
+				<< " agents waiting to be scheduled. Next start time is: "
 				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
 	}
 	
@@ -541,10 +502,11 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	{
 		clear_delete_map(IntersectionManager::getIntManagers());
 		clear_delete_map(Signal::getMapOfIdVsSignals());
+		BusStopAgent::removeAllBusStopAgents();
 		clear_delete_vector(Agent::all_agents);
 	}
 
-	Print() << "Simulation complete; closing worker threads." << endl;
+	Print() << "\nSimulation complete. Closing worker threads...\n" << endl;
 	
 	//Destroy the road network
 	NetworkLoader::deleteInstance();
@@ -665,6 +627,11 @@ int main_impl(int ARGC, char* ARGV[])
 	config.is_simulation_repeatable = true;
 
 	/**
+	 * set run mode as short-term
+	 */
+	config.simMobRunMode = ConfigParams::SHORT_TERM;
+
+	/**
 	 * Start MPI if using_MPI is true
 	 */
 #ifndef SIMMOB_DISABLE_MPI
@@ -684,7 +651,7 @@ int main_impl(int ARGC, char* ARGV[])
 #endif
 
 	//Perform main loop (this differs for interactive mode)
-	int returnVal = 1;
+	int returnVal;
 	std::list<std::string> resLogFiles;
 	
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) 
@@ -699,15 +666,14 @@ int main_impl(int ARGC, char* ARGV[])
 	//Concatenate output files?
 	if (!resLogFiles.empty()) 
 	{
-		resLogFiles.insert(resLogFiles.begin(), config.outSimInfoFileName);
 		resLogFiles.insert(resLogFiles.begin(), config.outNetworkFileName);
 		Utils::printAndDeleteLogFiles(resLogFiles,outputFileName);
 	}
 
+	int retVal = std::system("rm out_*.txt out.network.txt");
+
 	//Delete the config manager instance
 	ConfigManager::DeleteConfigMgrInstance();
 
-	Print() << "Done" << endl;
 	return returnVal;
 }
-

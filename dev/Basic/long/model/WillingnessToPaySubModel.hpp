@@ -42,7 +42,7 @@ namespace sim_mob
 			//
 			/* willingness to pay in million of dollars*/
 
-			double sde								= 0.486683024;
+			double sde								= 0.04;
 			double barea							= 0.6054014747;
 			double blogsum							= 2.3777234108;
 			double bsizearea						=-0.0289639249;

@@ -76,7 +76,7 @@ const ZoneParams* sim_mob::WithindayModelsHelper::findZone(int zoneCode) const
 	return znIt->second;
 }
 
-WithindayModeParams WithindayModelsHelper::buildModeChoiceParams(const Trip& curTrip, unsigned int orgNd, const DailyTime& curTime) const
+WithindayModeParams WithindayModelsHelper::buildModeChoiceParams(const Trip& curTrip, unsigned int orgNd, const DailyTime& curTime, const std::string& ptPathsetStoredProcName) const
 {
 	WithindayModeParams wdModeParams;
 	int originZn = curTrip.originZoneCode;
@@ -111,7 +111,7 @@ WithindayModeParams WithindayModelsHelper::buildModeChoiceParams(const Trip& cur
 		wdModeParams.privateBusAvailable = false;
 	}
 
-	const PT_PathSet ptPathset = PT_RouteChoiceLuaProvider::getPTRC_Model().fetchPathset(orgNd, destNd, curTime);
+	const PT_PathSet ptPathset = PT_RouteChoiceLuaProvider::getPTRC_Model().fetchPathset(orgNd, destNd, curTime, ptPathsetStoredProcName);
 	unsigned int numPaths = ptPathset.pathSet.size();
 	if(numPaths > 0)
 	{

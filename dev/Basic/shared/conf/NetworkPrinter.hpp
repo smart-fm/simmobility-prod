@@ -82,6 +82,12 @@ private:
 	void printBusStops(const std::map<unsigned int, BusStop *> &stops) const;
 
 	/**
+	 * Prints the parking slots
+	 * @param parkingSlots map of id vs the parking slots
+	 */
+	void printParkingSlots(const std::map<unsigned int, ParkingSlot *> &parkingSlots) const;
+
+	/**
 	 * This method prints the stream to the output file.
      * @param str the stream to be written
      */

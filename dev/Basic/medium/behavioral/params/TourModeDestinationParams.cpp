@@ -2,12 +2,14 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#include <database/predaydao/ZoneCostSqlDao.hpp>
 #include "TourModeDestinationParams.hpp"
 #include "logging/Log.hpp"
 
 using namespace std;
 using namespace sim_mob;
 using namespace medium;
+using namespace sim_mob::db;
 
 namespace
 {
@@ -388,7 +390,14 @@ int TourModeDestinationParams::isAvailable_TMD(int choiceId) const
 	{
 		return 0;
 	}
-
+	//if destination is with zone without node
+	bool result;
+	//call to set the availability of zones without nodes to zero
+	result=ZoneSqlDao::getZoneWithoutNode(destination);
+	if(result)
+	{
+		return 0;
+	}
 	// check if destination is unavailable
 	if(isUnavailable(origin, destination))
 	{
@@ -570,9 +579,9 @@ int StopModeDestinationParams::getCbdDummy(int zone) const
 	return zoneMap.at(zone)->getCbdDummy();
 }
 
-StopType StopModeDestinationParams::getTourPurpose() const
+int StopModeDestinationParams::getTourPurpose() const
 {
-	return purpose;
+	return int(purpose);
 }
 
 double StopModeDestinationParams::getShop(int zone) const

@@ -64,6 +64,8 @@ namespace sim_mob
              */
             void adjustNotSoldUnits();
             
+            void removeAllEntries();
+
             /**
              * Calculates the unit expectations to the maximum period of time 
              * that the seller is expecting to be in the market.
@@ -89,10 +91,10 @@ namespace sim_mob
             {
                 SellingUnitInfo();
                 ExpectationList expectations;
-                unsigned int startedDay; //day when the unit was added on market.
-                unsigned int daysOnMarket; //number of days to stay on market.
-                unsigned int interval; //interval to re-evaluate the expectation.
-                unsigned int numExpectations; //ceil(daysOnMarket/interval) to re-evaluate the expectation.
+                int startedDay; //day when the unit was added on market.
+                int daysOnMarket; //number of days to stay on market.
+                int interval; //interval to re-evaluate the expectation.
+                int numExpectations; //ceil(daysOnMarket/interval) to re-evaluate the expectation.
             };
 
             typedef boost::unordered_map<BigSerial, SellingUnitInfo> UnitsInfoMap;

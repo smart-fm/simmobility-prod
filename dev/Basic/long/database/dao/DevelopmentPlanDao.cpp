@@ -43,7 +43,7 @@ void DevelopmentPlanDao::toRow(DevelopmentPlan& data, Parameters& outParams, boo
 void DevelopmentPlanDao::insertDevelopmentPlan(DevelopmentPlan& devPlan,std::string schema)
 {
 
-	const std::string DB_INSERT_DEV_PLAN = "INSERT INTO " + APPLY_SCHEMA(schema, ".development_plans")
+	const std::string DB_INSERT_DEV_PLAN = "INSERT INTO " + schema + ".development_plans"
 	        		+ " (" + "fm_parcel_id" + ", " + "development_template_id" + ", " + "unit_type_id" + ", " + "num_units" + ", " + "simulation_date" + ", " + "construction_start_date" + ", "
 	        		+ "launch_date"
 	        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";

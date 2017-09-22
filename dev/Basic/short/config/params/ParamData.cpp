@@ -64,8 +64,9 @@ double ParamData::toDouble()
 	}
 	catch (boost::bad_lexical_cast&)
 	{
-		std::string s = "Parameter value <" + dataString + "> from file: " + fromWhichFile + "cannot be converted to a numeric type!";
-		throw std::runtime_error(s);
+		std::stringstream s;
+		s << __func__ << ": Parameter value " + dataString + " from file " + fromWhichFile + " could not be converted to type double";
+		throw std::runtime_error(s.str());
 	}
 
 	return res;

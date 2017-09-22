@@ -86,7 +86,9 @@ const PolyPoint& DriverPathMover::getCurrPolyPoint() const
 	}
 	else
 	{
-		throw std::runtime_error(ErrorEntireRouteDone);
+		std::stringstream msg;
+		msg << __func__ << ": " << ErrorEntireRouteDone;
+		throw std::runtime_error(msg.str());
 	}
 }
 
@@ -112,12 +114,16 @@ const WayPoint& DriverPathMover::getCurrWayPoint() const
 		}
 		else
 		{
-			throw std::runtime_error(ErrorEntireRouteDone);
+			std::stringstream msg;
+			msg << __func__ << ": " << ErrorEntireRouteDone;
+			throw std::runtime_error(msg.str());
 		}
 	}
 	else
 	{
-		throw std::runtime_error(ErrorDrivingPathNotSet);
+		std::stringstream msg;
+		msg << __func__ << ": " << ErrorDrivingPathNotSet;
+		throw std::runtime_error(msg.str());
 	}
 }
 
@@ -138,12 +144,16 @@ const WayPoint* DriverPathMover::getNextWayPoint() const
 		}
 		else
 		{
-			throw std::runtime_error(ErrorEntireRouteDone);
+			std::stringstream msg;
+			msg << __func__ << ": " << ErrorEntireRouteDone;
+			throw std::runtime_error(msg.str());
 		}
 	}
 	else
 	{
-		throw std::runtime_error(ErrorDrivingPathNotSet);
+		std::stringstream msg;
+		msg << __func__ << ": " << ErrorDrivingPathNotSet;
+		throw std::runtime_error(msg.str());
 	}
 }
 
@@ -446,7 +456,7 @@ void DriverPathMover::setPathStartingWithTurningGroup(const std::vector<WayPoint
 		else
 		{
 			std::stringstream msg;
-			msg << "No turning path from Lane " << fromLane->getLaneId() << " in the turning group " << tGroup->getTurningGroupId();
+			msg << __func__ << ": No turning path from Lane " << fromLane->getLaneId() << " in the turning group " << tGroup->getTurningGroupId();
 			throw runtime_error(msg.str());
 		}
 
@@ -475,12 +485,16 @@ double DriverPathMover::advance(double distance)
 {
 	if(!isDrivingPathSet())
 	{
-		throw std::runtime_error(ErrorDrivingPathNotSet);
+		std::stringstream msg;
+		msg << __func__ << ": " << ErrorDrivingPathNotSet;
+		throw std::runtime_error(msg.str());
 	}
 	
 	if(isDoneWithEntireRoute())
 	{
-		throw std::runtime_error(ErrorEntireRouteDone);
+		std::stringstream msg;
+		msg << __func__ << ": " << ErrorEntireRouteDone;
+		throw std::runtime_error(msg.str());
 	}
 	
 	//The distance by which we've overflowed into the intersection
@@ -562,7 +576,7 @@ double DriverPathMover::advanceToNextPolyLine()
 					else
 					{
 						std::stringstream msg;
-						msg << "Reached end of segment from lane " << currLane->getLaneId() 
+						msg << __func__ << ": Reached end of segment from lane " << currLane->getLaneId()
 							<< ". It is not physically connected to any lane in the next segment ";
 						throw std::runtime_error(msg.str());
 					}
@@ -585,7 +599,7 @@ double DriverPathMover::advanceToNextPolyLine()
 					else
 					{
 						std::stringstream msg;
-						msg << "Reached intersection from lane " << currLane->getLaneId() << ". It is not connected to a turning path!";
+						msg << __func__ << ": Reached intersection from lane " << currLane->getLaneId() << ". It is not connected to a turning path!";
 						throw no_turning_path_exception(msg.str(), currLane, getNextSegInNextLink());
 					}
 				}
@@ -648,7 +662,9 @@ void DriverPathMover::updateLateralMovement(const Lane* lane)
 	}
 	else
 	{
-		throw std::runtime_error("DriverPathMover::updateLateralMovement(): Invalid lane!");
+		std::stringstream msg;
+		msg << __func__ << ": Lane is NULL";
+		throw std::runtime_error(msg.str());
 	}
 }
 
@@ -725,6 +741,8 @@ const Point DriverPathMover::getPosition()
 	}
 	else
 	{
-		throw std::runtime_error(ErrorDrivingPathNotSet);
+		std::stringstream msg;
+		msg << __func__ << ": " << ErrorDrivingPathNotSet;
+		throw std::runtime_error(msg.str());
 	}
 }

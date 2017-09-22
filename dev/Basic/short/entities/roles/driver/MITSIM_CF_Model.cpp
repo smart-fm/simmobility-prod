@@ -180,8 +180,9 @@ void MITSIM_CF_Model::createCF_Params(string &strParams, CarFollowingParams &cfP
 		}
 		catch (boost::bad_lexical_cast&)
 		{
-			std::string str = "Error: Cannot convert <" + strParams + "> to type double";
-			throw std::runtime_error(str);
+			std::stringstream str;
+			str << __func__ << ": Cannot convert " << strParams << " to type double";
+			throw std::runtime_error(str.str());
 		}
 
 		params.push_back(res);
@@ -213,8 +214,9 @@ void MITSIM_CF_Model::createUpdateSizeParams(string &strParams, UpdateStepSizePa
 		}
 		catch (boost::bad_lexical_cast&)
 		{
-			std::string str = "Error: Cannot convert <" + strParams + "> to type double";
-			throw std::runtime_error(str);
+			std::stringstream str;
+			str << __func__ << ": Cannot convert " << strParams << " to type double";
+			throw std::runtime_error(str.str());
 		}
 
 		params.push_back(res);
@@ -244,8 +246,9 @@ void MITSIM_CF_Model::createScaleIndices(string &data, vector<double> &container
 		}
 		catch (boost::bad_lexical_cast&)
 		{
-			std::string str = "Error: Cannot convert <" + data + "> to type double";
-			throw std::runtime_error(str);
+			std::stringstream str;
+			str << __func__ << ": Cannot convert " << data << " to type double";
+			throw std::runtime_error(str.str());
 		}
 
 		container.push_back(res);
@@ -274,8 +277,9 @@ void MITSIM_CF_Model::createSpeedIndices(VehicleBase::VehicleType vhType, string
 		}
 		catch (boost::bad_lexical_cast&)
 		{
-			std::string str = "Error: Cannot convert <" + speedScalerStr + "> to type double.";
-			throw std::runtime_error(str);
+			std::stringstream str;
+			str << __func__ << ": Cannot convert " << speedScalerStr << " to type double.";
+			throw std::runtime_error(str.str());
 		}
 
 		speedScalerArrayDouble.push_back(res);
@@ -297,8 +301,9 @@ void MITSIM_CF_Model::createSpeedIndices(VehicleBase::VehicleType vhType, string
 		}
 		catch (boost::bad_lexical_cast&)
 		{
-			std::string str = "Error: Cannot convert <" + cstr + "> to type double.";
-			throw std::runtime_error(str);
+			std::stringstream str;
+			str << __func__ << ": Cannot convert " << cstr << " to type double.";
+			throw std::runtime_error(str.str());
 		}
 
 		cArrayDouble.push_back(res);

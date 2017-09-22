@@ -9,8 +9,9 @@
 
 using namespace sim_mob::long_term;
 
-UnitType::UnitType(BigSerial id,std::string name,double typicalArea, double constructionCostPerUnit,double demolitionCostPerUnit, double minLosize)
-: id(id), name(name), typicalArea(typicalArea),constructionCostPerUnit(constructionCostPerUnit),demolitionCostPerUnit(demolitionCostPerUnit), minLosize(minLosize){
+UnitType::UnitType(BigSerial id,std::string name,double typicalArea, double constructionCostPerUnit,double demolitionCostPerUnit, double minLosize, int dwellingType, double wtpOffset)
+: id(id), name(name), typicalArea(typicalArea),constructionCostPerUnit(constructionCostPerUnit),demolitionCostPerUnit(demolitionCostPerUnit), minLosize(minLosize),
+  dwellingType(dwellingType), wtpOffset(wtpOffset ){
 }
 
 UnitType::~UnitType() {
@@ -42,6 +43,18 @@ double UnitType::getMinLosize() const
 	return minLosize;
 }
 
+
+void UnitType::setWtpOffset(double value)
+{
+	wtpOffset  = value;
+}
+
+double UnitType::getWtpOffset() const
+{
+	return wtpOffset;
+}
+
+
 namespace sim_mob {
     namespace long_term {
 
@@ -53,6 +66,7 @@ namespace sim_mob {
                     << "\" constructionCostPerUnit\":\"" << data.constructionCostPerUnit << "\""
                     << "\" demolitionCostPerUnit\":\"" << data.demolitionCostPerUnit << "\""
                     << "\" minLosize\":\"" << data.minLosize << "\""
+					<< "\" wtpOffset \":\"" << data.wtpOffset << "\""
                     << "}";
         }
     }

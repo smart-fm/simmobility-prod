@@ -17,7 +17,9 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-AwakeningDao::AwakeningDao(DB_Connection& connection): SqlAbstractDao<Awakening>( connection, DB_TABLE_AWAKENING, DB_INSERT_AWAKENING, DB_UPDATE_AWAKENING, DB_DELETE_AWAKENING, DB_GETALL_AWAKENING, DB_GETBYID_AWAKENING ){}
+AwakeningDao::AwakeningDao(DB_Connection& connection): SqlAbstractDao<Awakening>( connection, "", "", "", "", "SELECT * FROM " + connection.getSchema()+"hh_awakening_probability", ""){}
+
+
 
 AwakeningDao::~AwakeningDao(){}
 

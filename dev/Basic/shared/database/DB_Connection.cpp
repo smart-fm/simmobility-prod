@@ -125,6 +125,16 @@ template<typename T> T& DB_Connection::getSession()
 	return ((DB_Session<T>*) (currentSession))->getSession();
 }
 
+std::string DB_Connection::getSchema()
+{
+	return schema;
+}
+
+void DB_Connection::setSchema(std::string _schema)
+{
+	schema = _schema;
+}
+
 std::string DB_Connection::getConnectionStr()
 {
 	return this->connectionStr;

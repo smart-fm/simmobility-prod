@@ -70,6 +70,11 @@ namespace sim_mob
 
 			friend std::ostream& operator<<(std::ostream& strm, const Individual& data);
 
+			template<class Archive>
+			void serialize(Archive & ar,const unsigned int version);
+			void saveData(std::vector<Individual*> &individuals);
+			std::vector<Individual*> loadSerializedData();
+
         private:
             friend class IndividualDao;
 
@@ -102,6 +107,7 @@ namespace sim_mob
 			int taxiDriver;
 			int fixed_workplace;
 			int fixed_hours;
+			static constexpr auto filename = "individuals";
 
 		};
 	}

@@ -87,10 +87,15 @@ template<typename T> class SqlAbstractDao: public I_Dao<T>
 {
 public:
 
-	SqlAbstractDao(DB_Connection& connection, const std::string& tableName, const std::string& insertQuery, const std::string& updateQuery,
+	SqlAbstractDao(DB_Connection& connection, const std::string& _tableName, const std::string& insertQuery, const std::string& updateQuery,
 			const std::string& deleteQuery, const std::string& getAllQuery, const std::string& getByIdQuery) :
-			connection(connection), tableName(tableName)
+			connection(connection), tableName(_tableName)
 	{
+		std::string str;
+
+		str = connection.getSchema();
+
+		tableName = str + _tableName;
 		defaultQueries[INSERT] = insertQuery;
 		defaultQueries[UPDATE] = updateQuery;
 		defaultQueries[DELETE] = deleteQuery;

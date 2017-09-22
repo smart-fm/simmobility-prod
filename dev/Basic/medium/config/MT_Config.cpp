@@ -27,7 +27,7 @@ MT_Config::MT_Config() :
        regionRestrictionEnabled(false), midTermRunMode(MT_Config::MT_NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
 			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::PREDAY_NONE),
 			calibrationMethodology(MT_Config::WSPSA), logsumComputationFrequency(0), supplyUpdateInterval(0),
-			activityScheduleLoadInterval(0), busCapacity(0), populationSource(db::MONGO_DB), granPersonTicks(0)
+			activityScheduleLoadInterval(0), busCapacity(0), populationSource(db::MONGO_DB), granPersonTicks(0),threadsNumInPersonLoader(0)
 {
 }
 
@@ -74,6 +74,18 @@ void MT_Config::setActivityScheduleLoadInterval(unsigned activityScheduleLoadInt
 		this->activityScheduleLoadInterval = activityScheduleLoadInterval;
 	}
 }
+	const ModelScriptsMap& MT_Config::getModelScriptsMap() const
+	{
+		return modelScriptsMap;
+	}
+
+	void MT_Config::setModelScriptsMap(const ModelScriptsMap& modelScriptsMap)
+	{
+		if(!configSealed)
+		{
+			this->modelScriptsMap = modelScriptsMap;
+		}
+}
 
 unsigned MT_Config::getSupplyUpdateInterval() const
 {
@@ -118,6 +130,7 @@ void MT_Config::setNumPredayThreads(unsigned numPredayThreads)
 		this->numPredayThreads = numPredayThreads;
 	}
 }
+
 
 const MongoCollectionsMap& MT_Config::getMongoCollectionsMap() const
 {
@@ -300,6 +313,18 @@ void MT_Config::setLogsumTableName(const std::string& logsumTableName)
 		this->logsumTableName = logsumTableName;
     }
 }
+const unsigned int MT_Config::getThreadsNumInPersonLoader() const
+{
+	return threadsNumInPersonLoader;
+}
+
+void MT_Config::setThreadsNumInPersonLoader(unsigned int number)
+{
+	if(!configSealed)
+	{
+		threadsNumInPersonLoader = number;
+	}
+}
 
 bool MT_Config::RunningMidSupply() const {
     return (midTermRunMode == MT_Config::MT_SUPPLY);
@@ -332,6 +357,11 @@ bool MT_Config::isRegionRestrictionEnabled() const{
 
 std::vector<IncidentParams>& MT_Config::getIncidents(){
     return incidents;
+}
+
+std::vector<DisruptionParams>& MT_Config::getDisruption_rw()
+{
+	return this->disruptions;
 }
 
 std::map<const Node*, Conflux*>& MT_Config::getConfluxNodes()

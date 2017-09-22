@@ -342,7 +342,7 @@ vector<sim_mob::PT_NetworkEdge> sim_mob::A_StarPublicTransitShortestPathImpl::se
 					return vector<sim_mob::PT_NetworkEdge>();
 				}
 				StreetDirectory::PT_EdgeId edge_id = get(&StreetDirectory::PT_EdgeProperties::edge_id, graph,edge.first);
-				res.push_back(PT_Network::getInstance().PT_NetworkEdgeMap.find(edge_id)->second);
+				res.push_back(PT_NetworkCreater::getInstance().PT_NetworkEdgeMap.find(edge_id)->second);
 			}
 			//Save for later.
 			prev = it;
@@ -406,7 +406,7 @@ vector<sim_mob::PT_NetworkEdge> sim_mob::A_StarPublicTransitShortestPathImpl::se
 				}
 
 				StreetDirectory::PT_EdgeId edge_id = get(&StreetDirectory::PT_EdgeProperties::edge_id, graph,edge.first);
-				res.push_back(PT_Network::getInstance().PT_NetworkEdgeMap.find(edge_id)->second);
+				res.push_back(PT_NetworkCreater::getInstance().PT_NetworkEdgeMap.find(edge_id)->second);
 			}
 			//Save for later.
 			prev = it;

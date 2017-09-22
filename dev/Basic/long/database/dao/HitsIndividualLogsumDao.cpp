@@ -15,7 +15,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-HitsIndividualLogsumDao::HitsIndividualLogsumDao(DB_Connection& connection): SqlAbstractDao<HitsIndividualLogsum>( connection, DB_TABLE_HITSINDIVIDUALLOGSUM, "", "", "", DB_GETALL_HITSINDIVIDUALLOGSUM, DB_GETBYID_HITSINDIVIDUALLOGSUM){}
+HitsIndividualLogsumDao::HitsIndividualLogsumDao(DB_Connection& connection): SqlAbstractDao<HitsIndividualLogsum>( connection, "", "", "", "", "SELECT * FROM " + connection.getSchema()+"hits_individual_logsum", ""){}
 
 HitsIndividualLogsumDao::~HitsIndividualLogsumDao(){}
 

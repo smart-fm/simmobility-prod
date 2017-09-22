@@ -15,7 +15,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-ROILimitsDao::ROILimitsDao(DB_Connection& connection): SqlAbstractDao<ROILimits>(connection, DB_TABLE_ROI_LIMITS,"", "", "",DB_GETALL_ROI_LIMITS, "")
+ROILimitsDao::ROILimitsDao(DB_Connection& connection): SqlAbstractDao<ROILimits>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"roi_limits", "")
 {}
 
 ROILimitsDao::~ROILimitsDao() {}

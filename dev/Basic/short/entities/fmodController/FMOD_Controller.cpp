@@ -52,7 +52,9 @@ FMOD_Controller* FMOD_Controller::instance()
 {
 	if (!pInstance)
 	{
-		throw std::runtime_error("Fmod controller instance is null.");
+		std::stringstream msg;
+		msg << __func__ << "FMOD controller has not been registered! Instance is NULL.";
+		throw std::runtime_error(msg.str());
 	}
 
 	return pInstance;

@@ -10,8 +10,9 @@
 #include "geospatial/network/Link.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
 #include "geospatial/network/Node.hpp"
-#include "geospatial/network/PT_Stop.hpp"
+#include "geospatial/network/ParkingSlot.hpp"
 #include "geospatial/network/Point.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -65,6 +66,8 @@ void NetworkPrinter::printNetwork(const RoadNetwork *network) const
 	
 	printBusStops(network->getMapOfIdvsBusStops());
 
+	printParkingSlots(network->getMapOfIdVsParkingSlots());
+
 	//Required for the visualiser
 	out << "ROADNETWORK_DONE" << std::endl;
 }
@@ -83,7 +86,8 @@ void NetworkPrinter::printSimulationProperties() const
 void NetworkPrinter::printNodes(const map<unsigned int, Node *> &nodes) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 	
 	for (map<unsigned int, Node *>::const_iterator it = nodes.begin(); it != nodes.end(); ++it)
 	{
@@ -101,7 +105,8 @@ void NetworkPrinter::printNodes(const map<unsigned int, Node *> &nodes) const
 void NetworkPrinter::printLinks(const map<unsigned int, Link *> &links) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 	
 	for (map<unsigned int, Link *>::const_iterator it = links.begin(); it != links.end(); ++it)
 	{
@@ -129,7 +134,8 @@ void NetworkPrinter::printLinks(const map<unsigned int, Link *> &links) const
 void NetworkPrinter::printSegments(const map<unsigned int, RoadSegment *> &segments) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 
 	for (map<unsigned int, RoadSegment *>::const_iterator it = segments.begin(); it != segments.end(); ++it)
 	{
@@ -176,7 +182,8 @@ void NetworkPrinter::printSegments(const map<unsigned int, RoadSegment *> &segme
 void NetworkPrinter::printLaneConnectors(const map<unsigned int, Lane *> &lanes) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 	
 	for(map<unsigned int, Lane *>::const_iterator it = lanes.begin(); it != lanes.end(); ++it)
 	{
@@ -198,7 +205,8 @@ void NetworkPrinter::printLaneConnectors(const map<unsigned int, Lane *> &lanes)
 void NetworkPrinter::printTurningGroups(const std::map<unsigned int, TurningGroup *>& turningGroups) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 
 	for (map<unsigned int, TurningGroup *>::const_iterator it = turningGroups.begin(); it != turningGroups.end(); ++it)
 	{
@@ -216,7 +224,8 @@ void NetworkPrinter::printTurningGroups(const std::map<unsigned int, TurningGrou
 void NetworkPrinter::printTurnings(const map<unsigned int, TurningPath*>& turnings) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 
 	for (map<unsigned int, TurningPath *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it)
 	{
@@ -243,7 +252,8 @@ void NetworkPrinter::printTurnings(const map<unsigned int, TurningPath*>& turnin
 void NetworkPrinter::printConflicts(const std::map<unsigned int, TurningConflict* >& conflicts) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 
 	for (std::map<unsigned int, TurningConflict* >::const_iterator it = conflicts.begin(); it != conflicts.end(); ++it)
 	{
@@ -262,7 +272,8 @@ void NetworkPrinter::printConflicts(const std::map<unsigned int, TurningConflict
 void NetworkPrinter::printBusStops(const std::map<unsigned int, BusStop *> &stops) const
 {
 	std::stringstream out;
-	out << std::setprecision(8);
+	out<<std::fixed;
+	out << std::setprecision(2);
 	
 	for(std::map<unsigned int, BusStop *>::const_iterator it = stops.begin(); it != stops.end(); ++it)
 	{
@@ -278,6 +289,26 @@ void NetworkPrinter::printBusStops(const std::map<unsigned int, BusStop *> &stop
 		out << "})\n";
 	}
 	
+	printToFile(out);
+}
+
+void NetworkPrinter::printParkingSlots(const std::map<unsigned int, ParkingSlot *> &parkingSlots) const
+{
+	std::stringstream out;
+	out << std::setprecision(8);
+
+	for(std::map<unsigned int, ParkingSlot *>::const_iterator it = parkingSlots.begin(); it != parkingSlots.end(); ++it)
+	{
+		const ParkingSlot *pkSlot = it->second;
+		out << "(\"parking\", 0, " << pkSlot->getParkingSlotId() << ", {";
+		out << "\"access\":\"" << pkSlot->getAccessSegmentId() << "\",";
+		out << "\"egress\":\"" << pkSlot->getEgressSegmentId() << "\",";
+		out << "\"offset\":\"" << pkSlot->getOffset() << "\",";
+		out << "\"length\":\"" << pkSlot->getLength() << "\",";
+		out << "\"capacity\":\"" << pkSlot->getCapacity() << "\",";
+		out << "})\n";
+	}
+
 	printToFile(out);
 }
 

@@ -12,6 +12,12 @@ dev/visualizer/Large Network Visualizer/bin/
 testing/CrossingsVisualization/applet/
 testing/RoadNetworkSampleVis/applet/
 
+#Ignore Visual studio files/folders
+.vs/
+*.sln
+*.vcxproj*
+dev/Basic/.idea/*
+dev/Basic/.vs/*
 
 #Ignore object files
 *.o

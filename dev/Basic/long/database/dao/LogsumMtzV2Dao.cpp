@@ -16,7 +16,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-LogsumMtzV2Dao::LogsumMtzV2Dao(DB_Connection& connection): SqlAbstractDao<LogsumMtzV2>( connection, DB_TABLE_LOGSUMMTZV2, "", "", "", DB_GETALL_LOGSUMMTZV2, DB_GETBYID_LOGSUMMTZV2){}
+LogsumMtzV2Dao::LogsumMtzV2Dao(DB_Connection& connection): SqlAbstractDao<LogsumMtzV2>( connection, "", "", "", "", "SELECT * FROM " + connection.getSchema()+"hedonic_logsums", ""){}
 
 LogsumMtzV2Dao::~LogsumMtzV2Dao(){}
 

@@ -11,6 +11,7 @@
 #include "RoadItem.hpp"
 #include "RoadSegment.hpp"
 #include "Point.hpp"
+#include "Platform.hpp"
 
 namespace sim_mob
 {
@@ -148,10 +149,47 @@ public:
 	 * @returns random road segment attached with mrt stop
 	 */
 	const sim_mob::RoadSegment* getRandomStationSegment() const;
-
+	/**
+	 * get stop name
+	 * @return stop name
+	 */
+	const std::string& getStopName() const;
 private:
 	std::vector<std::string> trainStopIds;
 	std::vector<const RoadSegment*> roadSegments;
+	std::string stopName;
 };
 
+class Agent;
+class Station : public TrainStop
+{
+public:
+	Station(const std::string& stationNo);
+	/**
+	 * add mrt line to particular station
+	 * @param lineId is line id of MRT
+	 * @param platform is the pointer to the object of platform
+	 */
+	void addPlatform(const std::string& lineId, Platform* platform);
+	/**
+	 * set associated agent for future lookup
+	 * @param agent is a train station agent
+	 */
+	void setAssociatedAgent(Agent* agent);
+	/**
+	 * get platform for a given line
+	 * @param lineId is line id
+	 */
+	Platform* getPlatform(const std::string& lineId) const;
+	/**
+	 * get all platforms
+	 * return all platforms
+	 */
+	const std::map<std::string, Platform*>& getPlatforms() const;
+private:
+	/**the map from line id to platform*/
+	std::map<std::string, Platform*> lineToPlatform;
+	/**parent agent*/
+	const Agent* stationAgent;
+};
 }

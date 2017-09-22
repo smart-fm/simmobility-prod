@@ -177,12 +177,18 @@ void BusStop::setTerminalNodeId(unsigned int terminalNodeId)
 
 TrainStop::TrainStop(std::string stopIds)
 {
+	stopName = stopIds;
 	std::stringstream ss(stopIds);
 	std::string singleMrtStopId;
 	while (std::getline(ss, singleMrtStopId, '/'))
 	{
 		trainStopIds.push_back(singleMrtStopId);
 	}
+}
+
+const std::string& TrainStop::getStopName() const
+{
+	return stopName;
 }
 
 TrainStop::~TrainStop()
@@ -218,6 +224,33 @@ const RoadSegment* TrainStop::getRandomStationSegment() const
 	return (*segIt);
 }
 
+Station::Station(const std::string& id):TrainStop(id),stationAgent(nullptr)
+{
+
+}
+void Station::addPlatform(const std::string& lineId, Platform* platform)
+{
+	lineToPlatform[lineId] = platform;
+}
+
+void Station::setAssociatedAgent(Agent* agent)
+{
+	stationAgent = agent;
+}
+const std::map<std::string, Platform*>& Station::getPlatforms() const
+{
+	return lineToPlatform;
+}
+
+Platform* Station::getPlatform(const std::string& lineId) const
+{
+	Platform* platform = nullptr;
+	std::map<std::string, Platform*>::const_iterator it = lineToPlatform.find(lineId);
+	if(it!=lineToPlatform.end()){
+		platform = it->second;
+	}
+	return platform;
+}
 void TrainStop::addAccessRoadSegment(unsigned int segmentId)
 {
 	const RoadNetwork* rn = RoadNetwork::getInstance();

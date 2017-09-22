@@ -54,6 +54,7 @@
 #include "database/entity/LtVersion.hpp"
 #include "database/entity/BuildingMatch.hpp"
 #include "database/entity/SlaBuilding.hpp"
+#include "database/entity/StudyArea.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -70,6 +71,9 @@ namespace sim_mob
         public:
             typedef std::vector<Unit*> UnitList;
             typedef boost::unordered_map<BigSerial, Unit*> UnitMap;
+
+            typedef std::vector<UnitType*> UnitTypeList;
+            typedef boost::unordered_map<BigSerial, UnitType*> UnitTypeMap;
 
             typedef std::vector<Household*> HouseholdList;
             typedef boost::unordered_map<BigSerial, Household*> HouseholdMap;
@@ -202,6 +206,9 @@ namespace sim_mob
             typedef std::vector<SlaBuilding*> SlaBuildingList;
             typedef boost::unordered_map<string, SlaBuilding*> SlaBuildingMap;
 
+            typedef std::vector<StudyArea*> StudyAreaList;
+            typedef std::multimap<string, StudyArea*>StudyAreaMultiMap;
+
             /**
              * Taz statistics
              */
@@ -286,6 +293,7 @@ namespace sim_mob
              * Getters & Setters 
              */
             Unit* getUnitById(BigSerial id) const;
+            UnitType* getUnitTypeById(BigSerial id) const;
             BigSerial getUnitTazId(BigSerial unitId) const;
             BigSerial getUnitSlaAddressId(BigSerial unitId) const;
             BigSerial getEstablishmentTazId(BigSerial establishmentId) const;
@@ -340,9 +348,12 @@ namespace sim_mob
 			void incrementNumberOfSellers();
 			void incrementNumberOfBidders();
 			void incrementNumberOfBTOAwakenings();
+			void incrementWaitingToMove();
 			int getNumberOfSellers();
 			int getNumberOfBidders();
 			int getNumberOfBTOAwakenings();
+			int getWaitingToMove();
+			void setWaitingToMove(int number);
 
             void incrementLifestyle1HHs();
             void incrementLifestyle2HHs();
@@ -427,8 +438,13 @@ namespace sim_mob
             PreSchoolList getPreSchoolList() const;
             PreSchool* getPreSchoolById( BigSerial id) const;
 
-            std::vector<OwnerTenantMovingRate*> getOwnerTenantMovingRates();
-            std::vector<TenureTransitionRate*> getTenureTransitionRates();
+
+
+            OwnerTenantMovingRate* getOwnerTenantMovingRates(int index);
+            TenureTransitionRate* getTenureTransitionRates(int index);
+            int getOwnerTenantMovingRatesSize();
+            int getTenureTransitionRatesSize();
+
             std::vector<AlternativeHedonicPrice*> getAlternativeHedonicPrice();
             boost::unordered_multimap<BigSerial, AlternativeHedonicPrice*>& getAlternativeHedonicPriceById();
 
@@ -436,14 +452,21 @@ namespace sim_mob
             IndvidualEmpSecList getIndvidualEmpSecList() const;
             IndvidualEmpSec* getIndvidualEmpSecByIndId(BigSerial indId) const;
 
-			vector<double> getlogSqrtFloorAreahdb() const{ return logSqrtFloorAreahdb;}
-            vector<double> getlogSqrtFloorAreacondo() const { return logSqrtFloorAreacondo;}
+			double getlogSqrtFloorAreahdb(int index) { return logSqrtFloorAreahdb[index];}
+            double getlogSqrtFloorAreacondo(int index)  { return logSqrtFloorAreacondo[index];}
+			int getlogSqrtFloorAreahdbSize() { return logSqrtFloorAreahdb.size();}
+            int getlogSqrtFloorAreacondoSize()  { return logSqrtFloorAreacondo.size();}
 
 
             set<string> logsumUniqueCounter_str;
             set<int> logsumUniqueCounter;
 
             void  loadLTVersion(DB_Connection &conn);
+            void  loadStudyAreas(DB_Connection &conn);
+
+            StudyAreaList& getStudyAreas();
+            StudyAreaMultiMap& getStudyAreaByScenarioName();
+
 
 
         protected:
@@ -465,6 +488,9 @@ namespace sim_mob
             UnitList units; //residential only.
             UnitMap unitsById;
             std::multimap<BigSerial, Unit*> unitsByZoneHousingType;
+
+            UnitTypeList unitTypes; //residential only.
+            UnitTypeMap unitTypesById;
 
             StatsMap stats;
 
@@ -578,6 +604,7 @@ namespace sim_mob
             int numberOfExits;
             int numberOfSuccessfulBids;
             int numberOfBTOAwakenings;
+            int numberOfBiddersWaitingToMove;
 
             DeveloperModel *developerModel;
             int startDay; //start tick of the simulation
@@ -593,7 +620,7 @@ namespace sim_mob
             IndvidualVehicleOwnershipLogsumList IndvidualVehicleOwnershipLogsums;
             IndvidualVehicleOwnershipLogsumMap IndvidualVehicleOwnershipLogsumById;
 
-            AlternativeHedonicPriceList alternativeHedonicPrice;
+            AlternativeHedonicPriceList alternativeHedonicPrices;
             AlternativeHedonicPriceMap alternativeHedonicPriceById;
 
             ScreeningModelCoefficientsList screeningModelCoefficientsList;
@@ -619,6 +646,7 @@ namespace sim_mob
             PreSchoolList preSchools;
             PreSchoolMap preSchoolById;
             bool resume ;
+            bool initialLoading;
             IndvidualEmpSecList indEmpSecList;
             IndvidualEmpSecMap indEmpSecbyIndId;
 
@@ -633,6 +661,9 @@ namespace sim_mob
 
 			SlaBuildingList slaBuilding;
 			SlaBuildingMap	slaBuildingById;
+
+			StudyAreaList studyAreas;
+			StudyAreaMultiMap  studyAreaByScenario;
         };
     }
 }

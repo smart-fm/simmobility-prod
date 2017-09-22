@@ -15,7 +15,7 @@ namespace sim_mob
 {
 	namespace long_term
 	{
-		OwnerTenantMovingRate::OwnerTenantMovingRate( BigSerial _id, int _ageCategory, int _ownerPopulation, int _tenantPopulation, int _ownerMovingPercentage,int _tenantMovingPercentage)
+		OwnerTenantMovingRate::OwnerTenantMovingRate( BigSerial _id, int _ageCategory, int _ownerPopulation, int _tenantPopulation, int _ownerMovingPercentage,int _tenantMovingPercentage, bool _day_zero)
 		{
 			id = _id;
 			ageCategory = _ageCategory;
@@ -23,6 +23,7 @@ namespace sim_mob
 			tenantPopulation = _tenantPopulation;
 			ownerMovingPercentage = _ownerMovingPercentage;
 			tenantMovingPercentage = _tenantMovingPercentage;
+			day_zero = _day_zero;
 		}
 
 		OwnerTenantMovingRate::~OwnerTenantMovingRate() {}
@@ -37,24 +38,29 @@ namespace sim_mob
 			return ageCategory;
 		}
 
-		int OwnerTenantMovingRate::getOwnerPopulation() const
+		double OwnerTenantMovingRate::getOwnerPopulation() const
 		{
 			return ownerPopulation;
 		}
 
-		int OwnerTenantMovingRate::getTenantPopulation() const
+		double OwnerTenantMovingRate::getTenantPopulation() const
 		{
 			return tenantPopulation;
 		}
 
-		int OwnerTenantMovingRate::getOwnerMovingPercentage() const
+		double OwnerTenantMovingRate::getOwnerMovingPercentage() const
 		{
 			return ownerMovingPercentage;
 		}
 
-		int OwnerTenantMovingRate::getTenantMovingPercentage() const
+		double OwnerTenantMovingRate::getTenantMovingPercentage() const
 		{
 			return tenantMovingPercentage;
+		}
+
+		bool OwnerTenantMovingRate::getDayZero() const
+		{
+			return day_zero;
 		}
 
 		std::ostream& operator<<(std::ostream& strm, const OwnerTenantMovingRate& data)
@@ -66,6 +72,7 @@ namespace sim_mob
 					<< "\"\"tenantPopulation:\"" << data.tenantPopulation << "\","
 					<< "\"\"ownerMovingPercentage:\"" << data.ownerMovingPercentage << "\","
 					<< "\"\"tenantMovingPercentage:\"" << data.tenantMovingPercentage << "\","
+					<< "\"\"day zero:\"" << data.day_zero << "\","
 					<< "}";
 		}
 

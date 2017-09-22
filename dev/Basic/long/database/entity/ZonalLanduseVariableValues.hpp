@@ -27,6 +27,12 @@ namespace sim_mob
 
 			ZonalLanduseVariableValues& operator=( const ZonalLanduseVariableValues & source );
 
+			template<class Archive>
+			void serialize(Archive & ar,const unsigned int version);
+			void saveData(std::vector<ZonalLanduseVariableValues*> &zonalLanduseVarValues);
+			std::vector<ZonalLanduseVariableValues*> loadSerializedData();
+
+
 			virtual ~ZonalLanduseVariableValues();
 
 			int getAltId() const;
@@ -53,6 +59,8 @@ namespace sim_mob
 			double odi10_loc;
 			double dis2mrt;
 			double dis2exp;
+
+			static constexpr auto filename = "zonalLandUseVarVals";
 
 		};
 	}

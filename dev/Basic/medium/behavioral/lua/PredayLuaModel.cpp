@@ -270,29 +270,32 @@ void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personPara
 		//Day pattern stops
 		LuaRef chooseDPT = getGlobal(state.get(), "choose_dpt");
 		LuaRef retValT = chooseDPT(&personParams);
-        if (retValT.isTable())
-        {
+		if (retValT.isTable())
+		{
             for (const auto& activityType : activityTypes)
             {
                 dayPatternTours[activityType.first] = retValT[activityType.first].cast<int>();
             }
 		}
-		else {
+		else
+		{
 			throw std::runtime_error("Error in day pattern tours prediction. Unexpected return value");
 		}
 
 		//Day pattern tours
 		LuaRef chooseDPS = getGlobal(state.get(), "choose_dps");
 		LuaRef retValS = chooseDPS(&personParams);
-		if (retValS.isTable()) {
+		if (retValS.isTable())
+		{
             for (const auto& activityType : activityTypes)
             {
                 dayPatternStops[activityType.first] = retValT[activityType.first].cast<int>();
             }
 		}
-		else {
+		/*else
+		{
 			throw std::runtime_error("Error in day pattern stops prediction. Unexpected return value");
-		}
+		}*/
 	}
 }
 
@@ -320,7 +323,8 @@ bool sim_mob::medium::PredayLuaModel::predictUsualWorkLocation(PersonParams& per
 {
 	LuaRef chooseUW = getGlobal(state.get(), "choose_uw"); // choose usual work location
 	LuaRef retVal = chooseUW(&personParams, &usualWorkParams);
-	if (!retVal.isNumber()) {
+	if (!retVal.isNumber())
+	{
 		throw std::runtime_error("Error in usual work location model. Unexpected return value");
 	}
 	return retVal.cast<bool>();
@@ -339,7 +343,7 @@ int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams,
         return retVal.cast<int>();
     }
     else
-	{
+		{
         throw std::runtime_error("Tour mode model cannot be invoked for " + activityTypes.at(tourModeParams.getStopType()).name + " tour type");
         return -1;
 	}
@@ -431,8 +435,8 @@ int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& pe
         return retVal.cast<int>();
     }
     else
-	{
-		throw std::runtime_error("Tour mode model cannot be invoked for Shopping and Other tour types");
+		{
+			throw std::runtime_error("Tour mode model cannot be invoked for Shopping and Other tour types");
         return -1;
     }
 }

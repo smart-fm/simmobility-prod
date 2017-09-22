@@ -50,7 +50,7 @@ void PedestrianMovement::frame_init()
 		
 	default:
 		stringstream msg;
-		msg << "Origin type for pedestrian is invalid!\n";
+		msg << __func__ << ": Origin type for pedestrian is invalid!\n";
 		msg << "Type: " << subTrip.origin.type << " Person id: " << parentPedestrian->parent->getDatabaseId();
 		throw runtime_error(msg.str());
 	}
@@ -71,7 +71,7 @@ void PedestrianMovement::frame_init()
 		
 	default:
 		stringstream msg;
-		msg << "Destination type for pedestrian is invalid!\n";
+		msg << __func__ << ": Destination type for pedestrian is invalid!\n";
 		msg << "Type: " << subTrip.destination.type << " Person id: " << parentPedestrian->parent->getDatabaseId();
 		throw runtime_error(msg.str());
 	}

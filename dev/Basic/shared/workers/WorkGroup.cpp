@@ -233,6 +233,9 @@ void sim_mob::WorkGroup::stageEntities()
 		if (ConfigManager::GetInstance().FullConfig().RunningMidTerm())
 		{
 			loadPerson(ag);
+			//push to currently active agents
+			Agent::activeAgents.push_back(ag);
+
 		}
 		else // short or long term
 		{

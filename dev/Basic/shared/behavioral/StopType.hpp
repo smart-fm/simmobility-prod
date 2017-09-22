@@ -15,9 +15,10 @@ typedef int StopType;
 
 const StopType NULL_STOP = -1;
 
-const int WORK_ACTIVITY_TYPE = 1;
-const int EDUCATION_ACTIVITY_TYPE = 2;
-const int OTHER_ACTIVITY_TYPE = 3;
+const StopType WORK_ACTIVITY_TYPE = 1;
+const StopType EDUCATION_ACTIVITY_TYPE = 2;
+const StopType OTHER_ACTIVITY_TYPE = 3;
+const StopType WORK_BASED_SUBTOUR = 5 ;
 
 const int PT_TRAVEL_MODE = 1;
 const int PRIVATE_BUS_MODE = 2;

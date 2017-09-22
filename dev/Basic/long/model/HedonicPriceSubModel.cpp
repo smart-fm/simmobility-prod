@@ -495,12 +495,55 @@ static double CalculateExpectation(double price, double v, double a, double b, d
 ]]
 */
 
-vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit *unit, double timeOnMarket, double logsum, double lagCoefficient, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities)
+vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit *unit, double timeOnMarket, double logsum, double lagCoefficient, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenitiesX)
 {
     vector<ExpectationEntry> expectations;
     //-- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
 
-    double  hedonicPrice = CalculateHedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
+    PostcodeAmenities amenities = *amenitiesX;
+    int tazId = amenities.getTazId();
+
+
+    const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+
+
+	if( config.ltParams.scenario.enabled )
+	{
+		std::multimap<string, StudyArea*> scenario = hmModel->getStudyAreaByScenarioName();
+		auto itr_range = scenario.equal_range( config.ltParams.scenario.scenarioName );
+
+		bool bHomeTaz = false;
+
+		int dist = distance(itr_range.first, itr_range.second);
+
+		tazId = hmModel->getUnitTazId( unit->getId() );
+
+		for(auto itr = itr_range.first; itr != itr_range.second; itr++)
+		{
+			if( itr->second->getFmTazId()  == tazId )
+				bHomeTaz = true;
+		}
+
+		if( bHomeTaz)
+		{
+			amenities.setDistanceToJob(amenities.getDistanceToJob() );
+			amenities.setDistanceToMall(amenities.getDistanceToMall() / 2.0);
+			amenities.setDistanceToCbd(amenities.getDistanceToCBD() );
+			amenities.setDistanceToPms30(amenities.getDistanceToPMS30() / 2.0);
+			amenities.setDistanceToExpress(amenities.getDistanceToExpress() );
+			amenities.setDistanceToBus(amenities.getDistanceToBus() / 2.0);
+			amenities.setDistanceToMrt(amenities.getDistanceToMRT() / 2.0);
+
+
+			logsum += halfStandardDeviation;
+		}
+
+
+	}
+
+
+    double  hedonicPrice = CalculateHedonicPrice(unit, building, postcode, &amenities, logsum, lagCoefficient);
+
 
     hedonicPrice = exp( hedonicPrice ) / 1000000.0;
 
@@ -514,18 +557,21 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
         double crit = 0.0001; // -- criteria
         double maxIterations = 20; // --number of iterations
 
+        const double lowerBound = 0.85;
+
         for(int i=1; i <= timeOnMarket; i++)
         {
         	ExpectationEntry entry = ExpectationEntry(); //--entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
 
             if( unit->isBto() )
             {
-            	entry.hedonicPrice = unit->getTotalPrice();
-  	            entry.askingPrice = unit->getTotalPrice();
-                entry.targetPrice = unit->getTotalPrice();
+            	entry.hedonicPrice = unit->getBTOPrice();
+  	            entry.askingPrice = unit->getBTOPrice();
+                entry.targetPrice = unit->getBTOPrice();
             }
             else
             {
+            	/*
                  a = 1.5 * reservationPrice;
                  x0 = 1.4 * reservationPrice;
 
@@ -534,10 +580,17 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
                  entry.targetPrice = CalculateExpectation(entry.askingPrice, reservationPrice, a, b, cost );
 
                  reservationPrice = entry.targetPrice;
-                 expectations.push_back(entry);
+                 expectationsReverse.push_back(entry);
+                */
+
+            	 entry.hedonicPrice = hedonicPrice;
+            	 entry.targetPrice  = hedonicPrice *  lowerBound;
+            	 entry.askingPrice  = hedonicPrice * (lowerBound + ((double)timeOnMarket - i) / timeOnMarket * 0.2);
+            	 expectations.push_back(entry);
             }
     	}
     }
+
 
     return expectations;
 }

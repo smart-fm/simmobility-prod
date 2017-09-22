@@ -28,35 +28,35 @@
             </database>
 
 	    <!-- hpc ip for remote midterm server -->
-            <database id="fm_remote_mt2" dbtype="postgres">
+            <database id="fm_remote_mt" dbtype="postgres">
                 <host value="172.25.184.156"/>
                 <port value="5432"/>
                 <dbname value="simmobility"/>
             </database>
 
             <!-- localhost for midterm server -->
-            <database id="fm_remote_mt6" dbtype="postgres">
+            <database id="fm_remote_mt3" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
             </database>
 
 		<!-- public ip for remote midterm server -->
-	    <database id="fm_remote_mt" dbtype="postgres">
+	    <database id="fm_remote_mt4" dbtype="postgres">
 	        <host value="137.132.22.82"/>
 	        <port value="15061"/> <!--old port: 15025 -->
 	        <dbname value="simmobility"/>
 	    </database>
 
 		<!-- public ip for remote midterm server -->
-	    <database id="fm_remote_mt4" dbtype="postgres">
+	    <database id="fm_remote_mt5" dbtype="postgres">
 	        <host value="fmhpchead"/>
 	        <port value="5432"/> <!--old port: 15025 -->
 	        <dbname value="Simmobility"/>
 	    </database>
 
 		<!-- longterm localhost server hosting midterm data -->
-	    <database id="fm_remote_mt5" dbtype="postgres">
+	    <database id="fm_remote_mt6" dbtype="postgres">
 	        <host value="172.25.184.14"/>
 	        <port value="5432"/>
 	        <dbname value="sim_mob_lt"/>
@@ -83,7 +83,7 @@
 	-->
 
 	<file-based-credential id="fm_remote_mt">
-	 <file path="private/fm_remote.cred"/> 
+	 <file path="private/fm_local.cred"/> 
 	  <!--   <file path="private/fm_local.cred"/>-->
 	</file-based-credential>
 
@@ -94,7 +94,12 @@
 	</credentials>
     </constructs>
 
-
+   <schemas enabled= "true">
+	<main_schema  value= "synpop12."/>
+	<calibration_schema value= "calibration2012."/>
+	<public_schema value= "public."/>
+	<demand_schema value= "demand."/>
+   </schemas>
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
@@ -102,15 +107,11 @@
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>  
-	<year value = "2012" />  
-	<simulationScenario value="baseline"/> 
+	<year value = "2012" />   
 	<resume value ="false"/> 
 	<currentOutputSchema value = "baseline_2012_20160225034344"/> <!--if resume is true give the current op schema name-->
-	<mainSchemaVersion value="main2012" />
-	<configSchemaVersion value = "configuration2012" />
-	<calibrationSchemaVersion value= "calibration2012" />
-	<geometrySchemaVersion value = "geometry2012" />
         <opSchemaloadingInterval value = "365"/>
+        <initialLoading value = "true" />
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>
@@ -125,27 +126,32 @@
 	    <fixedWorkVariableHome value ="false"/>
 	</outputHouseholdLogsums>
     	<housingModel enabled="true"> 	    
-            <timeOnMarket value="90"/>
-            <timeOffMarket value="150"/>
+            <timeOnMarket value="180"/>
+            <timeOffMarket value="180"/>
             <timeInterval value="7"/>
 	    <awakeningModel enabled="true">
 		    <initialHouseholdsOnMarket value="15000"/>
 		    <dailyHouseholdAwakenings value="400"/>
 		    <awakenModelShan value="false"/>
-		    <awakenModelRandom value="true"/>
-		    <awakenModelJingsi value="false"/>	
-                    <awakeningOffMarketSuccessfulBid value="100"/>
- 	             <awakeningOffMarketUnsuccessfulBid value="200"/>
+		    <awakenModelRandom value="false"/>
+		    <awakenModelJingsi value="true"/>	
+                    <awakeningOffMarketSuccessfulBid value="210"/>
+ 	            <awakeningOffMarketUnsuccessfulBid value="210"/>
 	    </awakeningModel>
-	    <vacantUnitActivationProbability value="0.375"/>
+	    <vacantUnitActivationProbability value="0.1875"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>	   
 	    <bidderUnitsChoiceSet value = "50"/>
 	    <bidderBTOUnitsChoiceSet value = "10"/>
 	    <householdBiddingWindow value = "30" />
-	    <householdAwakeningPercentageByBTO value = "0.05" />
+	    <householdBTOBiddingWindow value = "5" />
+	    <householdAwakeningPercentageByBTO value = "0.025" />
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
             <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
+	    <hedonicPriceModel enabled = "true">
+		<a value = "0.8"/>
+		<b value = "1.15"/>
+	    </hedonicPriceModel>
         </housingModel>
 	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>
@@ -156,7 +162,15 @@
 		<schoolChangeWaitingTimeInDays value ="1" />
 	</schoolAssignmentModel>
 
-	<outputFiles enabled= 'true'>
+	<scenario enabled= 'true'>
+                <name value="baseline" />
+		<!-- <name value="ToaPayohScenario"/> --> <!--right now we have baseline and tp scenario-->
+                <scenarioSchema value = 'configuration2012.' />
+		<parcelsTable value = "fm_parcel_study_area" /> 
+		<!-- <parcelsTable value = "fm_parcel_study_area" /> --> <!-- in tp scenario : fm_parcel_scenario_toapayoh -->
+	</scenario>
+
+	<outputFiles enabled= 'false'>
                 <bids value= 'true' />
                 <expectations value= 'true'/>
                 <parcels value= 'true' />
@@ -185,7 +199,7 @@
         </outputFiles>
     </longTermParams>
 
-    <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+    <model_scripts path="scripts/lua/mid/behavior_sg12_20161206/" format="lua">
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

@@ -36,7 +36,7 @@ void Phase::addLinkMapping(unsigned int fromLink, ToLinkColourSequence toLinkClr
 
 void Phase::update(double currentCycleTimer) const
 {
-	std::ostringstream out;
+	std::stringstream out;
 	double lapse = currentCycleTimer - phaseOffset;
 	
 	//When time lapse = zero it means that:
@@ -61,7 +61,7 @@ void Phase::update(double currentCycleTimer) const
 		
 		if (((*linkIterator).second.currColor > TrafficColor::TRAFFIC_COLOUR_GREEN) || ((*linkIterator).second.currColor < TrafficColor::TRAFFIC_COLOUR_RED))
 		{
-			out << "Error! Phase::update(): Colour out of range\n";
+			out << __func__ << ": Colour out of range\n";
 			out << "currentCycleTimer :" << currentCycleTimer << " phaseOffset :" << phaseOffset << "--->lapse :" << lapse;
 			throw std::runtime_error(out.str());
 		}

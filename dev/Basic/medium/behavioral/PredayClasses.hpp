@@ -100,6 +100,10 @@ public:
 	int getStopTypeID() const
 	{
                 return stopType;
+	/*	case WORK_BASED_SUBTOUR:
+			return 5;
+		default:
+			return 1;*/
 	}
 
 	/**
@@ -109,6 +113,10 @@ public:
 	std::string getStopTypeStr() const
 	{
                 return ConfigManager::GetInstance().FullConfig().getActivityTypeStr(stopType);
+		/*case WORK_BASED_SUBTOUR:
+                        return "WorkbasedSubTour";
+		default:
+			return "Other";*/
 	}
 
 	void setStopType(StopType stopType)
@@ -231,6 +239,8 @@ public:
 	std::string getTourTypeStr() const
 	{
                 return ConfigManager::GetInstance().FullConfig().getActivityTypeStr(this->tourType);
+	/*	case WORK_BASED_SUBTOUR:
+			return "WorkbasedSubTour";*/
 	}
 
 	void setTourType(StopType tourType)

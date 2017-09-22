@@ -11,11 +11,12 @@
 
 #include "HouseholdDao.hpp"
 #include "DatabaseHelper.hpp"
+#include <limits.h>
 
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-HouseholdDao::HouseholdDao(DB_Connection& connection): SqlAbstractDao<Household>(connection, DB_TABLE_HOUSEHOLD,DB_INSERT_HOUSEHOLD, EMPTY_STR, EMPTY_STR,DB_GETALL_HOUSEHOLD, DB_GETBYID_HOUSEHOLD)
+HouseholdDao::HouseholdDao(DB_Connection& connection): SqlAbstractDao<Household>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"household", "")
 {}
 
 HouseholdDao::~HouseholdDao() {}
@@ -64,7 +65,12 @@ void HouseholdDao::toRow(Household& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getWorkers());
 	outParams.push_back(data.getAgeOfHead());
 	outParams.push_back(data.getPendingStatusId());
-	outParams.push_back(data.getPendingFromDate());
+	std::tm pendingFromDate = data.getPendingFromDate();
+	if(pendingFromDate.tm_year == 9999)
+	{
+		pendingFromDate.tm_year = (pendingFromDate.tm_year - 1900);
+	}
+	outParams.push_back(pendingFromDate);
 	outParams.push_back(data.getUnitPending());
 	outParams.push_back(data.getTaxiAvailability());
 	outParams.push_back(data.getVehicleOwnershipOptionId());
@@ -110,7 +116,7 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 		params.push_back(houseHold.getAwaknedDay());
 		params.push_back(houseHold.getId());
 
-		const std::string DB_UPDATE_HOUSEHOLD = "UPDATE "	+ APPLY_SCHEMA(schema, ".household") + " SET "
+		const std::string DB_UPDATE_HOUSEHOLD = "UPDATE "	+ schema + ".household" + " SET "
 				+ DB_FIELD_LIFESTYLE_ID+ "= :v1, "
 				+ DB_FIELD_UNIT_ID + "= :v2, "
 				+ DB_FIELD_ETHNICITY_ID + "= :v3, "
@@ -142,7 +148,7 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 
 	else
 	{
-		const std::string DB_INSERT_HOUSEHOLD_OP = "INSERT INTO " + APPLY_SCHEMA(schema, ".household")
+		const std::string DB_INSERT_HOUSEHOLD_OP = "INSERT INTO " + schema + ".household"
 							+ " (" + DB_FIELD_ID + ", "+ "lifestyle_id" + ", "+ DB_FIELD_UNIT_ID + ", "+ DB_FIELD_ETHNICITY_ID + ", "+ DB_FIELD_VEHICLE_CATEGORY_ID + ", "+ DB_FIELD_SIZE + ", "+
 							DB_FIELD_CHILDUNDER4 + ", "+ DB_FIELD_CHILDUNDER15 + ", " + "num_adults" + ", "+ DB_FIELD_INCOME + ", "+ DB_FIELD_HOUSING_DURATION + ", " + "workers"+ ", "+
 							"age_of_head" + ", "+ "pending_status_id" + ", " + "pending_from_date" + ", "+ "unit_pending" + ", "+ "taxi_availability" + ", " + "vehicle_ownership_option_id"+ ", "+

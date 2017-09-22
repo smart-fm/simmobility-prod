@@ -28,6 +28,11 @@ namespace sim_mob
 			AlternativeHedonicPrice(const AlternativeHedonicPrice& source);
 			AlternativeHedonicPrice& operator=(const AlternativeHedonicPrice& source);
 
+			template<class Archive>
+			void serialize(Archive & ar,const unsigned int version);
+			void saveData(std::vector<AlternativeHedonicPrice*> &altHedonicprices);
+			std::vector<AlternativeHedonicPrice*> loadSerializedData();
+
 			int getPlanningAreaId();
 			std::string getPlanningArea();
 			int getDwellingType();
@@ -42,6 +47,8 @@ namespace sim_mob
 			std::string planning_area;
 			int dwelling_type;
 			double total_price;
+
+			static constexpr auto filename = "alternativeHedonicPrice";
 		};
 	}
 

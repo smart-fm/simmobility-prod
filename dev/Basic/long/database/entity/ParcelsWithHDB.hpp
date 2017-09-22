@@ -38,6 +38,12 @@ namespace sim_mob
              * Operator to print the ParcelsWithHDB data.
              */
             friend std::ostream& operator<<(std::ostream& strm, const ParcelsWithHDB& data);
+
+            template<class Archive>
+            void serialize(Archive & ar,const unsigned int version);
+            void saveParcelsWithHDB(std::vector<ParcelsWithHDB*> &s, const char * filename);
+            std::vector<ParcelsWithHDB*> loadSerializedData();
+
         private:
             friend class ParcelsWithHDBDao;
 

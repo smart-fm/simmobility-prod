@@ -11,6 +11,7 @@
 #pragma once
 
 #include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include "entities/Entity.hpp"
 #include "database/entity/Unit.hpp"
 #include <set>
@@ -63,7 +64,8 @@ namespace sim_mob
             class Entry
             {
             public:
-                Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice, bool bto);
+                Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice, bool bto,
+                	  bool buySellIntervalCompleted, int zoneHousingType);
                 Entry( const Entry& source );
 
                 virtual ~Entry();
@@ -76,11 +78,16 @@ namespace sim_mob
                 double getAskingPrice() const;
                 double getHedonicPrice() const;
                 Agent_LT* getOwner() const;
-                bool 	isBTO() const;
+                bool isBTO() const;
+                bool isBuySellIntervalCompleted() const;
+                int getZoneHousingType() const;
+
 
                 void setAskingPrice(double askingPrice);
                 void setHedonicPrice(double hedonicPrice);
                 void setOwner(Agent_LT* owner);
+                void setBuySellIntervalCompleted(bool value);
+                void setZoneHousingType(int value);
 
             private:
                 BigSerial tazId;
@@ -90,6 +97,8 @@ namespace sim_mob
                 double hedonicPrice;
                 Agent_LT* owner;
                 bool bto;
+                bool buySellIntervalCompleted; //Wait x number of days before you sell your unit. Start buying first.
+                int  zoneHousingType;
             };
 
             typedef std::vector<Entry*> EntryList;
@@ -159,6 +168,9 @@ namespace sim_mob
 
             std::set<BigSerial> getBTOEntries();
 
+            std::unordered_multimap<int, BigSerial>& getunitsByZoneHousingType();
+
+
         protected:
             /**
              * Inherited from Entity
@@ -179,6 +191,7 @@ namespace sim_mob
             EntryMapById entriesByTazId; // only lookup.
 
             std::set<BigSerial> btoEntries;
+            std::unordered_multimap<int, BigSerial>unitsByZoneHousingType;
 
         };
     }

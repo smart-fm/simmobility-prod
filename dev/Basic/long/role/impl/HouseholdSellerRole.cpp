@@ -254,13 +254,28 @@ void HouseholdSellerRole::update(timeslice now)
             	continue;
             }
 
-            if( currentTime.ms() != unit->getbiddingMarketEntryDay() )
-            {
-            	continue;
-            }
 
 
             BigSerial tazId = model->getUnitTazId(unitId);
+
+
+            bool buySellInvtervalCompleted = false;
+
+            bool entryDay = true;
+            //freelance agents will only awaken their units based on the unit market entry day
+            if( getParent()->getId() >= model->FAKE_IDS_START )
+            {
+               	if( unit->getbiddingMarketEntryDay() == now.ms() )
+               		entryDay = true;
+               	else
+               	{
+               		entryDay = false;
+               		continue;
+               	}
+
+               	buySellInvtervalCompleted = true;
+            }
+
 
             TimeCheck hedonicPriceTiming;
 
@@ -272,21 +287,15 @@ void HouseholdSellerRole::update(timeslice now)
             	PrintOutV(" hedonicPriceTime for agent " << getParent()->getId() << " is " << hedonicPriceTime << std::endl );
 			#endif
             //get first expectation to add the entry on market.
-            ExpectationEntry firstExpectation; 
-
-            bool entryDay = true;
-            //freelance agents will only awaken their units based on the unit market entry day
-            if( getParent()->getId() >= model->FAKE_IDS_START )
-            {
-            	if( unit->getbiddingMarketEntryDay() == now.ms() )
-            		entryDay = true;
-            	else
-            		entryDay = false;
-            }
+            ExpectationEntry firstExpectation;
 
             if(getCurrentExpectation(unit->getId(), firstExpectation) && entryDay )
             {
-                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto()));
+            	//0.05 is the lower threshold for the hedonic price
+            	if( firstExpectation.hedonicPrice  < 0.05 )
+            		continue;
+
+                market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted, unit->getZoneHousingType() ));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
 				#endif
@@ -324,6 +333,7 @@ void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
 {
 	bool decision = false;
 	ExpectationEntry entry;
+	const double dHalf = 0.5;
 
 	if(getCurrentExpectation(unitId, entry))
 	{
@@ -348,14 +358,14 @@ void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
 			{
 				maxBidsOfDay.insert(std::make_pair(unitId, bid));
 			}
-			else if(maxBidOfDay->getBidValue() == bid.getBidValue())
+			else if( fabs(maxBidOfDay->getBidValue() - bid.getBidValue()) < EPSILON )
 			{
 				// bids are exactly equal. Randomly choose one.
 
 				double randomDraw = (double)rand()/RAND_MAX;
 
 				//drop the current bid
-				if(randomDraw < 0.5)
+				if(randomDraw < dHalf)
 				{
 					replyBid(*getParent(), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
 					maxBidsOfDay.erase(unitId);
@@ -399,6 +409,24 @@ void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
 	Statistics::increment(Statistics::N_BIDS);
 }
 
+void HouseholdSellerRole::removeAllEntries()
+{
+	HousingMarket* market = getParent()->getMarket();
+	const IdVector& unitIds = getParent()->getUnitIds();
+
+    for (IdVector::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+    {
+    	BigSerial unitId = *itr;
+    	UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
+
+		if(it != sellingUnitsMap.end())
+		{
+			market->removeEntry(unitId);
+			sellingUnitsMap.erase(unitId);
+		}
+    }
+}
+
 void HouseholdSellerRole::adjustNotSoldUnits()
 {
     const HM_Model* model = getParent()->getModel();
@@ -426,6 +454,9 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 					#ifdef VERBOSE
 					PrintOutV("[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
 					#endif
+
+					sellingUnitsMap.erase(unitId);
+
 					market->removeEntry(unitId);
 					continue;
 				 }
@@ -456,6 +487,10 @@ void HouseholdSellerRole::notifyWinnerBidders()
         Bid& maxBidOfDay = itr->second;
         ExpectationEntry entry;
         getCurrentExpectation(maxBidOfDay.getNewUnitId(), entry);
+
+        if(decide(maxBidOfDay, entry) == false)
+        	continue;
+
         replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getNewUnitId()));
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
@@ -504,7 +539,15 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, Expecta
         SellingUnitInfo& info = it->second;
 
         //expectations are start on last element to the first.
-        unsigned int index = ((unsigned int)(floor(abs(info.startedDay - currentTime.ms()) / info.interval))) % info.expectations.size();
+        int index = ((int)currentTime.ms() - info.startedDay)  / info.interval;
+
+        if( index > info.expectations.size() )
+        {
+        	//This is an edge case. The unit is about to leave the market.
+        	//Let's just return the last asking price.
+        	index = info.expectations.size() - 1;
+
+        }
 
         if (index < info.expectations.size())
         {

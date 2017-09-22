@@ -118,6 +118,13 @@ public:
 		return startStop;
 	}
 
+	void setServiceLine(const std::string& line){
+		serviceLine = line;
+	}
+
+	const std::string getServiceLine() const{
+		return serviceLine;
+	}
 
 	void setStartStop(const std::string& startStop) {
 		this->startStop = startStop;
@@ -169,7 +176,9 @@ private:
 	std::string startStop;       // Alphanumeric id
 	std::string endStop;         // Alphanumeric id
  	std::string rType;           // Service Line type, can be "BUS","LRT","WALK"
+ 	std::string serviceLine;	 // Service Line
  	PT_EdgeType edgeType;        // Edge type inferred from
+
 	std::string road_index;      // Index for road type 0 for BUS , 1 for LRT , 2 for Walk
 	std::string roadEdgeId;      // Strings of passing road segments Ex: 4/15/35/43
 	std::string rServiceLines; 	 //If the edge is a route segment, it will have bus service lines
@@ -271,26 +280,53 @@ private:
 							// 2 --- MRT/LRT Stations
 	std::string stopDesc;   // Description of stops . Usually street where the stop is located
 };
-
 class PT_Network
 {
 public:
 	virtual ~PT_Network();
 
+	/* map of edge id and edge */
 	std::map<int, PT_NetworkEdge> PT_NetworkEdgeMap;
+
+	/* map of vertex id and vertex */
 	std::map<std::string, PT_NetworkVertex> PT_NetworkVertexMap;
+
+	/* map of stop id and TrainStop */
 	std::map<std::string, TrainStop*> MRTStopsMap;
 
-	void init();
+	/* map of mrt stop and edges,the edge between train stops*/
+    std::map<std::string ,std::map<std::string ,std::vector<PT_NetworkEdge>>> MRTStopdgesMap;
 
+    /*
+     * This function creates the public transit network with edges and vertices
+     * @param storedProcForVertex is store procedure for vertex
+     * @param storeProceForEdges is store procedure for edges
+     */
+	void init(const std::string& storedProcForVertex, const std::string& storeProceForEdges);
+
+	/* this function gets the pointer to a particular train stop by its stop id
+	 * @param stopId is the id of the stop
+	 * @return  the pointer to train stop
+	 */
 	TrainStop* findMRT_Stop(const std::string& stopId) const;
 
+	/*
+	 * This function returns vertex type from stop is
+	 * @param stopId is the id of the stop
+	 * @return type of vertex
+	 */
 	int getVertexTypeFromStopId(std::string stopId);
-	static PT_Network instance_;
+};
+class PT_NetworkCreater
+{
 
+public:
+	static void init();
 	static PT_Network& getInstance()
 	{
-		return instance_;
+		return instance;
 	}
+private:
+	static PT_Network instance;
 };
 }//End of namespace sim_mob

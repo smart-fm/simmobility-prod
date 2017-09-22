@@ -72,7 +72,7 @@ const XMLCh* GetAttributeValue(const DOMAttr* attr);
  * @param required flag to indicate whether the element we seek is a mandatory element or not
  * @return value of attribute with name as key in node
  */
-const XMLCh* GetNamedAttributeValue(DOMElement* node, const std::string& key, bool required=false);
+const XMLCh* GetNamedAttributeValue(DOMElement* node, const std::string& key, bool required=true);
 
 /**
  * Helper: parse boolean
@@ -184,10 +184,5 @@ std::string ParseNonemptyString(const XMLCh* src);
 unsigned int ParseTimegranAsMs(const XMLCh* amount, const XMLCh* units, unsigned int defValue);
 unsigned int ParseTimegranAsMs(const XMLCh* amount, const XMLCh* units);
 unsigned int ParseTimegranAsSecond(const XMLCh* amount, const XMLCh* units, unsigned int defValue);
-
-//TODO: Now we are starting to overlap...
-int ProcessValueInteger2(xercesc::DOMElement* node, int defVal);
-
-//TODO: Same issue; needs to be easier access to these things.
 std::string ProcessValueString(xercesc::DOMElement* node);
 }

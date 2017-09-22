@@ -16,7 +16,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 DevelopmentTypeTemplateDao::DevelopmentTypeTemplateDao(DB_Connection& connection)
-: SqlAbstractDao<DevelopmentTypeTemplate>(connection, DB_TABLE_DEVELOPMENT_TYPE_TEMPLATE, EMPTY_STR, EMPTY_STR, EMPTY_STR, DB_GETALL_DEVELOPMENT_TYPE_TEMPLATES, DB_GETBYID_DEVELOPMENT_TYPE_TEMPLATE)
+: SqlAbstractDao<DevelopmentTypeTemplate>(connection, "", "", "", "", "SELECT * FROM " + connection.getSchema()+"development_type_template", "")
 {}
 
 DevelopmentTypeTemplateDao::~DevelopmentTypeTemplateDao() {

@@ -12,7 +12,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 IndvidualEmpSecDao::IndvidualEmpSecDao(DB_Connection& connection)
-: SqlAbstractDao<IndvidualEmpSec>(connection, EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR, DB_GETALL_IND_EMP_SEC, EMPTY_STR)
+: SqlAbstractDao<IndvidualEmpSec>(connection, EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR, "SELECT * FROM " + connection.getSchema()+"getIndividualEmpSecIds()", EMPTY_STR)
 {}
 
 IndvidualEmpSecDao::~IndvidualEmpSecDao() {

@@ -52,28 +52,44 @@ void sim_mob::RailTransit::initGraph(const std::set<string>& vertices, const std
 	{
 		RT_Edge rtEdge;
 		bool edgeAdded = false;
-		RT_Vertex fromStnVertex = findVertex(rtNwEdge.getFromStationId());
-		RT_Vertex toStnVertex = findVertex(rtNwEdge.getToStationId());
-		boost::tie(rtEdge, edgeAdded) = boost::add_edge(fromStnVertex, toStnVertex, railTransitGraph);
-		boost::put(boost::edge_weight, railTransitGraph, rtEdge, rtNwEdge.getEdgeTravelTime());
-		boost::put(boost::edge_name, railTransitGraph, rtEdge, rtNwEdge.isTransferEdge()); //edge type is set as name
+		RT_Vertex fromStnVertex;
+		bool srcVertexFound=findVertex(rtNwEdge.getFromStationId(),fromStnVertex);
+		RT_Vertex toStnVertex;
+		bool destVertexFound=findVertex(rtNwEdge.getToStationId(),toStnVertex);
+		if(srcVertexFound&&destVertexFound)
+		{
+			boost::tie(rtEdge, edgeAdded) = boost::add_edge(fromStnVertex, toStnVertex, railTransitGraph);
+			boost::put(boost::edge_weight, railTransitGraph, rtEdge, rtNwEdge.getEdgeTravelTime());
+			boost::put(boost::edge_name, railTransitGraph, rtEdge, rtNwEdge.isTransferEdge()); //edge type is set as name
+		}
 	}
 }
 
 vector<string> sim_mob::RailTransit::fetchBoardAlightStopSeq(string origin, string dest) const
 {
+	vector<string> res;
 	if(origin == dest) //trivial
 	{
 		return vector<string>();
 	}
 
-	RT_Vertex fromVertex = findVertex(origin);
-	RT_Vertex toVertex = findVertex(dest);
+	RailTransit::RT_Vertex fromVertex;
+	bool isFound = findVertex(origin,fromVertex);
+	if(!isFound)
+	{
+		return res;
+	}
+
+	RT_Vertex toVertex;
+	isFound = findVertex(dest,toVertex);
+	if(!isFound)
+	{
+		return res;
+	}
 
 	vector<RT_Vertex> p(boost::num_vertices(railTransitGraph));
 	vector<double> d(boost::num_vertices(railTransitGraph));
 	list<RT_Vertex> partialRes;
-	vector<string> res;
 	try
 	{
 		boost::dijkstra_shortest_paths(railTransitGraph, fromVertex, boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(RT_GoalVisitor(toVertex)));
@@ -131,14 +147,14 @@ vector<string> sim_mob::RailTransit::fetchBoardAlightStopSeq(string origin, stri
 	return res;
 }
 
-RailTransit::RT_Vertex sim_mob::RailTransit::findVertex(const std::string& vertexName) const
+bool sim_mob::RailTransit::findVertex(const std::string& vertexName,RailTransit::RT_Vertex& vertex) const
 {
 	std::map<std::string, RT_Vertex>::const_iterator vertexIt = rtVertexLookup.find(vertexName);
+
 	if(vertexIt == rtVertexLookup.end())
 	{
-		char buf[100];
-		sprintf(buf, "cannot find stn:%s in rail transit graph", vertexName.c_str());
-		throw std::runtime_error(buf);
+		return false;
 	}
-	return vertexIt->second;
+	vertex=vertexIt->second;
+	return true;
 }

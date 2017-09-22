@@ -47,7 +47,9 @@ enum CoreEvent {
 	// amod reroute event with only start node, end node, driver generate shortest path
 	EVT_AMOD_REROUTING_REQUEST_WITH_ORI_DEST,
 
-	EVT_AMOD_ARRIVING_TO_DEST
+	EVT_AMOD_ARRIVING_TO_DEST,
+
+	EVT_CORE_MRT_DISRUPTION
 };
 
 enum CoreContext {

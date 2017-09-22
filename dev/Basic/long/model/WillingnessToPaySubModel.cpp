@@ -283,28 +283,33 @@ namespace sim_mob
 
 			int unitType = unit->getUnitType();
 
+			const double kthird = 0.3;
+			const double khalf = 0.5;
+			const double ktwoFifth = 0.4;
+			const double kthreeFifth = 0.6;
+
 			int sizeAreaQuantileHDB = 0;
 			int sizeAreaQuantileCondo = 0;
 			double lgsqrtArea = log(sqrt(unit->getFloorArea()));
-			double lowerQuantileCondo = model->getlogSqrtFloorAreahdb()[ model->getlogSqrtFloorAreahdb().size() * 0.3 ];
-			double upperQuantileCondo = model->getlogSqrtFloorAreahdb()[ model->getlogSqrtFloorAreahdb().size() * 0.5 ];
-			double lowerQuantileHDB = model->getlogSqrtFloorAreahdb()[ model->getlogSqrtFloorAreahdb().size() * 0.4 ];
-			double upperQuantileHDB = model->getlogSqrtFloorAreahdb()[ model->getlogSqrtFloorAreahdb().size() * 0.6 ];
+			double lowerQuantileCondo = model->getlogSqrtFloorAreacondo( model->getlogSqrtFloorAreacondoSize() * kthird );
+			double upperQuantileCondo = model->getlogSqrtFloorAreacondo( model->getlogSqrtFloorAreacondoSize() * khalf );
+			double lowerQuantileHDB = model->getlogSqrtFloorAreahdb( model->getlogSqrtFloorAreahdbSize() * ktwoFifth );
+			double upperQuantileHDB = model->getlogSqrtFloorAreahdb( model->getlogSqrtFloorAreahdbSize() * kthreeFifth );
 
 			if( lgsqrtArea >=  lowerQuantileCondo && lgsqrtArea < upperQuantileCondo )
 			{
-				sizeAreaQuantileCondo = 0;
+				sizeAreaQuantileCondo = 1;
 			}
 
 			if( lgsqrtArea >=  lowerQuantileHDB && lgsqrtArea < upperQuantileHDB )
 			{
-				sizeAreaQuantileHDB = 0;
+				sizeAreaQuantileHDB = 1;
 			}
 
 			//We use a separate list of coefficients for HDB units.
 			if( unitType <= 6  || unitType == 65 )
 			{
-				sde			=  0.2079816511;
+				sde			=  0.02;
 				barea		=  1.3174741336;
 				blogsum		=  5.6119278112;
 				bsizearea	=  0.0182733682;
@@ -322,6 +327,56 @@ namespace sim_mob
 			//GetLogsum(model, household, day);
 			Postcode *unitPostcode = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
 			ZZ_logsumhh = model->ComputeHedonicPriceLogsumFromDatabase( unitPostcode->getTazId() );
+
+
+			vector<BigSerial>ind_hh = household->getIndividuals();
+
+			Individual *thisIndividual;
+			for(int n = 0; n < ind_hh.size();n++)
+			{
+				Individual *tempIndividual = model->getIndividualById(ind_hh[n]);
+
+				if( tempIndividual->getHouseholdHead() )
+					thisIndividual = tempIndividual;
+			}
+
+			Job *job = model->getJobById(thisIndividual->getJobId());
+			Establishment *establishment = model->getEstablishmentById(	job->getEstablishmentId());
+			int work_tazId = model->getEstablishmentTazId( establishment->getId() );
+
+			const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+
+			const double halfStandDeviationLogsum = 0.07808;
+			const double quarterStandDeviationLogsum = 0.03904;
+
+			if( config.ltParams.scenario.enabled )
+			{
+				std::multimap<string, StudyArea*> scenario = model->getStudyAreaByScenarioName();
+				auto itr_range = scenario.equal_range( config.ltParams.scenario.scenarioName );
+
+				bool bWorkTaz = false;
+				bool bHomeTaz = false;
+
+				int dist = distance(itr_range.first, itr_range.second);
+
+				int tazId = model->getUnitTazId( unit->getId() );
+
+				for(auto itr = itr_range.first; itr != itr_range.second; itr++)
+				{
+					if( itr->second->getFmTazId()  == work_tazId )
+						bWorkTaz = true;
+
+					if( itr->second->getFmTazId()  == tazId )
+						bHomeTaz = true;
+				}
+
+				if(bWorkTaz)
+					ZZ_logsumhh += quarterStandDeviationLogsum;
+
+				if(bHomeTaz)
+					ZZ_logsumhh += quarterStandDeviationLogsum;
+			}
+
 			Household* householdT = const_cast<Household*>(household);
 			householdT->setLogsum(ZZ_logsumhh);
 
@@ -335,10 +390,18 @@ namespace sim_mob
 
 			double mallDistance = amenities->getDistanceToMall();
 
+            //Chetan. 3 July 2017.
+			//Temp fix cos XiaoHu added some distanceToMall in meters
+			if(mallDistance > 100 )
+				mallDistance = mallDistance / 1000;
+
+
 			int mallDistanceBool = 0;
 
 			if( amenities->getDistanceToMall() > 200 && amenities->getDistanceToMall() < 400 )
 				mallDistanceBool = 1;
+
+			double bmall2 = bmall;
 
 			double Vpriv = 	(barea		*  DD_area 		) +
 							(blogsum	* ZZ_logsumhh 	) +

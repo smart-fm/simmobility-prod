@@ -124,7 +124,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	bool resume = config.ltParams.resume;
 	unsigned int year = config.ltParams.year;
-	std::string scenario = config.ltParams.simulationScenario;
+	std::string scenario = config.ltParams.scenario.scenarioName;
 	std::string mainSchemaVersion = config.ltParams.mainSchemaVersion;
 	std::string cfgSchemaVersion = config.ltParams.configSchemaVersion;
 	std::string calibrationSchemaVersion = config.ltParams.calibrationSchemaVersion;
@@ -151,7 +151,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 
 		std::vector<boost::shared_ptr<Parcel> > parcels = developerModel.getProfitableParcelsVec();
 		std::vector<boost::shared_ptr<Parcel> >::iterator parcelsItr;
-		ParcelDao parcelDao(conn);
+		ParcelDao parcelDao(conn,"fm_parcel");
 		for(parcelsItr = parcels.begin(); parcelsItr != parcels.end(); ++parcelsItr)
 		{
 			parcelDao.insertParcel(*(*parcelsItr),currentOutputSchema);
@@ -300,12 +300,13 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     // Connect to database.
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.connect();
+    conn.setSchema(config.schemas.main_schema);
     SimulationStartPointDao simStartPointDao(conn);
     bool resume = config.ltParams.resume;
     std::string currentOutputSchema;
 
     unsigned int year = config.ltParams.year;
-    std::string scenario = config.ltParams.simulationScenario;
+    std::string scenario = config.ltParams.scenario.scenarioName;
     std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
     time_t rawtime;
     struct tm * timeinfo;
@@ -444,12 +445,17 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config Simulation resumption " << config.ltParams.resume << endl);
         PrintOutV("XML Config schoolAssignmentModel enabled " << config.ltParams.schoolAssignmentModel.enabled << endl);
         PrintOutV("XML Config schoolAssignmentModel schoolChangeWaitingTimeInDays " << config.ltParams.schoolAssignmentModel.schoolChangeWaitingTimeInDays << endl);
-        PrintOutV("XML Config simulationScenario " << config.ltParams.simulationScenario << endl);
+        PrintOutV("XML Config simulationScenario " << config.ltParams.scenario.scenarioName << endl);
+        PrintOutV("XML Config simulationScenario parcels table " << config.ltParams.scenario.parcelsTable << endl);
         PrintOutV("XML Config tickStep " << config.ltParams.tickStep << endl);
         PrintOutV("XML Config vehicleOwnershipModel " << config.ltParams.vehicleOwnershipModel.enabled << endl);
         PrintOutV("XML Config vehicleOwnershipModel vehicleBuyingWaitingTimeInDays " << config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays << endl);
         PrintOutV("XML Config workers " << config.ltParams.workers << endl);
         PrintOutV("XML Config year " << config.ltParams.year << endl);
+
+
+        PrintOutV("XML bid value a" << config.ltParams.housingModel.hedonicPriceModel.a << endl);
+        PrintOutV("XML bid value b" << config.ltParams.housingModel.hedonicPriceModel.b << endl);
 
 
         //Start work groups and all threads.
@@ -516,10 +522,11 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             PrintOutV(" Day " << currTick
             	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
 				   << " BTO_Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize())
-				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " "
-				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers() << " "		
+				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders()
+				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers()
 				   << " Bids: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
 				   << " Accepted: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
+				   << " Waiting: "  << (dynamic_cast<HM_Model*>(models[0]))->getWaitingToMove()
 				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
 				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
 				   << " AwakenByBTO: "	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings()
@@ -534,6 +541,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBidders(0);
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfSellers(0);
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBTOAwakenings(0);
+            (dynamic_cast<HM_Model*>(models[0]))->setWaitingToMove(0);
             (dynamic_cast<HM_Model*>(models[0]))->resetBAEStatistics();
         }
 

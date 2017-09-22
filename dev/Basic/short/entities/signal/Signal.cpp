@@ -171,7 +171,7 @@ Entity::UpdateStatus Signal_SCATS::frame_tick(timeslice now)
 	else
 	{
 		std::stringstream msg;
-		msg << "Error: Signal_SCATS::frame_tick(): phaseId (" << phaseId << ") out of range (" << phases.size() << ")";
+		msg << __func__ << ": Signal_SCATS::frame_tick(): phaseId (" << phaseId << ") out of range (size = " << phases.size() << ")";
 		throw std::runtime_error(msg.str());
 	}
 
@@ -256,8 +256,8 @@ std::size_t Signal_SCATS::computeCurrPhase(double currCycleTimer)
 
 	if (phase >= phases.size())
 	{
-		std::stringstream str("");
-		str << "Error: Signal_SCATS::computeCurrPhase(): phase (" << phase << ") >= numOfPhases (" << phases.size() << ")"; 
+		std::stringstream str;
+		str << __func__ << ": Signal_SCATS::computeCurrPhase(): phase (" << phase << ") >= numOfPhases (" << phases.size() << ")";
 		str << "\ncurrCycleTimer(" << currCycleTimer << ") <= sum (" << sum << ")";
 		throw std::runtime_error(str.str());
 	}
@@ -460,7 +460,9 @@ void Signal_SCATS::initialisePhases()
 	
 	if (choice.size() != phases.size())
 	{
-		throw std::runtime_error("Mismatch on number of phases");
+		std::stringstream msg;
+		msg << __func__ << ": Mismatch on number of phases.";
+		throw std::runtime_error(msg.str());
 	}
 	
 	int i = 0;

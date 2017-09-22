@@ -15,8 +15,8 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-PopulationPerPlanningAreaDao::PopulationPerPlanningAreaDao(DB_Connection& connection): SqlAbstractDao<PopulationPerPlanningArea>( connection, DB_FUNC_GET_POPULATION_PER_PLANNING_AREA, "", "", "",
-																									  DB_GETALL_POPULATION_PER_PLANNING_AREA, DB_GETBYID_POPULATION_PER_PLANNING_AREA){}
+PopulationPerPlanningAreaDao::PopulationPerPlanningAreaDao(DB_Connection& connection): SqlAbstractDao<PopulationPerPlanningArea>( connection, "", "", "", "",
+																																  "SELECT * FROM " + connection.getSchema()+"getPopulationPerPlanningArea()", ""){}
 
 PopulationPerPlanningAreaDao::~PopulationPerPlanningAreaDao(){}
 

@@ -16,6 +16,7 @@
 #include "message/ST_Message.hpp"
 
 using namespace sim_mob;
+using namespace messaging;
 
 PassengerBehavior::PassengerBehavior() :
 BehaviorFacet(), parentPassenger(nullptr)
@@ -57,15 +58,15 @@ void PassengerMovement::frame_init()
 	parentPassenger->setStartPoint(parent->currSubTrip->origin);
 	parentPassenger->setEndPoint(parent->currSubTrip->destination);
 	
-	//Tele-port the passenger to the destination MRT stop with a delay equal to the travel time
+	//Tele-port the passenger (other than bus passenger) to the destination with a delay equal to the travel time
 	//Travel time is pre-set based on the historic transit times
-	if(parentPassenger->roleType == Role<Person_ST>::RL_TRAINPASSENGER)
+	if(parentPassenger->roleType != Role<Person_ST>::RL_PASSENGER)
 	{
 		totalTimeToComplete = parent->currSubTrip->endTime.getValue();
 		parentPassenger->setTravelTime(totalTimeToComplete);
 		
 		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
-		messaging::MessageBus::PostMessage(parent, MSG_WAKEUP_MRT_PAX, messaging::MessageBus::MessagePtr(new PersonMessage(parent)), false,
+		MessageBus::PostMessage(parent, MSG_WAKEUP_MRT_PAX, MessageBus::MessagePtr(new PersonMessage(parent)), false,
 				totalTimeToComplete / tick);
 	}
 }

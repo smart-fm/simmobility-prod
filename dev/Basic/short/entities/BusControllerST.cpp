@@ -32,11 +32,15 @@ void sim_mob::BusControllerST::RegisterBusController(int id, const MutexStrategy
 {
 	BusControllerST* stBusController = new BusControllerST(id, mtxStrat);
 	bool busControllerRegistered = BusController::RegisterBusController(stBusController);
+
 	if(!busControllerRegistered)
 	{
 		delete stBusController;
 		stBusController = nullptr;
-		throw std::runtime_error("BusController already registered!");
+
+		std::stringstream msg;
+		msg << __func__ << ": BusController already registered!";
+		throw std::runtime_error(msg.str());
 	}
 }
 
@@ -102,9 +106,12 @@ void sim_mob::BusControllerST::assignBusTripChainWithPerson(std::set<sim_mob::En
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const map<string, BusLine*>& buslines = ptSchedule.getBusLines();
+
 	if (buslines.empty())
 	{
-		throw std::runtime_error("Error:  No busline in the ptSchedule, please check the setPTSchedule.");
+		std::stringstream msg;
+		msg << __func__ << ":  No busline in the ptSchedule, please check the setPTSchedule.";
+		throw std::runtime_error(msg.str());
 	}
 
 	for (map<string, BusLine*>::const_iterator buslinesIt = buslines.begin(); buslinesIt != buslines.end(); buslinesIt++)

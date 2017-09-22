@@ -21,7 +21,7 @@ class ParseConfigXmlBase
 {
 public:
     /**
-     * Constructore
+     * Constructor
      *
      * @param configFileName configuration file name to be parsed
      */
@@ -31,13 +31,6 @@ public:
      * Destructor
      */
     virtual ~ParseConfigXmlBase();
-
-    /**
-	 * Parse a xml config file
-	 * @param configFileName is the filename of configuration
-	 * @return true if success otherwise false
-	 */
-	bool parseConfigFile(const std::string& configFileName);
 
 protected:
 	/**
@@ -49,7 +42,7 @@ protected:
 	/**
 	 * Perform per-process parser initialization
 	 */
-	void initXerces();
+	void initialiseXerces();
 
 	/**
 	 * parse xml file
@@ -69,7 +62,7 @@ protected:
 	 */
 	virtual void processXmlFile(xercesc::XercesDOMParser& parser) = 0;
 
-    /// The path of the file we are loading our configuration from
+    /**The path of the file we are loading our configuration from*/
 	std::string inFilePath;
 };
 }

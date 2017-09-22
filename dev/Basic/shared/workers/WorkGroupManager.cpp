@@ -22,10 +22,7 @@ using std::vector;
 
 using namespace sim_mob;
 
-namespace
-{
-bool firstTick = true;
-}
+
 
 WorkGroupManager::~WorkGroupManager()
 {
@@ -133,6 +130,14 @@ void sim_mob::WorkGroupManager::initAllGroups()
 	}
 }
 
+void sim_mob::WorkGroupManager::waitForFrameTickBar()
+{
+	if (frameTickBarr)
+	{
+		frameTickBarr->wait();
+	}
+}
+
 void sim_mob::WorkGroupManager::startAllWorkGroups()
 {
 	//Sanity check
@@ -154,15 +159,17 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 
 	//Call each function in turn.
 	//NOTE: Each sub-function tests the current state.
-	if (ConfigManager::GetInstance().FullConfig().RunningMidTerm() && firstTick)
+	/*if (ConfigManager::GetInstance().FullConfig().RunningMidTerm() && firstTick)
 	{
 		//first tick has two frameTickBarr
+
 		if (frameTickBarr)
 		{
 			frameTickBarr->wait();
 		}
 		firstTick = false;
-	}
+
+	}*/
 
 	waitAllGroups_FrameTick();
 	waitAllGroups_FlipBuffers(&removedEntities);

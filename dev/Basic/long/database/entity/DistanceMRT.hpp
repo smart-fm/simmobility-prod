@@ -20,6 +20,11 @@ namespace sim_mob {
 
             virtual ~DistanceMRT();
 
+            template<class Archive>
+            void serialize(Archive & ar,const unsigned int version);
+            void saveData(std::vector<DistanceMRT*> &distMRT);
+            std::vector<DistanceMRT*> loadSerializedData();
+
             /**
              * Getters and Setters
              */
@@ -29,13 +34,13 @@ namespace sim_mob {
             /**
              * Operator to print the DistanceMRT data.
              */
-            friend std::ostream& operator<<(std::ostream& strm,
-                    const DistanceMRT& data);
+            friend std::ostream& operator<<(std::ostream& strm,const DistanceMRT& data);
         private:
             friend class DistanceMRTDao;
         private:
             BigSerial houseHoldId;
             double distanceMrt;
+            static constexpr auto filename = "distMRT";
         };
     }
 }

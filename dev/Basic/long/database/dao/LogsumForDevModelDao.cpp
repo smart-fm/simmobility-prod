@@ -11,7 +11,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-LogsumForDevModelDao::LogsumForDevModelDao(DB_Connection& connection): SqlAbstractDao<LogsumForDevModel>(connection, DB_TABLE_LOGSUM_FOR_DEVMODEL,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_DEV_LOGSUMS, EMPTY_STR)
+LogsumForDevModelDao::LogsumForDevModelDao(DB_Connection& connection): SqlAbstractDao<LogsumForDevModel>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"logsum_for_dev_model", "")
 {}
 
 LogsumForDevModelDao::~LogsumForDevModelDao() {}

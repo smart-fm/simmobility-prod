@@ -70,7 +70,7 @@ ParameterManager::ParameterManager(bool isAMOD_InstanceRequeseted)
 	else
 	{
 		stringstream msg;
-		msg << "Parameter file: " << filePathProperty << " not specified in the configuration file!";
+		msg << __func__ << ": Parameter file - " << filePathProperty << " - not specified in the configuration file!";
 		throw runtime_error(msg.str());
 	}
 }
@@ -104,8 +104,9 @@ void ParameterManager::setParam(const std::string& modelName, const std::string&
 		
 		if (itt != nvMap.end())
 		{
-			std::string s = "Parameter " + key + " already exists!";
-			throw std::runtime_error(s);
+			std::stringstream s;
+			s << __func__ << ": Parameter " << key << " has already been added!";
+			throw std::runtime_error(s.str());
 		}
 
 		nvMap.insert(std::make_pair(key, v));

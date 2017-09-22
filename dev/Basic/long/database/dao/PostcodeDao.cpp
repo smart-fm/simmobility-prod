@@ -15,7 +15,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-PostcodeDao::PostcodeDao(DB_Connection& connection): SqlAbstractDao<Postcode>(connection, DB_TABLE_POSTCODE,DB_INSERT_POSTCODE, DB_UPDATE_POSTCODE, DB_DELETE_POSTCODE,DB_GETALL_POSTCODE, DB_GETBYID_POSTCODE)
+PostcodeDao::PostcodeDao(DB_Connection& connection): SqlAbstractDao<Postcode>(connection, 	"",	"",	"",	"",	"SELECT * FROM " + connection.getSchema() + "sla_addresses", "" )
 {}
 
 PostcodeDao::~PostcodeDao() {}

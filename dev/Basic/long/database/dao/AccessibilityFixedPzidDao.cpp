@@ -15,8 +15,9 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-AccessibilityFixedPzidDao::AccessibilityFixedPzidDao(DB_Connection& connection): SqlAbstractDao<AccessibilityFixedPzid>( connection, DB_TABLE_ACCESSIBILITYFIXEDPZID,
-																				 "", "", "", DB_GETALL_ACCESSIBILITYFIXEDPZID, DB_GETBYID_ACCESSIBILITYFIXEDPZID){}
+AccessibilityFixedPzidDao::AccessibilityFixedPzidDao(DB_Connection& connection): SqlAbstractDao<AccessibilityFixedPzid>( connection, "", "", "", "",
+																														 "SELECT * FROM " + connection.getSchema()+"accessibility_fixed_pzid",
+																														 ""){}
 
 AccessibilityFixedPzidDao::~AccessibilityFixedPzidDao(){}
 

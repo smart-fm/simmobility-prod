@@ -10,6 +10,9 @@
  */
 
 #include <database/entity/ZonalLanduseVariableValues.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 
 using namespace sim_mob::long_term;
 
@@ -43,6 +46,55 @@ ZonalLanduseVariableValues& ZonalLanduseVariableValues::operator=( const ZonalLa
 
 	return *this;
 }
+
+
+template<class Archive>
+void ZonalLanduseVariableValues::serialize(Archive & ar,const unsigned int version)
+{
+	ar & alt_id;
+	ar & dgpid;
+	ar & dwl;
+	ar & f_loc_com;
+	ar & f_loc_res;
+	ar & f_loc_open;
+	ar & odi10_loc;
+	ar & dis2mrt;
+	ar & dis2exp;
+
+}
+
+void ZonalLanduseVariableValues::saveData(std::vector<ZonalLanduseVariableValues*> &zonalLanduseVarValues)
+{
+	// make an archive
+	std::ofstream ofs(filename);
+	boost::archive::binary_oarchive oa(ofs);
+	oa & zonalLanduseVarValues;
+}
+
+std::vector<ZonalLanduseVariableValues*> ZonalLanduseVariableValues::loadSerializedData()
+{
+	std::vector<ZonalLanduseVariableValues*> zonalLanduseVarValues;
+	// Restore from saved data and print to verify contents
+	std::vector<ZonalLanduseVariableValues*> restored_info;
+	{
+		// Create and input archive
+		std::ifstream ifs( filename );
+		boost::archive::binary_iarchive ar( ifs );
+
+		// Load the data
+		ar & restored_info;
+	}
+
+	std::vector<ZonalLanduseVariableValues*>::const_iterator it = restored_info.begin();
+	for (auto *it :restored_info)
+	{
+		ZonalLanduseVariableValues *zv = it;
+		zonalLanduseVarValues.push_back(zv);
+	}
+
+	return zonalLanduseVarValues;
+}
+
 
 ZonalLanduseVariableValues::~ZonalLanduseVariableValues(){}
 

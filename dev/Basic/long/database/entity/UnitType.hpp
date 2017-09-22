@@ -17,7 +17,7 @@ namespace sim_mob {
         class UnitType {
         public:
             UnitType(BigSerial id = INVALID_ID,std::string name = EMPTY_STR,
-                     double typicalArea = 0.0, double constructionCostPerUnit = 0.0,double demolitionCostPerUnit = 0.0, double minLosize = 0.0);
+                     double typicalArea = 0.0, double constructionCostPerUnit = 0.0,double demolitionCostPerUnit = 0.0, double minLosize = 0.0, int dwellingType = 0, double wtpOffset = 0.0);
 
             virtual ~UnitType();
 
@@ -30,6 +30,11 @@ namespace sim_mob {
             double getConstructionCostPerUnit() const;
             double getDemolitionCostPerUnit() const;
             double getMinLosize() const ;
+
+            void setWtpOffset(double value);
+            double getWtpOffset() const;
+
+
             /**
              * Operator to print the TemplateUnitType data.
              */
@@ -46,6 +51,8 @@ namespace sim_mob {
             double constructionCostPerUnit;
             double demolitionCostPerUnit;
             double minLosize;
+            int	   dwellingType;
+            double wtpOffset;
         };
     }
 }

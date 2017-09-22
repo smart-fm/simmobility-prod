@@ -96,10 +96,6 @@ void WaitBusActivity::makeBoardingDecision(const BusDriver *driver)
 		busDriver = driver;
 		return;
 	}
-	else
-	{
-		return;
-	}
 
 	const BusStop *destStop = nullptr;
 	
@@ -107,8 +103,7 @@ void WaitBusActivity::makeBoardingDecision(const BusDriver *driver)
 	{
 		destStop = parent->destNode.busStop;
 	}
-
-	if (!destStop)
+	else
 	{
 		return;
 	}

@@ -27,6 +27,11 @@ namespace sim_mob
 
             virtual ~Parcel();
 
+            template<class Archive>
+            void serialize(Archive & ar,const unsigned int version);
+            void saveData(std::vector<Parcel*> &parcels, const std::string filename);
+            std::vector<Parcel*> loadSerializedData(const std::string filename);
+
             Parcel( const Parcel &source);
             Parcel& operator=(const Parcel& source);
 

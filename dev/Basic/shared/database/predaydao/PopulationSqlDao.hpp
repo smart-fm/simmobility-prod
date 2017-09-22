@@ -51,10 +51,8 @@ public:
 
 	/**
 	 * fetches taz code for each address id in LT database
-	 * @param addressMap output parameter for storing address_id -> TAZ code map
-	 * @param zoneAddressesMap output parameter for storing list of addresses in each TAZ
 	 */
-	void getAddresses(std::map<long, sim_mob::Address>& addressMap, std::map<int, std::vector<long> >& zoneAddressesMap);
+	void getAddresses();
 
 private:
 	/**
@@ -97,7 +95,7 @@ public:
 	 * fetches taz code for each address id in simmobility database
 	 * @param outMap output parameter for storing postcode -> simmobility node map
 	 */
-	void getPostcodeNodeMap(std::map<unsigned int, unsigned int>& outMap);
+	void getPostcodeNodeMap();
 
 private:
 	/**

@@ -11,6 +11,9 @@
 
 #include "Parcel.hpp"
 #include "util/Utils.hpp"
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 
 using namespace sim_mob::long_term;
 
@@ -30,6 +33,97 @@ Parcel::Parcel(BigSerial id,BigSerial tazId, float lot_size, std::string gpr,int
 
 Parcel::~Parcel() {}
 
+void Parcel::saveData(std::vector<Parcel*> &parcels, const std::string filename){
+    // make an archive
+    std::ofstream ofs(filename);
+    boost::archive::binary_oarchive oa(ofs);
+    oa & parcels;
+}
+
+std::vector<Parcel*> Parcel::loadSerializedData(const std::string filename)
+{
+	std::vector<Parcel*> parcels;
+	// Restore from saved data and print to verify contents
+	std::vector<Parcel*> restored_info;
+	{
+		// Create and input archive
+		std::ifstream ifs( filename );
+		boost::archive::binary_iarchive ar( ifs );
+
+		// Load the data
+		ar & restored_info;
+	}
+
+	std::vector<Parcel*>::const_iterator it = restored_info.begin();
+	for (; it != restored_info.end(); ++it)
+	{
+		Parcel *p = *it;
+		parcels.push_back(p);
+	}
+
+	return parcels;
+
+}
+
+template<class Archive>
+void Parcel::serialize(Archive & ar,const unsigned int version)
+{
+	ar & id;
+	ar & tazId;
+	ar & lot_size;
+	ar & gpr;
+	ar & land_use_type_id;
+	ar & owner_name;
+	ar & owner_category;
+
+	ar & BOOST_SERIALIZATION_NVP(last_transaction_date.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(last_transaction_date.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(last_transaction_date.tm_mday);
+	last_transaction_date.tm_year = last_transaction_date.tm_year+1900;
+
+	ar & last_transaction_type_total;
+	ar & psm_per_gps;
+	ar & lease_type;
+
+	ar & BOOST_SERIALIZATION_NVP(lease_start_date.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(lease_start_date.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(lease_start_date.tm_mday);
+	lease_start_date.tm_year = lease_start_date.tm_year+1900;
+
+	ar & centroid_x;
+	ar & centroid_y;
+
+	ar & BOOST_SERIALIZATION_NVP(award_date.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(award_date.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(award_date.tm_mday);
+	award_date.tm_year = award_date.tm_year+1900;
+
+	ar & award_status;
+	ar & use_restriction;
+	ar & development_type_code;
+	ar & successful_tender_id;
+	ar & successful_tender_price;
+
+	ar & BOOST_SERIALIZATION_NVP(tender_closing_date.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(tender_closing_date.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(tender_closing_date.tm_mday);
+	tender_closing_date.tm_year = tender_closing_date.tm_year+1900;
+
+	ar & lease;
+	ar & status;
+	ar & developmentAllowed;
+
+	ar & BOOST_SERIALIZATION_NVP(nextAvailableDate.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(nextAvailableDate.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(nextAvailableDate.tm_mday);
+	nextAvailableDate.tm_year = nextAvailableDate.tm_year+1900;
+
+	ar & BOOST_SERIALIZATION_NVP(lastChangedDate.tm_year);
+	ar & BOOST_SERIALIZATION_NVP(lastChangedDate.tm_mon);
+	ar & BOOST_SERIALIZATION_NVP(lastChangedDate.tm_mday);
+	lastChangedDate.tm_year = lastChangedDate.tm_year+1900;
+
+}
 Parcel::Parcel( const Parcel& source)
 {
 	this->id = source.id;

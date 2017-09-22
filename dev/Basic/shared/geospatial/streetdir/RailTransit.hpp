@@ -71,6 +71,8 @@ private:
 	double edgeTravelTime; //in seconds
 };
 
+
+
 /**
  * Singleton class encapsulating a graph representation of the rail transit system and exposes
  * shortest path finding algorithm in the rail transit network
@@ -79,6 +81,9 @@ private:
  *
  * \author Harish Loganathan
  */
+struct VertexStruct;
+
+
 class RailTransit
 {
 private:
@@ -88,14 +93,14 @@ private:
 	/** travel time in seconds is the only property of edges*/
 	typedef boost::property<boost::edge_weight_t, double, boost::property<boost::edge_name_t, bool> > RT_EdgeProperties;
 
-    /**
-     * The rail transit graph is a directed graph with above defined edge and vertex properties
-     */
-    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, RT_VertexProperties, RT_EdgeProperties> RailTransitGraph;
+	/**
+	 * The rail transit graph is a directed graph with above defined edge and vertex properties
+	 */
+	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, RT_VertexProperties, RT_EdgeProperties> RailTransitGraph;
 
-    typedef RailTransitGraph::vertex_descriptor RT_Vertex;
+	typedef RailTransitGraph::vertex_descriptor RT_Vertex;
 
-    typedef RailTransitGraph::edge_descriptor RT_Edge;
+	typedef RailTransitGraph::edge_descriptor RT_Edge;
 
     /** the adjacency list representing the rail transit system*/
     RailTransitGraph railTransitGraph;
@@ -144,7 +149,7 @@ private:
      * @param vertexName station id
      * @return reference to RT_Vertex in rail transit graph;
      */
-    RT_Vertex findVertex(const std::string& vertexName) const;
+    bool findVertex(const std::string& vertexName,RailTransit::RT_Vertex& vertex) const;
 
 public:
     RailTransit();
@@ -173,7 +178,6 @@ public:
      */
     std::vector<std::string> fetchBoardAlightStopSeq(std::string origin, std::string dest) const;
 
-
-
 };
+
 }

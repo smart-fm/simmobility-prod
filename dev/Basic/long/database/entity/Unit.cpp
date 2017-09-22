@@ -21,12 +21,12 @@ using namespace sim_mob::long_term;
 Unit::Unit( BigSerial id, BigSerial building_id, int unit_type, int storey_range, int constructionStatus, double floor_area, int storey,
 			double monthlyRent, std::tm sale_from_date, std::tm occupancyFromDate, int sale_status, int occupancyStatus, std::tm lastChangedDate,
 			double totalPrice,std::tm valueDate,int tenureStatus,int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket, double lagCoefficient, int zoneHousingType,
-			int dwellingType, bool isBTO, double _btoPrice)
+			int dwellingType, bool existInDB, bool isBTO, double _btoPrice)
 		   : id(id), building_id(building_id), unit_type(unit_type), storey_range(storey_range), constructionStatus(constructionStatus),
 		     floor_area(floor_area), storey(storey), monthlyRent(monthlyRent), sale_from_date(sale_from_date), occupancyFromDate(occupancyFromDate),
 			 sale_status(sale_status), occupancyStatus(occupancyStatus), lastChangedDate(lastChangedDate),totalPrice(totalPrice),valueDate(valueDate),tenureStatus(tenureStatus),
 			 biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket), lagCoefficient(lagCoefficient),
-			 zoneHousingType(zoneHousingType), dwellingType(dwellingType),isBTO(isBTO),existInDB(0),btoPrice(_btoPrice){}
+			 zoneHousingType(zoneHousingType), dwellingType(dwellingType), existInDB(existInDB),isBTO(isBTO),btoPrice(_btoPrice){}
 
 
 Unit::Unit(const Unit& source)
@@ -420,6 +420,46 @@ double Unit::getBTOPrice() const
 void Unit::setBTOPrice(double p)
 {
 	btoPrice = p;
+}
+
+double Unit::getAskingPrice() const
+{
+	return askingPrice;
+}
+
+void Unit::setAskingPrice(double askingPrice)
+{
+	this->askingPrice = askingPrice;
+}
+
+void Unit::updateRemainingTimeOnMarket()
+{
+	--this->remainingTimeOnMarket;
+}
+
+void Unit::updateRemainingTimeOffMarket()
+{
+	--this->remainingTimeOffMarket;
+}
+
+int Unit::getRemainingTimeOffMarket() const
+{
+	return remainingTimeOffMarket;
+}
+
+void Unit::setRemainingTimeOffMarket(int remainingTimeOffMarket)
+{
+	this->remainingTimeOffMarket = remainingTimeOffMarket;
+}
+
+int Unit::getRemainingTimeOnMarket() const
+{
+	return remainingTimeOnMarket;
+}
+
+void Unit::setRemainingTimeOnMarket(int remainingTimeOnMarket)
+{
+	this->remainingTimeOnMarket = remainingTimeOnMarket;
 }
 
 namespace sim_mob

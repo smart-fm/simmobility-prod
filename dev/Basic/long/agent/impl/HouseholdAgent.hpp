@@ -74,6 +74,7 @@ namespace sim_mob
             bool onFrameInit(timeslice now);
             sim_mob::Entity::UpdateStatus onFrameTick(timeslice now);
             void onFrameOutput(timeslice now);
+            void TransferUnitToFreelanceAgent();
             
             /**
              * Inherited from Entity. 

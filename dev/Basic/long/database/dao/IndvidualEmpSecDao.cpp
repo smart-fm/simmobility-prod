@@ -21,7 +21,7 @@ IndvidualEmpSecDao::~IndvidualEmpSecDao() {
 void IndvidualEmpSecDao::fromRow(Row& result, IndvidualEmpSec& outObj)
 {
     outObj.indvidualId = result.get<BigSerial>("id", INVALID_ID);
-    outObj.empSecId = result.get<BigSerial>("sector_id",INVALID_ID);
+    outObj.empSecId = result.get<int>("sector_id",INVALID_ID);
 }
 
 void IndvidualEmpSecDao::toRow(IndvidualEmpSec& data, Parameters& outParams, bool update) {}

@@ -55,14 +55,21 @@
 #include "database/entity/BuildingMatch.hpp"
 #include "database/entity/SlaBuilding.hpp"
 #include "database/entity/StudyArea.hpp"
+#include "database/entity/JobAssignmentCoeffs.hpp"
+#include "database/entity/JobsBySectorByTaz.hpp"
+#include "database/entity/IndLogsumJobAssignment.hpp"
+#include "database/entity/JobsWithIndustryTypeAndTazId.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
+#include "agent/impl/HouseholdAgent.hpp"
 
 namespace sim_mob
 {
     namespace long_term
     {
+
+    	class HouseholdAgent;
         /**
          * Class that contains Housing market model logic.
          */
@@ -208,6 +215,20 @@ namespace sim_mob
 
             typedef std::vector<StudyArea*> StudyAreaList;
             typedef std::multimap<string, StudyArea*>StudyAreaMultiMap;
+
+            typedef std::vector<JobAssignmentCoeffs*> JobAssignmentCoeffsList;
+
+            typedef std::vector<JobsBySectorByTaz*> JobsBySectorByTazList;
+            typedef boost::unordered_map<BigSerial, JobsBySectorByTaz*>JobsBySectorByTazMap;
+
+            typedef std::vector<IndLogsumJobAssignment*> IndLogsumJobAssignmentList;
+            //typedef pair<BigSerial, std::string> CompositeKey;
+            //typedef std::multimap<CompositeKey, IndLogsumJobAssignment*> IndLogsumJobAssignmentByTaz;
+
+            typedef boost::unordered_map<string, IndLogsumJobAssignment*>IndLogsumJobAssignmentByTaz;
+
+            typedef pair<BigSerial, int> TazAndIndustryTypeKey;
+            typedef std::multimap<TazAndIndustryTypeKey, JobsWithIndustryTypeAndTazId*> JobsByTazAndIndustryTypeMap;
 
             /**
              * Taz statistics
@@ -402,6 +423,7 @@ namespace sim_mob
             BigSerial getUnitSaleId();
             std::vector<boost::shared_ptr<Bid> > getNewBids();
             std::vector<boost::shared_ptr<HouseholdUnit> > getNewHouseholdUnits();
+            UnitList getUnits();
             std::vector<boost::shared_ptr<Unit> > getUpdatedUnits();
             void addUnitSales(boost::shared_ptr<UnitSale> &unitSale);
             std::vector<boost::shared_ptr<UnitSale> > getUnitSales();
@@ -467,10 +489,27 @@ namespace sim_mob
             StudyAreaList& getStudyAreas();
             StudyAreaMultiMap& getStudyAreaByScenarioName();
 
+            void loadJobAssignments(DB_Connection &conn);
+            JobAssignmentCoeffsList& getJobAssignmentCoeffs();
 
+            void loadJobsBySectorByTaz(DB_Connection &conn);
+            JobsBySectorByTazList& getJobsBySectorByTazs();
+            JobsBySectorByTaz* getJobsBySectorByTazId(BigSerial tazId) const;
+
+            TazList& getTazList();
+
+            void loadIndLogsumJobAssignments(BigSerial individuaId);
+            IndLogsumJobAssignmentList& getIndLogsumJobAssignment();
+            IndLogsumJobAssignment* getIndLogsumJobAssignmentByTaz(BigSerial tazId);
+
+            void loadJobsByTazAndIndustryType(DB_Connection &conn);
+            JobsByTazAndIndustryTypeMap& getJobsByTazAndIndustryTypeMap();
+
+            std::vector<HouseholdAgent*> getFreelanceAgents();
 
         protected:
             /**
+             *
              * Inherited from Model.
              */
             void startImpl();
@@ -478,6 +517,9 @@ namespace sim_mob
             void update(int day);
 
         private:
+
+            std::vector<HouseholdAgent*> freelanceAgents;
+
             // Data
             HousingMarket market;
 
@@ -664,6 +706,17 @@ namespace sim_mob
 
 			StudyAreaList studyAreas;
 			StudyAreaMultiMap  studyAreaByScenario;
+
+			JobAssignmentCoeffsList jobAssignmentCoeffs;
+
+			JobsBySectorByTazList jobsBySectorByTazsList;
+			JobsBySectorByTazMap jobsBySectorByTazMap;
+
+			IndLogsumJobAssignmentList indLogsumJobAssignmentList;
+			IndLogsumJobAssignmentByTaz indLogsumJobAssignmentByTaz;
+
+			JobsByTazAndIndustryTypeMap jobsByTazAndIndustryType;
+
         };
     }
 }

@@ -109,6 +109,10 @@ void PopulationSqlDao::getAddresses()
 			PersonParams::setZoneNodeAddressesMap(address);
 		}
 	}
+	else
+	{
+		std::cout << "Zone lookup Not connected!! " << std::endl;
+	}
 }
 
 void PopulationSqlDao::getIncomeCategories(double incomeLowerLimits[])

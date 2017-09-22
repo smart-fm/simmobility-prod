@@ -328,6 +328,7 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 	cfg.ltParams.taxiAccessModel = taxiAccessModel;
 
 	processSchoolAssignmentModelNode(GetSingleElementByName(node, "schoolAssignmentModel"));
+	processJobAssignmentModelNode(GetSingleElementByName(node, "jobAssignmentModel"));
 	processScenarioNode(GetSingleElementByName(node, "scenario"));
 	processOutputFilesNode(GetSingleElementByName(node, "outputFiles"));
 
@@ -487,6 +488,17 @@ void ParseConfigFile::processSchoolAssignmentModelNode(xercesc::DOMElement *scho
 					schoolAssignModel, "schoolChangeWaitingTimeInDays"), "value"), (unsigned int) 0);
 
 	cfg.ltParams.schoolAssignmentModel = schoolAssignmentModel;
+}
+
+void ParseConfigFile::processJobAssignmentModelNode(xercesc::DOMElement *jobAssignModel)
+{
+	LongTermParams::JobAssignmentModel jobAssignmentModel;
+
+	jobAssignmentModel.enabled =
+			ParseBoolean(GetNamedAttributeValue(jobAssignModel, "enabled"), false);
+
+	cfg.ltParams.jobAssignmentModel = jobAssignmentModel;
+
 }
 
 void ParseConfigFile::processVehicleOwnershipModelNode(xercesc::DOMElement *vehOwnModel)

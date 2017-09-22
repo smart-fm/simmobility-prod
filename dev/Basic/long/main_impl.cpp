@@ -206,21 +206,13 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			vehOwnChangeDao.insertVehicleOwnershipChanges(*(*vehOwnChangeItr),currentOutputSchema);
 		}
 
-		std::vector<boost::shared_ptr<Household> > householdsWithBids = housingMarketModel.getHouseholdsWithBids();
-		std::vector<boost::shared_ptr<Household> >::iterator hhItr;
 		HouseholdDao hhDao(conn);
-		for(hhItr = householdsWithBids.begin(); hhItr != householdsWithBids.end(); ++hhItr)
-		{
-			hhDao.insertHousehold(*(*hhItr),currentOutputSchema);
-		}
 
 		HM_Model::HouseholdList *households = housingMarketModel.getHouseholdList();
 		HM_Model::HouseholdList::iterator houseHoldItr;
 		for(houseHoldItr = households->begin(); houseHoldItr != households->end(); ++houseHoldItr)
 		{
 
-			if(housingMarketModel.getHouseholdWithBidsById((*houseHoldItr)->getId()) == nullptr)
-			{
 				if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
 				{
 					if(housingMarketModel.getResumptionHouseholdById((*houseHoldItr)->getId()) != nullptr)
@@ -229,8 +221,6 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 					}
 					hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
 				}
-
-			}
 		}
 
 		std::vector<boost::shared_ptr<HouseholdUnit> > hhUnits = housingMarketModel.getNewHouseholdUnits();
@@ -240,12 +230,14 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			hhUnitDao.insertHouseholdUnit(*hhUnit,currentOutputSchema);
 		}
 
-//		std::vector<boost::shared_ptr<Unit> > updatedUnits = housingMarketModel.getUpdatedUnits();
-//		std::vector<boost::shared_ptr<Unit> >::iterator updatedUnitsItr;
-//		for(updatedUnitsItr = units.begin(); updatedUnitsItr != updatedUnits.end(); ++updatedUnitsItr)
-//		{
-//			unitDao.insertUnit(*(*updatedUnitsItr),currentOutputSchema);
-//		}
+		HM_Model::UnitList updatedUnits = housingMarketModel.getUnits();
+		HM_Model::UnitList::iterator updatedUnitsItr;
+		for(updatedUnitsItr = updatedUnits.begin(); updatedUnitsItr != updatedUnits.end(); ++updatedUnitsItr)
+		{
+			(*updatedUnitsItr)->setTimeOnMarket((*updatedUnitsItr)->getRemainingTimeOnMarket());
+			(*updatedUnitsItr)->setTimeOffMarket((*updatedUnitsItr)->getRemainingTimeOffMarket());
+			unitDao.insertUnit(*(*updatedUnitsItr),currentOutputSchema);
+		}
 
 		SimulationStoppedPointDao simStoppedPointDao(conn);
 		simStoppedPointDao.insertSimulationStoppedPoints(*(developerModel.getSimStoppedPointObj(simVersionId)).get(),currentOutputSchema);
@@ -423,6 +415,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelRandom " << config.ltParams.housingModel.awakeningModel.awakenModelRandom << endl);
         PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelShan " << config.ltParams.housingModel.awakeningModel.awakenModelShan << endl);
         PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelJingsi " << config.ltParams.housingModel.awakeningModel.awakenModelJingsi << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel awakeningOffMarketSuccessfulBid " << config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel awakeningOffMarketUnsuccessfulBid " << config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid << endl);
 
         PrintOutV("XML Config HousingModel enabled " << config.ltParams.housingModel.enabled << endl);
         PrintOutV("XML Config HousingModel householdBiddingWindow " << config.ltParams.housingModel.householdBiddingWindow << endl);

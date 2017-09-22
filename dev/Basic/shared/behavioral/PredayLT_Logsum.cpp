@@ -39,7 +39,7 @@ public:
 	 */
 	PopulationSqlDao ltPopulationDao;
 
-	LT_PopulationSqlDaoContext(const DB_Config& ltDbConfig, DB_Connection conn): ltDbConnection(conn), ltPopulationDao(conn)
+	LT_PopulationSqlDaoContext(const DB_Config& ltDbConfig, DB_Connection conn): ltDbConnection(sim_mob::db::POSTGRES, ltDbConfig), ltPopulationDao(ltDbConnection)
 	{
 		ltDbConnection.connect();
 		if(!ltDbConnection.isConnected()) { throw std::runtime_error("LT database connection failure!"); }

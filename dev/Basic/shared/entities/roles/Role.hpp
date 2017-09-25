@@ -120,7 +120,8 @@ public:
 		RL_TRUCKER_LGV,
 		RL_TRUCKER_HGV,
 		RL_TAXIDRIVER,
-		RL_TAXITRAVELLER
+		RL_ON_CALL_DRIVER,
+		RL_ON_HAIL_DRIVER
 	};
 
 	/**Defines the various types of requests*/

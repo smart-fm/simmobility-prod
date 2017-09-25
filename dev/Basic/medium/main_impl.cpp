@@ -29,6 +29,7 @@
 #include "entities/PT_Statistics.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/DriverVariants.hpp"
+#include "entities/roles/driver/OnHailDriver.hpp"
 #include "entities/roles/driver/TaxiDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/TrainDriver.hpp"
@@ -247,6 +248,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf->registerRole("driver", new sim_mob::medium::Driver(nullptr));
 	rf->registerRole("activityRole", new sim_mob::ActivityPerformer<Person_MT>(nullptr));
 	rf->registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, mtx));
+	rf->registerRole("onHailDriver", new sim_mob::medium::OnHailDriver(nullptr));
 	rf->registerRole("taxidriver", new sim_mob::medium::TaxiDriver(nullptr, mtx));
 	rf->registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr));
 	rf->registerRole("waitTrainActivity", new sim_mob::medium::WaitTrainActivity(nullptr));

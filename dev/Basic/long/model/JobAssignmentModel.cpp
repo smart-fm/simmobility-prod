@@ -253,7 +253,7 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 
 			//draw a random job in selected taz id and the relevant industry type of the individual.
 			HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
-			auto range = jobsByTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
+			range = jobsByTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
 			sz = distance(range.first, range.second);
 		}
 
@@ -265,10 +265,20 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		const unsigned int random_index = disRdInd(gen);
 		std::advance(range.first, random_index);
 
+		int jobId = range.first->second->getJobId();
 		writeIndividualJobAssignmentsToFile(individualId,range.first->second->getJobId());
 
 		//remove the selected job id from the map.
-		jobsByTazAndIndustryType.erase(range.first);
+		HM_Model::JobsByTazAndIndustryTypeMap::iterator iter;
+		for(iter=range.first;iter != range.second;++iter)
+		{
+		    if((iter->second->getJobId()) == jobId) {
+		        jobsByTazAndIndustryType.erase(iter);
+		        break;
+		    }
+		}
+
+
 		}
 
 

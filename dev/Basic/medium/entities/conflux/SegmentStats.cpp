@@ -792,9 +792,10 @@ void LaneStats::updateOutputFlowRate(double newFlowRate)
 
 void LaneStats::updateOutputCounter()
 {
-	double tick_size = ConfigManager::GetInstance().FullConfig().baseGranSecond();
-	int tmp = int(laneParams->outputFlowRate * tick_size);
-	laneParams->fraction += laneParams->outputFlowRate * tick_size - tmp;
+	double updateInterval = MT_Config::getInstance().getSupplyUpdateInterval() *
+			ConfigManager::GetInstance().FullConfig().baseGranSecond();
+	int tmp = int(laneParams->outputFlowRate * updateInterval);
+	laneParams->fraction += laneParams->outputFlowRate * updateInterval - tmp;
 	if (laneParams->fraction >= 1.0)
 	{
 		laneParams->fraction -= 1.0;

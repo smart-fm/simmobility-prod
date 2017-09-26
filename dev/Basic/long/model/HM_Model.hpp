@@ -507,6 +507,9 @@ namespace sim_mob
 
             std::vector<HouseholdAgent*> getFreelanceAgents();
 
+            int getJobAssignIndividualCount();
+            void incrementJobAssignIndividualCount();
+
         protected:
             /**
              *
@@ -716,6 +719,9 @@ namespace sim_mob
 			IndLogsumJobAssignmentByTaz indLogsumJobAssignmentByTaz;
 
 			JobsByTazAndIndustryTypeMap jobsByTazAndIndustryType;
+
+			int jobAssignIndCount;
+			bool isConnected;
 
         };
     }

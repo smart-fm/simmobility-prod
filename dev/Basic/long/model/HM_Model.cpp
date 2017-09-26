@@ -215,7 +215,7 @@ double HM_Model::TazStats::getAvgHHSize() const
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
 											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
-											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false){}
+											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false),jobAssignIndCount(0), isConnected(false){}
 
 HM_Model::~HM_Model()
 {
@@ -1564,7 +1564,7 @@ void HM_Model::startImpl()
 
 			//Load households
 			loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-			PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
+			PrintOutV("Number of households: " << households.size() << " Households used: " << households.size()  << std::endl);
 
 			//load individuals
 			loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
@@ -3491,7 +3491,14 @@ void HM_Model::loadIndLogsumJobAssignments(BigSerial individuaId)
 		DB_Config dbConfig(LT_DB_CONFIG_FILE);
 		dbConfig.load();
 		DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
-		conn_calibration.connect();
+		if(!isConnected)
+		{
+			conn_calibration.connect();
+			isConnected = true;
+		}
+
+		if(conn_calibration.isConnected())
+		{
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 		conn_calibration.setSchema(config.schemas.calibration_schema);
 		IndLogsumJobAssignmentDao logsumDao(conn_calibration);
@@ -3502,6 +3509,7 @@ void HM_Model::loadIndLogsumJobAssignments(BigSerial individuaId)
 			//CompositeKey indTazIdPair = make_pair((*it)->getIndividualId(), (*it)->getTazId());
 			//indLogsumJobAssignmentByTaz.insert(make_pair(indTazIdPair, *it));
 			indLogsumJobAssignmentByTaz.insert(std::make_pair((*it)->getTazId(), *it));
+		}
 		}
 
 	}
@@ -3553,6 +3561,16 @@ HM_Model::JobsByTazAndIndustryTypeMap& HM_Model::getJobsByTazAndIndustryTypeMap(
 {
 	return this->jobsByTazAndIndustryType;
 
+}
+
+int HM_Model::getJobAssignIndividualCount()
+{
+	return this->jobAssignIndCount;
+}
+
+void HM_Model::incrementJobAssignIndividualCount()
+{
+	++jobAssignIndCount;
 }
 
 void HM_Model::stopImpl()

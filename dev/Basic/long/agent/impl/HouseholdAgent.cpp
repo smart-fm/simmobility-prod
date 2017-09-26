@@ -462,7 +462,7 @@ void HouseholdAgent::onWorkerEnter()
 	JobAssignmentModel jobAssignModel(model);
 	const Household *hh = this->getHousehold();
 
-	if( config.ltParams.jobAssignmentModel.enabled == true )
+	if( config.ltParams.jobAssignmentModel.enabled == true && model->getJobAssignIndividualCount() <= 1000)
 	{
 	if( hh != NULL )
 	{
@@ -473,6 +473,7 @@ void HouseholdAgent::onWorkerEnter()
 				if(individual->getEmploymentStatusId() < 4)
 				{
 					jobAssignModel.computeJobAssignmentProbability(individual->getId());
+					model->incrementJobAssignIndividualCount();
 				}
 		}
 	}

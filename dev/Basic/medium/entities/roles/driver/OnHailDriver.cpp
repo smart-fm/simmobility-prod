@@ -44,7 +44,7 @@ Role<Person_MT>* OnHailDriver::clone(Person_MT *person) const
 
 	OnHailDriverMovement *driverMvt = new OnHailDriverMovement();
 	OnHailDriverBehaviour *driverBhvr = new OnHailDriverBehaviour();
-	OnHailDriver *driver = new OnHailDriver(person, person->getMutexStrategy(), driverBhvr, driverMvt, "OnHailDriver");
+	OnHailDriver *driver = new OnHailDriver(person, person->getMutexStrategy(), driverBhvr, driverMvt, "onHailDriver");
 
 	driverBhvr->setParentDriver(driver);
 	driverMvt->setParentDriver(driver);

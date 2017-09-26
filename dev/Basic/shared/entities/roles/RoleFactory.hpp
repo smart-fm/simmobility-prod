@@ -233,10 +233,13 @@ std::stringstream msg;
 		{
 			return "trainDriver";
 		}
-
 		else if (tripChainItem->itemType == TripChainItem::IT_TAXITRIP)
 		{
 			return "taxidriver";
+		}
+		else if (tripChainItem->itemType == TripChainItem::IT_ON_HAIL_TRIP)
+		{
+			return "onHailDriver";
 		}
 
 		throw std::runtime_error("unknown TripChainItem type");

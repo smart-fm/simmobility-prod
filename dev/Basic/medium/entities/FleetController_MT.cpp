@@ -50,8 +50,19 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
 			person->setDatabaseId((*serviceVehicle).driverId);
 			person->setPersonCharacteristics();
 
+			string tripType;
+
+			switch((*serviceVehicle).controllerSubscription)
+			{
+			case SERVICE_CONTROLLER_ON_HAIL:
+				tripType = "OnHailTrip";
+				break;
+			default:
+				tripType = "TaxiTrip";
+			}
+
 			vector<TripChainItem*> tripChain;
-			TaxiTrip *taxiTrip = new TaxiTrip("0", "TaxiTrip", 0, -1, DailyTime((*serviceVehicle).startTime * 1000.0),
+			TaxiTrip *taxiTrip = new TaxiTrip("0", tripType, 0, -1, DailyTime((*serviceVehicle).startTime * 1000.0),
 			                                  DailyTime((*serviceVehicle).endTime * 1000), 0, (*serviceVehicle).startNode,
 			                                  "node", nullptr, "node");
 			tripChain.push_back((TripChainItem *)taxiTrip);

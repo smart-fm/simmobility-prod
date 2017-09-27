@@ -17,7 +17,7 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
 
-JobAssignmentModel::JobAssignmentModel(HM_Model *model): model(model){}
+JobAssignmentModel::JobAssignmentModel(HM_Model *model): model(model), jobId(0){}
 
 JobAssignmentModel::~JobAssignmentModel() {}
 
@@ -207,10 +207,23 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 
 		//draw a random job in selected taz id and the relevant industry type of the individual.
 
-		{
-			boost::mutex::scoped_lock lock( mtx );
+		//{
+			//boost::mutex::scoped_lock lock( mtx );
+		mtx.lock();
 
-		HM_Model::JobsByTazAndIndustryTypeMap jobsByTazAndIndustryType = model->getJobsByTazAndIndustryTypeMap();
+
+		HM_Model::JobsByTazAndIndustryTypeMap &jobsByTazAndIndustryType = model->getJobsByTazAndIndustryTypeMap();
+		PrintOutV("jobsByTazAndIndustryType.size() "<< jobsByTazAndIndustryType.size() <<std::endl);
+
+//		HM_Model::JobsByTazAndIndustryTypeMap::iterator iter1;
+//				for(iter1=jobsByTazAndIndustryType.begin();iter1 != jobsByTazAndIndustryType.end();++iter1)
+//				{
+//				    if((iter1->second->getJobId()) == jobId) {
+//				       PrintOutV("job id "<< jobId <<std::endl);
+//				        break;
+//				    }
+//				}
+
 		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
 		auto range = jobsByTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
 		size_t sz = distance(range.first, range.second);
@@ -265,21 +278,32 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		const unsigned int random_index = disRdInd(gen);
 		std::advance(range.first, random_index);
 
-		int jobId = range.first->second->getJobId();
+		jobId = range.first->second->getJobId();
 		writeIndividualJobAssignmentsToFile(individualId,range.first->second->getJobId());
 
 		//remove the selected job id from the map.
-		HM_Model::JobsByTazAndIndustryTypeMap::iterator iter;
-		for(iter=range.first;iter != range.second;++iter)
+//		HM_Model::JobsByTazAndIndustryTypeMap::iterator iter;
+//		for(iter=range.first;iter != range.second;++iter)
+//		{
+//		    if((iter->second->getJobId()) == jobId) {
+//		        jobsByTazAndIndustryType.erase(iter);
+//		        break;
+//		    }
+//		}
+
+		HM_Model::JobsByTazAndIndustryTypeMap::iterator iter1;
+		for(iter1=jobsByTazAndIndustryType.begin();iter1 != jobsByTazAndIndustryType.end();++iter1)
 		{
-		    if((iter->second->getJobId()) == jobId) {
-		        jobsByTazAndIndustryType.erase(iter);
-		        break;
-		    }
+			if((iter1->second->getJobId()) == jobId) {
+				jobsByTazAndIndustryType.erase(iter1);
+				PrintOutV("job id "<< jobId <<std::endl);
+				break;
+			}
 		}
 
 
-		}
+		//}
+		mtx.unlock();
 
 
 

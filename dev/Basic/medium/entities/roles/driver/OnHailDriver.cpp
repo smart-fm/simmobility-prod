@@ -11,7 +11,8 @@ using namespace std;
 
 OnHailDriver::OnHailDriver(Person_MT *parent, const MutexStrategy &mtx, OnHailDriverBehaviour *behaviour,
                            OnHailDriverMovement *movement, string roleName, Type roleType) :
-		Driver(parent, behaviour, movement, roleName, roleType), passenger(nullptr), movement(movement)
+		Driver(parent, behaviour, movement, roleName, roleType), passenger(nullptr), movement(movement),
+		behaviour(behaviour)
 {
 }
 
@@ -44,9 +45,10 @@ Role<Person_MT>* OnHailDriver::clone(Person_MT *person) const
 
 	OnHailDriverMovement *driverMvt = new OnHailDriverMovement();
 	OnHailDriverBehaviour *driverBhvr = new OnHailDriverBehaviour();
-	OnHailDriver *driver = new OnHailDriver(person, person->getMutexStrategy(), driverBhvr, driverMvt, "onHailDriver");
+	OnHailDriver *driver = new OnHailDriver(person, person->getMutexStrategy(), driverBhvr, driverMvt, "OnHailDriver");
 
 	driverBhvr->setParentDriver(driver);
+	driverBhvr->setOnHailDriver(driver);
 	driverMvt->setParentDriver(driver);
 	driverMvt->setOnHailDriver(driver);
 
@@ -59,7 +61,7 @@ void OnHailDriver::HandleParentMessage(messaging::Message::MessageType type, con
 
 const Node* OnHailDriver::getCurrentNode() const
 {
-	//return movement->getCurrentNode();
+	return movement->getCurrentNode();
 }
 
 const vector<MobilityServiceController *>& OnHailDriver::getSubscribedControllers() const

@@ -27,6 +27,9 @@ protected:
 	/**Pointer to the on hail driver's movement facet object*/
 	OnHailDriverMovement *movement;
 
+	/**Pointer to the on hail driver's behaviour object*/
+	OnHailDriverBehaviour *behaviour;
+
 public:
 	OnHailDriver(Person_MT *parent, const MutexStrategy &mtx,
 	             OnHailDriverBehaviour *behaviour, OnHailDriverMovement *movement,
@@ -82,6 +85,7 @@ public:
 	virtual unsigned long getPassengerCount() const;
 
 	friend class OnHailDriverMovement;
+	friend class OnHailDriverBehaviour;
 };
 
 }

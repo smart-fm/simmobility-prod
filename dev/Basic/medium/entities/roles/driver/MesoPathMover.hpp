@@ -45,6 +45,11 @@ public:
 		this->distToSegmentEnd = distanceToEnd;
 	}
 
+	bool isDrivingPathSet() const
+	{
+		return (!path.empty());
+	}
+
 	/**
 	 * sets path and resets the current iterator
 	 * @param path the path to be set
@@ -60,6 +65,14 @@ public:
 	 * @param newPath the new path to be set
 	 */
 	void resetPath(const std::vector<const SegmentStats*>& newPath);
+
+	/**
+	 * Converts the given path consisting of way-points (given by route choice) into
+	 * the required vector of Segment Stats
+	 * @param pathWayPts path consisting of way-points (links)
+	 * @param pathSegStats path consisting of segment stats
+	 */
+	void buildSegStatsPath(const std::vector<WayPoint>& pathWayPts, std::vector<const SegmentStats*>& pathSegStats);
 
 	/**
 	 * gets the SegmentStats* pointed by currSegStatIt in the path

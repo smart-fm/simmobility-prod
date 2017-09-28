@@ -26,6 +26,7 @@ const std::vector<const SegmentStats*>  MesoPathMover::getPath() const
 {
 	return path;
 }
+
 void MesoPathMover::resetPath(const std::vector<const SegmentStats*>& segStatPath)
 {
 	if (segStatPath.empty())
@@ -47,6 +48,31 @@ void MesoPathMover::resetPath(const std::vector<const SegmentStats*>& segStatPat
 	{
 		path = segStatPath;
 		currSegStatIt = path.begin();
+	}
+}
+
+void MesoPathMover::buildSegStatsPath(const std::vector<WayPoint> &pathWayPts,
+                                      std::vector<const SegmentStats *>& pathSegStats)
+{
+	for(auto it = pathWayPts.begin(); it != pathWayPts.end(); ++it)
+	{
+		if((*it).type == WayPoint::LINK)
+		{
+			const Link *link = (*it).link;
+
+			//Get the conflux responsible for the link
+			const Node *toNode = link->getToNode();
+			Conflux *nodeConflux = Conflux::getConfluxFromNode(toNode);
+
+			//Convert all segments in the links to segment stats
+			auto rdSegments = link->getRoadSegments();
+
+			for(auto itSeg = rdSegments.begin(); itSeg != rdSegments.end(); ++itSeg)
+			{
+				auto segStats = nodeConflux->findSegStats(*itSeg);
+				pathSegStats.insert(pathSegStats.end(), segStats.begin(), segStats.end());
+			}
+		}
 	}
 }
 

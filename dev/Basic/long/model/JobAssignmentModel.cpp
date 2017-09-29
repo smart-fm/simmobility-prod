@@ -114,36 +114,36 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		std::vector<JobAssignmentCoeffs*> jobAssignmentCoeffs = model->getJobAssignmentCoeffs();
 		JobAssignmentCoeffs *jobAssignmentCoeffsObj = jobAssignmentCoeffs.at(0);
 
-		const JobsBySectorByTaz* jobsBySecByTaz = model->getJobsBySectorByTazId(tazId);
+		const JobsByIndustryTypeByTaz* jobsBySecByTaz = model->getJobsBySectorByTazId(tazId);
 		int numJobsInSector = 0;
 
 		if(jobsBySecByTaz != nullptr)
 		{
 		switch(sectorId)
 		{
-		case 1: numJobsInSector = jobsBySecByTaz->getSector1();
+		case 1: numJobsInSector = jobsBySecByTaz->getIndustryType1();
 		break;
-		case 2: numJobsInSector = jobsBySecByTaz->getSector2();
+		case 2: numJobsInSector = jobsBySecByTaz->getIndustryType2();
 		break;
-		case 3: numJobsInSector = jobsBySecByTaz->getSector3();
+		case 3: numJobsInSector = jobsBySecByTaz->getIndustryType3();
 		break;
-		case 4: numJobsInSector = jobsBySecByTaz->getSector4();;
+		case 4: numJobsInSector = jobsBySecByTaz->getIndustryType4();;
 		break;
-		case 5: numJobsInSector = jobsBySecByTaz->getSector5();;
+		case 5: numJobsInSector = jobsBySecByTaz->getIndustryType5();;
 		break;
-		case 6: numJobsInSector = jobsBySecByTaz->getSector6();;
+		case 6: numJobsInSector = jobsBySecByTaz->getIndustryType6();;
 		break;
-		case 7: numJobsInSector = jobsBySecByTaz->getSector7();;
+		case 7: numJobsInSector = jobsBySecByTaz->getIndustryType7();;
 		break;
-		case 8: numJobsInSector = jobsBySecByTaz->getSector8();;
+		case 8: numJobsInSector = jobsBySecByTaz->getIndustryType8();;
 		break;
-		case 9: numJobsInSector = jobsBySecByTaz->getSector9();;
+		case 9: numJobsInSector = jobsBySecByTaz->getIndustryType9();;
 		break;
-		case 10: numJobsInSector = jobsBySecByTaz->getSector10();;
+		case 10: numJobsInSector = jobsBySecByTaz->getIndustryType10();;
 		break;
-		case 11: numJobsInSector = jobsBySecByTaz->getSector11();;
+		case 11: numJobsInSector = jobsBySecByTaz->getIndustryType11();;
 		break;
-		case 98: numJobsInSector = jobsBySecByTaz->getSector98();;
+		case 98: numJobsInSector = jobsBySecByTaz->getIndustryType98();;
 		break;
 
 		}
@@ -212,8 +212,8 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		mtx.lock();
 
 
-		HM_Model::JobsByTazAndIndustryTypeMap &jobsByTazAndIndustryType = model->getJobsByTazAndIndustryTypeMap();
-		PrintOutV("jobsByTazAndIndustryType.size() "<< jobsByTazAndIndustryType.size() <<std::endl);
+		HM_Model::JobsWithTazAndIndustryTypeMap &jobsWithTazAndIndustryType = model->getJobsWithTazAndIndustryTypeMap();
+		PrintOutV("jobsByTazAndIndustryType.size() "<< jobsWithTazAndIndustryType.size() <<std::endl);
 
 //		HM_Model::JobsByTazAndIndustryTypeMap::iterator iter1;
 //				for(iter1=jobsByTazAndIndustryType.begin();iter1 != jobsByTazAndIndustryType.end();++iter1)
@@ -225,10 +225,10 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 //				}
 
 		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
-		auto range = jobsByTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
+		auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
 		size_t sz = distance(range.first, range.second);
 
-
+        //do this until a taz id with an available job is found.
 		while (sz == 0)
 		{
 			map<BigSerial,double>::const_iterator itr;
@@ -266,7 +266,7 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 
 			//draw a random job in selected taz id and the relevant industry type of the individual.
 			HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
-			range = jobsByTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
+			range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
 			sz = distance(range.first, range.second);
 		}
 
@@ -282,20 +282,20 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		writeIndividualJobAssignmentsToFile(individualId,range.first->second->getJobId());
 
 		//remove the selected job id from the map.
-//		HM_Model::JobsByTazAndIndustryTypeMap::iterator iter;
-//		for(iter=range.first;iter != range.second;++iter)
-//		{
-//		    if((iter->second->getJobId()) == jobId) {
-//		        jobsByTazAndIndustryType.erase(iter);
-//		        break;
-//		    }
-//		}
+		HM_Model::JobsWithTazAndIndustryTypeMap::iterator iter;
+		for(iter=range.first;iter != range.second;++iter)
+		{
+		    if((iter->second->getJobId()) == jobId) {
+		        jobsWithTazAndIndustryType.erase(iter);
+		        break;
+		    }
+		}
 
-		HM_Model::JobsByTazAndIndustryTypeMap::iterator iter1;
-		for(iter1=jobsByTazAndIndustryType.begin();iter1 != jobsByTazAndIndustryType.end();++iter1)
+		HM_Model::JobsWithTazAndIndustryTypeMap::iterator iter1;
+		for(iter1=jobsWithTazAndIndustryType.begin();iter1 != jobsWithTazAndIndustryType.end();++iter1)
 		{
 			if((iter1->second->getJobId()) == jobId) {
-				jobsByTazAndIndustryType.erase(iter1);
+				jobsWithTazAndIndustryType.erase(iter1);
 				PrintOutV("job id "<< jobId <<std::endl);
 				break;
 			}

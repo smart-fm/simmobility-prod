@@ -1482,7 +1482,7 @@ void HM_Model::startImpl()
 	{
 		loadLTVersion(conn);
 		loadStudyAreas(conn);
-		loadJobsBySectorByTaz(conn_calibration);
+		loadJobsByIndustryTypeByTaz(conn_calibration);
 		loadJobAssignments(conn);
 		loadJobsByTazAndIndustryType(conn);
 
@@ -2098,6 +2098,26 @@ void HM_Model::startImpl()
 				vehOwnershipModel.reconsiderVehicleOwnershipOption2(*households[n],nullptr, 0,initialLoading);
 			}
 		}
+
+		if( config.ltParams.jobAssignmentModel.enabled == true && getJobAssignIndividualCount() <= 1000)
+			{
+
+				JobAssignmentModel jobAssignModel(this);
+				//const Household *hh = this->getHousehold();
+				//if( hh != NULL )
+				//{
+					vector<BigSerial> individuals = households[n]->getIndividuals();
+					for(int n = 0; n < individuals.size(); n++)
+					{
+						const Individual *individual = getIndividualById(individuals[n]);
+						if(individual->getEmploymentStatusId() < 4)
+						{
+							jobAssignModel.computeJobAssignmentProbability(individual->getId());
+							incrementJobAssignIndividualCount();
+						}
+					}
+				//}
+			}
 	}
 
 	Household *hh;
@@ -3442,35 +3462,35 @@ HM_Model::JobAssignmentCoeffsList& HM_Model::getJobAssignmentCoeffs()
 	return jobAssignmentCoeffs;
 }
 
-void HM_Model::loadJobsBySectorByTaz(DB_Connection &conn)
+void HM_Model::loadJobsByIndustryTypeByTaz(DB_Connection &conn)
 {
 	soci::session sql;
 	sql.open(soci::postgresql, conn.getConnectionStr());
-	std::string tableName = "jobs_by_sector_by_taz";
+	std::string tableName = "jobs_by_industry_type_by_taz";
 	//SQL statement
-	soci::rowset<JobsBySectorByTaz> jobsBySectorByTazObj = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
+	soci::rowset<JobsByIndustryTypeByTaz> jobsBySectorByTazObj = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
 
-	for (soci::rowset<JobsBySectorByTaz>::const_iterator itJobsBySecByTaz = jobsBySectorByTazObj.begin(); itJobsBySecByTaz != jobsBySectorByTazObj.end(); ++itJobsBySecByTaz)
+	for (soci::rowset<JobsByIndustryTypeByTaz>::const_iterator itJobsBySecByTaz = jobsBySectorByTazObj.begin(); itJobsBySecByTaz != jobsBySectorByTazObj.end(); ++itJobsBySecByTaz)
 	{
-		JobsBySectorByTaz* jobsBySectorByTaz = new JobsBySectorByTaz(*itJobsBySecByTaz);
-		jobsBySectorByTazsList.push_back(jobsBySectorByTaz);
-		jobsBySectorByTazMap.insert(std::make_pair(jobsBySectorByTaz->getTazId(), jobsBySectorByTaz));
+		JobsByIndustryTypeByTaz* jobsBySectorByTaz = new JobsByIndustryTypeByTaz(*itJobsBySecByTaz);
+		jobsByIndustryTypeByTazsList.push_back(jobsBySectorByTaz);
+		jobsByIndustryTypeByTazMap.insert(std::make_pair(jobsBySectorByTaz->getTazId(), jobsBySectorByTaz));
 	}
 
-	PrintOutV("Number of Jobs by Sector by Taz rows: " << jobsBySectorByTazsList.size() << std::endl );
+	PrintOutV("Number of Jobs by Sector by Taz rows: " << jobsByIndustryTypeByTazsList.size() << std::endl );
 
 }
 
-HM_Model::JobsBySectorByTazList& HM_Model::getJobsBySectorByTazs()
+HM_Model::JobsByIndustryTypeByTazList& HM_Model::getJobsBySectorByTazs()
 {
-	return jobsBySectorByTazsList;
+	return jobsByIndustryTypeByTazsList;
 }
 
-JobsBySectorByTaz* HM_Model::getJobsBySectorByTazId(BigSerial tazId) const
+JobsByIndustryTypeByTaz* HM_Model::getJobsBySectorByTazId(BigSerial tazId) const
 {
-	JobsBySectorByTazMap::const_iterator itr = jobsBySectorByTazMap.find(tazId);
+	JobsByIndusrtyTypeByTazMap::const_iterator itr = jobsByIndustryTypeByTazMap.find(tazId);
 
-		if (itr != jobsBySectorByTazMap.end())
+		if (itr != jobsByIndustryTypeByTazMap.end())
 		{
 			return (*itr).second;
 		}
@@ -3551,15 +3571,15 @@ void HM_Model::loadJobsByTazAndIndustryType(DB_Connection &conn)
 	{
 		JobsWithIndustryTypeAndTazId* job = new JobsWithIndustryTypeAndTazId(*itJobs);
 		TazAndIndustryTypeKey tazIdIndTypePair = make_pair(job->getTazId(), job->getIndustryTypeId());
-		jobsByTazAndIndustryType.insert(make_pair(tazIdIndTypePair, job));
+		jobsWithTazAndIndustryType.insert(make_pair(tazIdIndTypePair, job));
 	}
 
-	PrintOutV("Number of Jobs with Taz Id and Industry Type: " << jobsByTazAndIndustryType.size() << std::endl );
+	PrintOutV("Number of Jobs with Taz Id and Industry Type: " << jobsWithTazAndIndustryType.size() << std::endl );
 }
 
-HM_Model::JobsByTazAndIndustryTypeMap& HM_Model::getJobsByTazAndIndustryTypeMap()
+HM_Model::JobsWithTazAndIndustryTypeMap& HM_Model::getJobsWithTazAndIndustryTypeMap()
 {
-	return this->jobsByTazAndIndustryType;
+	return this->jobsWithTazAndIndustryType;
 
 }
 

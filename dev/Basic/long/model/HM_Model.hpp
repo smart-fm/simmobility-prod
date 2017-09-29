@@ -8,6 +8,7 @@
  * Created on October 21, 2013, 3:08 PM
  */
 #pragma once
+#include <database/entity/JobsByIndustryTypeByTaz.hpp>
 #include <database/entity/WorkersGrpByLogsumParams.hpp>
 #include "Model.hpp"
 #include "database/entity/Household.hpp"
@@ -56,7 +57,6 @@
 #include "database/entity/SlaBuilding.hpp"
 #include "database/entity/StudyArea.hpp"
 #include "database/entity/JobAssignmentCoeffs.hpp"
-#include "database/entity/JobsBySectorByTaz.hpp"
 #include "database/entity/IndLogsumJobAssignment.hpp"
 #include "database/entity/JobsWithIndustryTypeAndTazId.hpp"
 #include "core/HousingMarket.hpp"
@@ -218,8 +218,8 @@ namespace sim_mob
 
             typedef std::vector<JobAssignmentCoeffs*> JobAssignmentCoeffsList;
 
-            typedef std::vector<JobsBySectorByTaz*> JobsBySectorByTazList;
-            typedef boost::unordered_map<BigSerial, JobsBySectorByTaz*>JobsBySectorByTazMap;
+            typedef std::vector<JobsByIndustryTypeByTaz*> JobsByIndustryTypeByTazList;
+            typedef boost::unordered_map<BigSerial, JobsByIndustryTypeByTaz*>JobsByIndusrtyTypeByTazMap;
 
             typedef std::vector<IndLogsumJobAssignment*> IndLogsumJobAssignmentList;
             //typedef pair<BigSerial, std::string> CompositeKey;
@@ -228,7 +228,7 @@ namespace sim_mob
             typedef boost::unordered_map<string, IndLogsumJobAssignment*>IndLogsumJobAssignmentByTaz;
 
             typedef pair<BigSerial, int> TazAndIndustryTypeKey;
-            typedef std::multimap<TazAndIndustryTypeKey, JobsWithIndustryTypeAndTazId*> JobsByTazAndIndustryTypeMap;
+            typedef std::multimap<TazAndIndustryTypeKey, JobsWithIndustryTypeAndTazId*> JobsWithTazAndIndustryTypeMap;
 
             /**
              * Taz statistics
@@ -492,9 +492,9 @@ namespace sim_mob
             void loadJobAssignments(DB_Connection &conn);
             JobAssignmentCoeffsList& getJobAssignmentCoeffs();
 
-            void loadJobsBySectorByTaz(DB_Connection &conn);
-            JobsBySectorByTazList& getJobsBySectorByTazs();
-            JobsBySectorByTaz* getJobsBySectorByTazId(BigSerial tazId) const;
+            void loadJobsByIndustryTypeByTaz(DB_Connection &conn);
+            JobsByIndustryTypeByTazList& getJobsBySectorByTazs();
+            JobsByIndustryTypeByTaz* getJobsBySectorByTazId(BigSerial tazId) const;
 
             TazList& getTazList();
 
@@ -503,7 +503,7 @@ namespace sim_mob
             IndLogsumJobAssignment* getIndLogsumJobAssignmentByTaz(BigSerial tazId);
 
             void loadJobsByTazAndIndustryType(DB_Connection &conn);
-            JobsByTazAndIndustryTypeMap& getJobsByTazAndIndustryTypeMap();
+            JobsWithTazAndIndustryTypeMap& getJobsWithTazAndIndustryTypeMap();
 
             std::vector<HouseholdAgent*> getFreelanceAgents();
 
@@ -712,13 +712,13 @@ namespace sim_mob
 
 			JobAssignmentCoeffsList jobAssignmentCoeffs;
 
-			JobsBySectorByTazList jobsBySectorByTazsList;
-			JobsBySectorByTazMap jobsBySectorByTazMap;
+			JobsByIndustryTypeByTazList jobsByIndustryTypeByTazsList;
+			JobsByIndusrtyTypeByTazMap jobsByIndustryTypeByTazMap;
 
 			IndLogsumJobAssignmentList indLogsumJobAssignmentList;
 			IndLogsumJobAssignmentByTaz indLogsumJobAssignmentByTaz;
 
-			JobsByTazAndIndustryTypeMap jobsByTazAndIndustryType;
+			JobsWithTazAndIndustryTypeMap jobsWithTazAndIndustryType;
 
 			int jobAssignIndCount;
 			bool isConnected;

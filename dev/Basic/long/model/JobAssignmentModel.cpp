@@ -28,6 +28,15 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 	model->loadIndLogsumJobAssignments(individualId);
 	Individual *worker = model->getIndividualById(individualId);
 	BigSerial industryId = worker->getIndustryId();
+	/*
+	 * if industry id is 12, reassign it to 11, which is Community, Social and Personal Services.
+	 * They are people in the synthetic population that are encoded to have a job in Education but they are not students.
+	 * According to Diem's broader categorization, people working in Education get a detailed type of 39, which corresponds to an industry type = 11
+	 */
+	if(industryId == 12)
+	{
+		industryId = 11;
+	}
 
 	double totalExp = 0;
 	map<BigSerial,double> expValMap;
@@ -287,19 +296,20 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		{
 		    if((iter->second->getJobId()) == jobId) {
 		        jobsWithTazAndIndustryType.erase(iter);
+		        PrintOutV("job id "<< jobId <<std::endl);
 		        break;
 		    }
 		}
 
-		HM_Model::JobsWithTazAndIndustryTypeMap::iterator iter1;
-		for(iter1=jobsWithTazAndIndustryType.begin();iter1 != jobsWithTazAndIndustryType.end();++iter1)
-		{
-			if((iter1->second->getJobId()) == jobId) {
-				jobsWithTazAndIndustryType.erase(iter1);
-				PrintOutV("job id "<< jobId <<std::endl);
-				break;
-			}
-		}
+//		HM_Model::JobsWithTazAndIndustryTypeMap::iterator iter1;
+//		for(iter1=jobsWithTazAndIndustryType.begin();iter1 != jobsWithTazAndIndustryType.end();++iter1)
+//		{
+//			if((iter1->second->getJobId()) == jobId) {
+//				jobsWithTazAndIndustryType.erase(iter1);
+//				PrintOutV("job id "<< jobId <<std::endl);
+//				break;
+//			}
+//		}
 
 
 		//}

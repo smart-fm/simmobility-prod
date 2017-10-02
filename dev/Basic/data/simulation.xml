@@ -103,6 +103,10 @@
     </constructs>
 
     <simulation>
+
+        <!-- Preday Seed Value. Currently only the preday is repeatable.  -->
+        <seedValue value = "1331"/>
+
         <!-- Reasonable values for ShortTerm -->
         <!-- <base_granularity   value="100"   units="ms"/> -->
         <!-- <total_runtime      value="14"      units="minutes" /> -->

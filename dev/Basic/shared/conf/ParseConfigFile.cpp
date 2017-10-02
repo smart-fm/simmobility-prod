@@ -676,6 +676,8 @@ void ParseConfigFile::processSimulationNode(xercesc::DOMElement *node)
 	cfg.simulation.totalRuntimeMS = processTimeGranUnits(GetSingleElementByName(node, "total_runtime", true));
 	cfg.simulation.totalWarmupMS = processTimeGranUnits(GetSingleElementByName(node, "total_warmup"));
 
+	cfg.simulation.seedValue = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "seedValue"), "value"), (unsigned int)101 );
+
 	cfg.simulation.baseGranSecond = cfg.simulation.baseGranMS / MILLISECONDS_IN_SECOND;
 
 	if(cfg.simMobRunMode == RawConfigParams::SimMobRunMode::MID_TERM && ! (unsigned) cfg.simulation.baseGranSecond)

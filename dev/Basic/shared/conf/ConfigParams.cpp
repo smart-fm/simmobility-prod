@@ -253,9 +253,19 @@ void ConfigParams::setWorkerPublisherEnabled(bool value)
     workerPublisherEnabled = value;
 }
 
+void ConfigParams::setSeedValueForRNG(unsigned int value)
+{
+	simulation.seedValue = value;
+}
+
 bool ConfigParams::isWorkerPublisherEnabled() const
 {
     return workerPublisherEnabled;
+}
+
+unsigned int ConfigParams::getSeedValueForRNG() const
+{
+	return simulation.seedValue;
 }
 
 bool ConfigParams::isPublicTransitEnabled() const{

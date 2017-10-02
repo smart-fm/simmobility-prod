@@ -377,6 +377,22 @@ public:
 
     void setWorkerPublisherEnabled(bool value);
 
+	/**
+    * Sets the value of seed for RNG's
+    *
+    * @param value: seed value as given in the config file
+    */
+	void setSeedValueForRNG(unsigned int value);
+
+
+	/**
+    * Retrieves the value of seed for RNG's
+    *
+    * @return seed value as given in the config file
+    */
+	unsigned int getSeedValueForRNG() const;
+
+
     bool isGenerateBusRoutes() const;
 
     bool isPublicTransitEnabled() const;

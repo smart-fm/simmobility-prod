@@ -311,6 +311,9 @@ public:
     /// Total time (in milliseconds) considered "warmup".
     unsigned int totalWarmupMS;
 
+	/// Seed value for RNG's
+	unsigned int seedValue ;
+
     /// When the simulation begins(based on configuration)
     DailyTime simStartTime;
 	

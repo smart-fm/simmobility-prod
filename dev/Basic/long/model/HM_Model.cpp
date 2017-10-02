@@ -1905,10 +1905,20 @@ void HM_Model::startImpl()
 			//(*it)->setbiddingMarketEntryDay( unitStartDay );
 			int timeOnMarket = 0;
 			int timeOffMarket = 0;
+
+
 			if(!resume)
 			{
-				int timeOnMarket =  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket;
-				int timeOffMarket = 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket;
+				std::random_device genTimeOn;
+				std::mt19937 genRdTimeOn(genTimeOn());
+				std::uniform_int_distribution<int> disRdTimeOn(1,  config.ltParams.housingModel.timeOnMarket);
+				timeOnMarket = disRdTimeOn(genTimeOn);
+
+				std::random_device genTimeOff;
+				std::mt19937 genRdTimeOff(genTimeOff());
+				std::uniform_int_distribution<int> disRdTimeOff(1,  config.ltParams.housingModel.timeOffMarket);
+				timeOffMarket = disRdTimeOff(genTimeOff);
+
 				(*it)->setTimeOnMarket(timeOnMarket );
 				(*it)->setTimeOffMarket(timeOffMarket );
 				(*it)->setbiddingMarketEntryDay(999999);

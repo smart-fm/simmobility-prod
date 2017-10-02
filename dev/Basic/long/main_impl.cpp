@@ -514,7 +514,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             }
 
             PrintOutV(" Day " << currTick
-            	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
+            	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize(currTick)
 				   << " BTO_Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize())
 				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders()
 				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers()

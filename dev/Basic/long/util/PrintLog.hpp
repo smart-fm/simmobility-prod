@@ -650,5 +650,13 @@ namespace sim_mob
 	    	boost::format fmtr = boost::format("%1%, %2%") % individualId % jobId;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_JOB_ASSIGN,fmtr.str());
 	    }
+
+	    inline void writeDailyHousingMarketUnitsToFile(int day, BigSerial unitId)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	    	boost::format fmtr = boost::format("%1%, %2%") % day % unitId;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_DAILY_HOUSING_MARKET_UNITS,fmtr.str());
+	    }
 	}
 }

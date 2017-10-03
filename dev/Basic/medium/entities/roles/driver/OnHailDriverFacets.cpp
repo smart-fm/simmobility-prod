@@ -3,17 +3,15 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 
-#include <path/PathSetManager.hpp>
 #include "geospatial/network/RoadNetwork.hpp"
 #include "OnHailDriver.hpp"
-#include "OnHailDriverFacets.hpp"
-#include "util/Utils.hpp"
+#include "path/PathSetManager.hpp"
 
 using namespace sim_mob;
 using namespace medium;
 using namespace std;
 
-OnHailDriverMovement::OnHailDriverMovement()
+OnHailDriverMovement::OnHailDriverMovement() : currNode(nullptr), chosenTaxiStand(nullptr), isMovedIntoNextLink(false)
 {
 }
 
@@ -31,19 +29,156 @@ void OnHailDriverMovement::frame_init()
 	currNode = (*(onHailDriver->getParent()->currTripChainItem))->origin.node;
 
 	//Make the behaviour decision
-	BehaviourDecision decison = onHailDriver->behaviour->makeBehaviourDecision();
+	BehaviourDecision decision = onHailDriver->behaviour->makeBehaviourDecision();
 
 	//Perform the actions required based on the decision
-	performDecisionActions(decison);
+	performDecisionActions(decision);
+
+	onHailDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
 }
 
 void OnHailDriverMovement::frame_tick()
 {
+	const MobilityServiceDriverStatus status = onHailDriver->getDriverStatus();
 
+	switch (status)
+	{
+	case CRUISING:
+	{
+		if(!onHailDriver->behaviour->isCruisingStintComplete())
+		{
+			onHailDriver->behaviour->incrementCruisingStintTime();
+		}
+		else
+		{
+			//Make the behaviour decision
+			BehaviourDecision decision = onHailDriver->behaviour->makeBehaviourDecision();
+
+			//Perform the actions required based on the decision
+			performDecisionActions(decision);
+		}
+		break;
+	}
+	case QUEUING_AT_TAXISTAND:
+	{
+		Person_MT *person = onHailDriver->tryTaxiStandPickUp();
+
+		if(!person && !onHailDriver->behaviour->isQueuingStintComplete())
+		{
+			//No person picked up yet, but driver still has time to queue
+			onHailDriver->behaviour->incrementQueuingStintTime();
+		}
+		else if(person)
+		{
+			//Person was picked up
+			onHailDriver->addPassenger(person);
+			beginDriveWithPassenger(person);
+		}
+		else
+		{
+			//No person was picked up, but driver cannot queue any longer
+
+			//Make the behaviour decision
+			BehaviourDecision decision = onHailDriver->behaviour->makeBehaviourDecision();
+
+			//Perform the actions required based on the decision
+			performDecisionActions(decision);
+		}
+
+		break;
+	}
+	}
+
+	if(onHailDriver->getDriverStatus() != QUEUING_AT_TAXISTAND)
+	{
+		DriverMovement::frame_tick();
+	}
 }
 
 string OnHailDriverMovement::frame_tick_output()
 {
+	return string();
+}
+
+bool OnHailDriverMovement::moveToNextSegment(DriverUpdateParams &params)
+{
+	const SegmentStats *currSegStats = pathMover.getCurrSegStats();
+
+	switch (onHailDriver->getDriverStatus())
+	{
+	case CRUISING:
+	{
+		//If we are moving from one link to another, try to pick up a person
+		//that may be at the node
+		if(isMovedIntoNextLink)
+		{
+			Person_MT *person = onHailDriver->tryPickUpPassengerAtNode(currNode);
+
+			if(person)
+			{
+				//Person was picked up
+				onHailDriver->addPassenger(person);
+				beginDriveWithPassenger(person);
+			}
+
+			isMovedIntoNextLink = false;
+		}
+
+		break;
+	}
+	case DRIVE_TO_TAXISTAND:
+	{
+		bool enteredTaxiStand = onHailDriver->tryEnterTaxiStand(currSegStats, chosenTaxiStand);
+
+		if(enteredTaxiStand)
+		{
+			//Driver entered the taxi stand
+			beginQueuingAtTaxiStand(params);
+			return false;
+		}
+
+		break;
+	}
+	case DRIVE_WITH_PASSENGER:
+	{
+		if(pathMover.isEndOfPath())
+		{
+			//Arrived at the destination of the passenger
+			onHailDriver->alightPassenger();
+		}
+		break;
+	}
+	}
+
+	if(pathMover.isEndOfPath() && onHailDriver->getDriverStatus() != QUEUING_AT_TAXISTAND)
+	{
+		//Driver has reached the node it was cruising to
+		//Make the behaviour decision
+		BehaviourDecision decision = onHailDriver->behaviour->makeBehaviourDecision();
+
+		//Perform the actions required based on the decision
+		performDecisionActions(decision);
+	}
+
+	return DriverMovement::moveToNextSegment(params);
+}
+
+void OnHailDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams &params)
+{
+	//Store the link before attempting to move into the next link
+	const Link *prevLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+
+	DriverMovement::flowIntoNextLinkIfPossible(params);
+
+	//Get the current link
+	const Link *currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+
+	if(prevLink != currLink)
+	{
+		//Moved into the next link, update the current node
+		currNode = currLink->getFromNode();
+		isMovedIntoNextLink = true;
+	}
 }
 
 void OnHailDriverMovement::performDecisionActions(BehaviourDecision decision)
@@ -63,11 +198,16 @@ void OnHailDriverMovement::performDecisionActions(BehaviourDecision decision)
 	case BehaviourDecision::DRIVE_TO_TAXISTAND:
 	{
 		//Choose a taxi stand to drive to
-		const TaxiStand *taxiStand = onHailDriver->behaviour->chooseTaxiStand();
+		chosenTaxiStand = onHailDriver->behaviour->chooseTaxiStand();
 
 		//Begin driving toward chosen taxi stand
-		beginDriveToTaxiStand(taxiStand);
+		beginDriveToTaxiStand(chosenTaxiStand);
 
+		break;
+	}
+	case BehaviourDecision::END_SHIFT:
+	{
+		onHailDriver->getParent()->setToBeRemoved();
 		break;
 	}
 	default:
@@ -93,7 +233,7 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 	const Link *currLink = nullptr;
 	bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
 
-	//If the driving path has already been set, we must find to the taxi stand from
+	//If the driving path has already been set, we must find path to the taxi stand from
 	//the current segment
 	if(pathMover.isDrivingPathSet())
 	{
@@ -104,17 +244,22 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 	auto route = PrivateTrafficRouteChoice::getInstance()->getPathWhereToStand(subTrip, false, currLink, nullptr,
 	                                                                           taxiStandLink, useInSimulationTT);
 
-	if(!route.empty())
+#ifndef NDEBUG
+	if(route.empty())
 	{
-		std::vector<const SegmentStats *> routeSegStats;
-		pathMover.buildSegStatsPath(route, routeSegStats);
-		pathMover.resetPath(routeSegStats);
-		onHailDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_TO_TAXISTAND);
+		stringstream msg;
+		msg << "Path not found. Driver " << onHailDriver->getParent()->getDatabaseId()
+		    << " could not find a path to the taxi stand link " << taxiStandLink->getLinkId()
+		    << " from the current node " << currNode->getNodeId() << " and link ";
+		msg << (currLink ? currLink->getLinkId() : 0);
+		throw runtime_error(msg.str());
 	}
-	else
-	{
-		performDecisionActions(BehaviourDecision::CRUISE);
-	}
+#endif
+
+	std::vector<const SegmentStats *> routeSegStats;
+	pathMover.buildSegStatsPath(route, routeSegStats);
+	pathMover.resetPath(routeSegStats);
+	onHailDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_TO_TAXISTAND);
 }
 
 void OnHailDriverMovement::beginCruising(const Node *node)
@@ -127,7 +272,7 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 	const Link *currLink = nullptr;
 	bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
 
-	//If the driving path has already been set, we must find to the taxi stand from
+	//If the driving path has already been set, we must find path to the node from
 	//the current segment
 	if(pathMover.isDrivingPathSet())
 	{
@@ -137,26 +282,103 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 	//Get route to the node
 	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
-	if(!route.empty())
+#ifndef NDEBUG
+	if(route.empty())
 	{
+		stringstream msg;
+		msg << "Path not found. Driver " << onHailDriver->getParent()->getDatabaseId()
+		    << " could not find a path to the cruising node " << node->getNodeId()
+		    << " from the current node " << currNode->getNodeId() << " and link ";
+		msg << (currLink ? currLink->getLinkId() : 0);
+		throw runtime_error(msg.str());
+	}
+#endif
+
+	std::vector<const SegmentStats *> routeSegStats;
+	pathMover.buildSegStatsPath(route, routeSegStats);
+	pathMover.resetPath(routeSegStats);
+	onHailDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
+	onHailDriver->behaviour->resetCruisingStintTime();
+}
+
+void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
+{
+	auto currSubTrip = person->currSubTrip;
+	const Node *destination = (*currSubTrip).destination.node;
+
+	if(currNode != destination)
+	{
+		//Create a sub-trip for the route choice
+		SubTrip subTrip;
+		subTrip.origin = WayPoint(currNode);
+		subTrip.destination = WayPoint(destination);
+
+		const Link *currLink = nullptr;
+		bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
+
+		//If the driving path has already been set, we must find paht to the destination node from
+		//the current segment
+		if(pathMover.isDrivingPathSet())
+		{
+			currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+		}
+
+		//Get route to the node
+		auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+
+#ifndef NDEBUG
+		if(route.empty())
+		{
+			stringstream msg;
+			msg << "Path not found. Driver " << onHailDriver->getParent()->getDatabaseId()
+			    << " could not find a path to the passenger's destination node " << destination->getNodeId()
+			    << " from the current node " << currNode->getNodeId() << " and link ";
+			msg << (currLink ? currLink->getLinkId() : 0);
+			throw runtime_error(msg.str());
+		}
+#endif
+
 		std::vector<const SegmentStats *> routeSegStats;
 		pathMover.buildSegStatsPath(route, routeSegStats);
 		pathMover.resetPath(routeSegStats);
-		onHailDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
+		onHailDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_WITH_PASSENGER);
+		onHailDriver->behaviour->resetCruisingStintTime();
 	}
 	else
 	{
-		performDecisionActions(BehaviourDecision::CRUISE);
+		//Person is already at the destination node
 	}
 }
 
-BehaviourDecision OnHailDriverBehaviour::makeBehaviourDecision()
+void OnHailDriverMovement::beginQueuingAtTaxiStand(DriverUpdateParams &params)
 {
-	return (BehaviourDecision) Utils::generateInt((int) BehaviourDecision::CRUISE,
-	                                                        (int) BehaviourDecision::DRIVE_TO_TAXISTAND);
+	auto vehicle = onHailDriver->getResource();
+
+	if(vehicle->isMoving() && isQueuing)
+	{
+		removeFromQueue();
+	}
+
+	vehicle->setMoving(false);
+	params.elapsedSeconds = params.secondsInTick;
+	onHailDriver->getParent()->setRemainingTimeThisTick(0.0);
+	onHailDriver->setDriverStatus(QUEUING_AT_TAXISTAND);
 }
 
-const TaxiStand* OnHailDriverBehaviour::chooseTaxiStand()
+BehaviourDecision OnHailDriverBehaviour::makeBehaviourDecision() const
+{
+	if(!hasDriverShiftEnded())
+	{
+		return (BehaviourDecision) Utils::generateInt((int) BehaviourDecision::CRUISE,
+		                                              (int) BehaviourDecision::DRIVE_TO_TAXISTAND);
+	}
+	else
+	{
+		return BehaviourDecision ::END_SHIFT;
+	}
+}
+
+const TaxiStand* OnHailDriverBehaviour::chooseTaxiStand() const
 {
 	auto taxiStandsMap = RoadNetwork::getInstance()->getMapOfIdvsTaxiStands();
 	auto itRandomStand = taxiStandsMap.begin();
@@ -165,11 +387,26 @@ const TaxiStand* OnHailDriverBehaviour::chooseTaxiStand()
 	return itRandomStand->second;
 }
 
-const Node* OnHailDriverBehaviour::chooseNode()
+const Node* OnHailDriverBehaviour::chooseNode() const
 {
 	auto nodeMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 	auto itRandomNode = nodeMap.begin();
 	advance(itRandomNode, Utils::generateInt(0, nodeMap.size() - 1));
 
 	return itRandomNode->second;
+}
+
+bool OnHailDriverBehaviour::hasDriverShiftEnded() const
+{
+	return (onHailDriver->getParent()->currTick.ms() / 1000) >= onHailDriver->getParent()->getServiceVehicle().endTime;
+}
+
+void OnHailDriverBehaviour::incrementCruisingStintTime()
+{
+	currCruisingStintTime += onHailDriver->getParams().secondsInTick;
+}
+
+void OnHailDriverBehaviour::incrementQueuingStintTime()
+{
+	currQueuingStintTime += onHailDriver->getParams().secondsInTick;
 }

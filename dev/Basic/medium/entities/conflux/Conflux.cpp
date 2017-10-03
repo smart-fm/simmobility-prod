@@ -25,6 +25,7 @@
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/DriverVariantFacets.hpp"
+#include "entities/roles/driver/OnHailDriverFacets.hpp"
 #include "entities/roles/driver/TaxiDriverFacets.hpp"
 #include "entities/roles/driver/TaxiDriver.hpp"
 #include "entities/roles/driver/BusDriverFacets.hpp"
@@ -286,6 +287,7 @@ void Conflux::addAgent(Person_MT* person)
 		case Role<Person_MT>::RL_TRUCKER_LGV:
 		case Role<Person_MT>::RL_TAXIDRIVER:
 		case Role<Person_MT>::RL_TRUCKER_HGV:
+		case Role<Person_MT>::RL_ON_HAIL_DRIVER:
 		{
 			SegmentStats* rdSegStats = const_cast<SegmentStats*>(person->getCurrSegStats()); // person->currSegStats is set when frame_init of role is called
 			person->setCurrLane(rdSegStats->laneInfinity);
@@ -698,6 +700,7 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 		return;
 	}
 	case Role<Person_MT>::RL_TAXIDRIVER: //fall through
+	case Role<Person_MT>::RL_ON_HAIL_DRIVER:
 	case Role<Person_MT>::RL_BUSDRIVER:
 	{
 		if (beforeUpdate.isMoving && !afterUpdate.isMoving)
@@ -1140,6 +1143,7 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	}
 	case Role<Person_MT>::RL_DRIVER:
 	case Role<Person_MT>::RL_BIKER:
+	case Role<Person_MT>::RL_ON_HAIL_DRIVER:
 	case Role<Person_MT>::RL_TAXIDRIVER:
 	case Role<Person_MT>::RL_TRUCKER_LGV:
 	case Role<Person_MT>::RL_TRUCKER_HGV:
@@ -2010,6 +2014,7 @@ PersonCount Conflux::countPersons() const
 				break;
 			}
 			case Role<Person_MT>::RL_TAXIDRIVER:
+			case Role<Person_MT>::RL_ON_HAIL_DRIVER:
 			{
 				count.taxiDrivers++;
 				break;
@@ -2356,7 +2361,19 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 		}
 		break;
 	}
-
+	case Role<Person_MT>::RL_ON_HAIL_DRIVER:
+	{
+		const medium::OnHailDriverMovement *onHailDrvMvt = dynamic_cast<const medium::OnHailDriverMovement *>(personRole->Movement());
+		if (onHailDrvMvt)
+		{
+			return onHailDrvMvt->getStartingConflux();
+		}
+		else
+		{
+			throw std::runtime_error("Taxi-Driver role facets not/incorrectly initialized");
+		}
+		break;
+	}
 	case Role<Person_MT>::RL_TAXIDRIVER:
 	{
 		const medium::TaxiDriverMovement *taxiDriverMvt = dynamic_cast<const medium::TaxiDriverMovement *>(personRole->Movement());

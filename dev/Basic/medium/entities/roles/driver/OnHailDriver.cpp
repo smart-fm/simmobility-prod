@@ -4,6 +4,8 @@
 
 #include "OnHailDriver.hpp"
 #include "entities/controllers/MobilityServiceController.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
+#include "entities/TaxiStandAgent.hpp"
 
 using namespace sim_mob;
 using namespace medium;
@@ -28,7 +30,7 @@ OnHailDriver::~OnHailDriver()
 	if(passenger)
 	{
 		stringstream msg;
-		msg << "Driver " << parent->getDatabaseId() << " is being destroyed, but it has a passenger.";
+		msg << "OnHailDriver " << parent->getDatabaseId() << " is being destroyed, but it has a passenger.";
 		throw runtime_error(msg.str());
 	}
 #endif
@@ -85,4 +87,96 @@ void OnHailDriver::collectTravelTime()
 unsigned long OnHailDriver::getPassengerCount() const
 {
 	return (passenger ? 1 : 0);
+}
+
+Person_MT *OnHailDriver::tryTaxiStandPickUp()
+{
+	Person_MT *passenger = nullptr;
+	TaxiStandAgent *taxiStandAgent = TaxiStandAgent::getTaxiStandAgent(movement->getChosenTaxiStand());
+
+	//Only drivers at the head of the queue can pick up passengers
+	if(taxiStandAgent->isTaxiFirstInQueue(parent))
+	{
+		passenger = taxiStandAgent->pickupOneWaitingPerson();
+	}
+
+	return passenger;
+}
+
+bool OnHailDriver::tryEnterTaxiStand(const SegmentStats *currSegStats, const TaxiStand *taxiStand)
+{
+	bool enteredStand = false;
+
+	//Check if the current segment has the given taxi stand
+	if(taxiStand && currSegStats->hasTaxiStand(taxiStand))
+	{
+		//Get the taxi stand agent and query it to check if the taxi can be accommodated in
+		//the stand
+		TaxiStandAgent *taxiStandAgent = TaxiStandAgent::getTaxiStandAgent(taxiStand);
+
+#ifndef NDEBUG
+		if(!taxiStandAgent)
+		{
+			stringstream msg;
+			msg << "TaxiStand " << taxiStand->getStandId() << " does not have a TaxiStandAgent!";
+			throw runtime_error(msg.str());
+		}
+#endif
+
+		enteredStand = taxiStandAgent->acceptTaxiDriver(parent);
+	}
+
+	return enteredStand;
+}
+
+Person_MT* OnHailDriver::tryPickUpPassengerAtNode(const Node *node, const string& personId)
+{
+	Conflux *conflux = Conflux::getConfluxFromNode(node);
+
+#ifndef NDEBUG
+	if(!conflux)
+	{
+		stringstream msg;
+		msg << "Node " << node->getNodeId() << " does not have a Conflux associated with it!";
+		throw runtime_error(msg.str());
+	}
+#endif
+
+	return conflux->pickupTaxiTraveler(personId);
+}
+
+void OnHailDriver::addPassenger(Person_MT *person)
+{
+	Role<Person_MT> *personRole = person->getRole();
+	passenger = dynamic_cast<Passenger *>(personRole);
+
+#ifndef NDEBUG
+	if(!passenger)
+	{
+		stringstream msg;
+		msg << "Person " << person->getDatabaseId() << " picked up by driver " << parent->getDatabaseId()
+		    << " does not have a passenger role!";
+		throw runtime_error(msg.str());
+	}
+#endif
+}
+
+void OnHailDriver::alightPassenger()
+{
+#ifndef NDEBUG
+	if(!passenger)
+	{
+		stringstream msg;
+		msg << "OnHailDriver " << parent->getDatabaseId() << " is trying to alight a passenger, but doesn't have "
+		    << " a passenger";
+		throw runtime_error(msg.str());
+	}
+#endif
+
+	Person_MT *person = passenger->getParent();
+	const SegmentStats *currSegStats = movement->getMesoPathMover().getCurrSegStats();
+	Conflux *conflux = currSegStats->getParentConflux();
+
+	conflux->dropOffTaxiTraveler(person);
+	passenger = nullptr;
 }

@@ -11,14 +11,14 @@
 #include <iostream>
 #include "message/MobilityServiceControllerMessage.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 class Node;
 class MobilityServiceController;
 
-
 enum MobilityServiceDriverStatus
 {
-	DRIVE_START =0,
+	DRIVE_START = 0,
 	CRUISING,
 	DRIVE_TO_TAXISTAND,
 	DRIVE_WITH_PASSENGER,
@@ -31,36 +31,42 @@ enum MobilityServiceDriverStatus
 	PARKED
 };
 
-class MobilityServiceDriver {
+class MobilityServiceDriver
+{
 public:
+	MobilityServiceDriver() : driverStatus(DRIVE_START)
+	{};
 
-
-	MobilityServiceDriver():driverStatus(DRIVE_START){};
-	virtual ~MobilityServiceDriver(){};
+	virtual ~MobilityServiceDriver()
+	{};
 
 	/**
 	 * the interface function to get current node
 	 * @return current node.
 	 */
-	virtual const Node* getCurrentNode() const = 0;
-
+	virtual const Node *getCurrentNode() const = 0;
 
 	virtual const MobilityServiceDriverStatus getDriverStatus() const;
+
 	virtual const std::string getDriverStatusStr() const;
+
 	virtual void setDriverStatus(const MobilityServiceDriverStatus status);
-	virtual bool canSheMove() const;
-	virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const = 0;
+
+	virtual const std::vector<MobilityServiceController *> &getSubscribedControllers() const = 0;
+
 	virtual const std::string getSubscribedControllerTypesStr() const;
+
 	virtual bool hasMultipleSubscriptions() const;
 
-
 	virtual unsigned long getPassengerCount() const = 0;
+
 	virtual sim_mob::Schedule getAssignedSchedule() const = 0;
+
 protected:
 	MobilityServiceDriverStatus driverStatus;
 };
 
-bool isMobilityServiceDriver(const Person* person);
+bool isMobilityServiceDriver(const Person *person);
 
 } /* namespace sim_mob */
 

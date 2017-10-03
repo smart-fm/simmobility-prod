@@ -68,7 +68,7 @@ public:
 	 */
 	void storeWaitingTime(Person_MT* waitingPerson) const;
 
-	bool isTaxiFirstInQueue(TaxiDriver *taxiDriver);
+	bool isTaxiFirstInQueue(Person_MT *driver);
 
 	void setParentConflux();
 	Conflux * getParentConflux();

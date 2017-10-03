@@ -7,10 +7,10 @@
 
 #include "entities/TaxiStandAgent.hpp"
 #include "message/MessageBus.hpp"
-#include "entities/roles/driver/TaxiDriver.hpp"
 #include "message/MT_Message.hpp"
 #include "roles/waitTaxiActivity/WaitTaxiActivity.hpp"
 #include "entities/PT_Statistics.hpp"
+#include "entities/roles/driver/OnHailDriver.hpp"
 #include "geospatial/network/TaxiStand.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -45,6 +45,7 @@ Entity::UpdateStatus TaxiStandAgent::frame_tick(timeslice now)
 {
 	currentTimeMS = now.ms()+ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
 	auto itWaitPerson = waitingPeople.begin();
+
 	while (itWaitPerson != waitingPeople.end())
 	{
 		(*itWaitPerson)->getRole()->Movement()->frame_tick();
@@ -55,12 +56,14 @@ Entity::UpdateStatus TaxiStandAgent::frame_tick(timeslice now)
 	while(itWaitDriver != queuingDrivers.end())
 	{
 		parentConflux->updateQueuingTaxiDriverAgent((*itWaitDriver));
-		TaxiDriver *driver = dynamic_cast<TaxiDriver*>((*itWaitDriver)->getRole());
-		if(!driver || driver->getMovementFacet()->isToBeRemovedFromTaxiStand())
+		OnHailDriver *driver = dynamic_cast<OnHailDriver *>((*itWaitDriver)->getRole());
+
+		if(!driver || driver->getBehaviour()->isQueuingStintComplete())
 		{
 			itWaitDriver = queuingDrivers.erase(itWaitDriver);
 			continue;
 		}
+
 		itWaitDriver++;
 	}
 	return Entity::UpdateStatus::Continue;
@@ -139,13 +142,9 @@ bool TaxiStandAgent::acceptTaxiDriver(Person_MT* driver)
 	return false;
 }
 
-bool TaxiStandAgent::isTaxiFirstInQueue(TaxiDriver *taxiDriver)
+bool TaxiStandAgent::isTaxiFirstInQueue(Person_MT *driver)
 {
-	std::deque<Person_MT*>::iterator itr = std::find( queuingDrivers.begin(), queuingDrivers.end() ,taxiDriver->getParent() );
-	if (itr == queuingDrivers.begin())
-	{
-		return true;
-	}
+	return (driver == queuingDrivers.front());
 }
 
 Person_MT* TaxiStandAgent::pickupOneWaitingPerson()

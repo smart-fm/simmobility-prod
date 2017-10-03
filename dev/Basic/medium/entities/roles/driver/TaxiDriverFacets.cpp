@@ -394,7 +394,7 @@ void TaxiDriverMovement::frame_tick()
 	{
 		queuingTooLongTime += params.secondsInTick;
 		TaxiStandAgent *agent = TaxiStandAgent::getTaxiStandAgent(destinationTaxiStand);
-		if (agent->isTaxiFirstInQueue(parentTaxiDriver))
+		if (agent->isTaxiFirstInQueue(parentTaxiDriver->getParent()))
 		{
 			Person_MT *personPickedUp = agent->pickupOneWaitingPerson();
 			if (personPickedUp != nullptr)

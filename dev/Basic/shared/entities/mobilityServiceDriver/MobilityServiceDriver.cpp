@@ -40,13 +40,6 @@ void MobilityServiceDriver::setDriverStatus(const MobilityServiceDriverStatus st
 	driverStatus = status;
 }
 
-bool MobilityServiceDriver::canSheMove() const
-{
-	if (driverStatus == MobilityServiceDriverStatus::CRUISING)
-		return true;
-	else return false;
-}
-
 bool MobilityServiceDriver::hasMultipleSubscriptions() const
 {
 #ifndef NDEBUG

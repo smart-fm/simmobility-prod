@@ -34,7 +34,7 @@ public:
 	OnHailDriver(Person_MT *parent, const MutexStrategy &mtx,
 	             OnHailDriverBehaviour *behaviour, OnHailDriverMovement *movement,
 	             std::string roleName,
-	             Role<Person_MT>::Type roleType = Role<Person_MT>::RL_ON_CALL_DRIVER);
+	             Role<Person_MT>::Type roleType = Role<Person_MT>::RL_ON_HAIL_DRIVER);
 
 	OnHailDriver(Person_MT *parent);
 
@@ -83,6 +83,43 @@ public:
 	 * time, this method will only return a 0 or 1
 	 */
 	virtual unsigned long getPassengerCount() const;
+
+	/**
+	 * This method attempts to pick up a passenger at the taxi stand
+	 * @return pointer to person if pick up successful, nullptr otherwise
+	 */
+	Person_MT* tryTaxiStandPickUp();
+
+	/**
+	 * This method attempts to get the driver into the given taxi stand.
+	 * @param currSegStats the segment stats for the driver's current segment
+	 * @param taxiStand the taxi stand the driver is trying to enter
+	 * @return true if the driver enters, false otherwise
+	 */
+	bool tryEnterTaxiStand(const SegmentStats *currSegStats, const TaxiStand *taxiStand);
+
+	/**
+	 * This method attempts to pick up a person at the node
+	 * @param node the current node
+	 * @param personId id of the person to be picked up, if empty, picks up the first available person
+	 * @return pointer to the person is pick up successful, nullptr otherwise
+	 */
+	Person_MT* tryPickUpPassengerAtNode(const Node *node, const std::string& personId = "");
+
+	/**
+	 * Adds the picked up person as a passenger in the vehicle
+	 */
+	virtual void addPassenger(Person_MT *person);
+
+	/**
+	 * Alights the passenger
+	 */
+	virtual void alightPassenger();
+
+	const OnHailDriverBehaviour* getBehaviour() const
+	{
+		return behaviour;
+	}
 
 	friend class OnHailDriverMovement;
 	friend class OnHailDriverBehaviour;

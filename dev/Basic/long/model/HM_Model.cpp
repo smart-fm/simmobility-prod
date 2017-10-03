@@ -1705,6 +1705,16 @@ void HM_Model::startImpl()
 	{
 		unitsFiltering();
 	}
+	else
+	{
+
+		BidDao bidDao(conn);
+		db::Parameters params;
+		params.push_back(lastStoppedDay-1);
+		const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + config.schemas.main_schema+ "bids" + " WHERE simulation_day = :v1;";
+		bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
+
+	}
 
 	workGroup.assignAWorker(&market);
 	int numWorkers = workGroup.size();
@@ -1762,15 +1772,6 @@ void HM_Model::startImpl()
 		//if this is a resume update params based on the last run.
 		if (resume)
 		{
-
-			BidDao bidDao(conn);
-			db::Parameters params;
-			params.push_back(lastStoppedDay-1);
-			const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + config.schemas.main_schema+ "bids" + " WHERE simulation_day = :v1;";
-			bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
-
-
-
 			//awaken the household if the household was on the market at the time simulation stopped in previous run.
 			if(household->getLastBidStatus() == 0 && household->getIsBidder())
 			{

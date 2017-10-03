@@ -162,7 +162,7 @@
 	<schoolAssignmentModel enabled = 'false'>
 		<schoolChangeWaitingTimeInDays value ="1" />
 	</schoolAssignmentModel>
-	<jobAssignmentModel enabled = 'false'>
+	<jobAssignmentModel enabled = 'true'>
 	</jobAssignmentModel>
 
 	<scenario enabled= 'true'>

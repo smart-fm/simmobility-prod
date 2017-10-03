@@ -460,25 +460,25 @@ void HouseholdAgent::onWorkerEnter()
 	}
 
 
-	if( config.ltParams.jobAssignmentModel.enabled == true && model->getJobAssignIndividualCount() <= 1000)
-	{
-
-		JobAssignmentModel jobAssignModel(model);
-		const Household *hh = this->getHousehold();
-		if( hh != NULL )
-		{
-			vector<BigSerial> individuals = household->getIndividuals();
-			for(int n = 0; n < individuals.size(); n++)
-			{
-				const Individual *individual = getModel()->getIndividualById(individuals[n]);
-				if(individual->getEmploymentStatusId() < 4)
-				{
-					model->incrementJobAssignIndividualCount();
-					jobAssignModel.computeJobAssignmentProbability(individual->getId());
-				}
-			}
-		}
-	}
+//	if( config.ltParams.jobAssignmentModel.enabled == true && model->getJobAssignIndividualCount() <= 1000)
+//	{
+//
+//		JobAssignmentModel jobAssignModel(model);
+//		const Household *hh = this->getHousehold();
+//		if( hh != NULL )
+//		{
+//			vector<BigSerial> individuals = household->getIndividuals();
+//			for(int n = 0; n < individuals.size(); n++)
+//			{
+//				const Individual *individual = getModel()->getIndividualById(individuals[n]);
+//				if(individual->getEmploymentStatusId() < 4)
+//				{
+//					model->incrementJobAssignIndividualCount();
+//					jobAssignModel.computeJobAssignmentProbability(individual->getId());
+//				}
+//			}
+//		}
+//	}
 
 
     if (!marketSeller)

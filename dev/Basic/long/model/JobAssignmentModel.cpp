@@ -216,23 +216,11 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 
 		//draw a random job in selected taz id and the relevant industry type of the individual.
 
-		//{
-			//boost::mutex::scoped_lock lock( mtx );
-		mtx.lock();
+		{
+			boost::mutex::scoped_lock lock( mtx );
 
 
 		HM_Model::JobsWithTazAndIndustryTypeMap &jobsWithTazAndIndustryType = model->getJobsWithTazAndIndustryTypeMap();
-		PrintOutV("jobsByTazAndIndustryType.size() "<< jobsWithTazAndIndustryType.size() <<std::endl);
-
-//		HM_Model::JobsByTazAndIndustryTypeMap::iterator iter1;
-//				for(iter1=jobsByTazAndIndustryType.begin();iter1 != jobsByTazAndIndustryType.end();++iter1)
-//				{
-//				    if((iter1->second->getJobId()) == jobId) {
-//				       PrintOutV("job id "<< jobId <<std::endl);
-//				        break;
-//				    }
-//				}
-
 		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
 		auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
 		size_t sz = distance(range.first, range.second);
@@ -283,8 +271,8 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 
 		std::random_device rdInGen;
 		std::mt19937 genRdInd(rdInGen());
-		std::uniform_int_distribution<int> disRdInd(0, sz);
-		const unsigned int random_index = disRdInd(gen);
+		std::uniform_int_distribution<int> disRdInd(0, (sz-1));
+		const unsigned int random_index = disRdInd(genRdInd);
 		std::advance(range.first, random_index);
 
 		jobId = range.first->second->getJobId();
@@ -296,27 +284,11 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		{
 		    if((iter->second->getJobId()) == jobId) {
 		        jobsWithTazAndIndustryType.erase(iter);
-		        PrintOutV("job id "<< jobId <<std::endl);
 		        break;
 		    }
 		}
 
-//		HM_Model::JobsWithTazAndIndustryTypeMap::iterator iter1;
-//		for(iter1=jobsWithTazAndIndustryType.begin();iter1 != jobsWithTazAndIndustryType.end();++iter1)
-//		{
-//			if((iter1->second->getJobId()) == jobId) {
-//				jobsWithTazAndIndustryType.erase(iter1);
-//				PrintOutV("job id "<< jobId <<std::endl);
-//				break;
-//			}
-//		}
-
-
-		//}
-		mtx.unlock();
-
-
-
+		}
 
 }
 

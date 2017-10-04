@@ -399,7 +399,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config configSchemaVersion  " << config.ltParams.configSchemaVersion << endl);
        	PrintOutV("XML Config currentOutputSchema " << config.ltParams.currentOutputSchema << endl);
        	PrintOutV("XML Config days " << config.ltParams.days << endl);
-        PrintOutV("XML Config DeveloperModel " << config.ltParams.developerModel.enabled << endl);
+    	PrintOutV("XML Config launch BTO " << config.ltParams.launchBTO << endl);
+
+       	PrintOutV("XML Config DeveloperModel " << config.ltParams.developerModel.enabled << endl);
         PrintOutV("XML Config DeveloperModel initialBuildingId " << config.ltParams.developerModel.initialBuildingId << endl);
         PrintOutV("XML Config DeveloperModel initialPostcode " << config.ltParams.developerModel.initialPostcode << endl);
         PrintOutV("XML Config DeveloperModel initialProjectId " << config.ltParams.developerModel.initialProjectId << endl);

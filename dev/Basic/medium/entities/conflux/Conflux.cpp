@@ -1625,7 +1625,7 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 
 					//if the person is trying to move to requestedNextSegStats from a bus stop in current segment, we need to
 					//notify the corresponding bus stop agent and update moving status
-					if (!personRole->getResource()->isMoving())
+					if (!personRole->getResource()->isMoving() && personRole->roleType == Role<Person_MT>::RL_BUSDRIVER)
 					{
 						BusDriverMovement* busDriverMovementFacet = dynamic_cast<BusDriverMovement*>(personRole->Movement());
 						busDriverMovementFacet->departFromCurrentStop();

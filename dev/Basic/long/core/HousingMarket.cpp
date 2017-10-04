@@ -244,7 +244,7 @@ size_t HousingMarket::getEntrySize(unsigned int currTick)
 	{
 		if( (*itr).second->isBuySellIntervalCompleted() == true)
 		{
-			//writeDailyHousingMarketUnitsToFile(currTick,(*itr).second->getUnitId());
+			writeDailyHousingMarketUnitsToFile(currTick,(*itr).second->getUnitId());
 			size++;
 		}
 	}

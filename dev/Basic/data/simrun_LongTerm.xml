@@ -127,12 +127,12 @@
 	    <fixedWorkVariableHome value ="false"/>
 	</outputHouseholdLogsums>
     	<housingModel enabled="true"> 	    
-            <timeOnMarket value="72"/>
-            <timeOffMarket value="288"/>
+            <timeOnMarket value="2"/>
+            <timeOffMarket value="365"/>
             <timeInterval value="7"/>
 	    <awakeningModel enabled="true">
-		    <initialHouseholdsOnMarket value="7500"/>
-		    <dailyHouseholdAwakenings value="400"/>
+		    <initialHouseholdsOnMarket value="5000"/>
+		    <dailyHouseholdAwakenings value="2"/>
 		    <awakenModelShan value="false"/>
 		    <awakenModelRandom value="false"/>
 		    <awakenModelJingsi value="true"/>	

@@ -65,7 +65,8 @@ namespace sim_mob
 				LOG_GPR,
 				LOG_JOB_ASIGN_PROBS,
 				LOG_INDIVIDUAL_JOB_ASSIGN,
-				LOG_DAILY_HOUSING_MARKET_UNITS
+				LOG_DAILY_HOUSING_MARKET_UNITS,
+				LOG_DAILY_HOUSING_MARKET_UNIT_TIMES
             };
 
             LoggerAgent();

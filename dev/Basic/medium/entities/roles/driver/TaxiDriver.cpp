@@ -163,9 +163,9 @@ void TaxiDriver::passengerChoiceModel(const Node *origin,const Node *destination
 	/**On call drivers use in simulation travel-times, on hail drivers do not*/
 	bool useInSimulationTT = !taxiDriverMovement->isSubscribedToOnHail();
 
-	currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPathAfterPassengerPickup(currSubTrip, false,
-	                                                                                           nullptr, currentLane,
-	                                                                                           useInSimulationTT);
+	currentRouteChoice = PrivateTrafficRouteChoice::getInstance()->getPathFromLane(currSubTrip, false,
+	                                                                               nullptr, currentLane,
+	                                                                               useInSimulationTT);
 
 	if(!currentRouteChoice.empty())
 	{

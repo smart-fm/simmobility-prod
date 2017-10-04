@@ -478,30 +478,32 @@ public:
 	 * the default containers throughout the simulation. but partialExcludedSegs and blckLstSegs arguments are combined
 	 * with their counterparts in PathSetmanager only during the scope of this method to serve temporary purposes.
 	 */
-	 bool getBestPath(std::vector<sim_mob::WayPoint>& res,
-			 const sim_mob::SubTrip& st,bool useCache,
-			 const std::set<const sim_mob::Link*> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
-			 bool usePartialExclusion,
-			 bool useBlackList,
-			 bool enRoute, const sim_mob::Link *approach,
-			 bool useInSimulationTT = false);
+	bool getBestPath(std::vector<sim_mob::WayPoint> &res,
+	                 const sim_mob::SubTrip &st, bool useCache,
+	                 const std::set<const sim_mob::Link *> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
+	                 bool usePartialExclusion,
+	                 bool useBlackList,
+	                 bool enRoute, const sim_mob::Link *approach,
+	                 bool useInSimulationTT = false);
 
-	 bool getBestPathForPassengerPickUp(std::vector<sim_mob::WayPoint>& res,
-	 			 const sim_mob::SubTrip& st,bool useCache,
-	 			 const std::set<const sim_mob::Link*> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
-	 			 bool usePartialExclusion,
-	 			 bool useBlackList,
-	 			 bool enRoute, const sim_mob::Link *approach,boost::shared_ptr<sim_mob::PathSet> &pathset,const Lane* currLane,
-	 			 bool useInSimulationTT = false);
+	 bool getBestPathFromLane(std::vector<sim_mob::WayPoint> &res,
+	                          const sim_mob::SubTrip &st, bool useCache,
+	                          const std::set<const sim_mob::Link *> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
+	                          bool usePartialExclusion,
+	                          bool useBlackList,
+	                          bool enRoute, const sim_mob::Link *approach, boost::shared_ptr<sim_mob::PathSet> &pathset,
+	                          const Lane *currLane,
+	                          bool useInSimulationTT = false);
 
-	 bool getBestPathWhereToStand(std::vector<sim_mob::WayPoint>& res,
-	 			 const sim_mob::SubTrip& st,bool useCache,
-	 			 const std::set<const sim_mob::Link*> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
-	 			 bool usePartialExclusion,
-	 			 bool useBlackList,
-	 			 bool enRoute, const sim_mob::Link *approach,boost::shared_ptr<sim_mob::PathSet> &pathset,const Lane* currLane,
-	 			 const Link* last,
-	 			 bool useInSimulationTT = false);
+	 bool getBestPathToLink(std::vector<sim_mob::WayPoint> &res,
+	                        const sim_mob::SubTrip &st, bool useCache,
+	                        const std::set<const sim_mob::Link *> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
+	                        bool usePartialExclusion,
+	                        bool useBlackList,
+	                        bool enRoute, const sim_mob::Link *approach, boost::shared_ptr<sim_mob::PathSet> &pathset,
+	                        const Lane *currLane,
+	                        const Link *last,
+	                        bool useInSimulationTT = false);
 
 	/**
 	 * The main entry point to the pathset manager,
@@ -514,9 +516,11 @@ public:
 	 */
 	std::vector<WayPoint> getPath(const sim_mob::SubTrip &subTrip, bool enRoute , const sim_mob::Link *approach, bool useInSimulationTT = false);
 
-	std::vector<WayPoint> getPathAfterPassengerPickup(const sim_mob::SubTrip& subTrip, bool enRoute, const sim_mob::Link *approach , const Lane *currLane,bool useInSimulationTT = false);
+	std::vector<WayPoint> getPathFromLane(const sim_mob::SubTrip &subTrip, bool enRoute, const sim_mob::Link *approach,
+	                                      const Lane *currLane, bool useInSimulationTT = false);
 
-	std::vector<WayPoint> getPathWhereToStand(const sim_mob::SubTrip& subTrip, bool enRoute, const sim_mob::Link *approach , const Lane *currLane, const Link* last, bool useInSimulationTT = false);
+	std::vector<WayPoint> getPathToLink(const sim_mob::SubTrip &subTrip, bool enRoute, const sim_mob::Link *approach,
+	                                    const Lane *currLane, const Link *last, bool useInSimulationTT = false);
 
 	void filterPathsetsWhereCurrSegmentIsConnectedToDownStreamLink(boost::shared_ptr<sim_mob::PathSet>& pathset,const Lane  *currlane);
 

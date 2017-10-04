@@ -428,7 +428,9 @@ void sim_mob::PrivatePathsetGenerator::setPathSetTags(boost::shared_ptr<sim_mob:
 	}
 }
 
-std::vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPathWhereToStand(const sim_mob::SubTrip& subTrip, bool enRoute, const sim_mob::Link *approach  ,const Lane * lane, const Link* last, bool useInSimulationTT)
+std::vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPathToLink(const sim_mob::SubTrip &subTrip, bool enRoute,
+                                                                        const sim_mob::Link *approach, const Lane *lane,
+                                                                        const Link *last, bool useInSimulationTT)
 {
 	vector<WayPoint> res = vector<WayPoint>();
 	//Restricted area logic
@@ -441,21 +443,26 @@ std::vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPathWhereToStand(co
 		if (!toLocationInRestrictedRegion && !fromLocationInRestrictedRegion)
 		{
 
-			getBestPathWhereToStand(res, subTrip, true, std::set<const sim_mob::Link*>(), false, true, enRoute, approach,fullpathset, lane,last,useInSimulationTT);
+			getBestPathToLink(res, subTrip, true, std::set<const sim_mob::Link *>(), false, true, enRoute, approach,
+			                  fullpathset, lane, last, useInSimulationTT);
 		}
 		else // case-2:  Either O or D is inside restricted region
 		{
-			getBestPathWhereToStand(res, subTrip, true, std::set<const sim_mob::Link*>(), false, false, enRoute, approach,fullpathset,lane,last,useInSimulationTT);
+			getBestPathToLink(res, subTrip, true, std::set<const sim_mob::Link *>(), false, false, enRoute, approach,
+			                  fullpathset, lane, last, useInSimulationTT);
 		}
 	}
 	else
 	{
-		getBestPathWhereToStand(res, subTrip, true, std::set<const sim_mob::Link*>(), false, false, enRoute, approach,fullpathset ,lane,last,useInSimulationTT);
+		getBestPathToLink(res, subTrip, true, std::set<const sim_mob::Link *>(), false, false, enRoute, approach,
+		                  fullpathset, lane, last, useInSimulationTT);
 	}
 	return res;
 }
 
-std::vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPathAfterPassengerPickup(const sim_mob::SubTrip& subTrip, bool enRoute, const sim_mob::Link *approach  ,const Lane * lane, bool useInSimulationTT)
+std::vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPathFromLane(const sim_mob::SubTrip &subTrip, bool enRoute,
+                                                                          const sim_mob::Link *approach,
+                                                                          const Lane *lane, bool useInSimulationTT)
 {
 	vector<WayPoint> res = vector<WayPoint>();
 	//Restricted area logic
@@ -468,16 +475,19 @@ std::vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPathAfterPassengerP
 		if (!toLocationInRestrictedRegion && !fromLocationInRestrictedRegion)
 		{
 
-			getBestPathForPassengerPickUp(res, subTrip, true, std::set<const sim_mob::Link*>(), false, true, enRoute, approach,fullpathset, lane,useInSimulationTT);
+			getBestPathFromLane(res, subTrip, true, std::set<const sim_mob::Link *>(), false, true, enRoute, approach,
+			                    fullpathset, lane, useInSimulationTT);
 		}
 		else // case-2:  Either O or D is inside restricted region
 		{
-			getBestPathForPassengerPickUp(res, subTrip, true, std::set<const sim_mob::Link*>(), false, false, enRoute, approach,fullpathset,lane,useInSimulationTT);
+			getBestPathFromLane(res, subTrip, true, std::set<const sim_mob::Link *>(), false, false, enRoute, approach,
+			                    fullpathset, lane, useInSimulationTT);
 		}
 	}
 	else
 	{
-		getBestPathForPassengerPickUp(res, subTrip, true, std::set<const sim_mob::Link*>(), false, false, enRoute, approach,fullpathset ,lane,useInSimulationTT);
+		getBestPathFromLane(res, subTrip, true, std::set<const sim_mob::Link *>(), false, false, enRoute, approach,
+		                    fullpathset, lane, useInSimulationTT);
 	}
 	return res;
 }
@@ -786,8 +796,13 @@ void sim_mob::PrivateTrafficRouteChoice::filterPathsetsWhereCurrSegmentIsConnect
 	}
 }
 
-bool sim_mob::PrivateTrafficRouteChoice::getBestPathForPassengerPickUp(std::vector<sim_mob::WayPoint>& res, const sim_mob::SubTrip& st, bool useCache, std::set<const sim_mob::Link*> blackListedLinks, bool usePartialExclusion, bool nonCBD_OD, bool enRoute,
-		const sim_mob::Link* approach,  boost::shared_ptr<sim_mob::PathSet> &pathset,const Lane* currLane ,bool useInSimulationTT)
+bool sim_mob::PrivateTrafficRouteChoice::getBestPathFromLane(std::vector<sim_mob::WayPoint> &res,
+                                                             const sim_mob::SubTrip &st, bool useCache,
+                                                             const set<const Link *> blackListedLinks,
+                                                             bool usePartialExclusion, bool nonCBD_OD, bool enRoute,
+                                                             const sim_mob::Link *approach,
+                                                             boost::shared_ptr<sim_mob::PathSet> &pathset,
+                                                             const Lane *currLane, bool useInSimulationTT)
 {
 	res.clear();
 
@@ -894,8 +909,14 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathForPassengerPickUp(std::vect
 	return false;
 }
 
-bool sim_mob::PrivateTrafficRouteChoice::getBestPathWhereToStand(std::vector<sim_mob::WayPoint>& res, const sim_mob::SubTrip& st, bool useCache, std::set<const sim_mob::Link*> blackListedLinks, bool usePartialExclusion, bool nonCBD_OD, bool enRoute,
-		const sim_mob::Link* approach,  boost::shared_ptr<sim_mob::PathSet> &pathset,const Lane* currLane ,const Link* last,bool useInSimulationTT)
+bool sim_mob::PrivateTrafficRouteChoice::getBestPathToLink(std::vector<sim_mob::WayPoint> &res,
+                                                           const sim_mob::SubTrip &st, bool useCache,
+                                                           const set<const Link *> blackListedLinks,
+                                                           bool usePartialExclusion, bool nonCBD_OD, bool enRoute,
+                                                           const sim_mob::Link *approach,
+                                                           boost::shared_ptr<sim_mob::PathSet> &pathset,
+                                                           const Lane *currLane, const Link *last,
+                                                           bool useInSimulationTT)
 {
 	res.clear();
 

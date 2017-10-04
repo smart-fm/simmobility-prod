@@ -895,12 +895,12 @@ void TaxiDriverMovement::driveToTaxiStand()
         SubTrip currSubTrip;
         currSubTrip.origin = WayPoint(ThisNode);
         currSubTrip.destination = WayPoint(destForRouteChoice);
-        vector<WayPoint> routeToTaxiStand = PrivateTrafficRouteChoice::getInstance()->getPathWhereToStand(currSubTrip,
-                                                                                                          false,
-                                                                                                          currSegmentParentLink,
-                                                                                                          nullptr,
-                                                                                                          taxiStandLink,
-                                                                                                          useInSimulationTT);
+        vector<WayPoint> routeToTaxiStand = PrivateTrafficRouteChoice::getInstance()->getPathToLink(currSubTrip,
+                                                                                                    false,
+                                                                                                    currSegmentParentLink,
+                                                                                                    nullptr,
+                                                                                                    taxiStandLink,
+                                                                                                    useInSimulationTT);
         if (routeToTaxiStand.empty() || currSegmentParentLink == taxiStandLink)
         {
             setCruisingMode();

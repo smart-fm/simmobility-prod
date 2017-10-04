@@ -252,8 +252,8 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 	}
 
 	//Get route to the taxi stand
-	auto route = PrivateTrafficRouteChoice::getInstance()->getPathWhereToStand(subTrip, false, currLink, nullptr,
-	                                                                           taxiStandLink, useInSimulationTT);
+	auto route = PrivateTrafficRouteChoice::getInstance()->getPathToLink(subTrip, false, currLink, nullptr,
+	                                                                     taxiStandLink, useInSimulationTT);
 
 #ifndef NDEBUG
 	if(route.empty())
@@ -324,18 +324,11 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 		subTrip.origin = WayPoint(currNode);
 		subTrip.destination = WayPoint(destination);
 
-		const Link *currLink = nullptr;
 		bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
 
-		//If the driving path has already been set, we must find path to the destination node from
-		//the current segment
-		if(pathMover.isDrivingPathSet())
-		{
-			currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
-		}
-
 		//Get route to the node
-		auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+		auto route = PrivateTrafficRouteChoice::getInstance()->getPathFromLane(subTrip, false, nullptr,
+		                                                                       currLane, useInSimulationTT);
 
 #ifndef NDEBUG
 		if(route.empty())
@@ -343,8 +336,8 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 			stringstream msg;
 			msg << "Path not found. Driver " << onHailDriver->getParent()->getDatabaseId()
 			    << " could not find a path to the passenger's destination node " << destination->getNodeId()
-			    << " from the current node " << currNode->getNodeId() << " and link ";
-			msg << (currLink ? currLink->getLinkId() : 0);
+			    << " from the current node " << currNode->getNodeId() << " and lane ";
+			msg << (currLane ? currLane->getLaneId() : 0);
 			throw no_path_error(msg.str());
 		}
 #endif

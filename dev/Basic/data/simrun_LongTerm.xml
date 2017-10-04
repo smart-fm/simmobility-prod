@@ -95,7 +95,7 @@
     </constructs>
 
    <schemas enabled= "true">
-	<main_schema  value= "synpop12."/>
+	<main_schema  value= "synpop_op."/>
 	<calibration_schema value= "calibration2012."/>
 	<public_schema value= "public."/>
 	<demand_schema value= "demand."/>
@@ -108,7 +108,7 @@
     	<workers value="8"/>
     	<tickStep value="1"/>  
 	<year value = "2012" />   
-	<resume value ="false"/> 
+	<resume value ="true"/> 
 	<currentOutputSchema value = "baseline_2012_20170811023744"/> <!--if resume is true give the current op schema name-->
         <opSchemaloadingInterval value = "365"/>
         <initialLoading value = "true" />

@@ -110,8 +110,9 @@
 	<year value = "2012" />   
 	<resume value ="false"/> 
 	<currentOutputSchema value = "baseline_2012_20170811023744"/> <!--if resume is true give the current op schema name-->
-        <opSchemaloadingInterval value = "365"/>
+        <opSchemaloadingInterval value = "367"/>
         <initialLoading value = "true" />
+        <launchBTO value = "false"/>
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>

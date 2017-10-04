@@ -315,6 +315,10 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
 					node, "initialLoading"), "value"), false);
 
+	cfg.ltParams.launchBTO =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+						node, "launchBTO"), "value"), false);
+
 	processDeveloperModelNode(GetSingleElementByName(node, "developerModel"));
 	processHousingModelNode(GetSingleElementByName(node, "housingModel"));
 	processHouseHoldLogsumsNode(GetSingleElementByName(node, "outputHouseholdLogsums"));

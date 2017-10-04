@@ -50,6 +50,7 @@ struct LongTermParams
 	std::string geometrySchemaVersion;
 	unsigned int opSchemaloadingInterval;
 	bool initialLoading;
+	bool launchBTO;
 
 	struct DeveloperModel{
 		DeveloperModel();

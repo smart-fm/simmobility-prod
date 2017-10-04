@@ -456,6 +456,18 @@ std::vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPathToLink(const si
 	{
 		getBestPathToLink(res, subTrip, true, std::set<const sim_mob::Link *>(), false, false, enRoute, approach,
 		                  fullpathset, lane, last, useInSimulationTT);
+
+		if(res.empty())
+		{
+			if(approach)
+			{
+				res = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Link>(*approach, *last);
+			}
+			else
+			{
+				res = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Link>(*subTrip.origin.node, *last);
+			}
+		}
 	}
 	return res;
 }
@@ -483,6 +495,18 @@ vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubT
 	else
 	{
 		getBestPath(res, subTrip, true, std::set<const sim_mob::Link*>(), false, false, enRoute, approach, useInSimulationTT);
+
+		if(res.empty())
+		{
+			if(approach)
+			{
+				res = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*approach, *(subTrip.destination.node));
+			}
+			else
+			{
+				res = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*subTrip.origin.node, *(subTrip.destination.node));
+			}
+		}
 	}
 	return res;
 }

@@ -467,10 +467,12 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 
 					market->removeEntry(unitId);
 
-					unit->setbiddingMarketEntryDay((int)currentTime.ms() + unit->getTimeOffMarket() + 1 );
-					unit->setRemainingTimeOffMarket((int)currentTime.ms() + unit->getTimeOffMarket());
 					const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+					unit->setbiddingMarketEntryDay((int)currentTime.ms() + config.ltParams.housingModel.timeOffMarket + 1 );
+					unit->setRemainingTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
+					unit->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 					unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
+					unit->setRemainingTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 
 					continue;
 				 }

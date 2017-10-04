@@ -45,7 +45,7 @@ void OnHailDriverMovement::frame_tick()
 	{
 	case CRUISING:
 	{
-		if(!onHailDriver->behaviour->isCruisingStintComplete())
+		if(!onHailDriver->behaviour->isCruisingStintComplete() && !pathMover.isEndOfPath())
 		{
 			onHailDriver->behaviour->incrementCruisingStintTime();
 		}

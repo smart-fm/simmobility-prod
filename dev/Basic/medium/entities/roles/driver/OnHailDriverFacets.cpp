@@ -2,7 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-
+#include "exceptions/Exceptions.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "OnHailDriver.hpp"
 #include "path/PathSetManager.hpp"
@@ -183,39 +183,50 @@ void OnHailDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams &params
 
 void OnHailDriverMovement::performDecisionActions(BehaviourDecision decision)
 {
-	switch (decision)
+	try
 	{
-	case BehaviourDecision::CRUISE:
-	{
-		//Choose a node to cruise to
-		const Node *node = onHailDriver->behaviour->chooseNode();
+		switch (decision)
+		{
+		case BehaviourDecision::CRUISE:
+		{
+			//Choose a node to cruise to
+			const Node *node = onHailDriver->behaviour->chooseNode();
 
-		//Begin cruising to the chosen node
-		beginCruising(node);
+			//Begin cruising to the chosen node
+			beginCruising(node);
 
-		break;
-	}
-	case BehaviourDecision::DRIVE_TO_TAXISTAND:
-	{
-		//Choose a taxi stand to drive to
-		chosenTaxiStand = onHailDriver->behaviour->chooseTaxiStand();
+			break;
+		}
+		case BehaviourDecision::DRIVE_TO_TAXISTAND:
+		{
+			//Choose a taxi stand to drive to
+			chosenTaxiStand = onHailDriver->behaviour->chooseTaxiStand();
 
-		//Begin driving toward chosen taxi stand
-		beginDriveToTaxiStand(chosenTaxiStand);
+			//Begin driving toward chosen taxi stand
+			beginDriveToTaxiStand(chosenTaxiStand);
 
-		break;
+			break;
+		}
+		case BehaviourDecision::END_SHIFT:
+		{
+			onHailDriver->getParent()->setToBeRemoved();
+			break;
+		}
+		default:
+		{
+			stringstream msg;
+			msg << "Unexpected decision:" << decision << " returned by method: makeBehaviourDecision()";
+			throw runtime_error(msg.str());
+		}
+		}
 	}
-	case BehaviourDecision::END_SHIFT:
+	catch(no_path_error &ex)
 	{
-		onHailDriver->getParent()->setToBeRemoved();
-		break;
-	}
-	default:
-	{
-		stringstream msg;
-		msg << "Unexpected decision:" << decision << " returned by method: makeBehaviourDecision()";
-		throw runtime_error(msg.str());
-	}
+		//Log the error
+		Warn() << ex.what() << endl;
+
+		//We try to cruise but to a different node this time.
+		performDecisionActions(BehaviourDecision::CRUISE);
 	}
 }
 
@@ -252,7 +263,7 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 		    << " could not find a path to the taxi stand link " << taxiStandLink->getLinkId()
 		    << " from the current node " << currNode->getNodeId() << " and link ";
 		msg << (currLink ? currLink->getLinkId() : 0);
-		throw runtime_error(msg.str());
+		throw no_path_error(msg.str());
 	}
 #endif
 
@@ -290,7 +301,7 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 		    << " could not find a path to the cruising node " << node->getNodeId()
 		    << " from the current node " << currNode->getNodeId() << " and link ";
 		msg << (currLink ? currLink->getLinkId() : 0);
-		throw runtime_error(msg.str());
+		throw no_path_error(msg.str());
 	}
 #endif
 
@@ -316,7 +327,7 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 		const Link *currLink = nullptr;
 		bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
 
-		//If the driving path has already been set, we must find paht to the destination node from
+		//If the driving path has already been set, we must find path to the destination node from
 		//the current segment
 		if(pathMover.isDrivingPathSet())
 		{
@@ -334,7 +345,7 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 			    << " could not find a path to the passenger's destination node " << destination->getNodeId()
 			    << " from the current node " << currNode->getNodeId() << " and link ";
 			msg << (currLink ? currLink->getLinkId() : 0);
-			throw runtime_error(msg.str());
+			throw no_path_error(msg.str());
 		}
 #endif
 

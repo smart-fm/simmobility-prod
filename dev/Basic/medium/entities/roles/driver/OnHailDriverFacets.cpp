@@ -347,6 +347,13 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 	else
 	{
 		//Person is already at the destination node
+		onHailDriver->alightPassenger();
+
+		//Make the behaviour decision
+		BehaviourDecision decision = onHailDriver->behaviour->makeBehaviourDecision();
+
+		//Perform the actions required based on the decision
+		performDecisionActions(decision);
 	}
 }
 

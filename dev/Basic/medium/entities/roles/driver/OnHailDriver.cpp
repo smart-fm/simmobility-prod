@@ -159,8 +159,8 @@ void OnHailDriver::addPassenger(Person_MT *person)
 		throw runtime_error(msg.str());
 	}
 
-	ControllerLog() << "Person " << person->getDatabaseId() << " picked up by OnHailDriver "
-	                << parent->getDatabaseId();
+	ControllerLog() << "OnHailDriver " << parent->getDatabaseId() << ": Picked-up " << person->getDatabaseId()
+	                << endl;
 #endif
 }
 
@@ -184,7 +184,7 @@ void OnHailDriver::alightPassenger()
 	passenger = nullptr;
 
 #ifndef NDEBUG
-	ControllerLog() << "Person " << person->getDatabaseId() << " dropped off by OnHailDriver "
-	                << parent->getDatabaseId();
+	ControllerLog() << "OnHailDriver " << parent->getDatabaseId() << ": Dropped-off " << person->getDatabaseId()
+	                << endl;
 #endif
 }

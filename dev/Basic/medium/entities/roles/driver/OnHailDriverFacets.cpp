@@ -268,7 +268,7 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 	}
 
 	ControllerLog() << "OnHailDriver " << onHailDriver->getParent()->getDatabaseId()
-	                << ": Begin driving to taxi stand at link " << taxiStandLink->getLinkId();
+	                << ": Begin driving to taxi stand at link " << taxiStandLink->getLinkId() << endl;
 #endif
 
 	std::vector<const SegmentStats *> routeSegStats;
@@ -309,7 +309,7 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 	}
 
 	ControllerLog() << "OnHailDriver " << onHailDriver->getParent()->getDatabaseId()
-	                << ": Begin cruising to node " << node->getNodeId();
+	                << ": Begin cruising to node " << node->getNodeId() << endl;
 #endif
 
 	std::vector<const SegmentStats *> routeSegStats;
@@ -356,7 +356,7 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 		}
 
 		ControllerLog() << "OnHailDriver " << onHailDriver->getParent()->getDatabaseId()
-		                << ": Begin driving with pax to node " << destination->getNodeId();
+		                << ": Begin driving with pax to node " << destination->getNodeId() << endl;
 #endif
 
 		std::vector<const SegmentStats *> routeSegStats;

@@ -408,20 +408,42 @@ BehaviourDecision OnHailDriverBehaviour::makeBehaviourDecision() const
 
 const TaxiStand* OnHailDriverBehaviour::chooseTaxiStand() const
 {
+	const TaxiStand *result = nullptr;
 	auto taxiStandsMap = RoadNetwork::getInstance()->getMapOfIdvsTaxiStands();
 	auto itRandomStand = taxiStandsMap.begin();
 	advance(itRandomStand,Utils::generateInt(0, taxiStandsMap.size() - 1));
 
-	return itRandomStand->second;
+	result = itRandomStand->second;
+
+	//Ensure that we are not on the link which has the chosen taxi stand
+	const MesoPathMover &pathMover = onHailDriver->movement->getMesoPathMover();
+	if(pathMover.isDrivingPathSet() &&
+			result->getRoadSegment()->getParentLink() == pathMover.getCurrSegStats()->getRoadSegment()->getParentLink())
+	{
+		result = chooseTaxiStand();
+	}
+
+	return result;
 }
 
 const Node* OnHailDriverBehaviour::chooseNode() const
 {
+	const Node *result = nullptr;
 	auto nodeMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 	auto itRandomNode = nodeMap.begin();
 	advance(itRandomNode, Utils::generateInt(0, nodeMap.size() - 1));
 
-	return itRandomNode->second;
+	result = itRandomNode->second;
+
+	//Ensure chosen node is not our immediate downstream node
+	const MesoPathMover &pathMover = onHailDriver->movement->getMesoPathMover();
+	if(pathMover.isDrivingPathSet() &&
+			result == pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode())
+	{
+		result = chooseNode();
+	}
+
+	return result;
 }
 
 bool OnHailDriverBehaviour::hasDriverShiftEnded() const

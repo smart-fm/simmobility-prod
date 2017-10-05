@@ -1924,6 +1924,8 @@ void HM_Model::startImpl()
 				(*it)->setbiddingMarketEntryDay(999999);
 				(*it)->setRemainingTimeOnMarket(timeOnMarket);
 				(*it)->setRemainingTimeOffMarket(timeOffMarket);
+
+				writeUnitTimesToFile((*it)->getId(),(*it)->getTimeOnMarket(), (*it)->getTimeOffMarket(), (*it)->getbiddingMarketEntryDay());
 			}
 
 			//this unit is a vacancy
@@ -1956,7 +1958,7 @@ void HM_Model::startImpl()
 						offMarket++;
 					}
 
-					writeUnitTimesToFile((*it)->getId(),(*it)->getTimeOnMarket(), (*it)->getTimeOffMarket(), (*it)->getbiddingMarketEntryDay());
+
 					}
 					else
 					{

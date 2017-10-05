@@ -158,6 +158,9 @@ void OnHailDriver::addPassenger(Person_MT *person)
 		    << " does not have a passenger role!";
 		throw runtime_error(msg.str());
 	}
+
+	ControllerLog() << "Person " << person->getDatabaseId() << " picked up by OnHailDriver "
+	                << parent->getDatabaseId();
 #endif
 }
 
@@ -179,4 +182,9 @@ void OnHailDriver::alightPassenger()
 
 	conflux->dropOffTaxiTraveler(person);
 	passenger = nullptr;
+
+#ifndef NDEBUG
+	ControllerLog() << "Person " << person->getDatabaseId() << " dropped off by OnHailDriver "
+	                << parent->getDatabaseId();
+#endif
 }

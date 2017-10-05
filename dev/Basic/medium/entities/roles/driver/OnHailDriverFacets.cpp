@@ -4,6 +4,7 @@
 
 #include "exceptions/Exceptions.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
+#include "logging/ControllerLog.hpp"
 #include "OnHailDriver.hpp"
 #include "path/PathSetManager.hpp"
 
@@ -265,6 +266,9 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 		msg << (currLink ? currLink->getLinkId() : 0);
 		throw no_path_error(msg.str());
 	}
+
+	ControllerLog() << "OnHailDriver " << onHailDriver->getParent()->getDatabaseId()
+	                << ": Begin driving to taxi stand at link " << taxiStandLink->getLinkId();
 #endif
 
 	std::vector<const SegmentStats *> routeSegStats;
@@ -303,6 +307,9 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 		msg << (currLink ? currLink->getLinkId() : 0);
 		throw no_path_error(msg.str());
 	}
+
+	ControllerLog() << "OnHailDriver " << onHailDriver->getParent()->getDatabaseId()
+	                << ": Begin cruising to node " << node->getNodeId();
 #endif
 
 	std::vector<const SegmentStats *> routeSegStats;
@@ -347,6 +354,9 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 			msg << (currLink ? currLink->getLinkId() : 0);
 			throw no_path_error(msg.str());
 		}
+
+		ControllerLog() << "OnHailDriver " << onHailDriver->getParent()->getDatabaseId()
+		                << ": Begin driving with pax to node " << destination->getNodeId();
 #endif
 
 		std::vector<const SegmentStats *> routeSegStats;

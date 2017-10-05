@@ -441,11 +441,12 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	getParent()->getHousehold()->setTimeOffMarket(moveInWaitingTimeInDays + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid);
             		getParent()->setAcceptedBid(true);
 
-                	if(simulationEndDay < (moveInWaitingTimeInDays))
+                	if(simulationEndDay < (moveInWaitingTimeInDays + day))
                 	{
                 		getParent()->getHousehold()->setUnitId(unitIdToBeOwned);
                 		getParent()->getHousehold()->setHasMoved(0);
                 		getParent()->getHousehold()->setUnitPending(1);
+                		moveInWaitingTimeInDays = (moveInWaitingTimeInDays + day) - simulationEndDay;
                 		getParent()->getHousehold()->setPendingFromDate(getDateBySimDay(year,moveInWaitingTimeInDays));
                 	}
 

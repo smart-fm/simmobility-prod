@@ -1713,6 +1713,7 @@ void HM_Model::startImpl()
 		params.push_back(lastStoppedDay-1);
 		const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + config.schemas.main_schema+ "bids" + " WHERE simulation_day = :v1;";
 		bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
+		PrintOutV("Total number of bids resumed from previous run: " << resumptionBids.size()<<std::endl);
 
 	}
 
@@ -1752,6 +1753,9 @@ void HM_Model::startImpl()
 	// 1. Create Household Agents.
 	// 2. Assign households to the units.
 	//
+
+	int resumeHouseholdCount = 0;
+	int waitingToMoveInHouseholdCount = 0;
 	if(initialLoading)
 	{
 	for (HouseholdList::iterator it = households.begin();	it != households.end(); it++)
@@ -1775,6 +1779,7 @@ void HM_Model::startImpl()
 			//awaken the household if the household was on the market at the time simulation stopped in previous run.
 			if(household->getLastBidStatus() == 0 && household->getIsBidder())
 			{
+				resumeHouseholdCount++;
 				hhAgent->getBidder()->setActive(true);
 				hhAgent->setHouseholdBiddingWindow(household->getTimeOnMarket());
 				hhAgent->setAwakeningDay(household->getAwaknedDay());
@@ -1784,8 +1789,11 @@ void HM_Model::startImpl()
 			//household has done a successful bid and was waiting to move in when the simulation stopped.
 			if(household->getIsBidder() && household->getLastBidStatus() == 1 && household->getUnitPending())
 			{
-
-				hhAgent->getBidder()->setMoveInWaitingTimeInDays(household->getMoveInDate().tm_mday - startDay);
+				waitingToMoveInHouseholdCount++;
+				boost::gregorian::date simulationDate = getBoostGregorianDateBySimDay(HITS_SURVEY_YEAR, startDay);
+				boost::gregorian::date pendingFromDate = boost::gregorian::date_from_tm(household->getPendingFromDate());
+				int moveInWaitingTimeInDays = (pendingFromDate - simulationDate).days();
+				hhAgent->getBidder()->setMoveInWaitingTimeInDays(moveInWaitingTimeInDays);
 				hhAgent->getBidder()->setUnitIdToBeOwned(household->getUnitId());
 
 			}
@@ -1828,6 +1836,12 @@ void HM_Model::startImpl()
 		AgentsLookupSingleton::getInstance().addHouseholdAgent(hhAgent);
 		agents.push_back(hhAgent);
 		workGroup.assignAWorker(hhAgent);
+	}
+
+	if(resume)
+	{
+		PrintOutV("total number of household resumed from previous run: "<<resumeHouseholdCount<<std::endl);
+		PrintOutV("total number of households waiting to move to a new unit from resume: "<<waitingToMoveInHouseholdCount<<std::endl);
 	}
 
 	for (size_t n = 0; n < individuals.size(); n++)
@@ -2892,7 +2906,7 @@ void HM_Model::hdbEligibilityTest(int index)
 
 
 		boost::gregorian::date date2(HITS_SURVEY_YEAR, 1, 1);
-		boost::gregorian::date_duration simulationDay(0); //we only check HDB eligibility on day 0 of simulation.
+		boost::gregorian::date_duration simulationDay(startDay); //we only check HDB eligibility on day 0 of simulation.
 		date2 = date2 + simulationDay;
 
 		int years = (date2 - date1).days() / YEAR;

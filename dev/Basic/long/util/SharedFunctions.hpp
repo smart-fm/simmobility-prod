@@ -29,6 +29,13 @@ namespace sim_mob
 		return currentDate;
 	}
 
+	inline boost::gregorian::date getBoostGregorianDateBySimDay(int simYear,int day)
+	{
+		boost::gregorian::date dd(simYear,1,1);
+		dd = dd + boost::gregorian::date_duration(day);
+		return dd;
+	}
+
 	template <class T>
 	static inline boost::shared_ptr<T> to_shared_ptr(T *val)
 	{

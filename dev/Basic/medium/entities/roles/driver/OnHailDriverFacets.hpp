@@ -59,9 +59,6 @@ private:
 	/**The taxi stand most recently chosen by the driver*/
 	const TaxiStand *chosenTaxiStand;
 
-	/**Indicates whether the driver has just moved into the next link*/
-	bool isMovedIntoNextLink;
-
 public:
 	OnHailDriverMovement();
 	virtual ~OnHailDriverMovement();
@@ -90,12 +87,6 @@ public:
 	 * @return true if successfully moved to next segment, false otherwise
 	 */
 	virtual bool moveToNextSegment(DriverUpdateParams &params);
-
-	/**
-	 * Handles movement into a new link after getting permission from the managing conflux
-	 * @param params driver update params for current tick
-	 */
-	virtual void flowIntoNextLinkIfPossible(DriverUpdateParams& params);
 
 	/**
 	 * This method performs the actions required by the decison given by the behaviour models

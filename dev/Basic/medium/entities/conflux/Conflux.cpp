@@ -478,6 +478,7 @@ void Conflux::processAgents(timeslice frameNumber)
 	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++)
 	{
 		(*it)->currWorkerProvider = currWorkerProvider;
+		(*it)->currTick = currFrame;
 		(*it)->update(currFrame);
 	}
 }
@@ -1799,7 +1800,8 @@ void Conflux::assignPersonToPedestrianlist(Person_MT* person)
 
 void Conflux::dropOffTaxiTraveler(Person_MT* person)
 {
-	if(person){
+	if(person)
+	{
 		switchTripChainItem(person);
 	}
 }

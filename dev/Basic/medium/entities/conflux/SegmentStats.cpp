@@ -149,11 +149,13 @@ void SegmentStats::updateBusStopAgents(timeslice now)
 {
 	for (BusStopAgentList::iterator i = busStopAgents.begin(); i != busStopAgents.end(); i++)
 	{
+		(*i)->currTick = now;
 		(*i)->update(now);
 	}
 
 	for(auto it = taxiStandAgents.begin(); it != taxiStandAgents.end(); it++)
 	{
+		(*it)->currTick = now;
 		(*it)->update(now);
 	}
 }

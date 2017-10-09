@@ -147,6 +147,16 @@ Person_MT* OnHailDriver::tryPickUpPassengerAtNode(const Node *node, const string
 
 void OnHailDriver::addPassenger(Person_MT *person)
 {
+#ifndef NDEBUG
+	if(passenger)
+	{
+		stringstream msg;
+		msg << "OnHailDriver " << parent->getDatabaseId() << " attempting to pick-up another passenger! "
+		    << passenger->getParent()->getDatabaseId() << " is already in the car";
+		throw runtime_error(msg.str());
+	}
+#endif
+
 	Role<Person_MT> *personRole = person->getRole();
 	passenger = dynamic_cast<Passenger *>(personRole);
 
@@ -159,8 +169,8 @@ void OnHailDriver::addPassenger(Person_MT *person)
 		throw runtime_error(msg.str());
 	}
 
-	ControllerLog() << "OnHailDriver " << parent->getDatabaseId() << ": Picked-up " << person->getDatabaseId()
-	                << endl;
+	ControllerLog() << parent->currTick.ms() << "ms: OnHailDriver " << parent->getDatabaseId() << ": Picked-up "
+	                << person->getDatabaseId() << " while " << getDriverStatusStr() << endl;
 #endif
 }
 
@@ -184,7 +194,8 @@ void OnHailDriver::alightPassenger()
 	passenger = nullptr;
 
 #ifndef NDEBUG
-	ControllerLog() << "OnHailDriver " << parent->getDatabaseId() << ": Dropped-off " << person->getDatabaseId()
-	                << endl;
+	ControllerLog() << parent->currTick.ms() << "ms: OnHailDriver " << parent->getDatabaseId() << ": Dropped-off "
+	                << person->getDatabaseId() << " at node "
+	                << currSegStats->getRoadSegment()->getParentLink()->getToNode()->getNodeId() << endl;
 #endif
 }

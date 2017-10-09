@@ -40,9 +40,10 @@ void OnHailDriverMovement::frame_init()
 
 void OnHailDriverMovement::frame_tick()
 {
-	const MobilityServiceDriverStatus status = onHailDriver->getDriverStatus();
+	ControllerLog() << onHailDriver->getParent()->currTick.ms() << ": Driver "
+	                << onHailDriver->getParent()->getDatabaseId() << " is " << onHailDriver->getDriverStatusStr() << endl;
 
-	switch (status)
+	switch (onHailDriver->getDriverStatus())
 	{
 	case CRUISING:
 	{
@@ -71,9 +72,17 @@ void OnHailDriverMovement::frame_tick()
 		}
 		else if(person)
 		{
-			//Person was picked up
-			onHailDriver->addPassenger(person);
-			beginDriveWithPassenger(person);
+			try
+			{
+				//Person was picked up
+				onHailDriver->addPassenger(person);
+				beginDriveWithPassenger(person);
+			}
+			catch (no_path_error &ex)
+			{
+				Warn() << ex.what();
+				//What can be done in this case?
+			}
 		}
 		else
 		{
@@ -217,6 +226,10 @@ void OnHailDriverMovement::performDecisionActions(BehaviourDecision decision)
 		case BehaviourDecision::END_SHIFT:
 		{
 			onHailDriver->getParent()->setToBeRemoved();
+#ifndef NDEBUG
+			ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
+			                << onHailDriver->getParent()->getDatabaseId() << ": Shift ended"  << endl;
+#endif
 			break;
 		}
 		default:
@@ -317,8 +330,10 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 		throw no_path_error(msg.str());
 	}
 
-	ControllerLog() << "OnHailDriver " << onHailDriver->getParent()->getDatabaseId()
-	                << ": Begin cruising to node " << node->getNodeId() << endl;
+	ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
+	                << onHailDriver->getParent()->getDatabaseId() << ": Begin cruising from node "
+	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+	                << " to node " << node->getNodeId() << endl;
 #endif
 
 	std::vector<const SegmentStats *> routeSegStats;

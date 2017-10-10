@@ -246,7 +246,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		if( bidder->getMoveInWaitingTimeInDays() > 0 )
 			bidder->TakeUnitOwnership();
 
-		if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 )
+		if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 && bidder->getParent()->getHousehold()->getLastBidStatus() == 1 && bidder->getMoveInWaitingTimeInDays() <= 0)
 			TransferUnitToFreelanceAgent();
 
 	    //The seller becomes inactive when the bidder is inactive. This is alright

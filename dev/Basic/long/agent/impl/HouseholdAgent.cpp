@@ -459,8 +459,7 @@ void HouseholdAgent::onWorkerEnter()
 		}
 	}
 
-
-	if( config.ltParams.jobAssignmentModel.enabled == true && model->getJobAssignIndividualCount() <= 10000)
+	if( config.ltParams.jobAssignmentModel.enabled == true)
 	{
 
 		JobAssignmentModel jobAssignModel(model);

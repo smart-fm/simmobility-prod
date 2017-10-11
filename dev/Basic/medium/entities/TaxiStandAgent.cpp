@@ -58,8 +58,7 @@ Entity::UpdateStatus TaxiStandAgent::frame_tick(timeslice now)
 		parentConflux->updateQueuingTaxiDriverAgent((*itWaitDriver));
 		OnHailDriver *driver = dynamic_cast<OnHailDriver *>((*itWaitDriver)->getRole());
 
-		if(!driver || driver->getBehaviour()->isQueuingStintComplete() ||
-				driver->getDriverStatus() == DRIVE_WITH_PASSENGER)
+		if(!driver || driver->isToBeRemovedFromTaxiStand())
 		{
 			itWaitDriver = queuingDrivers.erase(itWaitDriver);
 			continue;

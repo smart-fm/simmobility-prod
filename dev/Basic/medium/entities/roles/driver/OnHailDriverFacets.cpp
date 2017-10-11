@@ -40,9 +40,6 @@ void OnHailDriverMovement::frame_init()
 
 void OnHailDriverMovement::frame_tick()
 {
-	ControllerLog() << onHailDriver->getParent()->currTick.ms() << ": Driver "
-	                << onHailDriver->getParent()->getDatabaseId() << " is " << onHailDriver->getDriverStatusStr() << endl;
-
 	switch (onHailDriver->getDriverStatus())
 	{
 	case CRUISING:
@@ -93,6 +90,8 @@ void OnHailDriverMovement::frame_tick()
 
 			//Perform the actions required based on the decision
 			performDecisionActions(decision);
+
+			onHailDriver->setToBeRemovedFromTaxiStand(true);
 		}
 
 		//Skip the multiple calls to frame_tick() from the conflux
@@ -401,6 +400,7 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 
 	//Set vehicle to moving
 	onHailDriver->getResource()->setMoving(true);
+	onHailDriver->setToBeRemovedFromTaxiStand(true);
 }
 
 void OnHailDriverMovement::beginQueuingAtTaxiStand(DriverUpdateParams &params)
@@ -416,6 +416,7 @@ void OnHailDriverMovement::beginQueuingAtTaxiStand(DriverUpdateParams &params)
 	params.elapsedSeconds = params.secondsInTick;
 	onHailDriver->getParent()->setRemainingTimeThisTick(0.0);
 	onHailDriver->setDriverStatus(QUEUING_AT_TAXISTAND);
+	onHailDriver->setToBeRemovedFromTaxiStand(false);
 
 	//Update the value of current node as we return after this method
 	currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getFromNode();

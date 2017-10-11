@@ -23,6 +23,9 @@ private:
 	/**Stores the controllers that the driver is subscribed to*/
 	std::vector<MobilityServiceController *> subscribedControllers;
 
+	/**Indicates whether the driver is to be removed from the taxi stand*/
+	bool toBeRemovedFromTaxiStand;
+
 protected:
 	/**Pointer to the on hail driver's movement facet object*/
 	OnHailDriverMovement *movement;
@@ -119,6 +122,16 @@ public:
 	const OnHailDriverBehaviour* getBehaviour() const
 	{
 		return behaviour;
+	}
+
+	const bool isToBeRemovedFromTaxiStand() const
+	{
+		return toBeRemovedFromTaxiStand;
+	}
+
+	void setToBeRemovedFromTaxiStand(bool value)
+	{
+		toBeRemovedFromTaxiStand = value;
 	}
 
 	friend class OnHailDriverMovement;

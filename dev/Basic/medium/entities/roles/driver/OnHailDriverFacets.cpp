@@ -190,8 +190,11 @@ bool OnHailDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 
 	bool retVal = DriverMovement::moveToNextSegment(params);
 
-	//Update the value of current node
-	currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getFromNode();
+	if(!pathMover.isPathCompleted())
+	{
+		//Update the value of current node
+		currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getFromNode();
+	}
 
 	return retVal;
 }

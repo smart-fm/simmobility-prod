@@ -423,6 +423,10 @@ void OnHailDriverMovement::beginQueuingAtTaxiStand(DriverUpdateParams &params)
 
 	//Update the value of current node as we return after this method
 	currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getFromNode();
+
+	ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
+	                << onHailDriver->getParent()->getDatabaseId() << ": Begin queueing at taxi stand at segment "
+	                << chosenTaxiStand->getRoadSegmentId() << endl;
 }
 
 BehaviourDecision OnHailDriverBehaviour::makeBehaviourDecision() const

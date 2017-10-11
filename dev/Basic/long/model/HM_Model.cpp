@@ -3502,7 +3502,9 @@ void HM_Model::loadIndLogsumJobAssignments(BigSerial individuaId)
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 		conn_calibration.setSchema(config.schemas.calibration_schema);
 		IndLogsumJobAssignmentDao logsumDao(conn_calibration);
+		clear_delete_vector(indLogsumJobAssignmentList);
 		indLogsumJobAssignmentList = logsumDao.loadLogsumByIndividualId(individuaId);
+		indLogsumJobAssignmentByTaz.clear();
 
 		for (IndLogsumJobAssignmentList::iterator it = indLogsumJobAssignmentList.begin(); it != indLogsumJobAssignmentList.end(); it++)
 		{

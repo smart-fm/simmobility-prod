@@ -186,7 +186,7 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 			{
 				double probVal = (expVal.second / totalExp);
 				probValMap.insert(std::pair<BigSerial, double>( expVal.first, probVal));
-				writeJobAssignmentProbsToFile(individualId, expVal.first, probVal);
+				//writeJobAssignmentProbsToFile(individualId, expVal.first, probVal);
 			}
 		}
 
@@ -289,6 +289,8 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		}
 
 		}
+		expValMap.clear();
+		probValMap.clear();
 
 }
 

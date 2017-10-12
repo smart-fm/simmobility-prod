@@ -9,7 +9,7 @@
 
 using namespace sim_mob::long_term;
 
-JobsWithIndustryTypeAndTazId::JobsWithIndustryTypeAndTazId(BigSerial jobId, int industryTypeId, BigSerial tazId):jobId(jobId), industryTypeId(industryTypeId),tazId(tazId){}
+JobsWithIndustryTypeAndTazId::JobsWithIndustryTypeAndTazId(BigSerial jobId, int industryTypeId, BigSerial tazId, bool assigned):jobId(jobId), industryTypeId(industryTypeId),tazId(tazId), assigned(assigned){}
 
 JobsWithIndustryTypeAndTazId::~JobsWithIndustryTypeAndTazId() {}
 
@@ -18,6 +18,7 @@ JobsWithIndustryTypeAndTazId::JobsWithIndustryTypeAndTazId( const JobsWithIndust
 	this->jobId = source.jobId;
 	this->industryTypeId = source.industryTypeId;
 	this->tazId = source.tazId;
+	this->assigned = source.assigned;
 
 }
 
@@ -26,6 +27,7 @@ JobsWithIndustryTypeAndTazId& JobsWithIndustryTypeAndTazId::operator=( const Job
 	this->jobId = source.jobId;
 	this->industryTypeId = source.industryTypeId;
 	this->tazId = source.tazId;
+	this->assigned = source.assigned;
 
 	return *this;
 }
@@ -58,6 +60,16 @@ BigSerial JobsWithIndustryTypeAndTazId::getTazId() const
 void JobsWithIndustryTypeAndTazId::setTazId(BigSerial tazId)
 {
 	this->tazId = tazId;
+}
+
+bool JobsWithIndustryTypeAndTazId::isAssigned() const
+{
+	return assigned;
+}
+
+void JobsWithIndustryTypeAndTazId::setAssigned(bool assigned)
+{
+	this->assigned = assigned;
 }
 
 

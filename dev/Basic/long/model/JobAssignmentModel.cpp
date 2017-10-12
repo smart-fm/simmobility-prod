@@ -284,6 +284,7 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		{
 		    if((iter->second->getJobId()) == jobId) {
 		        jobsWithTazAndIndustryType.erase(iter);
+		    	//iter->second->setAssigned(true);
 		        break;
 		    }
 		}

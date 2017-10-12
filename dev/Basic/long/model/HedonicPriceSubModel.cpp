@@ -265,36 +265,55 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Buildi
 		ZZ_hdb5m = 1;
 
 
-	HedonicCoeffs *coeffs = nullptr;
+	HedonicCoeffsByUnitType *coeffs = nullptr;
 
 
 	//-----------------------------
 	//-----------------------------
 	if (ZZ_hdb12 == 1)
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(7));
+		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(1));
 	else
 	if (ZZ_hdb3 == 1)
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(8));
+		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(3));
 	else
 	if (ZZ_hdb4 == 1)
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(9));
+		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(4));
 	else
 	if (ZZ_hdb5m == 1)
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(10));
+		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(5));
 	else
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(11));
+		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(6));
+
+	BigSerial tazId = hmModel->getUnitTazId( unit->getId() );
+	Taz* unitTaz =  hmModel->getTazById(tazId);
+	float otherMature = 0;
+	float nonMature = 0;
+
+	if (unitTaz->getHdbTownType().compare("other-mature")==0)
+	{
+		otherMature = 1.0;
+	}
+	else if(unitTaz->getHdbTownType().compare("non-mature")==0)
+	{
+		nonMature = 1.0;
+	}
+
+	float storey = unit->getStorey();
 
 	hedonicPrice =  coeffs->getIntercept() 	+
-					coeffs->getLogSqrtArea() 	*	DD_logsqrtarea 	+
+					coeffs->getLogArea() 	*	DD_logsqrtarea 	+
 					coeffs->getLogsumWeighted() *	ZZ_logsum 		+
 					coeffs->getPms1km() 		*	ZZ_pms1km 		+
 					coeffs->getDistanceMallKm() *	ZZ_dis_mall 	+
 					coeffs->getMrt200m() 		*	ZZ_mrt_200m 	+
-					coeffs->getMrt_2_400m() 	*	ZZ_mrt_400m 	+
+					coeffs->getMrt2400m() 	*	ZZ_mrt_400m 	+
 					coeffs->getExpress200m() 	* 	ZZ_express_200m	+
-					coeffs->getBus400m() 		*	ZZ_bus_400m 	+
+					coeffs->getBus2400m() 		*	ZZ_bus_400m 	+
 					coeffs->getAge() 			*	age 			+
-					coeffs->getLogAgeSquared() 	*	ageSquared;
+					coeffs->getAgeSquared() 	*	ageSquared      +
+					coeffs->getNonMature()      *   nonMature       +
+					coeffs->getOtherMature()    *   otherMature     +
+					coeffs->getStorey()         * storey;
 
 
 

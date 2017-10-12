@@ -68,7 +68,7 @@ struct type_conversion<sim_mob::long_term::HedonicCoeffsByUnitType>
     {
     	hedonicCoeffsByUT.setUnitTypeId(values.get<BigSerial>("unit_type_id", INVALID_ID));
     	hedonicCoeffsByUT.setIntercept(values.get<double>("intercept", 0));
-    	hedonicCoeffsByUT.setLogSqrtArea(values.get<double>("log_area", 0));
+    	hedonicCoeffsByUT.setLogArea(values.get<double>("log_area", 0));
     	hedonicCoeffsByUT.setFreehold( values.get<double>("freehold", 0));
     	hedonicCoeffsByUT.setLogsumWeighted(values.get<double>("logsum_weighted", 0));
     	hedonicCoeffsByUT.setPms1km(values.get<double>("pms_1km", 0));

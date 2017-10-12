@@ -392,7 +392,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 			if(hedonicCoeffObj!=nullptr)
 			{
-				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogSqrtArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * freehold) +
+				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * freehold) +
 					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * isDistanceToPMS30) + (hedonicCoeffObj->getDistanceMallKm() * distanceToMall) +
 					(hedonicCoeffObj->getMrt200m()* isMRT_200m) + (hedonicCoeffObj->getMrt2400m() *isMRT_2_400m) + (hedonicCoeffObj->getExpress200m() * isExpress_200m) +
 				    (hedonicCoeffObj->getBusGt400m() * isBus_2_400m) + (hedonicCoeffObj->getBusGt400m() * isBusGt_400m) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getAgeSquared() * (ageCapped*ageCapped));

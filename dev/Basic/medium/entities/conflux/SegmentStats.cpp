@@ -4,21 +4,12 @@
 
 #include "SegmentStats.hpp"
 
-#include <algorithm>
-#include <cstdlib>
-#include <ctime>
 #include "conf/ConfigManager.hpp"
-#include "conf/ConfigParams.hpp"
 #include "config/MT_Config.hpp"
-#include "Conflux.hpp"
 #include "entities/BusStopAgent.hpp"
-#include "entities/roles/Role.hpp"
-#include "entities/vehicle/VehicleBase.hpp"
-#include "logging/Log.hpp"
-#include "message/MessageBus.hpp"
+#include "entities/roles/driver/OnHailDriverFacets.hpp"
 #include "entities/TaxiStandAgent.hpp"
-#include "entities/roles/driver/TaxiDriverFacets.hpp"
-#include "entities/roles/driver/TaxiDriver.hpp"
+
 
 using std::string;
 using namespace sim_mob;
@@ -414,10 +405,15 @@ std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const Lan
 double SegmentStats::getLaneQueueLength(const Lane* lane) const
 {
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
+
 	if (laneIt == laneStatsMap.end())
 	{
-		throw std::runtime_error("SegmentStats::getLaneQueueLength lane not found in segment stats");
+		std::stringstream msg;
+		msg << "SegmentStats::getLaneQueueLength() - Lane " << lane->getLaneId()
+		    << " not found in SegmentStats of segment " << this->roadSegment->getRoadSegmentId();
+		throw std::runtime_error(msg.str());
 	}
+
 	return laneIt->second->getQueueLength();
 }
 
@@ -1233,7 +1229,7 @@ void LaneStats::printAgents() const
 		if ( (*i)->getRole())
 		{
 			MovementFacet *movFacet = (*i)->getRole()->Movement();
-			TaxiDriverMovement *mov = dynamic_cast<TaxiDriverMovement*>(movFacet);
+			OnHailDriverMovement *mov = dynamic_cast<OnHailDriverMovement *>(movFacet);
 			if(mov)
 			{
 				const MesoPathMover pathMover = mov->getMesoPathMover();
@@ -1245,12 +1241,6 @@ void LaneStats::printAgents() const
 				}
 				debugMsgs << ")(currStats:"<<pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId()<<")";
 				debugMsgs<< "(" << "posSeg:" << pathMover.getPositionInSegment() << " )" ;
-				TaxiDriver* driver = dynamic_cast<TaxiDriver*>((*i)->getRole());
-				if(driver && driver->getPassenger())
-				{
-					debugMsgs<< "(" << "passenger:" << driver->getPassenger() <<"|"<<driver->getPassenger()->getStartPoint().node->getNodeId()
-							<<"|"<<driver->getPassenger()->getEndPoint().node->getNodeId()<< " )" ;
-				}
 			}
 		}
 		if((*i)->getPrevRole()){

@@ -224,7 +224,7 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 			    << ex.what() << std::endl;
 			WarnOut(msg.str());
 #ifndef NDEBUG
-			Print()<<"CHECK IF ANYTHING IS WRITTEN IN THE WAAAARN"<<std::endl;
+			Print()<<"Exception occurred! Check warn.log for details."<<std::endl;
 #endif
 		}
 

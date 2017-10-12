@@ -670,20 +670,22 @@ void Person_MT::EnRouteToNextTrip(const std::string& stationName, const DailyTim
 
 void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::string&  ptPathsetStoredProcName)
 {
-	std::vector<TripChainItem*>::iterator tripChainItemIt;
+	std::vector<TripChainItem *>::iterator tripChainItemIt;
 	for (tripChainItemIt = tripChain.begin(); tripChainItemIt != tripChain.end(); ++tripChainItemIt)
 	{
 		if ((*tripChainItemIt)->itemType == sim_mob::TripChainItem::IT_TRIP)
 		{
-			unsigned int start_time = ((*tripChainItemIt)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime())/1000); // start time in seconds
-			TripChainItem* trip = (*tripChainItemIt);
-			if(trip->origin.type == WayPoint::NODE && trip->destination.type== WayPoint::NODE){
-			std::string originId = boost::lexical_cast<std::string>(trip->origin.node->getNodeId());
-			std::string destId = boost::lexical_cast<std::string>(trip->destination.node->getNodeId());
-			trip->startLocationId = originId;
-			trip->endLocationId = destId;
+			unsigned int start_time = ((*tripChainItemIt)->startTime.offsetMS_From(
+					ConfigManager::GetInstance().FullConfig().simStartTime()) / 1000); // start time in seconds
+			TripChainItem *trip = (*tripChainItemIt);
+			if (trip->origin.type == WayPoint::NODE && trip->destination.type == WayPoint::NODE)
+			{
+				std::string originId = boost::lexical_cast<std::string>(trip->origin.node->getNodeId());
+				std::string destId = boost::lexical_cast<std::string>(trip->destination.node->getNodeId());
+				trip->startLocationId = originId;
+				trip->endLocationId = destId;
 			}
-			std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*>(*tripChainItemIt))->getSubTripsRW();
+			std::vector<sim_mob::SubTrip> &subTrips = (dynamic_cast<sim_mob::Trip *>(*tripChainItemIt))->getSubTripsRW();
 			std::vector<SubTrip>::iterator itSubTrip = subTrips.begin();
 			std::vector<sim_mob::SubTrip> newSubTrips;
 			while (itSubTrip != subTrips.end())
@@ -695,8 +697,10 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 						std::vector<sim_mob::OD_Trip> odTrips;
 
 						std::string dbid = this->getDatabaseId();
-						bool ret = sim_mob::PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node->getNodeId(),
-																		itSubTrip->destination.node->getNodeId(),itSubTrip->startTime.getValue(), odTrips, dbid, start_time,ptPathsetStoredProcName);
+						bool ret = sim_mob::PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(
+								itSubTrip->origin.node->getNodeId(),
+								itSubTrip->destination.node->getNodeId(), itSubTrip->startTime.getValue(), odTrips,
+								dbid, start_time, ptPathsetStoredProcName);
 
 						findMrtTripsAndPerformRailTransitRoute(odTrips);
 
@@ -722,7 +726,8 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 						itSubTrip->startLocationType = "NODE";
 						itSubTrip->endLocationType = "NODE";
 					}
-					else if (itSubTrip->getMode().find("Car Sharing") != std::string::npos || itSubTrip->getMode() == "PrivateBus")
+					else if (itSubTrip->getMode().find(
+							"Car Sharing") != std::string::npos || itSubTrip->getMode() == "PrivateBus")
 					{
 						std::string originId = boost::lexical_cast<std::string>(itSubTrip->origin.node->getNodeId());
 						std::string destId = boost::lexical_cast<std::string>(itSubTrip->destination.node->getNodeId());
@@ -731,15 +736,16 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 						itSubTrip->endLocationId = destId;
 						itSubTrip->startLocationType = "NODE";
 						itSubTrip->endLocationType = "NODE";
-						if(itSubTrip->getMode() != "PrivateBus")
+						if (itSubTrip->getMode() != "PrivateBus")
 						{
 							itSubTrip->travelMode = "Sharing"; // modify mode name for RoleFactory
 						}
-						
-						const StreetDirectory& streetDirectory = StreetDirectory::Instance();
-						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath<Node, Node>(*itSubTrip->origin.node, *itSubTrip->destination.node);
+
+						const StreetDirectory &streetDirectory = StreetDirectory::Instance();
+						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath<Node, Node>(
+								*itSubTrip->origin.node, *itSubTrip->destination.node);
 						double travelTime = 0.0;
-						const TravelTimeManager* ttMgr = TravelTimeManager::getInstance();
+						const TravelTimeManager *ttMgr = TravelTimeManager::getInstance();
 						for (std::vector<WayPoint>::iterator it = wayPoints.begin(); it != wayPoints.end(); it++)
 						{
 							if (it->type == WayPoint::LINK)

@@ -398,7 +398,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config configSchemaVersion  " << config.ltParams.configSchemaVersion << endl);
        	PrintOutV("XML Config currentOutputSchema " << config.ltParams.currentOutputSchema << endl);
        	PrintOutV("XML Config days " << config.ltParams.days << endl);
-        PrintOutV("XML Config DeveloperModel " << config.ltParams.developerModel.enabled << endl);
+    	PrintOutV("XML Config launch BTO " << config.ltParams.launchBTO << endl);
+
+       	PrintOutV("XML Config DeveloperModel " << config.ltParams.developerModel.enabled << endl);
         PrintOutV("XML Config DeveloperModel initialBuildingId " << config.ltParams.developerModel.initialBuildingId << endl);
         PrintOutV("XML Config DeveloperModel initialPostcode " << config.ltParams.developerModel.initialPostcode << endl);
         PrintOutV("XML Config DeveloperModel initialProjectId " << config.ltParams.developerModel.initialProjectId << endl);
@@ -414,6 +416,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelRandom " << config.ltParams.housingModel.awakeningModel.awakenModelRandom << endl);
         PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelShan " << config.ltParams.housingModel.awakeningModel.awakenModelShan << endl);
         PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelJingsi " << config.ltParams.housingModel.awakeningModel.awakenModelJingsi << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel awakeningOffMarketSuccessfulBid " << config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel awakeningOffMarketUnsuccessfulBid " << config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid << endl);
 
         PrintOutV("XML Config HousingModel enabled " << config.ltParams.housingModel.enabled << endl);
         PrintOutV("XML Config HousingModel householdBiddingWindow " << config.ltParams.housingModel.householdBiddingWindow << endl);
@@ -511,7 +515,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             }
 
             PrintOutV(" Day " << currTick
-            	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
+            	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize(currTick)
 				   << " BTO_Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize())
 				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders()
 				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers()

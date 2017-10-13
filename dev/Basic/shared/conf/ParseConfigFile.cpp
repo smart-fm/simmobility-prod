@@ -315,6 +315,10 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
 					node, "initialLoading"), "value"), false);
 
+	cfg.ltParams.launchBTO =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+						node, "launchBTO"), "value"), false);
+
 	processDeveloperModelNode(GetSingleElementByName(node, "developerModel"));
 	processHousingModelNode(GetSingleElementByName(node, "housingModel"));
 	processHouseHoldLogsumsNode(GetSingleElementByName(node, "outputHouseholdLogsums"));
@@ -328,6 +332,7 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 	cfg.ltParams.taxiAccessModel = taxiAccessModel;
 
 	processSchoolAssignmentModelNode(GetSingleElementByName(node, "schoolAssignmentModel"));
+	processJobAssignmentModelNode(GetSingleElementByName(node, "jobAssignmentModel"));
 	processScenarioNode(GetSingleElementByName(node, "scenario"));
 	processOutputFilesNode(GetSingleElementByName(node, "outputFiles"));
 
@@ -489,6 +494,17 @@ void ParseConfigFile::processSchoolAssignmentModelNode(xercesc::DOMElement *scho
 	cfg.ltParams.schoolAssignmentModel = schoolAssignmentModel;
 }
 
+void ParseConfigFile::processJobAssignmentModelNode(xercesc::DOMElement *jobAssignModel)
+{
+	LongTermParams::JobAssignmentModel jobAssignmentModel;
+
+	jobAssignmentModel.enabled =
+			ParseBoolean(GetNamedAttributeValue(jobAssignModel, "enabled"), false);
+
+	cfg.ltParams.jobAssignmentModel = jobAssignmentModel;
+
+}
+
 void ParseConfigFile::processVehicleOwnershipModelNode(xercesc::DOMElement *vehOwnModel)
 {
 	LongTermParams::VehicleOwnershipModel vehicleOwnershipModel;
@@ -543,6 +559,10 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 	housingModel.timeOffMarket =
 			ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(
 					houseModel, "timeOffMarket"), "value"), (unsigned int) 0);
+
+	housingModel.wtpOffsetEnabled =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+						houseModel, "wtpOffsetEnabled"), "value"), false);
 
 	housingModel.vacantUnitActivationProbability =
 			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(

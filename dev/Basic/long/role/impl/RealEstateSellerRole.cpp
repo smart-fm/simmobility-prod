@@ -303,7 +303,7 @@ void RealEstateSellerRole::adjustNotSoldUnits()
     const HM_Model* model = dynamic_cast<RealEstateAgent*>(getParent())->getModel();
     HousingMarket* market = dynamic_cast<RealEstateAgent*>(getParent())->getMarket();
     const IdVector& unitIds = dynamic_cast<RealEstateAgent*>(getParent())->getUnitIds();
-    const Unit* unit = nullptr;
+    Unit* unit = nullptr;
     const HousingMarket::Entry* unitEntry = nullptr;
 
     for (IdVector::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
@@ -320,8 +320,8 @@ void RealEstateSellerRole::adjustNotSoldUnits()
 			 {
 				 SellingUnitInfo& info = it->second;
 
-				// if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
-				 if(unit->getTimeOnMarket() == 0)
+				 if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
+				// if(unit->getTimeOnMarket() == 0)
 				 {
 					#ifdef VERBOSE
 					PrintOutV("[day " << this->currentTime.ms() << "] RealEstate Agent. Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
@@ -330,6 +330,13 @@ void RealEstateSellerRole::adjustNotSoldUnits()
 					sellingUnitsMap.erase(unitId);
 
 					market->removeEntry(unitId);
+
+					const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+					unit->setbiddingMarketEntryDay((int)currentTime.ms() + config.ltParams.housingModel.timeOffMarket + 1 );
+					unit->setRemainingTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
+					unit->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
+					unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
+					unit->setRemainingTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 
 					continue;
 				 }

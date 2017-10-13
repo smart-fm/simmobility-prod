@@ -402,6 +402,7 @@ void HouseholdBidderRole::TakeUnitOwnership()
 	//update the unit tenure status to "owner occupied" when a household moved to a new unit.
 	unit->setTenureStatus(1);
 
+
     biddingEntry.invalidate();
     Statistics::increment(Statistics::N_ACCEPTED_BIDS);
 }
@@ -635,7 +636,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	if( numUnits == 0 )
     		continue;
 
-    	int offset = (float)rand() / RAND_MAX * numUnits;
+    	int offset = (float)rand() / RAND_MAX * (numUnits - 1);
     	advance( range.first, offset ); // change a random unit in that zoneHousingType
 
     	const BigSerial unitId = (range.first)->second;
@@ -781,7 +782,12 @@ bool HouseholdBidderRole::pickEntryToBid()
 
            			//(1-avg(wtp/hedonic)) * hedonic
         			//We need to adjust the willingness to pay
-            		wp += entry->getHedonicPrice() * unitType->getWtpOffset();
+            		//wtpOffset is enabled by default. If you want to have wtpOffset as 0, set this value to false in the xml config file.
+            		bool wtpOffsetEnabled = config.ltParams.housingModel.wtpOffsetEnabled;
+            		if(wtpOffsetEnabled)
+            		{
+            			wp += entry->getHedonicPrice() * unitType->getWtpOffset();
+            		}
             	}
 
 

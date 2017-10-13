@@ -308,10 +308,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
     if(resume)
     {
-    	currentOutputSchema = config.ltParams.currentOutputSchema;
     	if(conn.isConnected())
     	{
-    		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(currentOutputSchema);
+    		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(config.schemas.main_schema);
     		if(!simulationStartPointList.empty())
     		{
     			simVersionId = simulationStartPointList[simulationStartPointList.size()-1]->getId() + 1;

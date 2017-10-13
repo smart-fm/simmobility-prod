@@ -130,6 +130,7 @@
             <timeOnMarket value="72"/>
             <timeOffMarket value="288"/>
             <timeInterval value="7"/>
+	    <wtpOffsetEnabled value="true"/>
 	    <awakeningModel enabled="true">
 		    <initialHouseholdsOnMarket value="7500"/>
 		    <dailyHouseholdAwakenings value="400"/>

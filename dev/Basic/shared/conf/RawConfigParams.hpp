@@ -69,6 +69,7 @@ struct LongTermParams
 		unsigned int timeInterval; //time interval before a unit drops its asking price by a certain percentage.
 		unsigned int timeOnMarket; //for units on the housing market
 		unsigned int timeOffMarket;//for units on the housing market
+		bool wtpOffsetEnabled;
 		float vacantUnitActivationProbability;
 		float housingMarketSearchPercentage;
 		float housingMoveInDaysInterval;

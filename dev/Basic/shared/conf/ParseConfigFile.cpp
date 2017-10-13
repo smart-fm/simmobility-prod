@@ -560,6 +560,10 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 			ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(
 					houseModel, "timeOffMarket"), "value"), (unsigned int) 0);
 
+	housingModel.wtpOffsetEnabled =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+						houseModel, "wtpOffsetEnabled"), "value"), false);
+
 	housingModel.vacantUnitActivationProbability =
 			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(
 					houseModel, "vacantUnitActivationProbability"), "value"), (float) 0.0);

@@ -315,6 +315,10 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
 					node, "initialLoading"), "value"), false);
 
+	cfg.ltParams.launchBTO =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+						node, "launchBTO"), "value"), false);
+
 	processDeveloperModelNode(GetSingleElementByName(node, "developerModel"));
 	processHousingModelNode(GetSingleElementByName(node, "housingModel"));
 	processHouseHoldLogsumsNode(GetSingleElementByName(node, "outputHouseholdLogsums"));
@@ -555,6 +559,10 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 	housingModel.timeOffMarket =
 			ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(
 					houseModel, "timeOffMarket"), "value"), (unsigned int) 0);
+
+	housingModel.wtpOffsetEnabled =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+						houseModel, "wtpOffsetEnabled"), "value"), false);
 
 	housingModel.vacantUnitActivationProbability =
 			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(

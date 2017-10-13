@@ -1482,9 +1482,9 @@ void HM_Model::startImpl()
 	{
 		loadLTVersion(conn);
 		loadStudyAreas(conn);
-		loadJobsBySectorByTaz(conn_calibration);
-		loadJobAssignments(conn);
-		loadJobsByTazAndIndustryType(conn);
+		//loadJobsBySectorByTaz(conn_calibration);
+		//loadJobAssignments(conn);
+		//loadJobsByTazAndIndustryType(conn);
 
 		{
 			soci::session sql;
@@ -1905,15 +1905,27 @@ void HM_Model::startImpl()
 			//(*it)->setbiddingMarketEntryDay( unitStartDay );
 			int timeOnMarket = 0;
 			int timeOffMarket = 0;
+
+
 			if(!resume)
 			{
-				int timeOnMarket =  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket;
-				int timeOffMarket = 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket;
+				std::random_device genTimeOn;
+				std::mt19937 genRdTimeOn(genTimeOn());
+				std::uniform_int_distribution<int> disRdTimeOn(1,  config.ltParams.housingModel.timeOnMarket);
+				timeOnMarket = disRdTimeOn(genTimeOn);
+
+				std::random_device genTimeOff;
+				std::mt19937 genRdTimeOff(genTimeOff());
+				std::uniform_int_distribution<int> disRdTimeOff(1,  config.ltParams.housingModel.timeOffMarket);
+				timeOffMarket = disRdTimeOff(genTimeOff);
+
 				(*it)->setTimeOnMarket(timeOnMarket );
 				(*it)->setTimeOffMarket(timeOffMarket );
 				(*it)->setbiddingMarketEntryDay(999999);
 				(*it)->setRemainingTimeOnMarket(timeOnMarket);
 				(*it)->setRemainingTimeOffMarket(timeOffMarket);
+
+				writeUnitTimesToFile((*it)->getId(),(*it)->getTimeOnMarket(), (*it)->getTimeOffMarket(), (*it)->getbiddingMarketEntryDay());
 			}
 
 			//this unit is a vacancy
@@ -1945,6 +1957,8 @@ void HM_Model::startImpl()
 						(*it)->setRemainingTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 						offMarket++;
 					}
+
+
 					}
 					else
 					{
@@ -2822,32 +2836,30 @@ void HM_Model::update(int day)
 
 	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-		//this unit is a vacancy
-		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
+		//this unit is a vacancy and unit is on the market or to be entered to the market.
+		if (assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getbiddingMarketEntryDay() != 999999 )
 		{
 			//update unit's time on and off market values.
-
 			//unit is on the market if it is on or passed the bidding market entry day.
-			if ( (*it)->getRemainingTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay())
+			if ( (*it)->getRemainingTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay() )
 			{
 
-				(*it)->setbiddingMarketEntryDay(day + 1);
-				(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
+				//(*it)->setbiddingMarketEntryDay(day + 1);
+				//(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
 				(*it)->updateRemainingTimeOnMarket();
 			}
 			//unit is off the market if it has already completed the time on the market or if it has not yet entered the market.
-			else if((*it)->getRemainingTimeOnMarket() == 0 || day < (*it)->getbiddingMarketEntryDay())
+			else if((*it)->getRemainingTimeOnMarket() == 0 || day < (*it)->getbiddingMarketEntryDay() )
 			{
-
 				//unit is off the market and has completed the waiting time.
-				if((*it)->getRemainingTimeOffMarket() <= 0)
-				{
-
-					//when a unit is re-awakened it will have the full amount of time on and off market.
-					(*it)->setRemainingTimeOnMarket( (*it)->getTimeOnMarket());
-					(*it)->setRemainingTimeOffMarket( (*it)->getTimeOffMarket());
-				}
-				else // unit is off the market.
+//				if((*it)->getRemainingTimeOffMarket() <= 0)
+//				{
+//					//when a unit is re-awakened it will have the full amount of time on and off market.
+//					(*it)->setbiddingMarketEntryDay(day+1);
+//					(*it)->setRemainingTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+//					(*it)->setRemainingTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
+//				}
+				if((*it)->getRemainingTimeOffMarket() > 0) // unit is off the market.
 				{
 					(*it)->updateRemainingTimeOffMarket();
 				}

@@ -308,7 +308,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
     if(resume)
     {
-    	//currentOutputSchema = config.ltParams.currentOutputSchema;
     	if(conn.isConnected())
     	{
     		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(config.schemas.main_schema);

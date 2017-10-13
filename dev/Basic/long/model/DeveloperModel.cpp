@@ -202,7 +202,6 @@ void DeveloperModel::startImpl() {
 
 			PrintOutV("Total number of projects loaded from previous run: "<<existingProjectIds.size()<<std::endl);
 			PrintOutV("Total number of parcels with ongoing projects: "<<parcelsWithOngoingProjects.size()<<std::endl);
-
 		}
 		else
 		{

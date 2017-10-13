@@ -1707,14 +1707,12 @@ void HM_Model::startImpl()
 	}
 	else
 	{
-
 		BidDao bidDao(conn);
 		db::Parameters params;
 		params.push_back(lastStoppedDay-1);
 		const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + config.schemas.main_schema+ "bids" + " WHERE simulation_day = :v1;";
 		bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
 		PrintOutV("Total number of bids resumed from previous run: " << resumptionBids.size()<<std::endl);
-
 	}
 
 	workGroup.assignAWorker(&market);
@@ -1749,11 +1747,8 @@ void HM_Model::startImpl()
 	}
 
 	int homelessHousehold = 0;
-	//
 	// 1. Create Household Agents.
 	// 2. Assign households to the units.
-	//
-
 	int resumeHouseholdCount = 0;
 	int waitingToMoveInHouseholdCount = 0;
 	if(initialLoading)
@@ -1936,8 +1931,6 @@ void HM_Model::startImpl()
 				std::mt19937 gen2(rd2());
 				std::uniform_int_distribution<> dis2(1, config.ltParams.housingModel.timeOffMarket);
 				int timeOffMarket = dis2(gen2);
-
-
 
 				(*it)->setTimeOnMarket(timeOnMarket );
 				(*it)->setTimeOffMarket(timeOffMarket );

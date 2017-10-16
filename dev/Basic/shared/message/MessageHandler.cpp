@@ -15,7 +15,6 @@
 using namespace sim_mob::messaging;
 
 MessageHandler::MessageHandler(unsigned int id) : id(id), context(NULL) {}
-MessageHandler::MessageHandler() : id(0), context(NULL) {}
 
 MessageHandler::~MessageHandler()
 {

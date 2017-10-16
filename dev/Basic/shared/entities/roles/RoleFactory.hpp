@@ -241,6 +241,10 @@ std::stringstream msg;
 		{
 			return "onHailDriver";
 		}
+		else if (tripChainItem->itemType == TripChainItem::IT_ON_CALL_TRIP)
+		{
+			return "onCallDriver";
+		}
 
 		throw std::runtime_error("unknown TripChainItem type");
 	}

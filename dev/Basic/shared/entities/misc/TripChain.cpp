@@ -244,6 +244,10 @@ TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType
 	{
 		return IT_ON_HAIL_TRIP;
 	}
+	else if(itemType == "OnCallTrip")
+	{
+		return IT_ON_CALL_TRIP;
+	}
 	else if (itemType == "WaitingBusActivity")
 	{
 		return IT_WAITBUSACTIVITY;

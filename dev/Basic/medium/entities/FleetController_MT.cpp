@@ -57,6 +57,15 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
 			case SERVICE_CONTROLLER_ON_HAIL:
 				tripType = "OnHailTrip";
 				break;
+
+			case SERVICE_CONTROLLER_GREEDY:
+			case SERVICE_CONTROLLER_SHARED:
+			case SERVICE_CONTROLLER_FRAZZOLI:
+			case SERVICE_CONTROLLER_INCREMENTAL:
+			case SERVICE_CONTROLLER_PROXIMITY:
+				tripType = "OnCallTrip";
+				break;
+
 			default:
 				tripType = "TaxiTrip";
 			}

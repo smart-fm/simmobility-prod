@@ -2099,25 +2099,25 @@ void HM_Model::startImpl()
 			}
 		}
 
-		if( config.ltParams.jobAssignmentModel.enabled == true)
-			{
-
-				JobAssignmentModel jobAssignModel(this);
-				const Household *hh = households[n];
-				if( hh != NULL )
-				{
-					vector<BigSerial> individuals = households[n]->getIndividuals();
-					for(int n = 0; n < individuals.size(); n++)
-					{
-						const Individual *individual = getIndividualById(individuals[n]);
-						if(individual->getEmploymentStatusId() < 4)
-						{
-							//model->incrementJobAssignIndividualCount();
-							jobAssignModel.computeJobAssignmentProbability(individual->getId());
-						}
-					}
-				}
-			}
+//		if( config.ltParams.jobAssignmentModel.enabled == true)
+//			{
+//
+//				JobAssignmentModel jobAssignModel(this);
+//				const Household *hh = households[n];
+//				if( hh != NULL )
+//				{
+//					vector<BigSerial> individuals = households[n]->getIndividuals();
+//					for(int n = 0; n < individuals.size(); n++)
+//					{
+//						const Individual *individual = getIndividualById(individuals[n]);
+//						if(individual->getEmploymentStatusId() < 4)
+//						{
+//							//model->incrementJobAssignIndividualCount();
+//							jobAssignModel.computeJobAssignmentProbability(individual->getId());
+//						}
+//					}
+//				}
+//			}
 	}
 
 	Household *hh;

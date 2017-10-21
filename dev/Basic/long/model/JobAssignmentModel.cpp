@@ -218,6 +218,7 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 
 		{
 			boost::mutex::scoped_lock lock( mtx );
+			//mtx.lock();
 
 
 		HM_Model::JobsWithTazAndIndustryTypeMap &jobsWithTazAndIndustryType = model->getJobsWithTazAndIndustryTypeMap();
@@ -290,6 +291,7 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		}
 
 		}
+		//mtx.unlock();
 		expValMap.clear();
 		probValMap.clear();
 

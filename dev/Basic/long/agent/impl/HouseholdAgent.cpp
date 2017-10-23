@@ -243,11 +243,11 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		PrintExit( day, household, 0);
 		bidder->setActive(false);
 
-		if( bidder->getMoveInWaitingTimeInDays() > 0 )
-			bidder->TakeUnitOwnership();
-
-		if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 )
-			TransferUnitToFreelanceAgent();
+//		if( bidder->getMoveInWaitingTimeInDays() > 0 )
+//			bidder->TakeUnitOwnership();
+//
+//		if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 )
+//			TransferUnitToFreelanceAgent();
 
 	    //The seller becomes inactive when the bidder is inactive. This is alright
 		//because the bidder has a move in waiting time of 30 days
@@ -459,26 +459,26 @@ void HouseholdAgent::onWorkerEnter()
 		}
 	}
 
-		if( config.ltParams.jobAssignmentModel.enabled == true)
-		{
-
-			JobAssignmentModel jobAssignModel(model);
-			const Household *hh = this->getHousehold();
-			if( hh != NULL )
-			{
-				vector<BigSerial> individuals = household->getIndividuals();
-				for(int n = 0; n < individuals.size(); n++)
-				{
-					const Individual *individual = getModel()->getIndividualById(individuals[n]);
-					if(individual->getEmploymentStatusId() < 4)
-					{
-						model->incrementJobAssignIndividualCount();
-						jobAssignModel.computeJobAssignmentProbability(individual->getId());
-						PrintOutV("number of individuals assigned for jobs " << model->getJobAssignIndividualCount()<< std::endl);
-					}
-				}
-			}
-		}
+//		if( config.ltParams.jobAssignmentModel.enabled == true)
+//		{
+//
+//			JobAssignmentModel jobAssignModel(model);
+//			const Household *hh = this->getHousehold();
+//			if( hh != NULL )
+//			{
+//				vector<BigSerial> individuals = household->getIndividuals();
+//				for(int n = 0; n < individuals.size(); n++)
+//				{
+//					const Individual *individual = getModel()->getIndividualById(individuals[n]);
+//					if(individual->getEmploymentStatusId() < 4)
+//					{
+//						model->incrementJobAssignIndividualCount();
+//						jobAssignModel.computeJobAssignmentProbability(individual->getId());
+//						PrintOutV("number of individuals assigned for jobs " << model->getJobAssignIndividualCount()<< std::endl);
+//					}
+//				}
+//			}
+//		}
 
 
     if (!marketSeller)

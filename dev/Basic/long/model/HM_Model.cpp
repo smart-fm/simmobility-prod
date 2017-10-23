@@ -2099,25 +2099,26 @@ void HM_Model::startImpl()
 			}
 		}
 
-//		if( config.ltParams.jobAssignmentModel.enabled == true)
-//			{
-//
-//				JobAssignmentModel jobAssignModel(this);
-//				const Household *hh = households[n];
-//				if( hh != NULL )
-//				{
-//					vector<BigSerial> individuals = households[n]->getIndividuals();
-//					for(int n = 0; n < individuals.size(); n++)
-//					{
-//						const Individual *individual = getIndividualById(individuals[n]);
-//						if(individual->getEmploymentStatusId() < 4)
-//						{
-//							//model->incrementJobAssignIndividualCount();
-//							jobAssignModel.computeJobAssignmentProbability(individual->getId());
-//						}
-//					}
-//				}
-//			}
+		if( config.ltParams.jobAssignmentModel.enabled == true)
+			{
+
+				JobAssignmentModel jobAssignModel(this);
+				const Household *hh = households[n];
+				if( hh != NULL )
+				{
+					vector<BigSerial> individuals = households[n]->getIndividuals();
+					for(int n = 0; n < individuals.size(); n++)
+					{
+						const Individual *individual = getIndividualById(individuals[n]);
+						if(individual->getEmploymentStatusId() < 4 && getJobAssignIndividualCount() < 10000)
+						{
+							incrementJobAssignIndividualCount();
+							jobAssignModel.computeJobAssignmentProbability(individual->getId());
+							PrintOutV("number of individuals assigned for jobs " <<getJobAssignIndividualCount()<< std::endl);
+						}
+					}
+				}
+			}
 	}
 
 	Household *hh;

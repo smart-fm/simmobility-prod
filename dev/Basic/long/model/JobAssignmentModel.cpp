@@ -39,9 +39,9 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 	}
 
 
-	mtx.lock();
-	HM_Model::JobsWithTazAndIndustryTypeMap &jobsWithTazAndIndustryType = model->getJobsWithTazAndIndustryTypeMap();
-	mtx.unlock();
+	//mtx.lock();
+	//HM_Model::JobsWithTazAndIndustryTypeMap &jobsWithTazAndIndustryType = model->getJobsWithTazAndIndustryTypeMap();
+	//mtx.unlock();
 
 
 	double totalExp = 0;
@@ -53,11 +53,11 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		int incomeCatId = getIncomeCategoryId(income);
 
 
-		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(tazId, industryId);
-		auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
-		size_t sz = distance(range.first, range.second);
+		//HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(tazId, industryId);
+		//auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
+		//size_t sz = distance(range.first, range.second);
 		//if there are no jobs in the given industry id and taz id skip the calculation for that taz id.
-		if(sz != 0)
+		if(model->checkJobsInTazAndIndustry(tazId,industryId))
 		{
 
 		int incomecat1 = 0;
@@ -230,17 +230,18 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 			}
 		}
 
+		model->assignIndividualJob(individualId,selectedTazId, industryId);
 		//draw a random job in selected taz id and the relevant industry type of the individual.
 
-		{
-			boost::mutex::scoped_lock lock( mtx );
+		//{
+		//	boost::mutex::scoped_lock lock( mtx );
 			//mtx.lock();
 
 
 //		HM_Model::JobsWithTazAndIndustryTypeMap &jobsWithTazAndIndustryType = model->getJobsWithTazAndIndustryTypeMap();
 		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
-		auto range1 = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
-		size_t sz1 = distance(range1.first, range1.second);
+//		auto range1 = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
+//		size_t sz1 = distance(range1.first, range1.second);
 
         //do this until a taz id with an available job is found.
 		//while (sz == 0)
@@ -286,27 +287,27 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 
 
 
-		std::random_device rdInGen;
-		std::mt19937 genRdInd(rdInGen());
-		std::uniform_int_distribution<int> disRdInd(0, (sz1-1));
-		const unsigned int random_index = disRdInd(genRdInd);
-		std::advance(range1.first, random_index);
-
-		jobId = range1.first->second->getJobId();
-		writeIndividualJobAssignmentsToFile(individualId,range1.first->second->getJobId());
+//		std::random_device rdInGen;
+//		std::mt19937 genRdInd(rdInGen());
+//		std::uniform_int_distribution<int> disRdInd(0, (sz1-1));
+//		const unsigned int random_index = disRdInd(genRdInd);
+//		std::advance(range1.first, random_index);
+//
+//		jobId = range1.first->second->getJobId();
+//		writeIndividualJobAssignmentsToFile(individualId,range1.first->second->getJobId());
 
 		//remove the selected job id from the map.
-		HM_Model::JobsWithTazAndIndustryTypeMap::iterator iter;
-		for(iter=range1.first;iter != range1.second;++iter)
-		{
-		    if((iter->second->getJobId()) == jobId) {
-		        jobsWithTazAndIndustryType.erase(iter);
-		    	//iter->second->setAssigned(true);
-		        break;
-		    }
-		}
+//		HM_Model::JobsWithTazAndIndustryTypeMap::iterator iter;
+//		for(iter=range1.first;iter != range1.second;++iter)
+//		{
+//		    if((iter->second->getJobId()) == jobId) {
+//		        jobsWithTazAndIndustryType.erase(iter);
+//		    	//iter->second->setAssigned(true);
+//		        break;
+//		    }
+//		}
 
-		}
+	//	}
 		//mtx.unlock();
 		expValMap.clear();
 		probValMap.clear();

@@ -436,8 +436,8 @@ double HedonicPrice_SubModel::CalculateHedonicPrice( Unit *unit, const Building 
 {
     if( unit != nullptr && building != nullptr && postcode != nullptr && amenities != nullptr )
     {
-		if(unit->getUnitType() <= 6 || unit->getUnitType() == 65 )
-			return CalculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
+		//if(unit->getUnitType() <= 6 || unit->getUnitType() == 65 )
+		//	return CalculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
 		// else
 		//	return CalculatePrivate_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
     }

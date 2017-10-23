@@ -504,6 +504,8 @@ namespace sim_mob
 
             void loadJobsByTazAndIndustryType(DB_Connection &conn);
             JobsWithTazAndIndustryTypeMap& getJobsWithTazAndIndustryTypeMap();
+            void assignIndividualJob(BigSerial individualId, BigSerial selectedTazId, BigSerial industryId);
+            bool checkJobsInTazAndIndustry(BigSerial tazId, BigSerial industryId);
 
             std::vector<HouseholdAgent*> getFreelanceAgents();
 

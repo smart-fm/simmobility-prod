@@ -2099,26 +2099,26 @@ void HM_Model::startImpl()
 			}
 		}
 
-		if( config.ltParams.jobAssignmentModel.enabled == true)
-			{
-
-				JobAssignmentModel jobAssignModel(this);
-				const Household *hh = households[n];
-				if( hh != NULL )
-				{
-					vector<BigSerial> individuals = households[n]->getIndividuals();
-					for(int n = 0; n < individuals.size(); n++)
-					{
-						const Individual *individual = getIndividualById(individuals[n]);
-						if(individual->getEmploymentStatusId() < 4 && getJobAssignIndividualCount() < 10000)
-						{
-							incrementJobAssignIndividualCount();
-							jobAssignModel.computeJobAssignmentProbability(individual->getId());
-							PrintOutV("number of individuals assigned for jobs " <<getJobAssignIndividualCount()<< std::endl);
-						}
-					}
-				}
-			}
+//		if( config.ltParams.jobAssignmentModel.enabled == true)
+//			{
+//
+//				JobAssignmentModel jobAssignModel(this);
+//				const Household *hh = households[n];
+//				if( hh != NULL )
+//				{
+//					vector<BigSerial> individuals = households[n]->getIndividuals();
+//					for(int n = 0; n < individuals.size(); n++)
+//					{
+//						const Individual *individual = getIndividualById(individuals[n]);
+//						if(individual->getEmploymentStatusId() < 4 && getJobAssignIndividualCount() < 10000)
+//						{
+//							incrementJobAssignIndividualCount();
+//							jobAssignModel.computeJobAssignmentProbability(individual->getId());
+//							PrintOutV("number of individuals assigned for jobs " <<getJobAssignIndividualCount()<< std::endl);
+//						}
+//					}
+//				}
+//			}
 	}
 
 	Household *hh;
@@ -3583,6 +3583,55 @@ void HM_Model::loadJobsByTazAndIndustryType(DB_Connection &conn)
 HM_Model::JobsWithTazAndIndustryTypeMap& HM_Model::getJobsWithTazAndIndustryTypeMap()
 {
 	return this->jobsWithTazAndIndustryType;
+
+}
+
+bool HM_Model::checkJobsInTazAndIndustry(BigSerial tazId, BigSerial industryId)
+{
+	{
+		boost::mutex::scoped_lock lock( mtx );
+		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(tazId, industryId);
+		auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
+		size_t sz = distance(range.first, range.second);
+		if(sz > 0)
+		{
+			return true;
+		}
+		return false;
+	}
+
+}
+
+void HM_Model::assignIndividualJob(BigSerial individualId, BigSerial selectedTazId, BigSerial industryId)
+{
+	{
+	boost::mutex::scoped_lock lock( mtx );
+	HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
+	auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
+	size_t sz = distance(range.first, range.second);
+	if(sz==0)
+	{
+		PrintOutV("Individual id" <<  individualId << "has job id as 0" << std::endl);
+	}
+	std::random_device rdInGen;
+	std::mt19937 genRdInd(rdInGen());
+	std::uniform_int_distribution<int> disRdInd(0, (sz-1));
+	const unsigned int random_index = disRdInd(genRdInd);
+	std::advance(range.first, random_index);
+
+	int jobId = range.first->second->getJobId();
+	writeIndividualJobAssignmentsToFile(individualId,range.first->second->getJobId());
+
+	HM_Model::JobsWithTazAndIndustryTypeMap::iterator iter;
+	for(iter=range.first;iter != range.second;++iter)
+	{
+		if((iter->second->getJobId()) == jobId) {
+			jobsWithTazAndIndustryType.erase(iter);
+			//iter->second->setAssigned(true);
+			break;
+		}
+	}
+	}
 
 }
 

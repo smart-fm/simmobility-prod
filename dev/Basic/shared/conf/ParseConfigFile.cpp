@@ -699,6 +699,7 @@ void ParseConfigFile::processSimulationNode(xercesc::DOMElement *node)
 			processInSimulationTTUsage(GetSingleElementByName(node, "in_simulation_travel_time_usage", true));
 
 	processWorkgroupAssignmentNode(GetSingleElementByName(node, "workgroup_assignment"));
+	processOperationalCostNode(GetSingleElementByName(node, "operational_cost")) ;
 	processMutexEnforcementNode(GetSingleElementByName(node, "mutex_enforcement"));
 	processClosedLoopPropertiesNode(GetSingleElementByName(node, "closed_loop"));
 
@@ -758,6 +759,24 @@ void ParseConfigFile::processWorkgroupAssignmentNode(xercesc::DOMElement *node)
 	cfg.simulation.workGroupAssigmentStrategy = ParseWrkGrpAssignEnum(GetNamedAttributeValue(node, "value"),
 	                                                                  WorkGroup::ASSIGN_SMALLEST);
 }
+
+void ParseConfigFile::processOperationalCostNode(xercesc::DOMElement *node)
+{
+	// default value 0.147 taken from Siyu's thesis
+	float operational_cost = ParseFloat(GetNamedAttributeValue(node, "value", true), (float) 0.0);
+
+    if (operational_cost < 0)
+	{
+		stringstream msg;
+		msg << "Invalid value for Operational Cost. Fuel cost cannot be negative";
+		throw runtime_error(msg.str());
+	}
+
+	cfg.simulation.operationalCost = operational_cost;
+
+
+}
+
 
 void ParseConfigFile::processClosedLoopPropertiesNode(xercesc::DOMElement *node)
 {

@@ -30,7 +30,6 @@
 using namespace std;
 using namespace sim_mob;
 using namespace sim_mob::medium;
-
 namespace {
 	const double HIGH_TRAVEL_TIME = 999.0;
 	const double PEDESTRIAN_WALK_SPEED = 5.0; //kmph
@@ -63,7 +62,7 @@ namespace {
 	//Maximum number of sub tours per tour
 	const unsigned short MAX_SUB_TOURS = 1;
 
-	const double OPERATIONAL_COST = 0.147;
+	double OPERATIONAL_COST = 0; // some dummy value. To be changed later.
 
 	const double TAXI_FLAG_DOWN_PRICE = 3.4;
 	const double TAXI_CENTRAL_LOCATION_SURCHARGE = 3.0;
@@ -247,6 +246,7 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 		tmParams.setCostPublicSecond(pmObj->getPubCost());
 		tmParams.setCostCarErpFirst(amObj->getCarCostErp());
 		tmParams.setCostCarErpSecond(pmObj->getCarCostErp());
+
 		tmParams.setCostCarOpFirst(amObj->getDistance() * OPERATIONAL_COST);
 		tmParams.setCostCarOpSecond(pmObj->getDistance() * OPERATIONAL_COST);
 		tmParams.setWalkDistance1(amObj->getDistance());
@@ -1469,6 +1469,9 @@ void PredaySystem::constructTours() {
 
 void PredaySystem::planDay()
 {
+    // set the Operational Cost before it is used anywhere
+    OPERATIONAL_COST = ConfigManager::GetInstance().FullConfig().simulation.operationalCost;
+
 	personParams.initTimeWindows();
 
 	//Predict day pattern

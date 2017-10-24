@@ -2188,7 +2188,7 @@ void DriverMovement::updateLateralMovement(DriverUpdateParams &params)
 		//update lane related variables
 		syncLaneInfoPostLateralMove(params);
 
-		if (params.currLane->isPedestrianLane())
+		if (!fwdDriverMovement.isInIntersection() && params.currLane->isPedestrianLane())
 		{
 			std::stringstream msg;
 			msg << __func__ << ": Car has moved onto pedestrian lane. Agent ID: "

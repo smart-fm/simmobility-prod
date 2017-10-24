@@ -640,9 +640,6 @@ void DriverPathMover::updateLateralMovement(const Lane* lane)
 {
 	if(lane)
 	{
-		//Points covered on the previous poly-line
-		unsigned int pointsCovered = currPolyPoint - currPolyLine->getPoints().begin();
-
 		//Update the current lane, poly-line and points
 		currLane = lane;
 		currPolyLine = currLane->getPolyLine();
@@ -653,12 +650,13 @@ void DriverPathMover::updateLateralMovement(const Lane* lane)
 		nextTurning = nullptr;
 		nextLane = nullptr;
 		
-		//Map progress to current poly-line
-		if(pointsCovered > 0)
-		{
-			currPolyPoint += pointsCovered;
-			nextPolyPoint += pointsCovered;
-		}
+		//Now, we must map the progress to the current poly-line, so we
+		//advance the same distance on the new poly-line
+		//But, reset the distance covered values, as the advance method will add to them
+		double distance = getDistCoveredOnCurrWayPt();
+		distCoveredFromCurrPtToNextPt = 0;
+		distCoveredOnCurrWayPt = 0;
+		advance(distance);
 	}
 	else
 	{

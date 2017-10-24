@@ -762,10 +762,10 @@ void ParseConfigFile::processWorkgroupAssignmentNode(xercesc::DOMElement *node)
 
 void ParseConfigFile::processOperationalCostNode(xercesc::DOMElement *node)
 {
-	// default value 0.147 taken from Siyu's thesis
-	float operational_cost = ParseFloat(GetNamedAttributeValue(node, "value", true), (float) 0.0);
+	// default value for operational cost: 0.147 dollars/km taken from Siyu's thesis
+	float operational_cost = ParseFloat(GetNamedAttributeValue(node, "value", true), (float) 0.147);
 
-    if (operational_cost < 0)
+	if (operational_cost < 0)
 	{
 		stringstream msg;
 		msg << "Invalid value for Operational Cost. Fuel cost cannot be negative";

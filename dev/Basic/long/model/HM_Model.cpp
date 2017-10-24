@@ -3589,7 +3589,7 @@ HM_Model::JobsWithTazAndIndustryTypeMap& HM_Model::getJobsWithTazAndIndustryType
 bool HM_Model::checkJobsInTazAndIndustry(BigSerial tazId, BigSerial industryId)
 {
 	{
-		boost::mutex::scoped_lock lock( mtx );
+		boost::unique_lock<boost::shared_mutex> lock(sharedMtx);
 		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(tazId, industryId);
 		auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
 		size_t sz = distance(range.first, range.second);
@@ -3597,22 +3597,28 @@ bool HM_Model::checkJobsInTazAndIndustry(BigSerial tazId, BigSerial industryId)
 		{
 			return true;
 		}
-		return false;
+		else
+		{
+			return false;
+		}
 	}
 
 }
 
-void HM_Model::assignIndividualJob(BigSerial individualId, BigSerial selectedTazId, BigSerial industryId)
+bool HM_Model::assignIndividualJob(BigSerial individualId, BigSerial selectedTazId, BigSerial industryId)
 {
 	{
-	boost::mutex::scoped_lock lock( mtx );
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx);
 	HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
 	auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
 	size_t sz = distance(range.first, range.second);
 	if(sz==0)
 	{
 		PrintOutV("Individual id" <<  individualId << "has job id as 0" << std::endl);
+		return false;
 	}
+	else
+	{
 	std::random_device rdInGen;
 	std::mt19937 genRdInd(rdInGen());
 	std::uniform_int_distribution<int> disRdInd(0, (sz-1));
@@ -3630,6 +3636,8 @@ void HM_Model::assignIndividualJob(BigSerial individualId, BigSerial selectedTaz
 			//iter->second->setAssigned(true);
 			break;
 		}
+	}
+	return true;
 	}
 	}
 

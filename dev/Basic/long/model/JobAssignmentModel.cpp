@@ -231,6 +231,9 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 		}
 
 		model->assignIndividualJob(individualId,selectedTazId, industryId);
+		//{
+
+
 		//draw a random job in selected taz id and the relevant industry type of the individual.
 
 		//{
@@ -239,7 +242,7 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 
 
 //		HM_Model::JobsWithTazAndIndustryTypeMap &jobsWithTazAndIndustryType = model->getJobsWithTazAndIndustryTypeMap();
-		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
+//		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
 //		auto range1 = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
 //		size_t sz1 = distance(range1.first, range1.second);
 
@@ -279,6 +282,9 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 //				}
 //			}
 //
+//			//model->assignIndividualJob(individualId,selectedTazId, industryId);
+//		}
+
 //			//draw a random job in selected taz id and the relevant industry type of the individual.
 //			HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey1= make_pair(selectedTazId, industryId);
 //			auto range1 = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey1);
@@ -307,7 +313,7 @@ void JobAssignmentModel::computeJobAssignmentProbability(BigSerial individualId)
 //		    }
 //		}
 
-	//	}
+//		}
 		//mtx.unlock();
 		expValMap.clear();
 		probValMap.clear();

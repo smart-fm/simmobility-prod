@@ -504,7 +504,7 @@ namespace sim_mob
 
             void loadJobsByTazAndIndustryType(DB_Connection &conn);
             JobsWithTazAndIndustryTypeMap& getJobsWithTazAndIndustryTypeMap();
-            void assignIndividualJob(BigSerial individualId, BigSerial selectedTazId, BigSerial industryId);
+            bool assignIndividualJob(BigSerial individualId, BigSerial selectedTazId, BigSerial industryId);
             bool checkJobsInTazAndIndustry(BigSerial tazId, BigSerial industryId);
 
             std::vector<HouseholdAgent*> getFreelanceAgents();
@@ -607,6 +607,7 @@ namespace sim_mob
             boost::mutex mtx6;
             boost::mutex idLock;
             boost::mutex DBLock;
+            boost::shared_mutex sharedMtx;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
 

@@ -311,6 +311,9 @@ public:
     /// Total time (in milliseconds) considered "warmup".
     unsigned int totalWarmupMS;
 
+    /// Operational cost in Dollars/km
+    float operationalCost;
+
     /// When the simulation begins(based on configuration)
     DailyTime simStartTime;
 	

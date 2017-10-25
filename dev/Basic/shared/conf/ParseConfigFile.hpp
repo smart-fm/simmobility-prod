@@ -148,6 +148,14 @@ private:
 	void processWorkgroupAssignmentNode(xercesc::DOMElement *node);
 
 	/**
+	 * Processes the operational cost in the config file
+	 *
+	 * @param node node correspoding to the operational cost element in the simulation.xml file
+	 */
+	void processOperationalCostNode(xercesc::DOMElement *node);
+
+
+	/**
 	 * Processes the closed_loop element in the config file
 	 *
 	 * @param node node corresponding to the closed_loop element in the xml file

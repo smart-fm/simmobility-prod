@@ -14,6 +14,7 @@
 #include <boost/algorithm/string.hpp>
 #include <sstream>
 #include <vector>
+#include <entities/roles/driver/OnCallDriverFacets.hpp>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "config/MT_Config.hpp"
@@ -288,6 +289,7 @@ void Conflux::addAgent(Person_MT* person)
 		case Role<Person_MT>::RL_TAXIDRIVER:
 		case Role<Person_MT>::RL_TRUCKER_HGV:
 		case Role<Person_MT>::RL_ON_HAIL_DRIVER:
+		case Role<Person_MT>::RL_ON_CALL_DRIVER:
 		{
 			SegmentStats* rdSegStats = const_cast<SegmentStats*>(person->getCurrSegStats()); // person->currSegStats is set when frame_init of role is called
 			person->setCurrLane(rdSegStats->laneInfinity);
@@ -2381,14 +2383,27 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 	}
 	case Role<Person_MT>::RL_ON_HAIL_DRIVER:
 	{
-		const medium::OnHailDriverMovement *onHailDrvMvt = dynamic_cast<const medium::OnHailDriverMovement *>(personRole->Movement());
+		auto *onHailDrvMvt = dynamic_cast<const medium::OnHailDriverMovement *>(personRole->Movement());
 		if (onHailDrvMvt)
 		{
 			return onHailDrvMvt->getStartingConflux();
 		}
 		else
 		{
-			throw std::runtime_error("Taxi-Driver role facets not/incorrectly initialized");
+			throw std::runtime_error("OnHailDriver role facets not/incorrectly initialized");
+		}
+		break;
+	}
+	case Role<Person_MT>::RL_ON_CALL_DRIVER:
+	{
+		auto *onCallDrvMvt = dynamic_cast<const medium::OnCallDriverMovement *>(personRole->Movement());
+		if(onCallDrvMvt)
+		{
+			return onCallDrvMvt->getStartingConflux();
+		}
+		else
+		{
+			throw std::runtime_error("OnCallDriver role facets not/incorrectly initialized");
 		}
 		break;
 	}

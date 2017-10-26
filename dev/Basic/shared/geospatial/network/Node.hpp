@@ -42,7 +42,6 @@ enum NodeType
  * \author Neeraj D
  * \author Harish L
  */
-class Person;
 class Node
 {
 private:
@@ -68,17 +67,12 @@ private:
 	 */
 	std::map<unsigned int, std::map<unsigned int, TurningGroup *> > turningGroups;
 
-	std::map<unsigned int,Link*> mapOfDownStreamLinks;
-	std::map<unsigned int,Link*> mapOfUpStreamLinks;
-	std::vector<Person*> waitingPersons;
-
 	//aa{
 	/*
 	 * The Traffic Analysis Zone (TAZ) to which this nodes belong
 	 */
 	unsigned int tazId;
 	//aa}
-
 
 public:
 
@@ -96,16 +90,6 @@ public:
 
 	unsigned int getTrafficLightId() const;
 	void setTrafficLightId(unsigned int trafficLightId);
-
-	std::map<unsigned int,Link*> getDownStreamLinks() const ;
-	std::map<unsigned int,Link*> getUpStreamLinks();
-
-	void addUpStreamLink(Link *link);
-	void addDownStreamlink(Link *link);
-
-	std::vector<Person*> personsWaitingForTaxi();
-
-	std::vector<Node*> getNeighbouringNodes() const ;
 
     const std::map<unsigned int, std::map<unsigned int, TurningGroup *> >& getTurningGroups() const;
 
@@ -139,11 +123,13 @@ public:
 
 	/**store all nodes into a global r-tree*/
 	static GeneralR_TreeManager<Node> allNodesMap;
-	/**
+
+/**
 	 * get x position
 	 */
 	double getPosX() const;
-	/**
+
+/**
 	 * get y position
 	 */
 	double getPosY() const;

@@ -6,6 +6,7 @@
 #include "TurningGroup.hpp"
 #include "Link.hpp"
 #include "entities/Person.hpp"
+
 using namespace sim_mob;
 
 namespace
@@ -18,7 +19,7 @@ GeneralR_TreeManager<Node> Node::allNodesMap;
 Node::Node() :
 nodeId(0), location(), nodeType(DEFAULT_NODE), trafficLightId(0)
 //aa{
-, tazId(TAZ_UNDEFINED)
+		, tazId(TAZ_UNDEFINED)
 //aa}
 {
 }
@@ -28,7 +29,7 @@ Node::~Node()
 	//Delete the turning groups
 
 	//Iterate through the outer map
-	std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::iterator itOuterMap = turningGroups.begin();
+	auto itOuterMap = turningGroups.begin();
 	while (itOuterMap != turningGroups.end())
 	{
 		//Iterate through the inner map
@@ -106,25 +107,10 @@ unsigned int Node::getTrafficLightId() const
 	return trafficLightId;
 }
 
-std::vector<Node*> Node::getNeighbouringNodes() const
-{
-	const std::map<unsigned int,Link*> mapOfDownStreamLinks = getDownStreamLinks();
-	std::map<unsigned int,Link*>::const_iterator itr = mapOfDownStreamLinks.begin();
-	std::vector<Node*> nodeVector;
-	while(itr!=mapOfDownStreamLinks.end())
-	{
-		Link *link = (*itr).second;
-		Node *toNode = link->getToNode();
-		nodeVector.push_back(toNode);
-		itr++;
-	}
-	return nodeVector;
-}
-
-void Node::addTurningGroup(TurningGroup* turningGroup)
+void Node::addTurningGroup(TurningGroup *turningGroup)
 {
 	//Find the map entry having the key given by the "from link" of the turning group
-	std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::iterator itOuter = turningGroups.find(turningGroup->getFromLinkId());
+	auto itOuter = turningGroups.find(turningGroup->getFromLinkId());
 
 	//Check if such an entry exists
 	if (itOuter != turningGroups.end())
@@ -146,45 +132,17 @@ void Node::addTurningGroup(TurningGroup* turningGroup)
 	}
 }
 
-std::map<unsigned int,Link*> Node::getDownStreamLinks() const
-{
-	return mapOfDownStreamLinks;
-}
-
-std::map<unsigned int,Link*> Node::getUpStreamLinks()
-{
-	return mapOfUpStreamLinks;
-}
-
-void Node::addDownStreamlink(Link *link)
-{
-	if(link&&mapOfDownStreamLinks.find(link->getLinkId())==mapOfDownStreamLinks.end())
-	{
-		mapOfDownStreamLinks[link->getLinkId()] = link;
-	}
-}
-
-std::vector<Person*> Node::personsWaitingForTaxi()
-{
-	return waitingPersons;
-}
-
-void Node::addUpStreamLink(Link *link)
-{
-	mapOfUpStreamLinks[link->getLinkId()] = link;
-}
-
 const TurningGroup* Node::getTurningGroup(unsigned int fromLinkId, unsigned int toLinkId) const
 {
 	//Get the map of turning groups starting from the "fromLink"
-	std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::const_iterator itGroupsFrom = turningGroups.find(fromLinkId);
-	
+	auto itGroupsFrom = turningGroups.find(fromLinkId);
+
 	if(itGroupsFrom != turningGroups.end())
 	{
 		//Get the turning group ending at the "toLink"
 		std::map<unsigned int, TurningGroup *>::const_iterator itGroups = itGroupsFrom->second.find(toLinkId);
-		
-		if(itGroups != itGroupsFrom->second.end())
+
+		if (itGroups != itGroupsFrom->second.end())
 		{
 			return itGroups->second;
 		}
@@ -201,8 +159,8 @@ const TurningGroup* Node::getTurningGroup(unsigned int fromLinkId, unsigned int 
 
 const std::map<unsigned int, TurningGroup *>& Node::getTurningGroups(unsigned int fromLinkId) const
 {
-	std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::const_iterator it = turningGroups.find(fromLinkId);
-	if(it != turningGroups.end())
+	auto it = turningGroups.find(fromLinkId);
+	if (it != turningGroups.end())
 	{
 		return (it->second);
 	}
@@ -235,8 +193,8 @@ void Node::setTazId(unsigned int tazId_)
 	{
 		std::stringstream msg;
 		msg << "Node " << nodeId << " has already taz " << tazId
-		    << "associated. Now you are trying to associate taz " << tazId_
-		    << ". It is not possible to associate twice a taz to a node";
+			<< "associated. Now you are trying to associate taz " << tazId_
+			<< ". It is not possible to associate twice a taz to a node";
 		Warn() << msg.str() << std::endl;
 	}
 #endif

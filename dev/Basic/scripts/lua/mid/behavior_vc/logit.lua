@@ -3,6 +3,8 @@ Description: Probability computation functions for multinomial and nested logit 
 Author: Harish Loganathan
 ]]
 
+-- Taken from https://stackoverflow.com/questions/20154991/generating-uniform-random-numbers-in-lua
+--  Based on the pascal RNG code given by Sergei Mikhailovich Prigarin @ osmf.sscc.ru/~smp/
 local A1=1331
 local A2 =  798405  -- 5^17=D20*A1+A2
 local D20, D40 = 1048576, 1099511627776  -- 2^20, 2^40

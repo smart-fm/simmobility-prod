@@ -623,7 +623,7 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 				const SegmentStats *currSegStat = taxiDriverMovement->getParentDriver()->getParent()->getCurrSegStats();
 				const Link *link = currSegStat->getRoadSegment()->getParentLink();
 				double actualT = params.elapsedSeconds + params.now.ms() / 1000;
-				const Link *nextLink = thisNode->getDownStreamLinks().begin()->second;
+				const Link *nextLink = RoadNetwork::getInstance()->getDownstreamLinks(thisNode->getNodeId()).front();
 				parent->currLinkTravelStats.finalize(link, actualT, nextLink);
 				TravelTimeManager::getInstance()->addTravelTime(parent->currLinkTravelStats); //in seconds
 				currSegStat->getParentConflux()->setLinkTravelTimes(actualT, link);

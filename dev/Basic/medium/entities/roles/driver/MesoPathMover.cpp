@@ -198,7 +198,7 @@ void MesoPathMover::addPathFromCurrentSegmentToEndNodeOfLink()
 	std::vector<const SegmentStats*>::iterator itr = std::find(path.begin(),path.end(),currStats);
 	path.erase(itr+1,path.end());
 	const Link *parentLink = currStats->getRoadSegment()->getParentLink();
-	Node *toNode = parentLink->getToNode();
+	const Node *toNode = parentLink->getToNode();
 	Conflux * conflux = Conflux::getConfluxFromNode(toNode);
 	const std::vector<RoadSegment*>& roadSegments =  parentLink->getRoadSegments();
 	std::vector<RoadSegment*>::const_iterator segItr = std::find(roadSegments.begin(),roadSegments.end(),roadSegment);

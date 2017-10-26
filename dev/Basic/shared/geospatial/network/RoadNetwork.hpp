@@ -73,10 +73,16 @@ private:
 	/**This map stores all the parking areas in the network with the id as the key*/
 	std::map<unsigned int, ParkingArea *> mapOfIdVsParkingAreas;
 
-	/**This map stores all the parking details in the network with the  parking id as the key*/
+	/**This map stores all the parking information in the network with the  parking id as the key*/
 	std::map<unsigned int, SMSVehicleParking *> mapOfIdVsSMSVehiclesParking;
 
 	std::map<const Lane*,std::map<const Lane*,const TurningPath *>> turningPathFromLanes;
+
+	/**This is a mapping between nodes and their downstream links*/
+	std::map<unsigned int, std::vector<const Link *> > mapOfDownstreamLinks;
+
+	/**This is a mapping between nodes and their upstream links*/
+	std::map<unsigned int, std::vector<const Link *> > mapOfUpstreamLinks;
 
 	/**Private constructor as the class is a singleton*/
 	RoadNetwork();
@@ -116,12 +122,14 @@ public:
 	const std::map<unsigned int, ParkingSlot *>& getMapOfIdVsParkingSlots() const;
 
 	const std::map<unsigned int, ParkingArea *>& getMapOfIdVsParkingAreas() const;
-	
+
 	const std::map<const Lane*,std::map<const Lane*,const TurningPath *>> &getTurningPathsFromLanes() const;
 
 	const std::map<unsigned int, SMSVehicleParking *>& getMapOfIdvsSMSVehicleParking() const;
 
-	Node* getFirstNode() const;
+	const std::vector<const Link *>& getDownstreamLinks(unsigned int fromNodeId) const;
+
+	const std::vector<const Link *>& getUpstreamLinks(unsigned int fromNodeId) const;
 
 	/**
 	 * Adds a lane to the road network

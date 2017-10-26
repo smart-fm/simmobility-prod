@@ -46,6 +46,8 @@ RoadNetwork::~RoadNetwork()
 	mapOfIdvsBusStops.clear();
 	mapOfIdVsParkingSlots.clear();
 	mapOfIdVsSMSVehiclesParking.clear();
+	mapOfDownstreamLinks.clear();
+	mapOfUpstreamLinks.clear();
 
 	roadNetwork = NULL;
 }
@@ -110,6 +112,16 @@ const std::map<unsigned int, SMSVehicleParking *>& RoadNetwork::getMapOfIdvsSMSV
 	return mapOfIdVsSMSVehiclesParking;
 }
 
+const std::vector<const Link *>& RoadNetwork::getDownstreamLinks(unsigned int fromNodeId) const
+{
+	return mapOfDownstreamLinks.at(fromNodeId);
+}
+
+const std::vector<const Link *>& RoadNetwork::getUpstreamLinks(unsigned int fromNodeId) const
+{
+	return mapOfUpstreamLinks.at(fromNodeId);
+}
+
 void RoadNetwork::addLane(Lane* lane)
 {
 	//Find the segment to which the lane belongs
@@ -160,13 +172,6 @@ void RoadNetwork::addLaneConnector(LaneConnector* connector)
 		safe_delete_item(connector);
 		throw std::runtime_error(msg.str());
 	}
-}
-
-Node* RoadNetwork:: getFirstNode() const
-{
-	std::map<unsigned int, Node *>::const_iterator itNodes = mapOfIdvsNodes.begin();
-	Node *node = (itNodes)->second;
-	return itNodes->second;
 }
 
 void RoadNetwork::addLanePolyLine(PolyPoint point)
@@ -250,13 +255,9 @@ void RoadNetwork::addLink(Link *link)
 		throw std::runtime_error(msg.str());
 	}
 
-	Node *fromNode = link->getFromNode();
-	Node *toNode = link->getToNode();
-	if(fromNode&&toNode)
-	{
-		fromNode->addDownStreamlink(link);
-		toNode->addUpStreamLink(link);
-	}
+	//Update map of upstream and downstream links
+	mapOfDownstreamLinks[link->getFromNodeId()].push_back((const Link*)link);
+	mapOfUpstreamLinks[link->getToNodeId()].push_back((const Link*)link);
 }
 
 void RoadNetwork::addNode(Node *node)

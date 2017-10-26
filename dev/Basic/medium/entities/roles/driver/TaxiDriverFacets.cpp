@@ -307,7 +307,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		}
 
 	    double actualT = params.elapsedSeconds + params.now.ms() / 1000;
-	    const Link *nextLink = link->getToNode()->getDownStreamLinks().begin()->second;
+	    const Link *nextLink = RoadNetwork::getInstance()->getDownstreamLinks(link->getToNodeId()).front();
 	    parentTaxiDriver->getParent()->currLinkTravelStats.finalize(link, actualT, nextLink);
 	    TravelTimeManager::getInstance()->addTravelTime(parentTaxiDriver->getParent()->currLinkTravelStats); //in seconds
 	    currSegStat->getParentConflux()->setLinkTravelTimes(actualT, link);
@@ -630,66 +630,61 @@ void TaxiDriverMovement::selectNextLinkWhileCruising()
 
 	std::stringstream msg;
 	selectedNextLinkInCrusing = nullptr;
-	std::vector<Node *> nodeVector = currentNode->getNeighbouringNodes();
-	if (nodeVector.size() > 0)
+
+	const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
+	auto downStreamLinks = rdNetwork->getDownstreamLinks(currentNode->getNodeId());
+	auto linkItr = downStreamLinks.begin();
+	int minNumOfVisits = -1;
+	const Lane *currLane = getCurrentlane();
+
+	auto turningPathsFromLanes = rdNetwork->getTurningPathsFromLanes();
+	auto turningPathsLaneitr = turningPathsFromLanes.find(currLane);
+
+	if (!currLane || turningPathsLaneitr != turningPathsFromLanes.end())
 	{
-		std::vector<Node *>::iterator itr = nodeVector.begin();
-		Node *destNode = (*(itr));
-		std::map<unsigned int, Link *> mapOfDownStreamLinks = currentNode->getDownStreamLinks();
-		std::map<unsigned int, Link *>::iterator linkItr = mapOfDownStreamLinks.begin();
-		const SegmentStats *currSegStats = pathMover.getCurrSegStats();
-		int minNumOfVisits = -1;
-		const Lane *currLane = getCurrentlane();
-		const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
-		const std::map<const Lane *, std::map<const Lane *, const TurningPath *>> &turningPathsFromLanes = rdNetwork->getTurningPathsFromLanes();
-		std::map<const Lane *, std::map<const Lane *, const TurningPath *>>::const_iterator turningPathsLaneitr = turningPathsFromLanes.find(
-				currLane);
-		if (!currLane || turningPathsLaneitr != turningPathsFromLanes.end())
+		while (linkItr != downStreamLinks.end())
 		{
-			while (linkItr != mapOfDownStreamLinks.end())
+			const Link *link = *linkItr;
+			if (link->getFromNode() == link->getToNode())
 			{
-				Link *link = (*linkItr).second;
-				if (link->getFromNode() == link->getToNode())
+				linkItr++;
+				continue;
+			}
+			if (currLane)
+			{
+				std::map<const Lane *, const TurningPath *> mapOfLaneTurningPath = turningPathsLaneitr->second;
+				const std::vector<RoadSegment *> &rdSegments = link->getRoadSegments();
+				const RoadSegment *rdSegment = rdSegments.front();
+				const std::vector<Lane *> &segLanes = rdSegment->getLanes();
+				bool foundTurningPath = false;
+				for (std::vector<Lane *>::const_iterator laneItr = segLanes.begin(); laneItr != segLanes.end();
+				     laneItr++)
+				{
+					if (mapOfLaneTurningPath.find(*laneItr) != mapOfLaneTurningPath.end())
+					{
+						foundTurningPath = true;
+						break;
+					}
+				}
+
+				if (foundTurningPath == false)
 				{
 					linkItr++;
 					continue;
 				}
-				if (currLane)
-				{
-					std::map<const Lane *, const TurningPath *> mapOfLaneTurningPath = turningPathsLaneitr->second;
-					const std::vector<RoadSegment *> &rdSegments = link->getRoadSegments();
-					const RoadSegment *rdSegment = rdSegments.front();
-					const std::vector<Lane *> &segLanes = rdSegment->getLanes();
-					bool foundTurningPath = false;
-					for (std::vector<Lane *>::const_iterator laneItr = segLanes.begin(); laneItr != segLanes.end();
-					     laneItr++)
-					{
-						if (mapOfLaneTurningPath.find(*laneItr) != mapOfLaneTurningPath.end())
-						{
-							foundTurningPath = true;
-							break;
-						}
-					}
-
-					if (foundTurningPath == false)
-					{
-						linkItr++;
-						continue;
-					}
-				}
-
-				if (mapOfLinksAndVisitedCounts.find(link) == mapOfLinksAndVisitedCounts.end())
-				{
-					selectedNextLinkInCrusing = link;
-					break;
-				}
-				else if (minNumOfVisits == -1 || mapOfLinksAndVisitedCounts[link] < minNumOfVisits)
-				{
-					minNumOfVisits = mapOfLinksAndVisitedCounts[link];
-					selectedNextLinkInCrusing = link;
-				}
-				linkItr++;
 			}
+
+			if (mapOfLinksAndVisitedCounts.find(link) == mapOfLinksAndVisitedCounts.end())
+			{
+				selectedNextLinkInCrusing = link;
+				break;
+			}
+			else if (minNumOfVisits == -1 || mapOfLinksAndVisitedCounts[link] < minNumOfVisits)
+			{
+				minNumOfVisits = mapOfLinksAndVisitedCounts[link];
+				selectedNextLinkInCrusing = link;
+			}
+			linkItr++;
 		}
 	}
 
@@ -890,7 +885,7 @@ void TaxiDriverMovement::driveToTaxiStand()
     {
         const RoadSegment *taxiStandSegment = destinationTaxiStand->getRoadSegment();
         const Link *taxiStandLink = taxiStandSegment->getParentLink();
-        Node *destForRouteChoice = taxiStandLink->getToNode();
+        const Node *destForRouteChoice = taxiStandLink->getToNode();
         //set origin and destination node
         SubTrip currSubTrip;
         currSubTrip.origin = WayPoint(ThisNode);
@@ -924,7 +919,7 @@ void TaxiDriverMovement::addRouteChoicePath(vector<WayPoint> &routeToDestination
 		if ((*itr).type == WayPoint::LINK)
 		{
 			const Link *link = (*itr).link;
-			Node *toNode = link->getToNode();
+			const Node *toNode = link->getToNode();
 			Conflux *nodeConflux = Conflux::getConfluxFromNode(toNode);
 			const std::vector<RoadSegment *> &roadSegments = link->getRoadSegments();
 			for (std::vector<RoadSegment *>::const_iterator segItr = roadSegments.begin(); segItr != roadSegments.end();

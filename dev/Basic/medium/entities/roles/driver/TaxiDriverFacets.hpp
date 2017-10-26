@@ -184,7 +184,7 @@ private:
 	double queuingTooLongTime = 0.0;
 
 	/**record next selected link when cruising*/
-	Link *selectedNextLinkInCrusing = nullptr;
+	const Link *selectedNextLinkInCrusing = nullptr;
 
 	/**the vector to record second or third drivers*/
 	std::queue<FleetController::FleetItem> taxiFleets;

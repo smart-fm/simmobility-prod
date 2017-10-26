@@ -12,6 +12,7 @@ namespace sim_mob
 {
 
 class Entity;
+class Person;
 
 namespace medium
 {

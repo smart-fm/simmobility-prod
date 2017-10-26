@@ -142,8 +142,7 @@ void MobilityServiceControllerManager::frame_output(timeslice now)
 
 }
 
-const std::multimap<MobilityServiceControllerType, MobilityServiceController *> &
-MobilityServiceControllerManager::getControllers() const
+const SvcControllerMap& MobilityServiceControllerManager::getControllers() const
 {
 	return controllers;
 }

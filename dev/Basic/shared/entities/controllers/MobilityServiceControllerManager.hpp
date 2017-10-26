@@ -18,6 +18,8 @@
 namespace sim_mob
 {
 
+typedef std::multimap<MobilityServiceControllerType, MobilityServiceController*> SvcControllerMap;
+
 class MobilityServiceControllerManager : public Agent
 {
 public:
@@ -53,7 +55,7 @@ public:
 	/**
 	 * Returns a list of enabled controllers
 	 */
-	const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& getControllers() const;
+	const SvcControllerMap& getControllers() const;
 
 
 	/**

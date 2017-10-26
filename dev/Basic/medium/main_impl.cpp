@@ -633,17 +633,17 @@ bool performMainDemand()
 	predayManager.loadUnavailableODs();
 
 	/// The seed for RNG's in lua is set before any choice is made for any of the preday models
-    ConfigManager& cfg = ConfigManager::GetInstanceRW();
-    unsigned int seedValue = cfg.FullConfig().simulation.seedValue;
+	ConfigManager& cfg = ConfigManager::GetInstanceRW();
+	unsigned int seedValue = cfg.FullConfig().simulation.seedValue;
 
-    // Getting the lua path from MT_Config file
-    const MT_Config& mtConfig = MT_Config::getInstance();
+	// Getting the lua path from MT_Config file
+	const MT_Config& mtConfig = MT_Config::getInstance();
 
-    //PredayLuaProvider::getPredayModel().fixPredaySeedInLua(predaySeedValue);
-    std::string pathToLuaFile =  mtConfig.modelScriptsMap.getPath() + string("logit.lua") ;
-    std::string systemCommandToUpdateSeedInLuaFile = string("sed -i 's/local A1=.*/local A1=") + std::to_string(seedValue)+ string("/g' ")  + pathToLuaFile ;
-    int resultOfSysCall = system(systemCommandToUpdateSeedInLuaFile.c_str());
-    std::cout<<systemCommandToUpdateSeedInLuaFile;
+	//PredayLuaProvider::getPredayModel().fixPredaySeedInLua(predaySeedValue);
+	std::string pathToLuaFile =  mtConfig.modelScriptsMap.getPath() + string("logit.lua") ;
+	std::string systemCommandToUpdateSeedInLuaFile = string("sed -i 's/local A1=.*/local A1=") + std::to_string(seedValue)+ string("/g' ")  + pathToLuaFile ;
+	int resultOfSysCall = system(systemCommandToUpdateSeedInLuaFile.c_str());
+	std::cout<<systemCommandToUpdateSeedInLuaFile;
 
 	if(mtConfig.runningPredaySimulation() && mtConfig.isFileOutputEnabled())
 	{

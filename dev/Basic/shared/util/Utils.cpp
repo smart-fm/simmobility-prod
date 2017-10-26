@@ -35,9 +35,8 @@ inline void initRandomProvider(boost::thread_specific_ptr<boost::mt19937>& provi
     // The first time called by the current thread then just create one.
     if (!provider.get()) {
 
-		ConfigManager& cfg = ConfigManager::GetInstanceRW();
+        ConfigManager& cfg = ConfigManager::GetInstanceRW();
 		unsigned int seedValue = cfg.FullConfig().simulation.seedValue;
-
         provider.reset(new boost::mt19937(seedValue));
     }
 }

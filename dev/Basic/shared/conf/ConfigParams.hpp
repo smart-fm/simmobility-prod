@@ -201,6 +201,16 @@ public:
 
     bool RunningLongTerm() const;
 
+    const std::string& getTravelModeStr(int travelModeId) const;
+    const TravelModeConfig& getTravelModeConfig(int travelModeId) const;
+    int getNumTravelModes() const;
+
+    const std::string& getActivityTypeStr(int activityTypeId) const;
+    const std::unordered_map<std::string, StopType>& getActivityTypeStrMap() const;
+    const ActivityTypeConfig& getActivityTypeConfig(StopType activityTypeId) const;
+    StopType getActivityTypeId(const std::string& activityName) const;
+    const std::unordered_map<StopType, ActivityTypeConfig>& getActivityTypeConfigMap() const;
+
 private:
     /**
      * Constructor
@@ -366,6 +376,22 @@ public:
     bool isWorkerPublisherEnabled() const;
 
     void setWorkerPublisherEnabled(bool value);
+
+    /**
+    * Sets the value of seed for RNG's
+    *
+    * @param value: seed value as given in the config file
+    */
+    void setSeedValueForRNG(unsigned int value);
+
+
+    /**
+    * Retrieves the value of seed for RNG's
+    *
+    * @return seed value as given in the config file
+    */
+    unsigned int getSeedValueForRNG() const;
+
 
     bool isGenerateBusRoutes() const;
 

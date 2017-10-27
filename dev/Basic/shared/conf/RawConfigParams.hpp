@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <vector>
 #include <map>
 #include <string>
 
+#include "behavioral/StopType.hpp"
 #include "buffering/Shared.hpp"
 #include "conf/CMakeConfigParams.hpp"
 #include "conf/Constructs.hpp"
@@ -312,6 +314,9 @@ public:
     /// Total time (in milliseconds) considered "warmup".
     unsigned int totalWarmupMS;
 
+    /// Seed value for RNG's
+    unsigned int seedValue ;
+
     /// Operational cost in Dollars/km
     float operationalCost;
 
@@ -406,6 +411,11 @@ public:
 	void addScriptFileName(const std::string& key, const std::string& value)
 	{
 		this->scriptFileNameMap[key] = value;
+	}
+
+	const std::map<std::string, std::string>& getScriptsFileNameMap() const
+	{
+		return this->scriptFileNameMap;
 	}
 
 private:
@@ -630,6 +640,26 @@ struct TravelTimeConfig {
 	TravelTimeConfig() : intervalMS(0), fileName(""), enabled(false) {}
 };
 
+
+struct ActivityTypeConfig
+{
+    std::string name;
+    std::string withinDayModeChoiceModel;
+    std::string numToursModel;
+    std::string tourModeModel;
+    std::string tourModeDestModel;
+    std::string tourTimeOfDayModel;
+    std::string logsumTableColumn;
+    int type;
+};
+
+struct TravelModeConfig
+{
+    std::string name;
+    int type;
+    int numSharing;
+};
+
 /**
  * Contains the properties of the config file as they appear in, e.g., test_road_network.xml, with
  *   minimal conversion.
@@ -723,7 +753,21 @@ public:
 	PersonCharacteristicsParams personCharacteristicsParams;
 
     /// container for lua scripts
-	ModelScriptsMap luaScriptsMap;
+    ModelScriptsMap luaScriptsMap;
+
+	ModelScriptsMap predayLuaScriptsMap;
+
+	ModelScriptsMap withindayLuaScriptsMap;
+
+
+    /// key:value (travel mode id : travel mode string) map
+    std::unordered_map<int, TravelModeConfig> travelModeMap;
+
+    /// key:value (activity type id : activity type config) map
+    std::unordered_map<StopType, ActivityTypeConfig> activityTypeIdConfigMap;
+
+    /// key:value (activity name : activity type id) map
+    std::unordered_map<std::string, StopType> activityTypeNameIdMap;
 };
 
 

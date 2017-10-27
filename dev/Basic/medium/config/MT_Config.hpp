@@ -8,6 +8,7 @@
 #include <vector>
 #include <utility>
 
+#include "behavioral/StopType.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
@@ -366,6 +367,31 @@ public:
 	 * @param pedestrianWalkSpeed speed to be set
 	 */
 	void setPedestrianWalkSpeed(double pedestrianWalkSpeed);
+/**
+-	 * Retrieves model scripts map
+-	 *
+-	 * @return model scritps map
+-	 */
+			const ModelScriptsMap& getModelScriptsMap() const;
+
+			/**
+-	 * Sets model scripts map
+-	 *
+-	 * @param modelScriptsMap model scripts map to be set
+-	 */
+			void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
+
+	ModelScriptsMap modelScriptsMap;
+
+		/**
+ 	 * Retrieves Mongo Collection map
+ 	 *
+ 	 * @return mongo collections map
+ @@ -785,9 +772,6 @@ class MT_Config : private ProtectedCopyable
+ 	/// flag to indicate whether console output is required
+ 	bool consoleOutput;
+
+	/// Container for lua scripts
 
 	/**
 	 * Retrieves number of threads allocated for Preday
@@ -380,20 +406,6 @@ public:
 	 * @param numPredayThreads number of threads
 	 */
 	void setNumPredayThreads(unsigned numPredayThreads);
-
-	/**
-	 * Retrieves model scripts map
-	 *
-	 * @return model scritps map
-	 */
-	const ModelScriptsMap& getModelScriptsMap() const;
-
-	/**
-	 * Sets model scripts map
-	 *
-	 * @param modelScriptsMap model scripts map to be set
-	 */
-	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
 
 	/**
 	 * Retrieves Mongo Collection map
@@ -823,9 +835,6 @@ private:
 
 	/// flag to indicate whether console output is required
 	bool consoleOutput;
-
-	/// Container for lua scripts
-	ModelScriptsMap modelScriptsMap;
 
 	/// Container for service controller script
 	ModelScriptsMap ServiceControllerScriptsMap;

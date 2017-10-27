@@ -7,6 +7,9 @@
 #include <set>
 #include <cstdlib>
 
+// added to access the lua function: to set the seed before the start of the preday run
+#include "behavioral/lua/PredayLuaProvider.hpp"
+
 //TODO: Replace with <chrono> or something similar.
 #include <sys/time.h>
 
@@ -621,17 +624,32 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
  */
 bool performMainDemand()
 {
-	const MT_Config& mtConfig = MT_Config::getInstance();
+
+
 	PredayManager predayManager;
 	predayManager.loadZones();
 	predayManager.loadCosts();
 	predayManager.loadPersonIds();
 	predayManager.loadUnavailableODs();
+
+	/// The seed for RNG's in lua is set before any choice is made for any of the preday models
+	ConfigManager& cfg = ConfigManager::GetInstanceRW();
+	unsigned int seedValue = cfg.FullConfig().simulation.seedValue;
+
+	// Getting the lua path from MT_Config file
+	const MT_Config& mtConfig = MT_Config::getInstance();
+
+	//PredayLuaProvider::getPredayModel().fixPredaySeedInLua(predaySeedValue);
+	std::string pathToLuaFile =  mtConfig.modelScriptsMap.getPath() + string("logit.lua") ;
+	std::string systemCommandToUpdateSeedInLuaFile = string("sed -i 's/local A1=.*/local A1=") + std::to_string(seedValue)+ string("/g' ")  + pathToLuaFile ;
+	int resultOfSysCall = system(systemCommandToUpdateSeedInLuaFile.c_str());
+	std::cout<<systemCommandToUpdateSeedInLuaFile;
+
 	if(mtConfig.runningPredaySimulation() && mtConfig.isFileOutputEnabled())
 	{
 		predayManager.loadZoneNodes();
 		predayManager.loadPostcodeNodeMapping();
-		predayManager.removeInvalidAddresses();
+		PersonParams::removeInvalidAddress();
 	}
 
 	if(mtConfig.runningPredayCalibration())
@@ -643,15 +661,6 @@ bool performMainDemand()
 	{
 		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
 		predayManager.dispatchLT_Persons();
-//		const db::BackendType populationSource = mtConfig.getPopulationSource();
-//		if(populationSource == db::POSTGRES)
-//		{
-//			predayManager.dispatchLT_Persons();
-//		}
-//		else
-//		{
-//			predayManager.dispatchMongodbPersons();
-//		}
 	}
 	return true;
 }

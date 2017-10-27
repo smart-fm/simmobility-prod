@@ -357,7 +357,7 @@ MT_PersonLoader::MT_PersonLoader(std::set<sim_mob::Entity*>& activeAgents, Start
 		}
 		PopulationSqlDao populationDao(populationConn);
 		populationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
-		populationDao.getAddresses(PersonParams::getAddressLookup(), PersonParams::getZoneAddresses());
+		populationDao.getAddresses();
 	}
 }
 

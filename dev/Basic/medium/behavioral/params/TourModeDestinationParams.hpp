@@ -26,7 +26,7 @@ namespace medium
 class TourModeDestinationParams: public ModeDestinationParams
 {
 public:
-	TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType,
+    TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType, int numModes,
 			const std::vector<OD_Pair>& unavailableODs);
 	virtual ~TourModeDestinationParams();
 
@@ -52,7 +52,7 @@ public:
 	double getEmployment(int zone) const;
 	double getPopulation(int zone) const;
 	double getArea(int zone) const;
-	void setDrive1Available(bool drive1Available);
+    //void setDrive1Available(bool drive1Available);
 	int isAvailable_TMD(int choiceId) const;
 	int getModeForParentWorkTour() const;
 	void setModeForParentWorkTour(int modeForParentWorkTour);
@@ -61,8 +61,11 @@ public:
 	double getCostIncrease() const;
 
 private:
-	bool drive1Available;
-	bool motorAvailable;
+    /*bool drive1Available;
+    bool motorAvailable;*/
+
+    std::unordered_map<int, bool> modeAvailability;
+
 	int modeForParentWorkTour;
 	double costIncrease;
 };
@@ -71,7 +74,7 @@ class StopModeDestinationParams: public ModeDestinationParams
 {
 public:
 	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, const Stop* stop,
-			int originCode, const std::vector<OD_Pair>& unavailableODs);
+            int originCode, int numModes, const std::vector<OD_Pair>& unavailableODs);
 	virtual ~StopModeDestinationParams();
 	double getCostCarParking(int zone) const;
 	double getCostCarOP(int zone) const;
@@ -83,7 +86,7 @@ public:
 	double getWalkDistanceFirst(int zone) const;
 	double getWalkDistanceSecond(int zone) const;
 	int getCentralDummy(int zone) const;
-	StopType getTourPurpose() const;
+	int getTourPurpose() const;
 	double getShop(int zone) const;
 	double getEmployment(int zone) const;
 	double getPopulation(int zone) const;
@@ -96,8 +99,11 @@ public:
 
 private:
 	int homeZone;
-	bool driveAvailable;
-	bool motorAvailable;
+    /*bool driveAvailable;
+    bool motorAvailable;*/
+
+    std::unordered_map<int, bool> modeAvailability;
+
 	int tourMode;
 	bool firstBound;
 };

@@ -5,6 +5,9 @@
 #include "PopulationSqlDao.hpp"
 
 #include <boost/lexical_cast.hpp>
+#include "conf/ConfigManager.hpp"
+#include <behavioral/params/ZoneCostParams.hpp>
+#include <conf/ConfigParams.hpp>
 #include "DatabaseHelper.hpp"
 #include "logging/Log.hpp"
 
@@ -84,26 +87,26 @@ void PopulationSqlDao::getAllIds(std::vector<long>& outList)
 	}
 }
 
-void PopulationSqlDao::getAddresses(std::map<long, sim_mob::Address>& addressMap, std::map<int, std::vector<long> >& zoneAddressesMap)
+void PopulationSqlDao::getAddresses()
 {
 	if (isConnected())
 	{
-		addressMap.clear();
-		zoneAddressesMap.clear();
+		PersonParams::clearAddressLookup();
+		PersonParams::clearZoneAddresses();
 		Statement query(connection.getSession<soci::session>());
 		prepareStatement(DB_GET_ADDRESSES, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
 			long addressId = (*it).get<BigInt>(DB_FIELD_ADDRESS_ID);
-			sim_mob::Address& address = addressMap[addressId];
+			sim_mob::Address address;
 			address.setAddressId(addressId);
 			address.setPostcode((*it).get<int>(DB_FIELD_POSTCODE));
 			address.setTazCode((*it).get<int>(DB_FIELD_TAZ_CODE));
 			address.setDistanceMrt((*it).get<double>(DB_FIELD_DISTANCE_MRT));
 			address.setDistanceBus((*it).get<double>(DB_FIELD_DISTANCE_BUS));
-
-			zoneAddressesMap[address.getTazCode()].push_back(addressId);
+			PersonParams::setAddressLookup(address);
+			PersonParams::setZoneNodeAddressesMap(address);
 		}
 	}
 	else
@@ -174,24 +177,32 @@ void PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<6> >& vehi
 		}
 	}
 }
+std::string var_value()
+{
 
-SimmobSqlDao::SimmobSqlDao(db::DB_Connection& connection, const std::string& tableName) :
+    const std::unordered_map<StopType, ActivityTypeConfig>& activityTypeConfig = ConfigManager::GetInstance().FullConfig().getActivityTypeConfigMap();
+    int num_activity= activityTypeConfig.size();
+    std::string column_name =" VALUES ( :v1, ";  // for first column person_id
+    for(int i=1;i<=num_activity;i++)
+    {
+        column_name += ":v" + std::to_string(i+1) + ", ";
+    }
+    column_name += ":v" + std::to_string( num_activity + 2 ) + ", :v" + std::to_string( num_activity + 3 ) + ") ";
+
+    return column_name;
+}
+SimmobSqlDao::SimmobSqlDao(db::DB_Connection& connection, const std::string& tableName, const std::vector<std::string>& activityLogsumColumns) :
 		SqlAbstractDao<PersonParams>(
 				connection,
 				tableName,
-				("INSERT INTO " + tableName + " VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)"), //insert
+				("INSERT INTO " + tableName + var_value()), //" VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8)"), //insert
 				"", //update
 				("TRUNCATE " + tableName), //delete
 				"", //get all
 				"SELECT "
-					+ DB_FIELD_WORK_LOGSUM + ","
-					+ DB_FIELD_EDUCATION_LOGSUM + ","
-					+ DB_FIELD_SHOP_LOGSUM + ","
-					+ DB_FIELD_OTHER_LOGSUM + ","
-					+ DB_FIELD_DPT_LOGSUM + ","
-					+ DB_FIELD_DPS_LOGSUM
+                    + getLogsumColumnsStr(activityLogsumColumns)
 					+ " FROM " + tableName + " where person_id = :_id" //get by id
-				)
+                ), activityLogsumColumns(activityLogsumColumns)
 {
 }
 
@@ -201,23 +212,37 @@ SimmobSqlDao::~SimmobSqlDao()
 
 void SimmobSqlDao::fromRow(db::Row& result, PersonParams& outObj)
 {
-	outObj.setWorkLogSum(result.get<double>(DB_FIELD_WORK_LOGSUM));
-	outObj.setEduLogSum(result.get<double>(DB_FIELD_EDUCATION_LOGSUM));
-	outObj.setShopLogSum(result.get<double>(DB_FIELD_SHOP_LOGSUM));
-	outObj.setOtherLogSum(result.get<double>(DB_FIELD_OTHER_LOGSUM));
-	outObj.setDptLogsum(result.get<double>(DB_FIELD_DPT_LOGSUM));
+    StopType activityType = 1;
+    for (const auto& column : activityLogsumColumns)
+    {
+        outObj.setActivityLogsum(activityType, result.get<double>(column));
+        ++activityType;
+    }
+    outObj.setDptLogsum(result.get<double>(DB_FIELD_DPT_LOGSUM));
 	outObj.setDpsLogsum(result.get<double>(DB_FIELD_DPS_LOGSUM));
 }
 
 void SimmobSqlDao::toRow(PersonParams& data, db::Parameters& outParams, bool update)
 {
-	outParams.push_back(data.getPersonId());
-	outParams.push_back(data.getWorkLogSum());
-	outParams.push_back(data.getEduLogSum());
-	outParams.push_back(data.getShopLogSum());
-	outParams.push_back(data.getOtherLogSum());
+    outParams.push_back(data.getPersonId());
+    for (int activityType = 1; activityType <= activityLogsumColumns.size(); ++activityType)
+    {
+        outParams.push_back(data.getActivityLogsum(activityType));
+    }
 	outParams.push_back(data.getDptLogsum());
-	outParams.push_back(data.getDpsLogsum());
+    outParams.push_back(data.getDpsLogsum());
+}
+
+std::string SimmobSqlDao::getLogsumColumnsStr(const std::vector<std::string>& actvtylogsumClmns)
+{
+    std::string columnStr = "";
+    for (const auto& column : actvtylogsumClmns)
+    {
+        columnStr += (column + ",");
+    }
+    columnStr += DB_FIELD_DPT_LOGSUM + "," + DB_FIELD_DPS_LOGSUM;
+
+    return columnStr;
 }
 
 void SimmobSqlDao::getLogsumById(long long id, PersonParams& outObj)
@@ -227,17 +252,21 @@ void SimmobSqlDao::getLogsumById(long long id, PersonParams& outObj)
 	getById(params, outObj);
 }
 
-void SimmobSqlDao::getPostcodeNodeMap(std::map<unsigned int, unsigned int>& postcodeNodeMap)
+void SimmobSqlDao::getPostcodeNodeMap()
 {
 	if (isConnected())
 	{
-		postcodeNodeMap.clear();
+		PersonParams::clearPostCodeNodeMap();
 		Statement query(connection.getSession<soci::session>());
 		prepareStatement(DB_GET_POSTCODE_NODE_MAP, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
-			postcodeNodeMap[(*it).get<int>(DB_FIELD_POSTCODE)] = (*it).get<BigInt>(DB_FIELD_NODE_ID);
+			sim_mob::Address address;
+			address.setPostcode((*it).get<int>(DB_FIELD_POSTCODE));
+			ZoneNodeParams nodeId;
+			nodeId.setNodeId((*it).get<BigInt>(DB_FIELD_NODE_ID));
+			PersonParams::setPostCodeNodeMap(address,nodeId);
 		}
 	}
 }

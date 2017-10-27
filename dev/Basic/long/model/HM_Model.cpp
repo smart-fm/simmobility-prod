@@ -1757,7 +1757,7 @@ void HM_Model::startImpl()
 
 
 		//note: if you want to run job assignment model for foriegn workers comment this line.
-		if( household->getTenureStatus() != FROZEN_HH )
+		if( household->getTenureStatus() == FROZEN_HH )
 			continue;
 
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
@@ -2243,10 +2243,10 @@ void  HM_Model::loadLTVersion(DB_Connection &conn)
 	}
 
 	PrintOutV("Number of Lt Version rows: " << ltVersionList.size() << std::endl );
-	PrintOutV("LT Database Baseline Version: " << ltVersionList.back()->getBase_version() << endl);
-	PrintOutV("LT Database Baseline Date: " << ltVersionList.back()->getChange_date().tm_mday << "/" << ltVersionList.back()->getChange_date().tm_mon << "/" << ltVersionList.back()->getChange_date().tm_year  + 1900 << endl);
-	PrintOutV("LT Database Baseline Comment: " << ltVersionList.back()->getComments() << endl);
-	PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
+	//PrintOutV("LT Database Baseline Version: " << ltVersionList.back()->getBase_version() << endl);
+	//PrintOutV("LT Database Baseline Date: " << ltVersionList.back()->getChange_date().tm_mday << "/" << ltVersionList.back()->getChange_date().tm_mon << "/" << ltVersionList.back()->getChange_date().tm_year  + 1900 << endl);
+	//PrintOutV("LT Database Baseline Comment: " << ltVersionList.back()->getComments() << endl);
+	//PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
 }
 
 HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()

@@ -102,6 +102,11 @@ public:
 		return pathMover;
 	}
 
+	const Lane * getCurrentlane()
+	{
+		return currLane;
+	}
+
 	bool canOverrideLaneConnectors() const
 	{
 		return laneConnectorOverride;

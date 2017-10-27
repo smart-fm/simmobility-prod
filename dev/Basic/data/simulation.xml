@@ -119,6 +119,10 @@
         <start_time         value="00:00:00"/>
 
 
+        <!--Operational cost per km for car. Default value = 0.147-->
+        <operational_cost value="0.147"/>
+
+
         <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->
         <in_simulation_travel_time_usage value="100"/>
 

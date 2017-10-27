@@ -292,7 +292,7 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Buildi
 					coeffs->getMrt200m() 		*	ZZ_mrt_200m 	+
 					coeffs->getMrt_2_400m() 	*	ZZ_mrt_400m 	+
 					coeffs->getExpress200m() 	* 	ZZ_express_200m	+
-					coeffs->getBus400m() 		*	ZZ_bus_400m 	+
+					coeffs->getBusGt400m() 		*	ZZ_bus_400m 	+
 					coeffs->getAge() 			*	age 			+
 					coeffs->getLogAgeSquared() 	*	ageSquared;
 

@@ -20,6 +20,9 @@ namespace sim_mob
 
 			virtual ~JobsWithIndustryTypeAndTazId();
 
+			JobsWithIndustryTypeAndTazId( const JobsWithIndustryTypeAndTazId &source);
+			JobsWithIndustryTypeAndTazId& operator=(const JobsWithIndustryTypeAndTazId& source);
+
 			int getIndustryTypeId() const;
 			BigSerial getJobId() const;
 			BigSerial getTazId() const;

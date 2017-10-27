@@ -12,16 +12,16 @@ sim_mob::RawConfigParams::RawConfigParams() : mergeLogFiles(false), generateBusR
 
 sim_mob::SimulationParams::SimulationParams() :
     baseGranMS(0), baseGranSecond(0), totalRuntimeMS(0), totalWarmupMS(0), inSimulationTTUsage(0),
-    workGroupAssigmentStrategy(WorkGroup::ASSIGN_ROUNDROBIN), startingAutoAgentID(0),
+    workGroupAssigmentStrategy(WorkGroup::ASSIGN_ROUNDROBIN), startingAutoAgentID(0), operationalCost(0),
     mutexStategy(MtxStrat_Buffered)
 {}
 
 
 sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), tickStep(0), maxIterations(0),year(0),resume(false),currentOutputSchema(std::string()),mainSchemaVersion(std::string()),configSchemaVersion(std::string()),calibrationSchemaVersion(std::string()),geometrySchemaVersion(std::string()),opSchemaloadingInterval(0)
-										   ,initialLoading(false){}
+										   ,initialLoading(false), launchBTO(false){}
 sim_mob::LongTermParams::DeveloperModel::DeveloperModel(): enabled(false), timeInterval(0), initialPostcode(0),initialUnitId(0),initialBuildingId(0),
 															initialProjectId(0),minLotSize(0) {}
-sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), timeOffMarket(0), vacantUnitActivationProbability(0),
+sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), timeOffMarket(0), wtpOffsetEnabled(false),vacantUnitActivationProbability(0),
 													   housingMarketSearchPercentage(0), housingMoveInDaysInterval(0), offsetBetweenUnitBuyingAndSelling(0),
 													   bidderUnitsChoiceSet(0),bidderBTOUnitsChoiceSet(0),householdBiddingWindow(0), householdBTOBiddingWindow(0),
 													   householdAwakeningPercentageByBTO(0), offsetBetweenUnitBuyingAndSellingAdvancedPurchase(0){}
@@ -35,7 +35,7 @@ sim_mob::LongTermParams::OutputHouseholdLogsums::OutputHouseholdLogsums():enable
 sim_mob::LongTermParams::VehicleOwnershipModel::VehicleOwnershipModel():enabled(false), vehicleBuyingWaitingTimeInDays(0){}
 sim_mob::LongTermParams::TaxiAccessModel::TaxiAccessModel():enabled(false){}
 sim_mob::LongTermParams::SchoolAssignmentModel::SchoolAssignmentModel():enabled(false), schoolChangeWaitingTimeInDays(0){}
-sim_mob::LongTermParams::JobAssignmentModel::JobAssignmentModel():enabled(false){}
+sim_mob::LongTermParams::JobAssignmentModel::JobAssignmentModel():enabled(false), foreignWorkers(false){}
 
 sim_mob::LongTermParams::OutputFiles::OutputFiles(): bids(false),
 													 expectations(false),

@@ -174,9 +174,9 @@ void DeveloperModel::startImpl() {
 
 		if(resume)
 		{
-			outputSchema = config.ltParams.currentOutputSchema;
+			outputSchema = config.schemas.main_schema;
 			SimulationStoppedPointDao simStoppedPointDao(conn);
-			const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema+ "."+"simulation_stopped_point;";
+			const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema +"simulation_stopped_point;";
 			simStoppedPointDao.getByQuery(getAllSimStoppedPointParams,simStoppedPointList);
 			if(!simStoppedPointList.empty())
 			{
@@ -186,7 +186,7 @@ void DeveloperModel::startImpl() {
 				projectIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getProjectId();
 			}
 
-			parcelsWithOngoingProjects = parcelDao.getParcelsWithOngoingProjects(outputSchema);
+			parcelsWithOngoingProjects = parcelDao.getParcelsWithOngoingProjects(config.schemas.main_schema);
 			//Index all parcels with ongoing projects.
 			for (ParcelList::iterator it = parcelsWithOngoingProjects.begin(); it != parcelsWithOngoingProjects.end(); it++) {
 				parcelsWithOngoingProjectsById.insert(std::make_pair((*it)->getId(), *it));
@@ -194,12 +194,14 @@ void DeveloperModel::startImpl() {
 
 			//load projects
 			ProjectDao projectDao(conn);
-			projects = projectDao.loadOngoingProjects(outputSchema);
+			projects = projectDao.loadOngoingProjects(config.schemas.main_schema);
 			for (ProjectList::iterator it = projects.begin(); it != projects.end(); it++) {
 				existingProjectIds.push_back((*it)->getProjectId());
 				projectByParcelId.insert(std::make_pair((*it)->getParcelId(),*it));
 			}
 
+			PrintOutV("Total number of projects loaded from previous run: "<<existingProjectIds.size()<<std::endl);
+			PrintOutV("Total number of parcels with ongoing projects: "<<parcelsWithOngoingProjects.size()<<std::endl);
 		}
 		else
 		{

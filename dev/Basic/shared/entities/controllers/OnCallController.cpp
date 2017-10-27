@@ -155,7 +155,6 @@ void OnCallController::onDriverShiftEnd(Person *driver)
 {
 	ControllerLog() << "Shift end msg received from driver " << driver << endl;
 
-	driverAvailable(driver);
 	unsubscribeDriver(driver);
 
 	MessageBus::PostMessage((MessageHandler *) driver, MSG_UNSUBSCRIBE_SUCCESSFUL, MessageBus::MessagePtr(

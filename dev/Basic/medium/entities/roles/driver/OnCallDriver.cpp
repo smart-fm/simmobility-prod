@@ -55,6 +55,25 @@ Role<Person_MT>* OnCallDriver::clone(Person_MT *person) const
 	return driver;
 }
 
+void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message &message)
+{
+	switch (type)
+	{
+	case MSG_SCHEDULE_PROPOSITION:
+	{
+		const SchedulePropositionMessage &msg = MSG_CAST(SchedulePropositionMessage, message);
+		driverSchedule.setSchedule(msg.getSchedule());
+		movement->performScheduleItem();
+		break;
+	}
+	case MSG_UNSUBSCRIBE_SUCCESSFUL:
+	{
+		parent->setToBeRemoved();
+		break;
+	}
+	}
+}
+
 const Node* OnCallDriver::getCurrentNode() const
 {
 	return movement->getCurrentNode();
@@ -118,11 +137,9 @@ void OnCallDriver::endShift()
 	//Notify the controller(s)
 	for(auto ctrlr : subscribedControllers)
 	{
-		MessageBus::PostMessage(ctrlr, MSG_DRIVER_UNSUBSCRIBE,
-		                        MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));
+		MessageBus::PostMessage(ctrlr, MSG_DRIVER_SHIFT_END,
+		                        MessageBus::MessagePtr(new DriverShiftCompleted(parent)));
 	}
-
-	parent->setToBeRemoved();
 
 #ifndef NDEBUG
 	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "

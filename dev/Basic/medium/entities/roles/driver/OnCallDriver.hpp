@@ -93,6 +93,13 @@ public:
 	virtual Role<Person_MT> *clone(Person_MT *person) const;
 
 	/**
+	 * Message handler to provide a chance to handle message forwarded by the parent person.
+	 * @param type type of the message.
+	 * @param message the message containing the required data.
+	 */
+	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message &message);
+
+	/**
 	 * The current node of the driver is the node which has most recently been crossed by the driver
 	 * This method retrieves the node using the current segment from the path mover object.
 	 * @return current node if available, else nullptr

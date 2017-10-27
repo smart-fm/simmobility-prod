@@ -116,7 +116,7 @@ void OnCallDriverMovement::performScheduleItem()
 {
 	try
 	{
-		//Get the first schedule item
+		//Get the current schedule item
 		auto itScheduleItem = onCallDriver->driverSchedule.getCurrScheduleItem();
 		bool hasShiftEnded = onCallDriver->behaviour->hasDriverShiftEnded();
 
@@ -124,11 +124,12 @@ void OnCallDriverMovement::performScheduleItem()
 		{
 		case CRUISE:
 		{
-			if(!hasShiftEnded)
-			{
-				beginCruising(itScheduleItem->nodeToCruiseTo);
-			}
-			else
+			beginCruising(itScheduleItem->nodeToCruiseTo);
+
+			//We need to call the beginCruising method above even if the shift has ended,
+			//this is to allow the driver to notify the controller and receive a unsubscribe successful
+			//reply
+			if(hasShiftEnded)
 			{
 				onCallDriver->endShift();
 			}

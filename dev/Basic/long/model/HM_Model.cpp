@@ -2243,10 +2243,10 @@ void  HM_Model::loadLTVersion(DB_Connection &conn)
 	}
 
 	PrintOutV("Number of Lt Version rows: " << ltVersionList.size() << std::endl );
-	//PrintOutV("LT Database Baseline Version: " << ltVersionList.back()->getBase_version() << endl);
-	//PrintOutV("LT Database Baseline Date: " << ltVersionList.back()->getChange_date().tm_mday << "/" << ltVersionList.back()->getChange_date().tm_mon << "/" << ltVersionList.back()->getChange_date().tm_year  + 1900 << endl);
-	//PrintOutV("LT Database Baseline Comment: " << ltVersionList.back()->getComments() << endl);
-	//PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
+	PrintOutV("LT Database Baseline Version: " << ltVersionList.back()->getBase_version() << endl);
+	PrintOutV("LT Database Baseline Date: " << ltVersionList.back()->getChange_date().tm_mday << "/" << ltVersionList.back()->getChange_date().tm_mon << "/" << ltVersionList.back()->getChange_date().tm_year  + 1900 << endl);
+	PrintOutV("LT Database Baseline Comment: " << ltVersionList.back()->getComments() << endl);
+	PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
 }
 
 HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()

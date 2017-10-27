@@ -5,6 +5,8 @@
 #pragma once
 
 #include "Driver.hpp"
+#include "entities/controllers/MobilityServiceController.hpp"
+#include "entities/controllers/MobilityServiceControllerManager.hpp"
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "OnCallDriverFacets.hpp"
@@ -23,12 +25,55 @@ private:
 	/**Stores the controllers that the driver is subscribed to*/
 	std::vector<MobilityServiceController *> subscribedControllers;
 
-	/**Stores the schedule currently assigned to the driver*/
-	Schedule assignedSchedule;
-
 protected:
-	/**Pointer to the on hail driver's movement facet object*/
+	/**Pointer to the on call driver's movement facet object*/
 	OnCallDriverMovement *movement;
+
+	/**Pointer to the on call driver's behaviour facet object*/
+	OnCallDriverBehaviour *behaviour;
+
+	/**Wrapper for the schedule that has been given by the controller. */
+	struct DriverSchedule
+	{
+	private:
+		/**Stores the schedule currently assigned to the driver*/
+		Schedule assignedSchedule;
+
+		/**Points to the current schedule item being performed*/
+		Schedule::const_iterator currentItem;
+
+		/**Points to the next schedule item to be performed*/
+		Schedule::const_iterator nextItem;
+
+	public:
+		void setSchedule(const Schedule &newSchedule)
+		{
+			assignedSchedule = newSchedule;
+			currentItem = assignedSchedule.begin();
+			nextItem = currentItem + 1;
+		}
+
+		const Schedule& getSchedule() const
+		{
+			return assignedSchedule;
+		}
+
+		Schedule::const_iterator getCurrScheduleItem() const
+		{
+			return currentItem;
+		}
+
+		Schedule::const_iterator getNextScheduleItem() const
+		{
+			return nextItem;
+		}
+
+		void itemCompleted()
+		{
+			++currentItem;
+			++nextItem;
+		}
+	} driverSchedule;
 
 public:
 	OnCallDriver(Person_MT *parent, const MutexStrategy &mtx,
@@ -67,12 +112,31 @@ public:
 	virtual Schedule getAssignedSchedule() const;
 
 	/**
-	 * @return the number of passengers in the vehicle. As on hail drivers can serve only 1 customer at a
-	 * time, this method will only return a 0 or 1
+	 * @return the number of passengers in the vehicle.
 	 */
 	virtual unsigned long getPassengerCount() const;
 
+	/**
+	 * Export service driver
+	 * @return exporting result
+	 */
+	virtual const MobilityServiceDriver *exportServiceDriver() const;
+
+	/**
+	 * Checks if the driver is supposed to subscribe to the given controller type. If so, it subscribes it to all
+	 * controllers of that it, else does nothing.
+	 * @param controllers map of controllers
+	 * @param type the type of controller to be subscribed
+	 */
+	void subscribeToOrIgnoreController(const SvcControllerMap& controllers, MobilityServiceControllerType type);
+
+	/**
+	 * Performs the tasks required to end the driver shift
+	 */
+	void endShift();
+
 	friend class OnCallDriverMovement;
+	friend class OnCallDriverBehaviour;
 };
 
 }

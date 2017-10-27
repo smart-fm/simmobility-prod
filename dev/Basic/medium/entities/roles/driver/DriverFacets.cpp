@@ -1089,7 +1089,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 		const Role<Person_MT>::Type  rType = getParentDriver()->roleType;
 		if (rType != Role<Person_MT>::RL_BUSDRIVER && rType != Role<Person_MT>::RL_TAXIDRIVER &&
-		    rType != Role<Person_MT>::RL_ON_HAIL_DRIVER)
+		    rType != Role<Person_MT>::RL_ON_HAIL_DRIVER && rType != Role<Person_MT>::RL_ON_CALL_DRIVER)
 		{
 			//initialize some travel metrics for this subTrip
 			startTravelTimeMetric(); //not for bus drivers or any other role
@@ -1381,7 +1381,8 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const Link* completedLink
 {
 	if (parentDriver->roleType == Role<Person_MT>::Type::RL_BUSDRIVER ||
 	    parentDriver->roleType == Role<Person_MT>::Type::RL_TAXIDRIVER ||
-	    parentDriver->roleType == Role<Person_MT>::Type::RL_ON_HAIL_DRIVER)
+	    parentDriver->roleType == Role<Person_MT>::Type::RL_ON_HAIL_DRIVER ||
+	    parentDriver->roleType == Role<Person_MT>::Type::RL_ON_CALL_DRIVER)
 	{
 		travelMetric.cbdTraverseType = TravelMetric::CBD_NONE;
 		return travelMetric;

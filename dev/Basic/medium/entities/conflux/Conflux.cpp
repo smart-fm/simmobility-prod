@@ -1161,15 +1161,18 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 		break;
 	}
 	case Role<Person_MT>::RL_ON_HAIL_DRIVER:
+	case Role<Person_MT>::RL_ON_CALL_DRIVER:
 	{
 		if (prevLane)
 		{
 			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing, vehicleLength);
-			//removed can be false in the case of On hail drivers at the moment.
+			//removed can be false in the case of On hail & on call drivers at the moment.
 			//This is because an on hail driver could have been dequeued from prevLane in the previous tick and
 			//be added to the taxi stand. When it has finished queuing there (time out), the driver is done.
 			//He will be killed here. However, since he was already dequeued, we can't find him in prevLane now.
-			//It is an error only if removed is false and the role is not OnHailDriver.
+			//Similarly, an on call driver could have been dequeued from prevLane in the previous tick and
+			//be added to the parking. The driver is done if its shift was completed there.
+			//He will be killed here. However, since he was already dequeued, we can't find him in prevLane now.
 			if (!removed && wasMoving)
 			{
 				throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");

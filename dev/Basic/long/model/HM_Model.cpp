@@ -1756,7 +1756,8 @@ void HM_Model::startImpl()
 		const int FROZEN_HH = 3;
 
 
-		if( household->getTenureStatus() == FROZEN_HH )
+		//note: if you want to run job assignment model for foriegn workers comment this line.
+		if( household->getTenureStatus() != FROZEN_HH )
 			continue;
 
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
@@ -2098,27 +2099,6 @@ void HM_Model::startImpl()
 				vehOwnershipModel.reconsiderVehicleOwnershipOption2(*households[n],nullptr, 0,initialLoading);
 			}
 		}
-
-//		if( config.ltParams.jobAssignmentModel.enabled == true)
-//			{
-//
-//				JobAssignmentModel jobAssignModel(this);
-//				const Household *hh = households[n];
-//				if( hh != NULL )
-//				{
-//					vector<BigSerial> individuals = households[n]->getIndividuals();
-//					for(int n = 0; n < individuals.size(); n++)
-//					{
-//						const Individual *individual = getIndividualById(individuals[n]);
-//						if(individual->getEmploymentStatusId() < 4 && getJobAssignIndividualCount() < 10000)
-//						{
-//							incrementJobAssignIndividualCount();
-//							jobAssignModel.computeJobAssignmentProbability(individual->getId());
-//							PrintOutV("number of individuals assigned for jobs " <<getJobAssignIndividualCount()<< std::endl);
-//						}
-//					}
-//				}
-//			}
 	}
 
 	Household *hh;
@@ -3567,7 +3547,9 @@ void HM_Model::loadJobsByTazAndIndustryType(DB_Connection &conn)
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
 
-	const std::string storedProc = conn.getSchema() + "getJobsWithIndustryTypeAndTazId()";
+	//const std::string storedProc = conn.getSchema() + "getJobsWithIndustryTypeAndTazId()";
+	const std::string storedProc = conn.getSchema() + "getJobsForForiegnersWithIndustryTypeAndTazId()";
+
 	//SQL statement
 	soci::rowset<JobsWithIndustryTypeAndTazId> jobsWithIndTypeAndTazObj = (sql.prepare << "select * from " + storedProc);
 	for (soci::rowset<JobsWithIndustryTypeAndTazId>::const_iterator itJobs = jobsWithIndTypeAndTazObj.begin(); itJobs != jobsWithIndTypeAndTazObj.end(); ++itJobs)
@@ -3633,7 +3615,6 @@ bool HM_Model::assignIndividualJob(BigSerial individualId, BigSerial selectedTaz
 	{
 		if((iter->second->getJobId()) == jobId) {
 			jobsWithTazAndIndustryType.erase(iter);
-			//iter->second->setAssigned(true);
 			break;
 		}
 	}

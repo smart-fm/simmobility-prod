@@ -35,7 +35,7 @@ sim_mob::LongTermParams::OutputHouseholdLogsums::OutputHouseholdLogsums():enable
 sim_mob::LongTermParams::VehicleOwnershipModel::VehicleOwnershipModel():enabled(false), vehicleBuyingWaitingTimeInDays(0){}
 sim_mob::LongTermParams::TaxiAccessModel::TaxiAccessModel():enabled(false){}
 sim_mob::LongTermParams::SchoolAssignmentModel::SchoolAssignmentModel():enabled(false), schoolChangeWaitingTimeInDays(0){}
-sim_mob::LongTermParams::JobAssignmentModel::JobAssignmentModel():enabled(false){}
+sim_mob::LongTermParams::JobAssignmentModel::JobAssignmentModel():enabled(false), foreignWorkers(false){}
 
 sim_mob::LongTermParams::OutputFiles::OutputFiles(): bids(false),
 													 expectations(false),

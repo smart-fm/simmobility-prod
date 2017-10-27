@@ -497,6 +497,11 @@ void ParseConfigFile::processJobAssignmentModelNode(xercesc::DOMElement *jobAssi
 	jobAssignmentModel.enabled =
 			ParseBoolean(GetNamedAttributeValue(jobAssignModel, "enabled"), false);
 
+	jobAssignmentModel.foreignWorkers =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+						jobAssignModel, "foreignWorkers"), "value"),false);
+
+
 	cfg.ltParams.jobAssignmentModel = jobAssignmentModel;
 
 }

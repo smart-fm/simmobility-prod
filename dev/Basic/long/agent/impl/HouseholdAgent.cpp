@@ -464,13 +464,13 @@ void HouseholdAgent::onWorkerEnter()
 
 			JobAssignmentModel jobAssignModel(model);
 			const Household *hh = this->getHousehold();
-			if( hh != NULL )
+			if( (hh != NULL) && ((hh->getTenureStatus()==3 && config.ltParams.jobAssignmentModel.foreignWorkers == true) || (config.ltParams.jobAssignmentModel.foreignWorkers == false)))
 			{
-				vector<BigSerial> individuals = household->getIndividuals();
+				vector<BigSerial> individuals = hh->getIndividuals();
 				for(int n = 0; n < individuals.size(); n++)
 				{
 					const Individual *individual = getModel()->getIndividualById(individuals[n]);
-					if(individual->getEmploymentStatusId() < 4)
+					if(individual->getEmploymentStatusId() < 4 )
 					{
 						model->incrementJobAssignIndividualCount();
 						jobAssignModel.computeJobAssignmentProbability(individual->getId());

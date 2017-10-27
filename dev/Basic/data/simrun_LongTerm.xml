@@ -110,7 +110,7 @@
 	<year value = "2012" />   
 	<resume value ="false"/> 
 	<currentOutputSchema value = "baseline_2012_20170811023744"/> <!--if resume is true give the current op schema name-->
-        <opSchemaloadingInterval value = "365"/>
+        <opSchemaloadingInterval value = "367"/>
         <initialLoading value = "true" />
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
@@ -162,7 +162,8 @@
 	<schoolAssignmentModel enabled = 'false'>
 		<schoolChangeWaitingTimeInDays value ="1" />
 	</schoolAssignmentModel>
-	<jobAssignmentModel enabled = 'true'>
+	<jobAssignmentModel enabled = 'false'>
+               <foreignWorkers value = "false" />
 	</jobAssignmentModel>
 
 	<scenario enabled= 'true'>

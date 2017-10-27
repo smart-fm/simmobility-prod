@@ -132,6 +132,7 @@ struct LongTermParams
 	struct JobAssignmentModel{
 		JobAssignmentModel();
 		bool enabled;
+		bool foreignWorkers;
 		}jobAssignmentModel;
 
 

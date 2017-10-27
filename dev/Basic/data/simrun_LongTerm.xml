@@ -165,6 +165,7 @@
 		<schoolChangeWaitingTimeInDays value ="1" />
 	</schoolAssignmentModel>
 	<jobAssignmentModel enabled = 'false'>
+               <foreignWorkers value = "false" />
 	</jobAssignmentModel>
 
 	<scenario enabled= 'true'>

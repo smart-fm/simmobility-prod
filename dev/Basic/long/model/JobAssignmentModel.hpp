@@ -34,6 +34,8 @@ namespace sim_mob
 
 		private:
 			HM_Model* model;
+			boost::mutex mtx;
+			int jobId ;
 
 		};
 

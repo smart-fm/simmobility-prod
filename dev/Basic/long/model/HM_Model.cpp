@@ -215,7 +215,7 @@ double HM_Model::TazStats::getAvgHHSize() const
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
 											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
-											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false){}
+											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false),jobAssignIndCount(0), isConnected(false){}
 
 HM_Model::~HM_Model()
 {
@@ -1482,9 +1482,9 @@ void HM_Model::startImpl()
 	{
 		loadLTVersion(conn);
 		loadStudyAreas(conn);
-		//loadJobsBySectorByTaz(conn_calibration);
-		//loadJobAssignments(conn);
-		//loadJobsByTazAndIndustryType(conn);
+		loadJobsByIndustryTypeByTaz(conn_calibration);
+		loadJobAssignments(conn);
+		loadJobsByTazAndIndustryType(conn);
 
 		{
 			soci::session sql;
@@ -1564,7 +1564,7 @@ void HM_Model::startImpl()
 
 			//Load households
 			loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-			PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
+			PrintOutV("Number of households: " << households.size() << " Households used: " << households.size()  << std::endl);
 
 			//load individuals
 			loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
@@ -1768,6 +1768,7 @@ void HM_Model::startImpl()
 		const int FROZEN_HH = 3;
 
 
+		//note: if you want to run job assignment model for foriegn workers comment this line.
 		if( household->getTenureStatus() == FROZEN_HH )
 			continue;
 
@@ -3476,35 +3477,35 @@ HM_Model::JobAssignmentCoeffsList& HM_Model::getJobAssignmentCoeffs()
 	return jobAssignmentCoeffs;
 }
 
-void HM_Model::loadJobsBySectorByTaz(DB_Connection &conn)
+void HM_Model::loadJobsByIndustryTypeByTaz(DB_Connection &conn)
 {
 	soci::session sql;
 	sql.open(soci::postgresql, conn.getConnectionStr());
-	std::string tableName = "jobs_by_sector_by_taz";
+	std::string tableName = "jobs_by_industry_type_by_taz";
 	//SQL statement
-	soci::rowset<JobsBySectorByTaz> jobsBySectorByTazObj = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
+	soci::rowset<JobsByIndustryTypeByTaz> jobsBySectorByTazObj = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
 
-	for (soci::rowset<JobsBySectorByTaz>::const_iterator itJobsBySecByTaz = jobsBySectorByTazObj.begin(); itJobsBySecByTaz != jobsBySectorByTazObj.end(); ++itJobsBySecByTaz)
+	for (soci::rowset<JobsByIndustryTypeByTaz>::const_iterator itJobsBySecByTaz = jobsBySectorByTazObj.begin(); itJobsBySecByTaz != jobsBySectorByTazObj.end(); ++itJobsBySecByTaz)
 	{
-		JobsBySectorByTaz* jobsBySectorByTaz = new JobsBySectorByTaz(*itJobsBySecByTaz);
-		jobsBySectorByTazsList.push_back(jobsBySectorByTaz);
-		jobsBySectorByTazMap.insert(std::make_pair(jobsBySectorByTaz->getTazId(), jobsBySectorByTaz));
+		JobsByIndustryTypeByTaz* jobsBySectorByTaz = new JobsByIndustryTypeByTaz(*itJobsBySecByTaz);
+		jobsByIndustryTypeByTazsList.push_back(jobsBySectorByTaz);
+		jobsByIndustryTypeByTazMap.insert(std::make_pair(jobsBySectorByTaz->getTazId(), jobsBySectorByTaz));
 	}
 
-	PrintOutV("Number of Jobs by Sector by Taz rows: " << jobsBySectorByTazsList.size() << std::endl );
+	PrintOutV("Number of Jobs by Sector by Taz rows: " << jobsByIndustryTypeByTazsList.size() << std::endl );
 
 }
 
-HM_Model::JobsBySectorByTazList& HM_Model::getJobsBySectorByTazs()
+HM_Model::JobsByIndustryTypeByTazList& HM_Model::getJobsBySectorByTazs()
 {
-	return jobsBySectorByTazsList;
+	return jobsByIndustryTypeByTazsList;
 }
 
-JobsBySectorByTaz* HM_Model::getJobsBySectorByTazId(BigSerial tazId) const
+JobsByIndustryTypeByTaz* HM_Model::getJobsBySectorByTazId(BigSerial tazId) const
 {
-	JobsBySectorByTazMap::const_iterator itr = jobsBySectorByTazMap.find(tazId);
+	JobsByIndusrtyTypeByTazMap::const_iterator itr = jobsByIndustryTypeByTazMap.find(tazId);
 
-		if (itr != jobsBySectorByTazMap.end())
+		if (itr != jobsByIndustryTypeByTazMap.end())
 		{
 			return (*itr).second;
 		}
@@ -3525,17 +3526,27 @@ void HM_Model::loadIndLogsumJobAssignments(BigSerial individuaId)
 		DB_Config dbConfig(LT_DB_CONFIG_FILE);
 		dbConfig.load();
 		DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
-		conn_calibration.connect();
-		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-		conn_calibration.setSchema(config.schemas.calibration_schema);
-		IndLogsumJobAssignmentDao logsumDao(conn_calibration);
-		indLogsumJobAssignmentList = logsumDao.loadLogsumByIndividualId(individuaId);
-
-		for (IndLogsumJobAssignmentList::iterator it = indLogsumJobAssignmentList.begin(); it != indLogsumJobAssignmentList.end(); it++)
+		if(!isConnected)
 		{
-			//CompositeKey indTazIdPair = make_pair((*it)->getIndividualId(), (*it)->getTazId());
-			//indLogsumJobAssignmentByTaz.insert(make_pair(indTazIdPair, *it));
-			indLogsumJobAssignmentByTaz.insert(std::make_pair((*it)->getTazId(), *it));
+			conn_calibration.connect();
+			isConnected = true;
+		}
+
+		if(conn_calibration.isConnected())
+		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			conn_calibration.setSchema(config.schemas.calibration_schema);
+			IndLogsumJobAssignmentDao logsumDao(conn_calibration);
+			clear_delete_vector(indLogsumJobAssignmentList);
+			indLogsumJobAssignmentList = logsumDao.loadLogsumByIndividualId(individuaId);
+			indLogsumJobAssignmentByTaz.clear();
+
+			for (IndLogsumJobAssignmentList::iterator it = indLogsumJobAssignmentList.begin(); it != indLogsumJobAssignmentList.end(); it++)
+			{
+				//CompositeKey indTazIdPair = make_pair((*it)->getIndividualId(), (*it)->getTazId());
+				//indLogsumJobAssignmentByTaz.insert(make_pair(indTazIdPair, *it));
+				indLogsumJobAssignmentByTaz.insert(std::make_pair((*it)->getTazId(), *it));
+			}
 		}
 
 	}
@@ -3570,23 +3581,91 @@ void HM_Model::loadJobsByTazAndIndustryType(DB_Connection &conn)
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
 
-	const std::string storedProc = conn.getSchema() + "getJobsWithIndustryTypeAndTazId()";
+	//const std::string storedProc = conn.getSchema() + "getJobsWithIndustryTypeAndTazId()";
+	const std::string storedProc = conn.getSchema() + "getJobsForForiegnersWithIndustryTypeAndTazId()";
+
 	//SQL statement
 	soci::rowset<JobsWithIndustryTypeAndTazId> jobsWithIndTypeAndTazObj = (sql.prepare << "select * from " + storedProc);
 	for (soci::rowset<JobsWithIndustryTypeAndTazId>::const_iterator itJobs = jobsWithIndTypeAndTazObj.begin(); itJobs != jobsWithIndTypeAndTazObj.end(); ++itJobs)
 	{
 		JobsWithIndustryTypeAndTazId* job = new JobsWithIndustryTypeAndTazId(*itJobs);
 		TazAndIndustryTypeKey tazIdIndTypePair = make_pair(job->getTazId(), job->getIndustryTypeId());
-		jobsByTazAndIndustryType.insert(make_pair(tazIdIndTypePair, job));
+		jobsWithTazAndIndustryType.insert(make_pair(tazIdIndTypePair, job));
 	}
 
-	PrintOutV("Number of Jobs with Taz Id and Industry Type: " << jobsByTazAndIndustryType.size() << std::endl );
+	PrintOutV("Number of Jobs with Taz Id and Industry Type: " << jobsWithTazAndIndustryType.size() << std::endl );
 }
 
-HM_Model::JobsByTazAndIndustryTypeMap& HM_Model::getJobsByTazAndIndustryTypeMap()
+HM_Model::JobsWithTazAndIndustryTypeMap& HM_Model::getJobsWithTazAndIndustryTypeMap()
 {
-	return this->jobsByTazAndIndustryType;
+	return this->jobsWithTazAndIndustryType;
 
+}
+
+bool HM_Model::checkJobsInTazAndIndustry(BigSerial tazId, BigSerial industryId)
+{
+	{
+		boost::unique_lock<boost::shared_mutex> lock(sharedMtx);
+		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(tazId, industryId);
+		auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
+		size_t sz = distance(range.first, range.second);
+		if(sz > 0)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+}
+
+bool HM_Model::assignIndividualJob(BigSerial individualId, BigSerial selectedTazId, BigSerial industryId)
+{
+	{
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx);
+	HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
+	auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
+	size_t sz = distance(range.first, range.second);
+	if(sz==0)
+	{
+		PrintOutV("Individual id" <<  individualId << "has job id as 0" << std::endl);
+		return false;
+	}
+	else
+	{
+	std::random_device rdInGen;
+	std::mt19937 genRdInd(rdInGen());
+	std::uniform_int_distribution<int> disRdInd(0, (sz-1));
+	const unsigned int random_index = disRdInd(genRdInd);
+	std::advance(range.first, random_index);
+
+	int jobId = range.first->second->getJobId();
+	writeIndividualJobAssignmentsToFile(individualId,range.first->second->getJobId());
+
+	HM_Model::JobsWithTazAndIndustryTypeMap::iterator iter;
+	for(iter=range.first;iter != range.second;++iter)
+	{
+		if((iter->second->getJobId()) == jobId) {
+			jobsWithTazAndIndustryType.erase(iter);
+			break;
+		}
+	}
+	return true;
+	}
+	}
+
+}
+
+int HM_Model::getJobAssignIndividualCount()
+{
+	return this->jobAssignIndCount;
+}
+
+void HM_Model::incrementJobAssignIndividualCount()
+{
+	++jobAssignIndCount;
 }
 
 void HM_Model::stopImpl()

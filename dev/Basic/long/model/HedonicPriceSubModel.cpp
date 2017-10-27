@@ -265,24 +265,24 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Buildi
 		ZZ_hdb5m = 1;
 
 
-	HedonicCoeffsByUnitType *coeffs = nullptr;
+	HedonicCoeffs *coeffs = nullptr;
 
 
 	//-----------------------------
 	//-----------------------------
 	if (ZZ_hdb12 == 1)
-		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(1));
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(7));
 	else
 	if (ZZ_hdb3 == 1)
-		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(3));
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(8));
 	else
 	if (ZZ_hdb4 == 1)
-		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(4));
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(9));
 	else
 	if (ZZ_hdb5m == 1)
-		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(5));
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(10));
 	else
-		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(6));
+		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(11));
 
 	hedonicPrice =  coeffs->getIntercept() 	+
 					coeffs->getLogSqrtArea() 	*	DD_logsqrtarea 	+
@@ -290,11 +290,11 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Buildi
 					coeffs->getPms1km() 		*	ZZ_pms1km 		+
 					coeffs->getDistanceMallKm() *	ZZ_dis_mall 	+
 					coeffs->getMrt200m() 		*	ZZ_mrt_200m 	+
-					coeffs->getMrt2400m() 	*	ZZ_mrt_400m 	+
+					coeffs->getMrt_2_400m() 	*	ZZ_mrt_400m 	+
 					coeffs->getExpress200m() 	* 	ZZ_express_200m	+
 					coeffs->getBusGt400m() 		*	ZZ_bus_400m 	+
 					coeffs->getAge() 			*	age 			+
-					coeffs->getAgeSquared() 	*	ageSquared;
+					coeffs->getLogAgeSquared() 	*	ageSquared;
 
 
 
@@ -436,10 +436,10 @@ double HedonicPrice_SubModel::CalculateHedonicPrice( Unit *unit, const Building 
 {
     if( unit != nullptr && building != nullptr && postcode != nullptr && amenities != nullptr )
     {
-		//if(unit->getUnitType() <= 6 || unit->getUnitType() == 65 )
-		//	return CalculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
-		// else
-		//	return CalculatePrivate_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
+		if(unit->getUnitType() <= 6 || unit->getUnitType() == 65 )
+			return CalculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
+		 else
+			return CalculatePrivate_HedonicPrice(unit, building, postcode, amenities, logsum, lagCoefficient);
     }
 
     return -1;

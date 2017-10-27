@@ -971,7 +971,10 @@ void Conflux::updateAndReportSupplyStats(timeslice frameNumber)
 				segStatsOutput.append(segStats->reportSegmentStats(frameNumber.frame() / updateInterval));
 				lnkTotalVehicleLength = lnkTotalVehicleLength + segStats->getTotalVehicleLength();
 			}
-			segStats->updateLaneParams(frameNumber);
+			if(updateThisTick)
+			{
+				segStats->updateLaneParams(frameNumber);
+			}
 		}
 		if(updateThisTick && outputEnabled)
 		{

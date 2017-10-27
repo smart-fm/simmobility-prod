@@ -112,6 +112,7 @@
 	<currentOutputSchema value = "baseline_2012_20170811023744"/> <!--if resume is true give the current op schema name-->
         <opSchemaloadingInterval value = "367"/>
         <initialLoading value = "true" />
+        <launchBTO value = "false"/>
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>
@@ -129,6 +130,7 @@
             <timeOnMarket value="72"/>
             <timeOffMarket value="288"/>
             <timeInterval value="7"/>
+	    <wtpOffsetEnabled value="true"/>
 	    <awakeningModel enabled="true">
 		    <initialHouseholdsOnMarket value="7500"/>
 		    <dailyHouseholdAwakenings value="400"/>

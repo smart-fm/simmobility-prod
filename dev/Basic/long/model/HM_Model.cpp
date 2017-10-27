@@ -1706,7 +1706,19 @@ void HM_Model::startImpl()
 	}
 
 
-	unitsFiltering();
+	if(!resume)
+	{
+		unitsFiltering();
+	}
+	else
+	{
+		BidDao bidDao(conn);
+		db::Parameters params;
+		params.push_back(lastStoppedDay-1);
+		const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + config.schemas.main_schema+ "bids" + " WHERE simulation_day = :v1;";
+		bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
+		PrintOutV("Total number of bids resumed from previous run: " << resumptionBids.size()<<std::endl);
+	}
 
 	workGroup.assignAWorker(&market);
 	int numWorkers = workGroup.size();
@@ -1740,10 +1752,10 @@ void HM_Model::startImpl()
 	}
 
 	int homelessHousehold = 0;
-	//
 	// 1. Create Household Agents.
 	// 2. Assign households to the units.
-	//
+	int resumeHouseholdCount = 0;
+	int waitingToMoveInHouseholdCount = 0;
 	if(initialLoading)
 	{
 	for (HouseholdList::iterator it = households.begin();	it != households.end(); it++)
@@ -1768,6 +1780,7 @@ void HM_Model::startImpl()
 			//awaken the household if the household was on the market at the time simulation stopped in previous run.
 			if(household->getLastBidStatus() == 0 && household->getIsBidder())
 			{
+				resumeHouseholdCount++;
 				hhAgent->getBidder()->setActive(true);
 				hhAgent->setHouseholdBiddingWindow(household->getTimeOnMarket());
 				hhAgent->setAwakeningDay(household->getAwaknedDay());
@@ -1777,8 +1790,11 @@ void HM_Model::startImpl()
 			//household has done a successful bid and was waiting to move in when the simulation stopped.
 			if(household->getIsBidder() && household->getLastBidStatus() == 1 && household->getUnitPending())
 			{
-
-				hhAgent->getBidder()->setMoveInWaitingTimeInDays(household->getMoveInDate().tm_mday - startDay);
+				waitingToMoveInHouseholdCount++;
+				boost::gregorian::date simulationDate = getBoostGregorianDateBySimDay(HITS_SURVEY_YEAR, startDay);
+				boost::gregorian::date pendingFromDate = boost::gregorian::date_from_tm(household->getPendingFromDate());
+				int moveInWaitingTimeInDays = (pendingFromDate - simulationDate).days();
+				hhAgent->getBidder()->setMoveInWaitingTimeInDays(moveInWaitingTimeInDays);
 				hhAgent->getBidder()->setUnitIdToBeOwned(household->getUnitId());
 
 			}
@@ -1821,6 +1837,12 @@ void HM_Model::startImpl()
 		AgentsLookupSingleton::getInstance().addHouseholdAgent(hhAgent);
 		agents.push_back(hhAgent);
 		workGroup.assignAWorker(hhAgent);
+	}
+
+	if(resume)
+	{
+		PrintOutV("total number of household resumed from previous run: "<<resumeHouseholdCount<<std::endl);
+		PrintOutV("total number of households waiting to move to a new unit from resume: "<<waitingToMoveInHouseholdCount<<std::endl);
 	}
 
 	for (size_t n = 0; n < individuals.size(); n++)
@@ -1903,18 +1925,30 @@ void HM_Model::startImpl()
 					(*it)->setBto(true);
 			}
 
-			//(*it)->setbiddingMarketEntryDay( unitStartDay );
+
 			int timeOnMarket = 0;
 			int timeOffMarket = 0;
+
+
 			if(!resume)
 			{
-				int timeOnMarket =  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket;
-				int timeOffMarket = 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket;
+				std::random_device genTimeOn;
+				std::mt19937 genRdTimeOn(genTimeOn());
+				std::uniform_int_distribution<int> disRdTimeOn(1,  config.ltParams.housingModel.timeOnMarket);
+				timeOnMarket = disRdTimeOn(genTimeOn);
+
+				std::random_device genTimeOff;
+				std::mt19937 genRdTimeOff(genTimeOff());
+				std::uniform_int_distribution<int> disRdTimeOff(1,  config.ltParams.housingModel.timeOffMarket);
+				timeOffMarket = disRdTimeOff(genTimeOff);
+
 				(*it)->setTimeOnMarket(timeOnMarket );
 				(*it)->setTimeOffMarket(timeOffMarket );
 				(*it)->setbiddingMarketEntryDay(999999);
 				(*it)->setRemainingTimeOnMarket(timeOnMarket);
 				(*it)->setRemainingTimeOffMarket(timeOffMarket);
+
+				writeUnitTimesToFile((*it)->getId(),(*it)->getTimeOnMarket(), (*it)->getTimeOffMarket(), (*it)->getbiddingMarketEntryDay());
 			}
 
 			//this unit is a vacancy
@@ -1946,6 +1980,8 @@ void HM_Model::startImpl()
 						(*it)->setRemainingTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 						offMarket++;
 					}
+
+
 					}
 					else
 					{
@@ -2823,32 +2859,30 @@ void HM_Model::update(int day)
 
 	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-		//this unit is a vacancy
-		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
+		//this unit is a vacancy and unit is on the market or to be entered to the market.
+		if (assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getbiddingMarketEntryDay() != 999999 )
 		{
 			//update unit's time on and off market values.
-
 			//unit is on the market if it is on or passed the bidding market entry day.
-			if ( (*it)->getRemainingTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay())
+			if ( (*it)->getRemainingTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay() )
 			{
 
-				(*it)->setbiddingMarketEntryDay(day + 1);
-				(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
+				//(*it)->setbiddingMarketEntryDay(day + 1);
+				//(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
 				(*it)->updateRemainingTimeOnMarket();
 			}
 			//unit is off the market if it has already completed the time on the market or if it has not yet entered the market.
-			else if((*it)->getRemainingTimeOnMarket() == 0 || day < (*it)->getbiddingMarketEntryDay())
+			else if((*it)->getRemainingTimeOnMarket() == 0 || day < (*it)->getbiddingMarketEntryDay() )
 			{
-
 				//unit is off the market and has completed the waiting time.
-				if((*it)->getRemainingTimeOffMarket() <= 0)
-				{
-
-					//when a unit is re-awakened it will have the full amount of time on and off market.
-					(*it)->setRemainingTimeOnMarket( (*it)->getTimeOnMarket());
-					(*it)->setRemainingTimeOffMarket( (*it)->getTimeOffMarket());
-				}
-				else // unit is off the market.
+//				if((*it)->getRemainingTimeOffMarket() <= 0)
+//				{
+//					//when a unit is re-awakened it will have the full amount of time on and off market.
+//					(*it)->setbiddingMarketEntryDay(day+1);
+//					(*it)->setRemainingTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+//					(*it)->setRemainingTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
+//				}
+				if((*it)->getRemainingTimeOffMarket() > 0) // unit is off the market.
 				{
 					(*it)->updateRemainingTimeOffMarket();
 				}
@@ -2882,7 +2916,7 @@ void HM_Model::hdbEligibilityTest(int index)
 
 
 		boost::gregorian::date date2(HITS_SURVEY_YEAR, 1, 1);
-		boost::gregorian::date_duration simulationDay(0); //we only check HDB eligibility on day 0 of simulation.
+		boost::gregorian::date_duration simulationDay(startDay); //we only check HDB eligibility on day 0 of simulation.
 		date2 = date2 + simulationDay;
 
 		int years = (date2 - date1).days() / YEAR;
@@ -3500,19 +3534,19 @@ void HM_Model::loadIndLogsumJobAssignments(BigSerial individuaId)
 
 		if(conn_calibration.isConnected())
 		{
-		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-		conn_calibration.setSchema(config.schemas.calibration_schema);
-		IndLogsumJobAssignmentDao logsumDao(conn_calibration);
-		clear_delete_vector(indLogsumJobAssignmentList);
-		indLogsumJobAssignmentList = logsumDao.loadLogsumByIndividualId(individuaId);
-		indLogsumJobAssignmentByTaz.clear();
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			conn_calibration.setSchema(config.schemas.calibration_schema);
+			IndLogsumJobAssignmentDao logsumDao(conn_calibration);
+			clear_delete_vector(indLogsumJobAssignmentList);
+			indLogsumJobAssignmentList = logsumDao.loadLogsumByIndividualId(individuaId);
+			indLogsumJobAssignmentByTaz.clear();
 
-		for (IndLogsumJobAssignmentList::iterator it = indLogsumJobAssignmentList.begin(); it != indLogsumJobAssignmentList.end(); it++)
-		{
-			//CompositeKey indTazIdPair = make_pair((*it)->getIndividualId(), (*it)->getTazId());
-			//indLogsumJobAssignmentByTaz.insert(make_pair(indTazIdPair, *it));
-			indLogsumJobAssignmentByTaz.insert(std::make_pair((*it)->getTazId(), *it));
-		}
+			for (IndLogsumJobAssignmentList::iterator it = indLogsumJobAssignmentList.begin(); it != indLogsumJobAssignmentList.end(); it++)
+			{
+				//CompositeKey indTazIdPair = make_pair((*it)->getIndividualId(), (*it)->getTazId());
+				//indLogsumJobAssignmentByTaz.insert(make_pair(indTazIdPair, *it));
+				indLogsumJobAssignmentByTaz.insert(std::make_pair((*it)->getTazId(), *it));
+			}
 		}
 
 	}

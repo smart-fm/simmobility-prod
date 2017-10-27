@@ -30,8 +30,8 @@ namespace sim_mob
             Unit( BigSerial id = INVALID_ID, BigSerial buildingId = INVALID_ID, int unit_type = INVALID_ID,
             	  int story_range = 0, int constructionStatus = 0, double floor_area = .0f, int storey = 0, double monthlyRent = .0f, std::tm sale_from_date = std::tm(),
             	  std::tm occupancyFromDate = std::tm(), int sale_status = 0, int occupancyStatus = 0, std::tm lastChangedDate = std::tm(),double totalPrice = 0,
-            	  std::tm valueDate = std::tm(),int tenureStatus = 0,int biddingMarketEntryDay = 0, int timeOnMarket = 0, int timeOffMarket = 0, double lagCoefficent = 0,
-				  int zoneHousingType = 0, int dwellingType = 0,bool existInDB = false, bool isBTO = false, double btoPrice = 0);
+            	  std::tm valueDate = std::tm(),int tenureStatus = 0,int biddingMarketEntryDay = 0, int timeOnMarket = 0, int timeOffMarket = 0, double askingPrice = 0,double lagCoefficent = 0,
+				  int zoneHousingType = 0, int dwellingType = 0,bool existInDB = false, bool isBTO = false, double btoPrice = 0, int remainingTimeOnMarket = 0, int remainingTimeOffMarket = 0);
 
             Unit( const Unit& source );
 

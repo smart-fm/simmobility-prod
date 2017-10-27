@@ -243,11 +243,9 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		PrintExit( day, household, 0);
 		bidder->setActive(false);
 
-//		if( bidder->getMoveInWaitingTimeInDays() > 0 )
-//			bidder->TakeUnitOwnership();
-//
-//		if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 )
-//			TransferUnitToFreelanceAgent();
+		//transfer unit to a freelance agent if a household has done a successful bid and has not sold his house during MoveInWaitingTimeInDays.
+		if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 && bidder->getParent()->getHousehold()->getLastBidStatus() == 1 && bidder->getMoveInWaitingTimeInDays() <= 0)
+			TransferUnitToFreelanceAgent();
 
 	    //The seller becomes inactive when the bidder is inactive. This is alright
 		//because the bidder has a move in waiting time of 30 days

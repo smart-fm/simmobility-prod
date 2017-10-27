@@ -50,6 +50,7 @@ struct LongTermParams
 	std::string geometrySchemaVersion;
 	unsigned int opSchemaloadingInterval;
 	bool initialLoading;
+	bool launchBTO;
 
 	struct DeveloperModel{
 		DeveloperModel();
@@ -68,6 +69,7 @@ struct LongTermParams
 		unsigned int timeInterval; //time interval before a unit drops its asking price by a certain percentage.
 		unsigned int timeOnMarket; //for units on the housing market
 		unsigned int timeOffMarket;//for units on the housing market
+		bool wtpOffsetEnabled;
 		float vacantUnitActivationProbability;
 		float housingMarketSearchPercentage;
 		float housingMoveInDaysInterval;
@@ -309,6 +311,9 @@ public:
 
     /// Total time (in milliseconds) considered "warmup".
     unsigned int totalWarmupMS;
+
+    /// Operational cost in Dollars/km
+    float operationalCost;
 
     /// When the simulation begins(based on configuration)
     DailyTime simStartTime;

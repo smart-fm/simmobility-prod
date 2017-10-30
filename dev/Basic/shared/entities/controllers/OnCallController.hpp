@@ -128,8 +128,6 @@ protected:
 	explicit OnCallController(const MutexStrategy& mtxStrat, unsigned int computationPeriod,
 			MobilityServiceControllerType type_, unsigned id, TT_EstimateType ttEstimateType);
 
-	const std::map<unsigned int, Node*> nodeIdMap;
-
 public:
 
 	virtual ~OnCallController();

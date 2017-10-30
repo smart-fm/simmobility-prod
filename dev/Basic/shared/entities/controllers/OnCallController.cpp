@@ -29,7 +29,7 @@ using namespace std;
 OnCallController::OnCallController(const MutexStrategy &mtxStrat, unsigned int computationPeriod,
                                    MobilityServiceControllerType type_, unsigned id, TT_EstimateType ttEstimateType_)
 		: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod),
-		  ttEstimateType(ttEstimateType_), nodeIdMap(RoadNetwork::getInstance()->getMapOfIdvsNodes())
+		  ttEstimateType(ttEstimateType_)
 {
 	rebalancer = new LazyRebalancer(this); //jo SimpleRebalancer(this);
 #ifndef NDEBUG

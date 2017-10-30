@@ -129,7 +129,7 @@ void OnCallDriverMovement::performScheduleItem()
 			//We need to call the beginCruising method above even if the shift has ended,
 			//this is to allow the driver to notify the controller and receive a unsubscribe successful
 			//reply
-			if(hasShiftEnded)
+			if(hasShiftEnded && !onCallDriver->isWaitingForUnsubscribeAck)
 			{
 				onCallDriver->endShift();
 			}
@@ -137,10 +137,14 @@ void OnCallDriverMovement::performScheduleItem()
 		}
 		case PICKUP:
 		{
+			//Drive to pick up point
+			beginDriveToPickUpPoint(itScheduleItem->tripRequest.startNode);
 			break;
 		}
 		case DROPOFF:
 		{
+			//Drive to drop off point
+			beginDriveToDropOffPoint(itScheduleItem->tripRequest.destinationNode);
 			break;
 		}
 		case PARK:
@@ -200,6 +204,92 @@ void OnCallDriverMovement::beginCruising(const Node *node)
 	pathMover.buildSegStatsPath(route, routeSegStats);
 	pathMover.resetPath(routeSegStats);
 	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
+}
+
+void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
+{
+	//Create a sub-trip for the route choice
+	SubTrip subTrip;
+	subTrip.origin = WayPoint(currNode);
+	subTrip.destination = WayPoint(pickupNode);
+
+	const Link *currLink = nullptr;
+	bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
+
+	//If the driving path has already been set, we must find path to the node from
+	//the current segment
+	if(pathMover.isDrivingPathSet())
+	{
+		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+	}
+
+	//Get route to the node
+	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+
+#ifndef NDEBUG
+	if(route.empty())
+	{
+		stringstream msg;
+		msg << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
+		    << " could not find a path to the pickup node " << pickupNode->getNodeId()
+		    << " from the current node " << currNode->getNodeId() << " and link ";
+		msg << (currLink ? currLink->getLinkId() : 0);
+		throw no_path_error(msg.str());
+	}
+
+	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+	                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving from node "
+	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+	                << " to pickup node " << pickupNode->getNodeId() << endl;
+#endif
+
+	vector<const SegmentStats *> routeSegStats;
+	pathMover.buildSegStatsPath(route, routeSegStats);
+	pathMover.resetPath(routeSegStats);
+	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_ON_CALL);
+}
+
+void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
+{
+	//Create a sub-trip for the route choice
+	SubTrip subTrip;
+	subTrip.origin = WayPoint(currNode);
+	subTrip.destination = WayPoint(dropOffNode);
+
+	const Link *currLink = nullptr;
+	bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
+
+	//If the driving path has already been set, we must find path to the node from
+	//the current segment
+	if(pathMover.isDrivingPathSet())
+	{
+		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+	}
+
+	//Get route to the node
+	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+
+#ifndef NDEBUG
+	if(route.empty())
+	{
+		stringstream msg;
+		msg << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
+		    << " could not find a path to the drop off node " << dropOffNode->getNodeId()
+		    << " from the current node " << currNode->getNodeId() << " and link ";
+		msg << (currLink ? currLink->getLinkId() : 0);
+		throw no_path_error(msg.str());
+	}
+
+	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+	                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving with passenger from node "
+	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+	                << " to drop off node " << dropOffNode->getNodeId() << endl;
+#endif
+
+	vector<const SegmentStats *> routeSegStats;
+	pathMover.buildSegStatsPath(route, routeSegStats);
+	pathMover.resetPath(routeSegStats);
+	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_WITH_PASSENGER);
 }
 
 void OnCallDriverMovement::continueCruising()

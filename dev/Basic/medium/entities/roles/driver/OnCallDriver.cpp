@@ -11,7 +11,8 @@ using namespace std;
 
 OnCallDriver::OnCallDriver(Person_MT *parent, const MutexStrategy &mtx, OnCallDriverBehaviour *behaviour,
                            OnCallDriverMovement *movement, string roleName, Type roleType) :
-		Driver(parent, behaviour, movement, roleName, roleType), movement(movement), behaviour(behaviour)
+		Driver(parent, behaviour, movement, roleName, roleType), movement(movement), behaviour(behaviour),
+		isWaitingForUnsubscribeAck(false)
 {
 }
 
@@ -140,6 +141,8 @@ void OnCallDriver::endShift()
 		MessageBus::PostMessage(ctrlr, MSG_DRIVER_SHIFT_END,
 		                        MessageBus::MessagePtr(new DriverShiftCompleted(parent)));
 	}
+
+	isWaitingForUnsubscribeAck = true;
 
 #ifndef NDEBUG
 	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "

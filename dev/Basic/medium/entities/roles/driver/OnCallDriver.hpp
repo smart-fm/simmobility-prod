@@ -32,6 +32,10 @@ protected:
 	/**Pointer to the on call driver's behaviour facet object*/
 	OnCallDriverBehaviour *behaviour;
 
+	/**Indicates whether the driver is waiting for an acknowledgement from the controller
+	 * regarding successful unsubscription*/
+	bool isWaitingForUnsubscribeAck;
+
 	/**Wrapper for the schedule that has been given by the controller. */
 	struct DriverSchedule
 	{

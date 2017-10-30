@@ -31,6 +31,20 @@ protected:
 	void beginCruising(const Node *node);
 
 	/**
+	 * This method looks up the path for driving to the pickup node from the current
+	 * position and begins the drive towards it
+	 * @param pickupNode the node at which the passenger is to be picked up
+	 */
+	void beginDriveToPickUpPoint(const Node *pickupNode);
+
+	/**
+	 * This method looks up the path for driving to the drop off node from the current
+	 * position and begins the drive towards it
+	 * @param dropOffNode the node at which the passenger is to be dropped off
+	 */
+	void beginDriveToDropOffPoint(const Node *dropOffNode);
+
+	/**
 	 * This method enables the driver to continue cruising, one link at a time
 	 */
 	void continueCruising();

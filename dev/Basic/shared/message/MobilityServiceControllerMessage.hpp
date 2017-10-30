@@ -140,23 +140,23 @@ public:
 class TripRequestMessage : public messaging::Message
 {
 public:
-	TripRequestMessage() : timeOfRequest(timeslice(0, 0)), userId("no-id"), startNodeId(0),
-	                       destinationNodeId(0), extraTripTimeThreshold(0)
+	TripRequestMessage() : timeOfRequest(timeslice(0, 0)), userId("no-id"), startNode(0),
+	                       destinationNode(0), extraTripTimeThreshold(0)
 	{};
 
 	TripRequestMessage(const TripRequestMessage &r) :
 			timeOfRequest(r.timeOfRequest),
-			userId(r.userId), startNodeId(r.startNodeId),
-			destinationNodeId(r.destinationNodeId),
+			userId(r.userId), startNode(r.startNode),
+			destinationNode(r.destinationNode),
 			extraTripTimeThreshold(r.extraTripTimeThreshold)
 	{
 	};
 
 
 	TripRequestMessage(const timeslice &ct, const std::string &p,
-	                   const unsigned int &sn, const unsigned int &dn,
+	                   const Node *sn, const Node *dn,
 	                   const unsigned int &threshold) : timeOfRequest(ct), userId(p),
-	                                                    startNodeId(sn), destinationNodeId(dn),
+	                                                    startNode(sn), destinationNode(dn),
 	                                                    extraTripTimeThreshold(threshold)
 	{
 	};
@@ -176,8 +176,8 @@ public:
 
 	timeslice timeOfRequest;
 	std::string userId;
-	unsigned int startNodeId;
-	unsigned int destinationNodeId;
+	const Node *startNode;
+	const Node *destinationNode;
 
 	/**
 	 * The time the passenger can tolerate to spend more w.r.t. the fastest option in which
@@ -340,11 +340,11 @@ class SchedulePropositionReplyMessage : public messaging::Message
 {
 public:
 	SchedulePropositionReplyMessage(timeslice ct, const std::string &p,
-	                                Person *t, const unsigned int sn, const unsigned int dn,
+	                                Person *t, const Node *sn, const Node *dn,
 	                                const unsigned int threshold, const bool s) : currTick(ct),
 	                                                                              personId(p), driver(t),
-	                                                                              startNodeId(sn),
-	                                                                              destinationNodeId(dn),
+	                                                                              startNode(sn),
+	                                                                              destinationNode(dn),
 	                                                                              extraTripTimeThreshold(threshold),
 	                                                                              success(s)
 	{
@@ -358,8 +358,8 @@ public:
 	const bool success;
 	const std::string personId;
 	Person *driver;
-	const unsigned int startNodeId;
-	const unsigned int destinationNodeId;
+	const Node *startNode;
+	const Node *destinationNode;
 	const unsigned int extraTripTimeThreshold;
 };
 

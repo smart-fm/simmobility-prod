@@ -261,10 +261,7 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 		r.extraTripTimeThreshold=requestArgs.extraTripTimeThreshold;
 		*/
 		requestQueue.push_back(requestArgs);
-
-
-		const Node *startNode = RoadNetwork::getInstance()->getMapOfIdvsNodes().at(requestArgs.startNodeId);
-		rebalancer->onRequestReceived(startNode);
+		rebalancer->onRequestReceived(requestArgs.startNode);
 
 		break;
 	}
@@ -277,15 +274,15 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 			ControllerLog() << "Assignment failure received from " << replyArgs.personId << " at time "
 			                << currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame()
 			                << " with startNodeId "
-			                << replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId
-			                << ", and driverId "
+			                << replyArgs.startNode->getNodeId() << ", destinationNodeId "
+			                << replyArgs.destinationNode->getNodeId() << ", and driverId "
 			                << replyArgs.driver->getDatabaseId() << std::endl;
 
 			TripRequestMessage r;
 			r.timeOfRequest = replyArgs.currTick;
 			r.userId = replyArgs.personId;
-			r.startNodeId = replyArgs.startNodeId;
-			r.destinationNodeId = replyArgs.destinationNodeId;
+			r.startNode = replyArgs.startNode;
+			r.destinationNode = replyArgs.destinationNode;
 			r.extraTripTimeThreshold = replyArgs.extraTripTimeThreshold;
 			requestQueue.push_back(r);
 
@@ -295,8 +292,8 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 		{
 			ControllerLog() << "Assignment success received from " << replyArgs.personId << " at time "
 			                << currTick.frame() << ". Message was sent at " << replyArgs.currTick.frame()
-			                << " with startNodeId "
-			                << replyArgs.startNodeId << ", destinationNodeId " << replyArgs.destinationNodeId
+			                << " with startNodeId " << replyArgs.startNode->getNodeId()
+			                << ", destinationNodeId " << replyArgs.destinationNode->getNodeId()
 			                << ", and driverId "
 			                << replyArgs.driver->getDatabaseId() << std::endl;
 
@@ -581,8 +578,7 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 		{
 			const TripRequestMessage &request = scheduleItem.tripRequest;
 			// I verify if the waiting time is ok
-			const Node *nextNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId)->second;
-			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
+			scheduleTimeStamp += getTT(latestNode, scheduleItem.tripRequest.startNode, ttEstimateType);
 			if (scheduleTimeStamp - request.timeOfRequest.ms() / 1000.0 > waitingTimeThreshold)
 			{
 				return -1;
@@ -597,8 +593,8 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 		{
 			// Find the time that this traveller would need, if he were alone
 			const TripRequestMessage &request = scheduleItem.tripRequest;
-			const Node *startNode = nodeIdMap.find(scheduleItem.tripRequest.startNodeId)->second;
-			const Node *nextNode = nodeIdMap.find(scheduleItem.tripRequest.destinationNodeId)->second;
+			const Node *startNode = scheduleItem.tripRequest.startNode;
+			const Node *nextNode = scheduleItem.tripRequest.destinationNode;
 			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
 			double timeIfHeWereAlone = waitingTimeThreshold + getTT(startNode, nextNode, ttEstimateType);
 			const double sharedTravelDelay = 600; //seconds
@@ -810,15 +806,17 @@ bool OnCallController::canBeShared(const TripRequestMessage& r1, const TripReque
 	// We check if, in case we have an empty vehicle that start in the position we want (we choose either of
 	// the two pick up points), it can serve both request while respecting the constraints
 	Schedule emptySchedule;
-	const Node *initialPosition = RoadNetwork::getInstance()->getMapOfIdvsNodes().at(r1.startNodeId);
+	const Node *initialPosition = r1.startNode;
 	double travelTime = evaluateSchedule(initialPosition, emptySchedule, additionalDelayThreshold,
 	                                     waitingTimeThreshold);
 	if (travelTime >= 0)
 	{
 		return true;
 	}
-	initialPosition = RoadNetwork::getInstance()->getMapOfIdvsNodes().at(r2.startNodeId);
+
+	initialPosition = r2.startNode;
 	travelTime = evaluateSchedule(initialPosition, emptySchedule, additionalDelayThreshold, waitingTimeThreshold);
+
 	if (travelTime >= 0)
 	{
 		return true;
@@ -1022,14 +1020,7 @@ void OnCallController::assignSchedules(const unordered_map<const Person*, Schedu
 		Schedule schedule = p.second;
 
 		//Find where to park after the final drop off
-		unsigned int finalDropOff = schedule.back().tripRequest.destinationNodeId;
-
-		//aa!!: This fact that we retrieve the node itself from the node id querying a big map happens too much
-		//			and everywhere in the code.
-		//			I think it would be better to modify the TripRequestMessage, having the const Node* instead of
-		//			(or in addition to) nodeId, both for the pickUp and dropOff location.
-		const RoadNetwork *rdNetowrk = RoadNetwork::getInstance();
-		const Node *finalDropOffNode = rdNetowrk->getById(rdNetowrk->getMapOfIdvsNodes(), finalDropOff);
+		const Node *finalDropOffNode = schedule.back().tripRequest.destinationNode;
 
 		//aa!!: Is the parking logic really only related to the IncrementalSharing. It seems to me that the parking
 		//			logic is generally related to OnCallController. We should move that logic there, otherwise we will

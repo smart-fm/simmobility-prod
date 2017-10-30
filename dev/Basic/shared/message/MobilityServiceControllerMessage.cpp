@@ -20,8 +20,8 @@ bool TripRequestMessage::operator==(const TripRequestMessage &other) const
 {
 	if ( timeOfRequest == other.timeOfRequest &&
 			userId == other.userId &&
-			startNodeId == other.startNodeId &&
-			destinationNodeId == other.destinationNodeId &&
+			startNode == other.startNode &&
+			destinationNode == other.destinationNode &&
 			extraTripTimeThreshold == other.extraTripTimeThreshold)
 	{
 		return true;
@@ -37,8 +37,8 @@ bool TripRequestMessage::operator!=(const TripRequestMessage &other) const
 {
 	if (timeOfRequest != other.timeOfRequest ||
 			userId != other.userId ||
-			startNodeId != other.startNodeId ||
-			destinationNodeId != other.destinationNodeId ||
+			startNode != other.startNode ||
+			destinationNode != other.destinationNode ||
 			extraTripTimeThreshold != other.extraTripTimeThreshold)
 	{
 		return true;
@@ -214,9 +214,7 @@ void Schedule::onAddingScheduleItem(const ScheduleItem& item)
 	{
 		case DROPOFF:
 		{
-			//aa!!: Once the destinationNode pointer, instead of the destinationNodeId, will be available, I will not need this overhead
-			const RoadNetwork *rdNetowrk = RoadNetwork::getInstance();
-			const Node *dropOffNode = rdNetowrk->getById(rdNetowrk->getMapOfIdvsNodes(), item.tripRequest.destinationNodeId );
+			const Node *dropOffNode = item.tripRequest.destinationNode;
 			if (doWeComputeBarycenter)
 			{
 				dropOffBarycenter.setX( ( dropOffBarycenter.getX() * passengerCount + dropOffNode->getLocation().getX() ) / (passengerCount+1) );
@@ -235,9 +233,7 @@ void Schedule::onRemovingScheduleItem(const ScheduleItem& item)
 	{
 		case DROPOFF:
 		{
-			//aa!!: Once the destinationNode pointer, instead of the destinationNodeId, will be available, I will not need this overhead
-			const RoadNetwork *rdNetowrk = RoadNetwork::getInstance();
-			const Node *dropOffNode = rdNetowrk->getById(rdNetowrk->getMapOfIdvsNodes(), item.tripRequest.destinationNodeId );
+			const Node *dropOffNode = item.tripRequest.destinationNode;
 			if (doWeComputeBarycenter)
 			{
 				dropOffBarycenter.setX( ( dropOffBarycenter.getX() * passengerCount - dropOffNode->getLocation().getX() ) / (passengerCount+1) );
@@ -267,8 +263,8 @@ short Schedule::getPassengerCount() const {	return passengerCount; }
 std::ostream& operator<<(std::ostream& strm, const sim_mob::TripRequestMessage& request)
 {
 	return strm << "request issued by "<<request.userId<< " at " << request.timeOfRequest<<
-			" to go from node "<< request.startNodeId <<
-			", to node "<< request.destinationNodeId;
+			" to go from node "<< request.startNode->getNodeId() <<
+			", to node "<< request.destinationNode->getNodeId();
 }
 
 std::ostream& operator<<(std::ostream& strm, const sim_mob::ScheduleItem& item)

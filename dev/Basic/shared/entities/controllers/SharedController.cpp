@@ -57,30 +57,13 @@ void SharedController::computeSchedules()
 	profilingTime_current = clock();
 	profilingTime_previous = profilingTime_current;
 
-
-
 	// 1. Calculate times for direct trips
 	unsigned int requestIndex = 0;
 	auto request = requestQueue.begin();
 	while (request != requestQueue.end())
 	{
-		std::map<unsigned int, Node *>::const_iterator itStart = nodeIdMap.find((*request).startNodeId);
-		std::map<unsigned int, Node *>::const_iterator itEnd = nodeIdMap.find((*request).startNodeId);
-		//{ SANITY CHECK
-#ifndef NDEBUG
-		if (itStart == nodeIdMap.end())
-		{
-			std::stringstream msg; msg << "Request contains bad start node " << (*request).startNodeId ;
-			throw std::runtime_error(msg.str() );
-		}else if (itEnd == nodeIdMap.end())
-		{
-			std::stringstream msg; msg << "Request contains bad destination node " << (*request).startNodeId;
-			throw std::runtime_error(msg.str() );
-		}
-#endif
-		//} SANITY CHECK
-		const Node *startNode = itStart->second;
-		const Node *destinationNode = itEnd->second;
+		const Node *startNode = (*request).startNode;
+		const Node *destinationNode = (*request).destinationNode;
 
 		validRequests.push_back(*request);
 
@@ -136,18 +119,11 @@ void SharedController::computeSchedules()
 				//ControllerLog() << "DebugPrint, Checking if we can combine request " << request1Index << " and request " << request2Index << std::endl;
 
 #endif
-				std::map<unsigned int, Node *>::const_iterator it = nodeIdMap.find((*request1).startNodeId);
-				const Node *startNode1 = it->second;
+				const Node *startNode1 = (*request1).startNode;
+				const Node *destinationNode1 = (*request1).destinationNode;
 
-				it = nodeIdMap.find((*request1).destinationNodeId);
-				Node *destinationNode1 = it->second;
-
-				it = nodeIdMap.find((*request2).startNodeId);
-				Node *startNode2 = it->second;
-
-				it = nodeIdMap.find((*request2).destinationNodeId);
-				Node *destinationNode2 = it->second;
-
+				const Node *startNode2 = (*request2).startNode;
+				const Node *destinationNode2 = (*request2).destinationNode;
 
 				// We now check if we can combine trip 1 and trip 2. They can be combined in different ways.
 				// For example, we can
@@ -479,9 +455,7 @@ void SharedController::computeSchedules()
 		{
 			const ScheduleItem &firstScheduleItem = schedule.front();
 			const TripRequestMessage &firstRequest = firstScheduleItem.tripRequest;
-
-			const unsigned startNodeId = firstRequest.startNodeId;
-			const Node *startNode = nodeIdMap.find(startNodeId)->second;
+			const Node *startNode = firstRequest.startNode;
 
 			const Person *bestDriver = findClosestDriver(startNode);
 
@@ -489,8 +463,8 @@ void SharedController::computeSchedules()
 
 			ControllerLog() << "Schedule for the " << firstRequest.userId << " at time " << currTick.frame()
 			                << ". Message was sent at " << firstRequest.timeOfRequest.frame() << " with startNodeId "
-			                << firstRequest.startNodeId
-			                << ", destinationNodeId " << firstRequest.destinationNodeId << ", and driverId "
+			                << firstRequest.startNode->getNodeId() << ", destinationNodeId "
+			                << firstRequest.destinationNode->getNodeId() << ", and driverId "
 			                << bestDriver->getDatabaseId();
 
 			const ScheduleItem &secondScheduleItem = schedule.at(1);

@@ -68,7 +68,7 @@ namespace sim_mob
 				//			I think it would be better to modify the TripRequestMessage, having the const Node* instead of
 				//			(or in addition to) nodeId, both for the pickUp and dropOff location.
 				const RoadNetwork *rdNetowrk = RoadNetwork::getInstance();
-				const Node *newRequestDropOffNode = rdNetowrk->getById(rdNetowrk->getMapOfIdvsNodes(), reqIt->destinationNodeId);
+				const Node *newRequestDropOffNode = reqIt->destinationNode;
 
 				const Point& dropOffBarycenter = driverSchedule.getDropOffBarycenter();
 

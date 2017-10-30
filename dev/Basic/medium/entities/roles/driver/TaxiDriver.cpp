@@ -433,16 +433,8 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 		}
 
 		const TripRequestMessage &tripRequest = currScheduleItem->tripRequest;
-		const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
-		std::map<unsigned int, Node *>::const_iterator it = nodeIdMap.find(tripRequest.startNodeId);
 
 #ifndef NDEBUG
-		if (it == nodeIdMap.end())
-		{
-			std::stringstream msg;
-			msg << "The schedule received start with node " << it->first << " which is not valid";
-			throw std::runtime_error(msg.str());
-		}
 		if (!MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 		{
 			throw std::runtime_error(
@@ -454,7 +446,7 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 		                << ". This assignment is started by driver "
 		                << this->getParent()->getDatabaseId() << " at time " << parent->currTick << std::endl;
 
-		const Node *node = it->second;
+		const Node *node = tripRequest.startNode;
 
 		if ((driverStatus == PARKED && parkingLocation->getAccessNode() == node) ||
 		    (driverStatus != PARKED &&
@@ -482,8 +474,8 @@ void TaxiDriver::processNextScheduleItem(bool isMoveToNextScheduleItem)
 			SchedulePropositionReplyMessage *message = new SchedulePropositionReplyMessage(parent->currTick,
 			                                                                               tripRequest.userId,
 			                                                                               parent,
-			                                                                               tripRequest.startNodeId,
-			                                                                               tripRequest.destinationNodeId,
+			                                                                               tripRequest.startNode,
+			                                                                               tripRequest.destinationNode,
 			                                                                               tripRequest.extraTripTimeThreshold,
 			                                                                               success);
 

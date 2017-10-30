@@ -25,50 +25,29 @@ void GreedyTaxiController::computeSchedules()
 	{
 		while (request != requestQueue.end())
 		{
-			//{ RETRIEVE NODES
-			std::map<unsigned int, Node *> nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
-			std::map<unsigned int, Node *>::iterator itStart = nodeIdMap.find((*request).startNodeId);
-			std::map<unsigned int, Node *>::iterator itDestination = nodeIdMap.find((*request).destinationNodeId);
-
-#ifndef NDEBUG
-			if (itStart == nodeIdMap.end())
-			{
-				std::stringstream msg;
-				msg << "Request contains bad start node " << (*request).startNodeId << std::endl;
-				throw std::runtime_error(msg.str());
-			}
-#endif
-
 			//Assign the start node
-			const Node *startNode = itStart->second;
-
-#ifndef NDEBUG
-			if (itDestination == nodeIdMap.end())
-			{
-				std::stringstream msg;
-				msg << "Request contains bad destination node " << (*request).destinationNodeId << std::endl;
-				throw std::runtime_error(msg.str());
-			}
-#endif
-			//} RETRIEVE NODES
-
+			const Node *startNode = (*request).startNode;
 			const Person *bestDriver = findClosestDriver(startNode);
 
 			if (bestDriver)
 			{
 				//Retrieve the parking closest to the destination node
-				const Node *endNode = itDestination->second;
+				const Node *endNode = (*request).destinationNode;
 				const SMSVehicleParking *parking =
 						SMSVehicleParking::smsParkingRTree.searchNearestObject(endNode->getPosX(), endNode->getPosY());
 
 				Schedule schedule;
 				const ScheduleItem pickUpScheduleItem(ScheduleItemType::PICKUP, *request);
 				const ScheduleItem dropOffScheduleItem(ScheduleItemType::DROPOFF, *request);
-				const ScheduleItem parkScheduleItem(ScheduleItemType::PARK, parking);
 
 				schedule.push_back(pickUpScheduleItem);
 				schedule.push_back(dropOffScheduleItem);
-				schedule.push_back(parkScheduleItem);
+
+				if(parking)
+				{
+					const ScheduleItem parkScheduleItem(ScheduleItemType::PARK, parking);
+					schedule.push_back(parkScheduleItem);
+				}
 
 				assignSchedule(bestDriver, schedule);
 

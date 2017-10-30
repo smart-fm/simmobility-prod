@@ -81,7 +81,7 @@ void PedestrianMovement::frame_init()
 		if (subTrip.origin.type == WayPoint::NODE && subTrip.destination.type == WayPoint::NODE)
 		{
 			isOnDemandTraveler = true;
-			const unsigned int taxiStartNodeId = subTrip.destination.node->getNodeId();
+			const Node *taxiStartNode = subTrip.destination.node;
 
 			if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 			{
@@ -90,7 +90,7 @@ void PedestrianMovement::frame_init()
 				if ((*subTripItr).travelMode == "TravelPedestrian" && subTrip.origin.node == subTrip.destination.node)
 				{
 					std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
-					const unsigned int taxiEndNodeId = (*taxiTripItr).destination.node->getNodeId();
+					const Node *taxiEndNode = (*taxiTripItr).destination.node;
 
 
 					auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
@@ -113,7 +113,7 @@ void PedestrianMovement::frame_init()
 
 					TripRequestMessage* request = new TripRequestMessage(person->currTick,
 												  person->getDatabaseId(),
-												  taxiStartNodeId, taxiEndNodeId, MobilityServiceController::toleratedExtraTime);
+												  taxiStartNode, taxiEndNode, MobilityServiceController::toleratedExtraTime);
 					MessageBus::PostMessage(itControllers->second, MSG_TRIP_REQUEST, MessageBus::MessagePtr(request));
 
 

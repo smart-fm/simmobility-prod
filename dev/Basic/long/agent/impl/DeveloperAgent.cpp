@@ -163,7 +163,8 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 	double demolitionCostPerUnit = 0;
 	double constructionCostPerUnit = 0;
 	double totalDemolitionCost = 0;
-	int unitAge = 0;
+	double unitAge = 0;
+	double misAge = 0;
 	const BigSerial fmParcelId = project.getParcel()->getId();
 	bool isEmptyParcel = model->isEmptyParcel(fmParcelId);
 	BigSerial buildingTypeId = 0;
@@ -200,7 +201,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 		if(isEmptyParcel)
 		{
-			unitAge = 0;
+			misAge = 1.0;
 		}
 		else
 		{
@@ -333,7 +334,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 		    HPI = privateLagTObj->getIntercept() + ( privateLagTObj->getT4() * taoValueQ4) + ( privateLagTObj->getT5() * taoValueQ5) + ( privateLagTObj->getT6() * taoValueQ6) + ( privateLagTObj->getT7() * taoValueQ7)
 		    		+ (privateLagTObj->getGdpRate() * taoByUT->getGdpRate()) + (taoByUT->getTreasuryBillYield1Year()- taoByUT->getInflation());
 
-			int ageCapped = 0;
+			double ageCapped = 0;
 			if(unitAge > 50 )
 			{
 				ageCapped = 50;
@@ -346,7 +347,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			double floorArea = (*unitsItr).getFloorArea();
 			double revenue = 0;
 
-			int freehold = model->isFreeholdParcel(fmParcelId);
+			double freehold = model->isFreeholdParcel(fmParcelId);
 
 			double distanceToMall = amenities->getDistanceToMall();
 			double distanceToPMS30 = amenities->getDistanceToPMS30();
@@ -395,7 +396,8 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * freehold) +
 					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * isDistanceToPMS30) + (hedonicCoeffObj->getDistanceMallKm() * distanceToMall) +
 					(hedonicCoeffObj->getMrt200m()* isMRT_200m) + (hedonicCoeffObj->getMrt2400m() *isMRT_2_400m) + (hedonicCoeffObj->getExpress200m() * isExpress_200m) +
-				    (hedonicCoeffObj->getBusGt400m() * isBus_2_400m) + (hedonicCoeffObj->getBusGt400m() * isBusGt_400m) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getAgeSquared() * (ageCapped*ageCapped));
+				    (hedonicCoeffObj->getBus2400m() * isBus_2_400m) + (hedonicCoeffObj->getBusGt400m() * isBusGt_400m) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getAgeSquared() * (ageCapped*ageCapped))
+					+ (hedonicCoeffObj->getMisage() * misAge) ;//TODO::add storey and storey squared to the calculation. - gishara.
 			}
 
 			double revenuePerUnit = exp(revenue+HPI);

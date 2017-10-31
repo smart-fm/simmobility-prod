@@ -301,19 +301,19 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Buildi
 	float storey = unit->getStorey();
 
 	hedonicPrice =  coeffs->getIntercept() 	+
-					coeffs->getLogArea() 	*	DD_logsqrtarea 	+
+					coeffs->getLogArea() 	    *	DD_logsqrtarea 	+
 					coeffs->getLogsumWeighted() *	ZZ_logsum 		+
 					coeffs->getPms1km() 		*	ZZ_pms1km 		+
 					coeffs->getDistanceMallKm() *	ZZ_dis_mall 	+
 					coeffs->getMrt200m() 		*	ZZ_mrt_200m 	+
-					coeffs->getMrt2400m() 	*	ZZ_mrt_400m 	+
+					coeffs->getMrt2400m() 	    *	ZZ_mrt_400m 	+
 					coeffs->getExpress200m() 	* 	ZZ_express_200m	+
 					coeffs->getBus2400m() 		*	ZZ_bus_400m 	+
 					coeffs->getAge() 			*	age 			+
 					coeffs->getAgeSquared() 	*	ageSquared      +
 					coeffs->getNonMature()      *   nonMature       +
 					coeffs->getOtherMature()    *   otherMature     +
-					coeffs->getStorey()         * storey;
+					coeffs->getStorey()         * storey            ;
 
 
 
@@ -345,25 +345,26 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 	double ZZ_mrt_200m = 0;
 	double ZZ_mrt_400m = 0;
 	double ZZ_express_200m = 0;
-	double ZZ_bus_200m = 0;
-
-
+	double ZZ_bus_2400m = 0;
 	double ZZ_freehold = 0;
 	double ZZ_logsum = logsum;
-	double ZZ_bus_400m = 0;
 	double ZZ_bus_gt400m = 0;
 
 	double age = ( HITS_SURVEY_YEAR - 1900 ) - unit->getOccupancyFromYear();
+	double misage = 0;
 
-	if( age > 25 )
-	    age = 25;
+	if( age > 50 )
+	{
+		age = 50;
+	}
 
 	if( age < 0 )
-	    age = 0;
+	{
+		age = 0;
+		misage = 1.0;
+	}
 
 	double  ageSquared =  age *  age;
-
-	double misage = 0;
 
 	DD_logarea  = log(unit->getFloorArea());
 	ZZ_dis_cbd  = amenities->getDistanceToCBD();
@@ -374,65 +375,185 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 
 
 	if( amenities->getDistanceToMRT() < 0.200 )
+	{
 		ZZ_mrt_200m = 1;
-	else
-	if( amenities->getDistanceToMRT() < 0.400 )
+	}
+	else if( amenities->getDistanceToMRT() > 0.200 && amenities->getDistanceToMRT() < 0.400 )
+	{
 		ZZ_mrt_400m = 1;
+	}
 
 
 	if( amenities->getDistanceToExpress() < 0.200 )
 		ZZ_express_200m = 1;
 
 
-	if( amenities->getDistanceToBus() < 0.200 )
-		ZZ_bus_200m = 1;
-	else
-	if( amenities->getDistanceToBus() < 0.400 )
-		ZZ_bus_400m = 1;
-	else
+	if( amenities->getDistanceToBus() < 0.200 &&  amenities->getDistanceToBus() < 0.400 )
+	{
+		ZZ_bus_2400m = 1;
+	}
+	else if( amenities->getDistanceToBus() > 0.400 )
+	{
 		ZZ_bus_gt400m = 1;
+	}
 
 
 	HedonicCoeffs *coeffs = nullptr;
+	HedonicCoeffsByUnitType *coeffsByUT = nullptr;
+	bool condoApartment = false;
 
-	//-----------------------------
-	//-----------------------------
-	if( (unit->getUnitType() >= 12 && unit->getUnitType()  <= 16 ) ||
-		(unit->getUnitType() >= 32 && unit->getUnitType()  <= 36 ) ||
-		(unit->getUnitType() >= 37 && unit->getUnitType()  <= 51 ))		//condo
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(1));
-	else
-	if( (unit->getUnitType() >= 7 && unit->getUnitType()  <= 11) || unit->getUnitType() == 64) //then --"Apartment"
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(2));
-	else
+	/*
+	 * mixed commercial and residential unit types are matched to condo and apartment unit types based on their floor area.
+	 * 	Unit type id : 37 -> Condo 14
+		Unit type id : 38 -> Condo 15
+		Unit type id : 39 -> Condo 16
+		Unit type id : 40 -> Condo 16
+		Unit type id : 41 -> Condo 12
+		Unit type id : 42 -> Condo 13
+		Unit type id : 43 -> Condo 15
+		Unit type id : 44 -> Condo 16
+		Unit type id : 45 -> Condo 16
+		Unit type id: 46 -> EC
+		Unit type id: 47 -> Condo 15
+		Unit type id: 48 -> Condo 16
+		Unit type id: 49 -> Condo 16
+		Unit type id: 50 -> Condo 16
+		Unit type id: 51 -> Condo 16
+		Unit type id:64 -> Apt 9
+	 */
+	switch(unit->getUnitType())
+	{
+	case 7:
+		coeffsByUT = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(7));
+		condoApartment = true;
+		break;
+	case 8:
+		coeffsByUT = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(8));
+		condoApartment = true;
+		break;
+	case 9:
+	case 64:
+		coeffsByUT = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(9));
+		condoApartment = true;
+		break;
+	case 10:
+		coeffsByUT = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(10));
+		condoApartment = true;
+		break;
+	case 11:
+		coeffsByUT = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(11));
+		condoApartment = true;
+		break;
+	case 12:
+	case 41:
+		coeffsByUT = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(12));
+		condoApartment = true;
+		break;
+	case 13:
+	case 42:
+		coeffsByUT = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(13));
+		condoApartment = true;
+		break;
+	case 14:
+	case 37:
+		coeffsByUT = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(14));
+		condoApartment = true;
+		break;
+	case 15:
+	case 38:
+	case 43:
+	case 47:
+		coeffsByUT = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(15));
+		condoApartment = true;
+		break;
+	case 16:
+	case 39:
+	case 40:
+	case 44:
+	case 45:
+	case 48:
+	case 49:
+	case 50:
+	case 51:
+		coeffsByUT = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(16));
+		condoApartment = true;
+		break;
+	Deafult:
+		break;
+
+	}
+
 	if (unit->getUnitType() >= 17 && unit->getUnitType()  <= 21 ) //then --"Terrace House"
+	{
 		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(3));
-	else
-	if ( unit->getUnitType() >= 22 && unit->getUnitType() <= 26 ) //then --"Semi-Detached House"
+	}
+	else if ( unit->getUnitType() >= 22 && unit->getUnitType() <= 26 ) //then --"Semi-Detached House"
 		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(4));
-	else
-	if ( unit->getUnitType() >= 27 && unit->getUnitType()  <= 31 ) ///then --"Detached House"
+	else if ( unit->getUnitType() >= 27 && unit->getUnitType()  <= 31 ) ///then --"Detached House"
+	{
 		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(5));
-	else
+	}
+	else if ((unit->getUnitType() >= 32 && unit->getUnitType() <= 36) || (unit->getUnitType() == 46)) //EC
+	{
 		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(6));
+	}
 
-	hedonicPrice =  coeffs->getIntercept() 	+
-					coeffs->getLogSqrtArea() 	*	DD_logarea	 	+
-					coeffs->getFreehold()		* 	ZZ_freehold 	+
-					coeffs->getLogsumWeighted() *	ZZ_logsum 		+
-					coeffs->getPms1km() 		*	ZZ_pms1km 		+
-					coeffs->getDistanceMallKm() *	ZZ_dis_mall 	+
-					coeffs->getMrt200m() 		*	ZZ_mrt_200m 	+
-					coeffs->getMrt_2_400m() 	*	ZZ_mrt_400m 	+
-					coeffs->getExpress200m() 	* 	ZZ_express_200m	+
-					coeffs->getBus400m() 		*	ZZ_bus_400m 	+
-					coeffs->getAge() 			*	age 			+
-					coeffs->getLogAgeSquared() 	*	ageSquared		+
-					coeffs->getMisage()			*	misage;
+	BigSerial tazId = hmModel->getUnitTazId( unit->getId() );
+	Taz* unitTaz =  hmModel->getTazById(tazId);
+	float otherMature = 0;
+	float nonMature = 0;
 
+	if (unitTaz->getHdbTownType().compare("other-mature")==0)
+	{
+		otherMature = 1.0;
+	}
+	else if(unitTaz->getHdbTownType().compare("non-mature")==0)
+	{
+		nonMature = 1.0;
+	}
 
-	//------------------------------------------
-	//------------------------------------------
+	float storey = unit->getStorey();
+
+	if(condoApartment)
+	{
+		hedonicPrice =  coeffsByUT->getIntercept() 	+
+				coeffsByUT->getLogArea()	    *	DD_logarea	 	+
+				coeffsByUT->getFreehold()		* 	ZZ_freehold 	+
+				coeffsByUT->getLogsumWeighted() *	ZZ_logsum 		+
+				coeffsByUT->getPms1km() 		*	ZZ_pms1km 		+
+				coeffsByUT->getDistanceMallKm() *	ZZ_dis_mall 	+
+				coeffsByUT->getMrt200m() 		*	ZZ_mrt_200m 	+
+				coeffsByUT->getMrt2400m() 	    *	ZZ_mrt_400m 	+
+				coeffsByUT->getExpress200m() 	* 	ZZ_express_200m	+
+				coeffsByUT->getBus2400m()	    *	ZZ_bus_2400m 	+
+				coeffsByUT->getBusGt400m()      *   ZZ_bus_gt400m   +
+				coeffsByUT->getAge() 			*	age 			+
+				coeffsByUT->getAgeSquared() 	*	ageSquared		+
+				coeffsByUT->getMisage()			*	misage          +
+				coeffsByUT->getStorey()         * storey            +
+				coeffsByUT->getStoreySquared()  *  (storey * storey);
+
+	}
+	else
+	{
+
+		hedonicPrice =  coeffs->getIntercept() 	+
+				coeffs->getLogSqrtArea() 	*	DD_logarea	 	+
+				coeffs->getFreehold()		* 	ZZ_freehold 	+
+				coeffs->getLogsumWeighted() *	ZZ_logsum 		+
+				coeffs->getPms1km() 		*	ZZ_pms1km 		+
+				coeffs->getDistanceMallKm() *	ZZ_dis_mall 	+
+				coeffs->getMrt200m() 		*	ZZ_mrt_200m 	+
+				coeffs->getMrt_2_400m() 	*	ZZ_mrt_400m 	+
+				coeffs->getExpress200m() 	* 	ZZ_express_200m	+
+				coeffs->getBus400m() 		*	ZZ_bus_2400m 	+
+				coeffs->getBusGt400m()      *   ZZ_bus_gt400m   +
+				coeffs->getAge() 			*	age 			+
+				coeffs->getLogAgeSquared() 	*	ageSquared		+
+				coeffs->getMisage()			*	misage          +
+				coeffs->getStorey()         * storey            +
+				coeffs->getStoreySquared()  *  (storey * storey);
+	}
 
 	hedonicPrice = hedonicPrice + lagCoefficient;
 

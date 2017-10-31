@@ -54,6 +54,8 @@ struct type_conversion<sim_mob::long_term::HedonicCoeffs>
     	hedonicCoeffs.setAge(values.get<double>("age", 0));
     	hedonicCoeffs.setLogAgeSquared(values.get<double>("age_squared", 0));
     	hedonicCoeffs.setMisage(values.get<double>("misage", 0));
+    	hedonicCoeffs.setStorey(values.get<double>("storey", 0));
+    	hedonicCoeffs.setStoreySquared(values.get<double>("storey_squared", 0));
 
     }
 };
@@ -81,6 +83,10 @@ struct type_conversion<sim_mob::long_term::HedonicCoeffsByUnitType>
     	hedonicCoeffsByUT.setAge(values.get<double>("age", 0));
     	hedonicCoeffsByUT.setAgeSquared(values.get<double>("age_squared", 0));
     	hedonicCoeffsByUT.setMisage(values.get<double>("misage", 0));
+    	hedonicCoeffsByUT.setNonMature(values.get<double>("non_mature", 0));
+    	hedonicCoeffsByUT.setOtherMature(values.get<double>("other_mature", 0));
+    	hedonicCoeffsByUT.setStorey(values.get<double>("storey", 0));
+    	hedonicCoeffsByUT.setStoreySquared(values.get<double>("storey_squared", 0));
 
     }
 };

@@ -20,7 +20,7 @@ class OnCallDriver : public Driver, public MobilityServiceDriver
 {
 private:
 	/**Stores the passengers that are in the vehicle*/
-	std::set<Passenger *> passengers;
+	std::unordered_map<std::string, Passenger *> passengers;
 
 	/**Stores the controllers that the driver is subscribed to*/
 	std::vector<MobilityServiceController *> subscribedControllers;
@@ -140,6 +140,16 @@ public:
 	 * @param type the type of controller to be subscribed
 	 */
 	void subscribeToOrIgnoreController(const SvcControllerMap& controllers, MobilityServiceControllerType type);
+
+	/**
+	 * Picks up the passenger
+	 */
+	void pickupPassenger();
+
+	/**
+	 * Drops off the passenger
+	 */
+	void dropoffPassenger();
 
 	/**
 	 * Performs the tasks required to end the driver shift

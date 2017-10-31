@@ -89,16 +89,34 @@ std::string OnCallDriverMovement::frame_tick_output()
 
 bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 {
-	switch (onCallDriver->getDriverStatus())
+	if(pathMover.isEndOfPath())
 	{
-	case CRUISING:
-	{
-		if(pathMover.isEndOfPath())
+		switch (onCallDriver->getDriverStatus())
+		{
+		case CRUISING:
 		{
 			continueCruising();
+			break;
 		}
-		break;
-	}
+		case DRIVE_ON_CALL:
+		{
+			//Reached pick up node, pick-up passenger and perform next schedule item
+			//Note: OnCallDriver::pickupPassenger marks the schedule item complete and moves to
+			//the next item
+			onCallDriver->pickupPassenger();
+			performScheduleItem();
+			break;
+		}
+		case DRIVE_WITH_PASSENGER:
+		{
+			//Reached destination, drop-off passenger and perform next schedule item
+			//Note: OnCallDriver::pickupPassenger marks the schedule item complete and moves to
+			//the next item
+			onCallDriver->dropoffPassenger();
+			performScheduleItem();
+			break;
+		}
+		}
 	}
 
 	bool retVal = DriverMovement::moveToNextSegment(params);

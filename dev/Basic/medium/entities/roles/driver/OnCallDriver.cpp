@@ -133,6 +133,96 @@ void OnCallDriver::subscribeToOrIgnoreController(const SvcControllerMap& control
 	}
 }
 
+void OnCallDriver::pickupPassenger()
+{
+	//Get the conflux
+	MesoPathMover &pathMover = movement->getMesoPathMover();
+	const SegmentStats *currSegStats = pathMover.getCurrSegStats();
+	Conflux *conflux = currSegStats->getParentConflux();
+
+	//Get the passenger name from the schedule
+	const string &passengerId = driverSchedule.getCurrScheduleItem()->tripRequest.userId;
+
+	Person_MT *personPickedUp = conflux->pickupTaxiTraveler(passengerId);
+
+#ifndef NDEBUG
+	if (!personPickedUp)
+	{
+		stringstream msg;
+		msg << "Pickup failed for " << personPickedUp << " at time " << parent->currTick
+		    << ", and driverId " << parent->getDatabaseId() << ". personToPickUp is NULL" << std::endl;
+		throw runtime_error(msg.str());
+	}
+#endif
+
+	Role<Person_MT> *curRole = personPickedUp->getRole();
+	Passenger *passenger = dynamic_cast<Passenger *>(curRole);
+
+#ifndef NDEBUG
+	if (!passenger)
+	{
+		stringstream msg;
+		msg << "Pickup failed for " << passengerId << " at time " << parent->currTick
+		    << ", and driverId " << parent->getDatabaseId() << ". personToPickUp is not a passenger"
+		    << std::endl;
+		throw runtime_error(msg.str());
+	}
+#endif
+
+	//Add the passenger
+	passengers[passengerId] = passenger;
+	passenger->setDriver(this);
+	passenger->setStartPoint(personPickedUp->currSubTrip->origin);
+	passenger->setStartPointDriverDistance(movement->getTravelMetric().distance);
+	passenger->setEndPoint(personPickedUp->currSubTrip->destination);
+	passenger->Movement()->startTravelTimeMetric();
+
+	ControllerLog() << "Pickup succeeded for " << passengerId << " at time " << parent->currTick
+	                << " with startNodeId " << conflux->getConfluxNode()->getNodeId() << ", destinationNodeId "
+	                << personPickedUp->currSubTrip->destination.node->getNodeId()
+	                << ", and driverId " << parent->getDatabaseId() << std::endl;
+
+	//Mark schedule item as completed
+	driverSchedule.itemCompleted();
+}
+
+void OnCallDriver::dropoffPassenger()
+{
+	//Get the passenger to be dropped off
+	const string &passengerId = driverSchedule.getCurrScheduleItem()->tripRequest.userId;
+	auto itPassengers = passengers.find(passengerId);
+
+#ifndef NDEBUG
+	if(itPassengers == passengers.end())
+	{
+		stringstream msg;
+		msg << "Dropoff failed for " << passengerId << " at time " << parent->currTick
+		    << ", and driverId " << parent->getDatabaseId() << ". Passenger not present in vehicle"
+		    << std::endl;
+		throw runtime_error(msg.str());
+	}
+#endif
+
+	Passenger *passengerToBeDroppedOff = itPassengers->second;
+	Person_MT *person = passengerToBeDroppedOff->getParent();
+
+	MesoPathMover &pathMover = movement->getMesoPathMover();
+	const SegmentStats *segStats = pathMover.getCurrSegStats();
+	Conflux *conflux = segStats->getParentConflux();
+	passengerToBeDroppedOff->setFinalPointDriverDistance(movement->getTravelMetric().distance);
+	conflux->dropOffTaxiTraveler(person);
+
+	//Remove passenger from vehicle
+	passengers.erase(itPassengers);
+
+	ControllerLog() << "Drop-off of user " << person->getDatabaseId() << " at time "
+	                << person->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()
+	                << ", and driverId " << getParent()->getDatabaseId() << std::endl;
+
+	//Mark schedule item as completed
+	driverSchedule.itemCompleted();
+}
+
 void OnCallDriver::endShift()
 {
 	//Notify the controller(s)

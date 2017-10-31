@@ -1482,9 +1482,12 @@ void HM_Model::startImpl()
 	{
 		loadLTVersion(conn);
 		loadStudyAreas(conn);
-		loadJobsBySectorByTaz(conn_calibration);
-		loadJobAssignments(conn);
-		loadJobsByTazAndIndustryType(conn);
+		if(config.ltParams.jobAssignmentModel.enabled)
+		{
+			loadJobsBySectorByTaz(conn_calibration);
+			loadJobAssignments(conn);
+			loadJobsByTazAndIndustryType(conn);
+		}
 
 		{
 			soci::session sql;

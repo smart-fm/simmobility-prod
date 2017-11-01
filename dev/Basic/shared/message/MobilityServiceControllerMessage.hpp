@@ -91,7 +91,7 @@ class DriverAvailableMessage : public messaging::Message
 public:
 	DriverAvailableMessage(Person *p) : person(p)
 	{
-		priority = 2;
+		priority = 8;
 	}
 
 	virtual ~DriverAvailableMessage()
@@ -109,7 +109,6 @@ class DriverShiftCompleted : public messaging::Message
 public:
 	DriverShiftCompleted(Person *p) : person(p)
 	{
-		priority = 5;
 	}
 
 	virtual ~DriverShiftCompleted()
@@ -127,7 +126,7 @@ class DriverScheduleStatusMsg : public messaging::Message
 public:
 	DriverScheduleStatusMsg(Person *p) : person(p)
 	{
-		priority = 1;
+		priority = 10;
 	}
 
 	virtual ~DriverScheduleStatusMsg()

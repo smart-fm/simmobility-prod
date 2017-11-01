@@ -42,7 +42,7 @@ const std::string DB_TABLE_SUPPLY_NODE = APPLY_SCHEMA(SUPPLY_SCHEMA, "node");
  */
 const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualids()");
 const std::string DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualbyidforpreday(:_id)");
-const std::string DB_SP_GET_ADDRESSES = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresses_aditi()");
+const std::string DB_SP_GET_ADDRESSES = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresses()");
 const std::string DB_SP_GET_POSTCODE_NODE_MAP = APPLY_SCHEMA(PUBLIC_SCHEMA, "get_postcode_node_map()");
 
 /**

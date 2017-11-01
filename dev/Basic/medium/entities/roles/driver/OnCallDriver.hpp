@@ -77,7 +77,33 @@ protected:
 			++currentItem;
 			++nextItem;
 		}
+
+		bool isScheduleCompleted() const
+		{
+			return currentItem == assignedSchedule.end();
+		}
 	} driverSchedule;
+
+	/**
+	 * Marks the current schedule item as completed
+	 */
+	void scheduleItemCompleted();
+
+	/**
+	 * Sends the schedule received acknowledgement message
+	 * @param success indicates whether the schedule can be performed
+	 */
+	void sendScheduleAckMessage(bool success);
+
+	/**
+	 * Sends the driver available message to the controllers
+	 */
+	void sendAvailableMessage();
+
+	/**
+	 * Sends the driver status update message
+	 */
+	void sendStatusMessage();
 
 public:
 	OnCallDriver(Person_MT *parent, const MutexStrategy &mtx,

@@ -133,6 +133,54 @@ void OnCallDriver::subscribeToOrIgnoreController(const SvcControllerMap& control
 	}
 }
 
+void OnCallDriver::scheduleItemCompleted()
+{
+	driverSchedule.itemCompleted();
+
+	sendStatusMessage();
+
+	if(driverSchedule.isScheduleCompleted())
+	{
+		sendAvailableMessage();
+	}
+}
+
+void OnCallDriver::sendScheduleAckMessage(bool success)
+{
+	auto tripRequest = driverSchedule.getCurrScheduleItem()->tripRequest;
+
+	//Acknowledge the acceptance of the schedule
+	SchedulePropositionReplyMessage *ackMsg = new SchedulePropositionReplyMessage(parent->currTick,
+	                                                                               tripRequest.userId,
+	                                                                               parent,
+	                                                                               tripRequest.startNode,
+	                                                                               tripRequest.destinationNode,
+	                                                                               tripRequest.extraTripTimeThreshold,
+	                                                                               success);
+
+	MessageBus::PostMessage(tripRequest.GetSender(), MSG_SCHEDULE_PROPOSITION_REPLY, MessageBus::MessagePtr(ackMsg));
+}
+
+void OnCallDriver::sendAvailableMessage()
+{
+	//Notify the controller(s)
+	for(auto ctrlr : subscribedControllers)
+	{
+		MessageBus::PostMessage(ctrlr, MSG_DRIVER_AVAILABLE,
+		                        MessageBus::MessagePtr(new DriverAvailableMessage(parent)));
+	}
+}
+
+void OnCallDriver::sendStatusMessage()
+{
+	//Notify the controller(s)
+	for(auto ctrlr : subscribedControllers)
+	{
+		MessageBus::PostMessage(ctrlr, MSG_DRIVER_SCHEDULE_STATUS,
+		                        MessageBus::MessagePtr(new DriverScheduleStatusMsg(parent)));
+	}
+}
+
 void OnCallDriver::pickupPassenger()
 {
 	//Get the conflux
@@ -183,7 +231,7 @@ void OnCallDriver::pickupPassenger()
 	                << ", and driverId " << parent->getDatabaseId() << std::endl;
 
 	//Mark schedule item as completed
-	driverSchedule.itemCompleted();
+	scheduleItemCompleted();
 }
 
 void OnCallDriver::dropoffPassenger()
@@ -220,7 +268,7 @@ void OnCallDriver::dropoffPassenger()
 	                << ", and driverId " << getParent()->getDatabaseId() << std::endl;
 
 	//Mark schedule item as completed
-	driverSchedule.itemCompleted();
+	scheduleItemCompleted();
 }
 
 void OnCallDriver::endShift()

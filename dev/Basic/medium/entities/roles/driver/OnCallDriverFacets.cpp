@@ -51,6 +51,9 @@ void OnCallDriverMovement::frame_init()
 	//So cruise to a random node, by creating a default schedule
 	continueCruising();
 
+	//Begin performing schedule.
+	performScheduleItem();
+
 	onCallDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
 }
 
@@ -63,6 +66,7 @@ void OnCallDriverMovement::frame_tick()
 		if(pathMover.isEndOfPath())
 		{
 			continueCruising();
+			performScheduleItem();
 		}
 		break;
 	}
@@ -96,6 +100,7 @@ bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		case CRUISING:
 		{
 			continueCruising();
+			performScheduleItem();
 			break;
 		}
 		case DRIVE_ON_CALL:
@@ -134,6 +139,11 @@ void OnCallDriverMovement::performScheduleItem()
 {
 	try
 	{
+		if(onCallDriver->driverSchedule.isScheduleCompleted())
+		{
+			continueCruising();
+		}
+
 		//Get the current schedule item
 		auto itScheduleItem = onCallDriver->driverSchedule.getCurrScheduleItem();
 		bool hasShiftEnded = onCallDriver->behaviour->hasDriverShiftEnded();
@@ -244,27 +254,30 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	//Get route to the node
 	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
-#ifndef NDEBUG
-	if(route.empty())
+	if(!route.empty())
 	{
-		stringstream msg;
-		msg << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
-		    << " could not find a path to the pickup node " << pickupNode->getNodeId()
-		    << " from the current node " << currNode->getNodeId() << " and link ";
-		msg << (currLink ? currLink->getLinkId() : 0);
-		throw no_path_error(msg.str());
+		vector<const SegmentStats *> routeSegStats;
+		pathMover.buildSegStatsPath(route, routeSegStats);
+		pathMover.resetPath(routeSegStats);
+		onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_ON_CALL);
+		onCallDriver->sendScheduleAckMessage(true);
+
+		ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+		                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving from node "
+		                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+		                << " to pickup node " << pickupNode->getNodeId() << endl;
 	}
+	else
+	{
+		onCallDriver->sendScheduleAckMessage(false);
+		continueCruising();
+		performScheduleItem();
 
-	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
-	                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving from node "
-	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-	                << " to pickup node " << pickupNode->getNodeId() << endl;
-#endif
-
-	vector<const SegmentStats *> routeSegStats;
-	pathMover.buildSegStatsPath(route, routeSegStats);
-	pathMover.resetPath(routeSegStats);
-	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_ON_CALL);
+		ControllerLog() << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
+		                << " could not find a path to the pickup node " << pickupNode->getNodeId()
+		                << " from the current node " << currNode->getNodeId() << " and link "
+		                << (currLink ? currLink->getLinkId() : 0);
+	}
 }
 
 void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
@@ -317,9 +330,6 @@ void OnCallDriverMovement::continueCruising()
 	Schedule schedule;
 	schedule.push_back(cruise);
 	onCallDriver->driverSchedule.setSchedule(schedule);
-
-	//Begin performing schedule.
-	performScheduleItem();
 }
 
 const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) const

@@ -1453,8 +1453,6 @@ std::vector<HouseholdAgent*> HM_Model::getFreelanceAgents()
 
 void HM_Model::startImpl()
 {
-	//PredayLT_LogsumManager::getInstance();
-
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	MetadataEntry entry;
@@ -1467,6 +1465,7 @@ void HM_Model::startImpl()
 	conn.connect();
 	resume = config.ltParams.resume;
 	conn.setSchema(config.schemas.main_schema);
+	PredayLT_LogsumManager::getInstance();
 
 	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
 	conn_calibration.connect();
@@ -3579,11 +3578,16 @@ void HM_Model::loadJobsByTazAndIndustryType(DB_Connection &conn)
 {
 	soci::session sql;
 	sql.open(soci::postgresql, conn.getConnectionStr());
-
-
-	//const std::string storedProc = conn.getSchema() + "getJobsWithIndustryTypeAndTazId()";
-	const std::string storedProc = conn.getSchema() + "getJobsForForiegnersWithIndustryTypeAndTazId()";
-
+	std::string storedProc;
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	if(config.ltParams.jobAssignmentModel.foreignWorkers)
+	{
+		storedProc = conn.getSchema() + "getJobsForForiegnersWithIndustryTypeAndTazId()";
+	}
+	else
+	{
+		storedProc = conn.getSchema() + "getJobsWithIndustryTypeAndTazId()";
+	}
 	//SQL statement
 	soci::rowset<JobsWithIndustryTypeAndTazId> jobsWithIndTypeAndTazObj = (sql.prepare << "select * from " + storedProc);
 	for (soci::rowset<JobsWithIndustryTypeAndTazId>::const_iterator itJobs = jobsWithIndTypeAndTazObj.begin(); itJobs != jobsWithIndTypeAndTazObj.end(); ++itJobs)

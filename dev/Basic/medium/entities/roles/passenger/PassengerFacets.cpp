@@ -71,7 +71,8 @@ TravelMetric & PassengerMovement::startTravelTimeMetric()
 	if(parentPassenger->getDriver())
 	{
 		if (parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_TAXIDRIVER ||
-		    parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_HAIL_DRIVER)
+		    parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_HAIL_DRIVER ||
+		    parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_CALL_DRIVER)
 		{
 			travelMetric.startTime = DailyTime(const_cast<Driver*>(parentPassenger->getDriver())->getParams().now.ms())
 										+ DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime());
@@ -89,7 +90,8 @@ TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 	if(parentPassenger->getDriver())
 	{
 		if (parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_TAXIDRIVER ||
-		    parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_HAIL_DRIVER)
+		    parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_HAIL_DRIVER ||
+		    parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_CALL_DRIVER)
 		{
 			travelMetric.distance = parentPassenger->getFinalPointDriverDistance() - parentPassenger->getStartPointDriverDistance();
 			travelMetric.endTime =DailyTime(const_cast<Driver*>(parentPassenger->getDriver())->getParams().now.ms())

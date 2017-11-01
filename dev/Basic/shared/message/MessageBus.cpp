@@ -114,7 +114,7 @@ namespace {
     struct ComparePriority {
 
         bool operator()(const MessageEntry& t1, const MessageEntry& t2) const {
-            return (t1.priority > t2.priority);
+            return (t1.priority < t2.priority);
         }
     };
 

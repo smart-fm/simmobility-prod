@@ -569,6 +569,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 						break;
 					case Role<Person_MT>::RL_TAXIDRIVER:
 					case Role<Person_MT>::RL_ON_HAIL_DRIVER:
+					case Role<Person_MT>::RL_ON_CALL_DRIVER:
 						numPersons--;
 						break;
 

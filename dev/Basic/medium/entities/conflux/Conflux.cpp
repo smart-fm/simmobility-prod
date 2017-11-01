@@ -2038,6 +2038,7 @@ PersonCount Conflux::countPersons() const
 			}
 			case Role<Person_MT>::RL_TAXIDRIVER:
 			case Role<Person_MT>::RL_ON_HAIL_DRIVER:
+			case Role<Person_MT>::RL_ON_CALL_DRIVER:
 			{
 				count.taxiDrivers++;
 				break;

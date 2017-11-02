@@ -105,6 +105,11 @@ protected:
 	 */
 	void sendStatusMessage();
 
+	/**
+	 * Reloads the driver on to the network from the parking
+	 */
+	void reload();
+
 public:
 	OnCallDriver(Person_MT *parent, const MutexStrategy &mtx,
 	             OnCallDriverBehaviour *behaviour, OnCallDriverMovement *movement,

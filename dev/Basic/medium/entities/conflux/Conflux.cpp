@@ -704,6 +704,7 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 	}
 	case Role<Person_MT>::RL_TAXIDRIVER: //fall through
 	case Role<Person_MT>::RL_ON_HAIL_DRIVER:
+	case Role<Person_MT>::RL_ON_CALL_DRIVER:
 	case Role<Person_MT>::RL_BUSDRIVER:
 	{
 		if (beforeUpdate.isMoving && !afterUpdate.isMoving)

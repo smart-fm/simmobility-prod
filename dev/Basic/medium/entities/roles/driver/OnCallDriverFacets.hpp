@@ -45,9 +45,22 @@ protected:
 	void beginDriveToDropOffPoint(const Node *dropOffNode);
 
 	/**
+	 * This method looks up the path for driving to the parking node from the current
+	 * position and begins the drive towards it
+	 * @param parkingNode the node at which the vehicle is to be parked
+	 */
+	void beginDriveToParkingNode(const Node *parkingNode);
+
+	/**
 	 * This method enables the driver to continue cruising, one link at a time
 	 */
 	void continueCruising();
+
+	/**
+	 * This method parks the vehicle in the parking location
+	 * @param params the driver update parameters
+	 */
+	void parkVehicle(DriverUpdateParams &params);
 
 public:
 	OnCallDriverMovement();

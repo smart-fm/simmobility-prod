@@ -121,6 +121,12 @@ bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 			performScheduleItem();
 			break;
 		}
+		case DRIVE_TO_PARKING:
+		{
+			//Reached the parking location. Remove vehicle from the road
+			parkVehicle(params);
+			return false;
+		}
 		}
 	}
 
@@ -139,6 +145,9 @@ void OnCallDriverMovement::performScheduleItem()
 {
 	try
 	{
+		//Store the previous status
+		MobilityServiceDriverStatus prevStatus = onCallDriver->getDriverStatus();
+
 		if(onCallDriver->driverSchedule.isScheduleCompleted())
 		{
 			continueCruising();
@@ -177,8 +186,16 @@ void OnCallDriverMovement::performScheduleItem()
 		}
 		case PARK:
 		{
+			//Drive to parking node
+			beginDriveToParkingNode(itScheduleItem->parking->getAccessNode());
 			break;
 		}
+		}
+
+		//Reload the driver onto the network if it was in the parking
+		if(prevStatus == PARKED)
+		{
+			onCallDriver->reload();
 		}
 	}
 	catch(no_path_error &ex)
@@ -278,6 +295,9 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 		                << " from the current node " << currNode->getNodeId() << " and link "
 		                << (currLink ? currLink->getLinkId() : 0);
 	}
+
+	//Set vehicle to moving
+	onCallDriver->getResource()->setMoving(true);
 }
 
 void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
@@ -323,6 +343,49 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_WITH_PASSENGER);
 }
 
+void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
+{
+	//Create a sub-trip for the route choice
+	SubTrip subTrip;
+	subTrip.origin = WayPoint(currNode);
+	subTrip.destination = WayPoint(parkingNode);
+
+	const Link *currLink = nullptr;
+	bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
+
+	//If the driving path has already been set, we must find path to the node from
+	//the current segment
+	if(pathMover.isDrivingPathSet())
+	{
+		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+	}
+
+	//Get route to the node
+	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+
+#ifndef NDEBUG
+	if(route.empty())
+	{
+		stringstream msg;
+		msg << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
+		    << " could not find a path to the parking node " << parkingNode->getNodeId()
+		    << " from the current node " << currNode->getNodeId() << " and link ";
+		msg << (currLink ? currLink->getLinkId() : 0);
+		throw no_path_error(msg.str());
+	}
+
+	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+	                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving to park, from node "
+	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+	                << " to parking node " << parkingNode->getNodeId() << endl;
+#endif
+
+	vector<const SegmentStats *> routeSegStats;
+	pathMover.buildSegStatsPath(route, routeSegStats);
+	pathMover.resetPath(routeSegStats);
+	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_TO_PARKING);
+}
+
 void OnCallDriverMovement::continueCruising()
 {
 	//Cruise to a random node, by creating a default schedule
@@ -330,6 +393,46 @@ void OnCallDriverMovement::continueCruising()
 	Schedule schedule;
 	schedule.push_back(cruise);
 	onCallDriver->driverSchedule.setSchedule(schedule);
+}
+
+void OnCallDriverMovement::parkVehicle(DriverUpdateParams &params)
+{
+	auto vehicle = onCallDriver->getResource();
+
+	if(vehicle->isMoving() && isQueuing)
+	{
+		removeFromQueue();
+	}
+
+	//Finalise the link travel time, as we will not be calling the DriverMovement::frame_tick()
+	//where this normally happens
+	const SegmentStats *currSegStat = pathMover.getCurrSegStats();
+	const Link *currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+	const Link *nextLink = RoadNetwork::getInstance()->getDownstreamLinks(currLink->getToNodeId()).front();
+	auto parent = onCallDriver->getParent();
+
+	double actualT = params.elapsedSeconds + params.now.ms() / 1000;
+	onCallDriver->getParent()->currLinkTravelStats.finalize(currLink, actualT, nextLink);
+	TravelTimeManager::getInstance()->addTravelTime(parent->currLinkTravelStats); //in seconds
+	currSegStat->getParentConflux()->setLinkTravelTimes(actualT, currLink);
+	parent->currLinkTravelStats.reset();
+
+	vehicle->setMoving(false);
+	params.elapsedSeconds = params.secondsInTick;
+	onCallDriver->getParent()->setRemainingTimeThisTick(0.0);
+
+	//Update the value of current node as we return after this method
+	currNode = onCallDriver->driverSchedule.getCurrScheduleItem()->parking->getAccessNode();
+
+	onCallDriver->setDriverStatus(PARKED);
+	onCallDriver->scheduleItemCompleted();
+
+	//Clear the previous path. We will begin from the node
+	pathMover.eraseFullPath();
+
+	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+	                << onCallDriver->getParent()->getDatabaseId() << ": Parked at node "
+	                << currNode->getNodeId() << endl;
 }
 
 const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) const

@@ -181,6 +181,14 @@ void OnCallDriver::sendStatusMessage()
 	}
 }
 
+void OnCallDriver::reload()
+{
+	//We are starting afresh from the parking node, so we need to set the current segment stats
+	parent->setCurrSegStats(movement->getMesoPathMover().getCurrSegStats());
+	Conflux *conflux = Conflux::getConfluxFromNode(movement->getCurrentNode());
+	MessageBus::PostMessage(conflux, MSG_PERSON_LOAD, MessageBus::MessagePtr(new PersonMessage(parent)));
+}
+
 void OnCallDriver::pickupPassenger()
 {
 	//Get the conflux

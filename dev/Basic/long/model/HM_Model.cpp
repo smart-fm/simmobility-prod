@@ -4,6 +4,7 @@
  * File:   HM_Model.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
+ * 		   Gishara Premarathne <gishara@smart.mit.edu>
  * 
  * Created on October 21, 2013, 3:08 PM
  */
@@ -3634,6 +3635,7 @@ bool HM_Model::assignIndividualJob(BigSerial individualId, BigSerial selectedTaz
 	size_t sz = distance(range.first, range.second);
 	if(sz==0)
 	{
+		//this part should not be reached with proper data. If you get this message please check whether you have enough jobs for individuals in each industry id.
 		PrintOutV("Individual id" <<  individualId << "has job id as 0" << std::endl);
 		return false;
 	}

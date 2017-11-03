@@ -130,7 +130,12 @@ bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		}
 	}
 
-	bool retVal = DriverMovement::moveToNextSegment(params);
+	bool retVal = false;
+
+	if(onCallDriver->getDriverStatus() != PARKED)
+	{
+		 retVal = DriverMovement::moveToNextSegment(params);
+	}
 
 	if(!pathMover.isPathCompleted())
 	{
@@ -345,45 +350,49 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 
 void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
 {
-	//Create a sub-trip for the route choice
-	SubTrip subTrip;
-	subTrip.origin = WayPoint(currNode);
-	subTrip.destination = WayPoint(parkingNode);
+	//We call this method when at the end of a link. Hence, we should have a current link
+	//and we'd be crossing into the next link soon.
+	//If the 'toNode' for the link is the parking node, we can simply park the vehicle,
+	//as we're about to move into the next link
+	const Link *currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
 
-	const Link *currLink = nullptr;
-	bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
-
-	//If the driving path has already been set, we must find path to the node from
-	//the current segment
-	if(pathMover.isDrivingPathSet())
+	if(currLink->getToNode() != parkingNode)
 	{
-		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
-	}
+		//Create a sub-trip for the route choice
+		SubTrip subTrip;
+		subTrip.origin = WayPoint(currNode);
+		subTrip.destination = WayPoint(parkingNode);
+		bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
 
-	//Get route to the node
-	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+		//Get route to the node
+		auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
 #ifndef NDEBUG
-	if(route.empty())
-	{
-		stringstream msg;
-		msg << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
-		    << " could not find a path to the parking node " << parkingNode->getNodeId()
-		    << " from the current node " << currNode->getNodeId() << " and link ";
-		msg << (currLink ? currLink->getLinkId() : 0);
-		throw no_path_error(msg.str());
-	}
+		if (route.empty())
+		{
+			stringstream msg;
+			msg << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
+			    << " could not find a path to the parking node " << parkingNode->getNodeId()
+			    << " from the current node " << currNode->getNodeId() << " and link ";
+			msg << (currLink ? currLink->getLinkId() : 0);
+			throw no_path_error(msg.str());
+		}
 
-	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
-	                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving to park, from node "
-	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-	                << " to parking node " << parkingNode->getNodeId() << endl;
+		ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+		                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving to park, from node "
+		                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+		                << " to parking node " << parkingNode->getNodeId() << endl;
 #endif
 
-	vector<const SegmentStats *> routeSegStats;
-	pathMover.buildSegStatsPath(route, routeSegStats);
-	pathMover.resetPath(routeSegStats);
-	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_TO_PARKING);
+		vector<const SegmentStats *> routeSegStats;
+		pathMover.buildSegStatsPath(route, routeSegStats);
+		pathMover.resetPath(routeSegStats);
+		onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_TO_PARKING);
+	}
+	else
+	{
+		parkVehicle(onCallDriver->getParams());
+	}
 }
 
 void OnCallDriverMovement::continueCruising()

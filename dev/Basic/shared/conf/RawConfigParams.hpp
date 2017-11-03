@@ -757,9 +757,6 @@ public:
 
 	ModelScriptsMap predayLuaScriptsMap;
 
-	ModelScriptsMap withindayLuaScriptsMap;
-
-
     /// key:value (travel mode id : travel mode string) map
     std::unordered_map<int, TravelModeConfig> travelModeMap;
 

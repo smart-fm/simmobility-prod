@@ -32,7 +32,7 @@ namespace
         {
         	try
         	{
-        		const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().withindayLuaScriptsMap;
+        		const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMap;
         		const std::string& scriptsPath = extScripts.getPath();
         		ModelContext* modelCtx = new ModelContext();
         		modelCtx->ptrcModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));

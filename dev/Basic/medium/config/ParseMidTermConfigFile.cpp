@@ -134,7 +134,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processStatisticsOutputNode(GetSingleElementByName(node, "output_statistics", true));
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
-	cfg.withindayLuaScriptsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
+	cfg.luaScriptsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 }
 
 

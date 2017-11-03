@@ -5,13 +5,13 @@
  *      Author: Akshay Padmanabha
  */
 
-#include "GreedyTaxiController.hpp"
+#include "GreedyController.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "logging/ControllerLog.hpp"
 
 using namespace sim_mob;
 
-void GreedyTaxiController::computeSchedules()
+void GreedyController::computeSchedules()
 {
 #ifndef NDEBUG
 	consistencyChecks("beginning");

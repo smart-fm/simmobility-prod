@@ -6,7 +6,7 @@
  */
 
 #include "MobilityServiceControllerManager.hpp"
-#include "entities/controllers/GreedyTaxiController.hpp"
+#include "entities/controllers/GreedyController.hpp"
 #include "entities/controllers/OnHailTaxiController.hpp"
 #include "entities/controllers/SharedController.hpp"
 #include "entities/controllers/IncrementalSharing.hpp"
@@ -71,7 +71,7 @@ bool MobilityServiceControllerManager::addMobilityServiceController(MobilityServ
 	{
 	case SERVICE_CONTROLLER_GREEDY:
 	{
-		controller = new GreedyTaxiController(getMutexStrategy(), scheduleComputationPeriod, controllerId,
+		controller = new GreedyController(getMutexStrategy(), scheduleComputationPeriod, controllerId,
 		                                      ttEstimateType);
 		break;
 	}

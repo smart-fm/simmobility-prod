@@ -1456,6 +1456,12 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 		}
 		break;
 	}
+	case MSG_WAKEUP_SHIFT_END:
+	{
+		const PersonMessage &msg = MSG_CAST(PersonMessage, message);
+		MessageBus::PostMessage(msg.person, MSG_WAKEUP_SHIFT_END, MessageBus::MessagePtr(new PersonMessage(msg.person)));
+		break;
+	}
 	default:
 		break;
 	}

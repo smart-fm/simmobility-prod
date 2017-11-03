@@ -3,6 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "OnCallDriver.hpp"
+#include "conf/ConfigManager.hpp"
 
 using namespace sim_mob;
 using namespace medium;
@@ -70,6 +71,17 @@ void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, con
 	case MSG_UNSUBSCRIBE_SUCCESSFUL:
 	{
 		parent->setToBeRemoved();
+		break;
+	}
+	case MSG_WAKEUP_SHIFT_END:
+	{
+		//Only when the driver is parked we need to handle this message, in other cases the driver is already
+		//awake and can end the shift
+		if(driverStatus == PARKED)
+		{
+			reload();
+			endShift();
+		}
 		break;
 	}
 	}
@@ -181,6 +193,16 @@ void OnCallDriver::sendStatusMessage()
 	}
 }
 
+void OnCallDriver::sendWakeUpShiftEndMsg()
+{
+	unsigned int timeToShiftEnd = (parent->getServiceVehicle().endTime * 1000) - parent->currTick.ms();
+	unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
+
+	Conflux *cflx = movement->getMesoPathMover().getCurrSegStats()->getParentConflux();
+	MessageBus::PostMessage(cflx, MSG_WAKEUP_SHIFT_END, MessageBus::MessagePtr(new PersonMessage(parent)),
+		                        false, timeToShiftEnd / tick);
+}
+
 void OnCallDriver::reload()
 {
 	//We are starting afresh from the parking node, so we need to set the current segment stats
@@ -282,13 +304,13 @@ void OnCallDriver::dropoffPassenger()
 void OnCallDriver::endShift()
 {
 	//Notify the controller(s)
-	for(auto ctrlr : subscribedControllers)
+	/*for(auto ctrlr : subscribedControllers)
 	{
 		MessageBus::PostMessage(ctrlr, MSG_DRIVER_SHIFT_END,
 		                        MessageBus::MessagePtr(new DriverShiftCompleted(parent)));
 	}
 
-	isWaitingForUnsubscribeAck = true;
+	isWaitingForUnsubscribeAck = true;*/
 
 #ifndef NDEBUG
 	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "

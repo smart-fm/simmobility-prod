@@ -106,6 +106,12 @@ protected:
 	void sendStatusMessage();
 
 	/**
+	 * Sends the message, indicating that the shift has ended and it has to wake up. This is
+	 * required to wake up drivers who are parked when their shift ends
+	 */
+	void sendWakeUpShiftEndMsg();
+
+	/**
 	 * Reloads the driver on to the network from the parking
 	 */
 	void reload();

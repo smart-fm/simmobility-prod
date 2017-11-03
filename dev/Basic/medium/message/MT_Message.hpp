@@ -36,6 +36,7 @@ enum PublicTrainsitEvent
 	EVT_DISRUPTION_STATION=7000000,
 	EVT_DISRUPTION_CHANGEROUTE
 };
+
 enum PublicTransitMessage
 {
 	BOARD_BUS = 6000000,
@@ -49,7 +50,11 @@ enum PublicTransitMessage
 	PASSENGER_ARRIVAL_AT_PLATFORM,
 	PASSENGER_LEAVE_FRM_PLATFORM,
 	INSERT_UNSCHEDULED_TRAIN
+};
 
+enum OnCallDriverMessage
+{
+	MSG_WAKEUP_SHIFT_END = 5100000
 };
 
 /**

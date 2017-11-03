@@ -55,6 +55,8 @@ void OnCallDriverMovement::frame_init()
 	performScheduleItem();
 
 	onCallDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
+
+	onCallDriver->sendWakeUpShiftEndMsg();
 }
 
 void OnCallDriverMovement::frame_tick()

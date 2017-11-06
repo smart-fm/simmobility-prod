@@ -72,21 +72,6 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 		break;
 	}
 
-	case MSG_DRIVER_SHIFT_END:
-	{
-		const DriverShiftCompleted &shiftCompletedArgs = MSG_CAST(DriverShiftCompleted, message);
-		onDriverShiftEnd(shiftCompletedArgs.person);
-		break;
-	}
-
-	//aa!!: This only concerns the OnCall controller and should be moved in the handleMessage there.
-	case MSG_DRIVER_SCHEDULE_STATUS:
-	{
-		const DriverScheduleStatusMsg &statusMsgArgs = MSG_CAST(DriverScheduleStatusMsg, message);
-		onDriverScheduleStatus(statusMsgArgs.person);
-		break;
-	}
-
 	default:
 		throw std::runtime_error("Unrecognized message");
 	};
@@ -185,14 +170,6 @@ const std::string MobilityServiceController::toString() const
 void MobilityServiceController::setToBeRemoved()
 {
 	Agent::setToBeRemoved();
-}
-
-void MobilityServiceController::onDriverShiftEnd(Person *person)
-{
-}
-
-void MobilityServiceController::onDriverScheduleStatus(Person *person)
-{
 }
 
 const std::string toString(const MobilityServiceControllerType type)

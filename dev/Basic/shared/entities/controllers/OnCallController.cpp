@@ -76,7 +76,7 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	{
 		std::stringstream msg;
 		msg << "Driver " << driver->getDatabaseId() << " has been subscribed but had no "
-		    << "schedule associated. This is impossible. It should have had at least an empty schedule";
+			<< "schedule associated. This is impossible. It should have had at least an empty schedule";
 		throw std::runtime_error(msg.str());
 	}
 
@@ -86,7 +86,7 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	{
 		std::stringstream msg;
 		msg << "Driver with pointer " << driver << " has a non empty schedule and she sent a message "
-		    << "to unsubscribe. This is not admissible";
+			<< "to unsubscribe. This is not admissible";
 		throw std::runtime_error(msg.str());
 	}
 #endif
@@ -171,7 +171,7 @@ void OnCallController::onDriverScheduleStatus(Person *driver)
 
 	//aa!!: If schedule is empty, this would be an error, right? Why would a driver update an empty schedule.
 	//			We should rise an appropriate NDEBUG exception here.
-	if(!schedule.empty())
+	if (!schedule.empty())
 	{
 		schedule.erase(schedule.begin());
 	}
@@ -201,8 +201,9 @@ Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
 #ifndef NDEBUG
 		isComputingSchedules = false;
 #endif
-		if( currTick.frame() >= rebalancingInterval && currTick.frame() >= nextRebalancingFrame ){
-			nextRebalancingFrame = currTick.frame() + rebalancingInterval ;
+		if (currTick.frame() >= rebalancingInterval && currTick.frame() >= nextRebalancingFrame)
+		{
+			nextRebalancingFrame = currTick.frame() + rebalancingInterval;
 			rebalancer->rebalance(availableDrivers, currTick);
 		}
 	}
@@ -238,7 +239,6 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 #endif
 		break;
 	}
-
 	case MSG_TRIP_REQUEST:
 	{
 		const TripRequestMessage &requestArgs = MSG_CAST(TripRequestMessage, message);
@@ -255,17 +255,11 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 		}
 #endif
 
-		/*
-		TripRequest r; r.currTick=requestArgs.currTick; r.userId = requestArgs.personId;
-		r.startNodeId=requestArgs.startNodeId; r.destinationNodeId=requestArgs.destinationNodeId;
-		r.extraTripTimeThreshold=requestArgs.extraTripTimeThreshold;
-		*/
 		requestQueue.push_back(requestArgs);
 		rebalancer->onRequestReceived(requestArgs.startNode);
 
 		break;
 	}
-
 	case MSG_SCHEDULE_PROPOSITION_REPLY:
 	{
 		const SchedulePropositionReplyMessage &replyArgs = MSG_CAST(SchedulePropositionReplyMessage, message);
@@ -301,7 +295,18 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 		}
 		break;
 	}
-
+	case MSG_DRIVER_SHIFT_END:
+	{
+		const DriverShiftCompleted &shiftCompletedArgs = MSG_CAST(DriverShiftCompleted, message);
+		onDriverShiftEnd(shiftCompletedArgs.person);
+		break;
+	}
+	case MSG_DRIVER_SCHEDULE_STATUS:
+	{
+		const DriverScheduleStatusMsg &statusMsgArgs = MSG_CAST(DriverScheduleStatusMsg, message);
+		onDriverScheduleStatus(statusMsgArgs.person);
+		break;
+	}
 	default:
 		// If it is not a message specific to this controller, let the generic controller handle it
 		MobilityServiceController::HandleMessage(type, message);
@@ -332,7 +337,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	}
 #endif
 
-	if(!isUpdatedSchedule)
+	if (!isUpdatedSchedule)
 	{
 		MessageBus::PostMessage((MessageHandler *) driver, MSG_SCHEDULE_PROPOSITION, MessageBus::MessagePtr(
 				new SchedulePropositionMessage(currTick, schedule, (MessageHandler *) this)));
@@ -345,12 +350,12 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 
 #ifndef NDEBUG
 	if (driverSchedules.find(driver) == driverSchedules.end() ||
-	    (std::find(availableDrivers.begin(), availableDrivers.end(), driver) == availableDrivers.end() &&
-	     (!partiallyAvailableDrivers.empty() && partiallyAvailableDrivers.find(driver) == partiallyAvailableDrivers.end())))
+		(std::find(availableDrivers.begin(), availableDrivers.end(), driver) == availableDrivers.end() &&
+		 (!partiallyAvailableDrivers.empty() && partiallyAvailableDrivers.find(driver) == partiallyAvailableDrivers.end())))
 	{
 		std::string answer1 = (driverSchedules.find(driver) != driverSchedules.end() ? "yes" : "no");
 		std::string answer2 = (std::find(availableDrivers.begin(), availableDrivers.end(),
-		                                 driver) != availableDrivers.end() ? "yes" : "no");
+										 driver) != availableDrivers.end() ? "yes" : "no");
 		std::string driverId;
 		try
 		{
@@ -367,7 +372,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 		std::stringstream msg;
 		msg << "Assigning a schedule to driver " << driverId
 			<< ". She should be present both in availableDrivers and driverSchedules but is she present in driverSchedules? "
-		    << answer1 << " and is she present in availableDrivers? " << answer2;
+			<< answer1 << " and is she present in availableDrivers? " << answer2;
 		throw std::runtime_error(msg.str());
 	}
 
@@ -403,7 +408,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 
 	//If this schedule only caters to 1 person, the add the driver to the list of partially available drivers
 	//Schedule size 3 indicates a schedule for 1 person: pick-up, drop-off and park
-	if(schedule.size() <= 3 && partiallyAvailableDrivers.count(driver) == 0)
+	if (schedule.size() <= 3 && partiallyAvailableDrivers.count(driver) == 0)
 	{
 		partiallyAvailableDrivers.insert(driver);
 	}
@@ -449,19 +454,19 @@ bool OnCallController::isCruising(const Person *driver) const
 
 bool OnCallController::isParked(const Person *driver) const
 {
-    const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
-    if (currDriver)
-    {
-        if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::PARKED)
-        {
-            return true;
-        }
-    }
+	const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
+	if (currDriver)
+	{
+		if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::PARKED)
+		{
+			return true;
+		}
+	}
 #ifndef NDEBUG
-    else throw std::runtime_error("Error in getting the MobilityServiceDriver");
+	else throw std::runtime_error("Error in getting the MobilityServiceDriver");
 #endif
 
-    return false;
+	return false;
 }
 
 const Node *OnCallController::getCurrentNode(const Person *driver) const
@@ -792,8 +797,8 @@ double OnCallController::computeSchedule(const Node *initialNode, const Schedule
 	}
 }
 
-bool OnCallController::canBeShared(const TripRequestMessage& r1, const TripRequestMessage& r2,
-			double additionalDelayThreshold, double waitingTimeThreshold ) const
+bool OnCallController::canBeShared(const TripRequestMessage &r1, const TripRequestMessage &r2,
+                                   double additionalDelayThreshold, double waitingTimeThreshold) const
 {
 #ifndef NDEBUG
 	if (r1==r2)
@@ -832,7 +837,7 @@ void OnCallController::consistencyChecks(const std::string& label) const
 	{
 		std::stringstream msg;
 		msg << label << " subscribedDrivers.size()=" << subscribedDrivers.size()
-		    << " and driverSchedules.size()=" << driverSchedules.size() << ". They should be equal. ";
+			<< " and driverSchedules.size()=" << driverSchedules.size() << ". They should be equal. ";
 
 		for (const Person *driver : subscribedDrivers)
 		{
@@ -851,7 +856,7 @@ void OnCallController::consistencyChecks(const std::string& label) const
 		{
 			std::stringstream msg;
 			msg << "Driver " << driver->getDatabaseId()
-			    << " is not a MobilityServiceDriver" << std::endl;
+				<< " is not a MobilityServiceDriver" << std::endl;
 			throw std::runtime_error(msg.str());
 		}
 
@@ -862,7 +867,7 @@ void OnCallController::consistencyChecks(const std::string& label) const
 		{
 			std::stringstream msg;
 			msg << "Driver " << driver->getDatabaseId() << " is among the available drivers but his status is:"
-			    << driver->exportServiceDriver()->getDriverStatusStr() << ". This is not admitted at the moment";
+				<< driver->exportServiceDriver()->getDriverStatusStr() << ". This is not admitted at the moment";
 			throw std::runtime_error(msg.str());
 		}
 
@@ -870,8 +875,8 @@ void OnCallController::consistencyChecks(const std::string& label) const
 		{
 			std::stringstream msg;
 			msg << "Driver " << driver->getDatabaseId()
-			    << " is among the available drivers but her schedule is not empty:"
-			    << driverSchedules.at(driver);
+				<< " is among the available drivers but her schedule is not empty:"
+				<< driverSchedules.at(driver);
 			throw std::runtime_error(msg.str());
 		}
 	}
@@ -887,7 +892,7 @@ void OnCallController::consistencyChecks(const std::string& label) const
 			{
 				std::stringstream msg;
 				msg << "There are two requests from the same users currently in the requestQueue. They are " <<
-				    requestQueueCopy[i] << " and " << requestQueueCopy[j] << std::endl;
+					requestQueueCopy[i] << " and " << requestQueueCopy[j] << std::endl;
 				throw std::runtime_error(msg.str());
 			}
 		}
@@ -977,7 +982,7 @@ double OnCallController::getTT(const Node *node1, const Node *node2, TT_Estimate
 		}
 		case (EUCLIDEAN_ESTIMATION):
 		{
-			return getTT(node1->getLocation(), node2->getLocation() ) ;
+			return getTT(node1->getLocation(), node2->getLocation());
 			break;
 		}
 		default:
@@ -993,7 +998,7 @@ double OnCallController::getTT(const Node *node1, const Node *node2, TT_Estimate
 	return retValue;
 }
 
-double OnCallController::getTT(const Point& point1, const Point& point2) const
+double OnCallController::getTT(const Point &point1, const Point &point2) const
 {
 	double squareDistance = pow(point1.getX() - point2.getX(), 2) + pow(
 			point1.getY() - point2.getY(), 2);
@@ -1010,8 +1015,8 @@ double OnCallController::toMs(int c) const
 	return c / (CLOCKS_PER_SEC / 1000);
 }
 
-void OnCallController::assignSchedules(const unordered_map<const Person*, Schedule>& schedulesToAssign,
-		bool isUpdatedSchedule)
+void OnCallController::assignSchedules(const unordered_map<const Person *, Schedule> &schedulesToAssign,
+                                       bool isUpdatedSchedule)
 {
 	// After we decided all the schedules for all the drivers, we can send  them
 	for (const pair<const Person *, Schedule> &p : schedulesToAssign)
@@ -1026,9 +1031,10 @@ void OnCallController::assignSchedules(const unordered_map<const Person*, Schedu
 		//			logic is generally related to OnCallController. We should move that logic there, otherwise we will
 		//			have to write always the same code for any controller.
 		const SMSVehicleParking *parking =
-				SMSVehicleParking::smsParkingRTree.searchNearestObject(finalDropOffNode->getPosX(), finalDropOffNode->getPosY());
+				SMSVehicleParking::smsParkingRTree.searchNearestObject(finalDropOffNode->getPosX(),
+				                                                       finalDropOffNode->getPosY());
 
-		if(parking)
+		if (parking)
 		{
 			//Append the parking schedule item to the end
 			const ScheduleItem parkingSchedule(PARK, parking);
@@ -1043,11 +1049,11 @@ void OnCallController::assignSchedules(const unordered_map<const Person*, Schedu
 //			is able to handle both map and unordered_map, but I was not able to do it. I asked help on:
 //					https://stackoverflow.com/q/45601144/2110769
 //			Once we get a good suggestion from there, we should immediately get rid of this.
-void OnCallController::assignSchedules(const map<const Person*, Schedule>& schedulesToAssign,
-		bool isUpdatedSchedule)
+void OnCallController::assignSchedules(const map<const Person *, Schedule> &schedulesToAssign,
+                                       bool isUpdatedSchedule)
 {
-	assignSchedules (unordered_map<const Person*, Schedule>(schedulesToAssign.begin(), schedulesToAssign.end() ),
-			isUpdatedSchedule) ;
+	assignSchedules(unordered_map<const Person *, Schedule>(schedulesToAssign.begin(), schedulesToAssign.end()),
+	                isUpdatedSchedule);
 }
 
 

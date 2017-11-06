@@ -7,7 +7,6 @@
 
 #include "GreedyController.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
-#include "logging/ControllerLog.hpp"
 
 using namespace sim_mob;
 
@@ -18,7 +17,7 @@ void GreedyController::computeSchedules()
 #endif
 
 	ControllerLog() << "Computing schedule: " << requestQueue.size() << " requests are in the queue, available drivers "
-			<< availableDrivers.size() << std::endl;
+	                << availableDrivers.size() << std::endl;
 
 	std::list<TripRequestMessage>::iterator request = requestQueue.begin();
 	if (!availableDrivers.empty())
@@ -43,7 +42,7 @@ void GreedyController::computeSchedules()
 				schedule.push_back(pickUpScheduleItem);
 				schedule.push_back(dropOffScheduleItem);
 
-				if(parking)
+				if (parking)
 				{
 					const ScheduleItem parkScheduleItem(ScheduleItemType::PARK, parking);
 					schedule.push_back(parkScheduleItem);

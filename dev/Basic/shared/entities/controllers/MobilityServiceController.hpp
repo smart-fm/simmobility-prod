@@ -20,7 +20,6 @@
 namespace sim_mob
 {
 
-
 enum MobilityServiceControllerType : unsigned int
 {
 	SERVICE_CONTROLLER_UNKNOWN = 0b0000,
@@ -39,8 +38,6 @@ const std::string toString(const MobilityServiceControllerType type);
  */
 void consistencyChecks(const MobilityServiceControllerType type);
 
-
-//const std::string fromMobilityServiceControllerTypetoString(MobilityServiceControllerType type);
 
 class MobilityServiceController : public Agent
 {
@@ -65,7 +62,6 @@ protected:
 	/** Store list of subscribed drivers */
 	std::vector<Person *> subscribedDrivers;
 
-
 	/**
 	 * Subscribes a vehicle driver to the controller
 	 * @param person Driver to be added
@@ -78,26 +74,12 @@ protected:
 	 */
 	virtual void unsubscribeDriver(Person *person);
 
-	/**
-	 * Marks the schedule assigned to the driver as complete and
-	 * unsubscribes the driver
-	 * @param person the driver who has completed the scheule
-	 */
-	virtual void onDriverShiftEnd(Person *person);
-
-	/**
-	 * Updates the controller's copy of the driver schedule
-	 * @param person the driver
-	 */
-	//aa!!: This only concerns the OnCall controller and should be removed from here
-	virtual void onDriverScheduleStatus(Person *person);
-
 	const MobilityServiceControllerType controllerServiceType;
 
 	const unsigned controllerId;
 
-
 public:
+	virtual ~MobilityServiceController();
 
 	static const unsigned toleratedExtraTime; //seconds
 
@@ -111,20 +93,15 @@ public:
 	 */
 	static const unsigned maxAggregatedRequests;
 
-
-	virtual ~MobilityServiceController();
-
 	/**
 	 * Inherited from base class agent to initialize parameters
 	 */
-
 	virtual Entity::UpdateStatus frame_init(timeslice now);
 
 	/**
 	 * Inherited from base class to update this agent
 	 */
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
-
 
 	/**
 	 * Inherited.
@@ -140,7 +117,6 @@ public:
 	 * Overrides the correspondent function of MessageHandler
 	 */
 	virtual void onRegistrationOnTheMessageBus() const;
-
 
 	void consistencyChecks() const;
 

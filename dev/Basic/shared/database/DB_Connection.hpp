@@ -16,8 +16,8 @@ enum BackendType
 {
 	POSTGRES, MYSQL, //not implemented
 	ORACLE, //not implemented
-	SQL_SERVER, //not implemented
-	MONGO_DB
+	SQL_SERVER //not implemented
+	//MONGODB    ----removed
 };
 
 /**

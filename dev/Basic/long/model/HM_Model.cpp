@@ -50,11 +50,10 @@
 #include "database/dao/VehicleOwnershipChangesDao.hpp"
 #include "database/dao/HouseholdPlanningAreaDao.hpp"
 #include "database/dao/SchoolAssignmentCoefficientsDao.hpp"
-#include "database/dao/PrimarySchoolDao.hpp"
-#include "database/dao/PreSchoolDao.hpp"
 #include "database/dao/HHCoordinatesDao.hpp"
 #include "database/dao/HouseholdUnitDao.hpp"
 #include "database/dao/IndvidualEmpSecDao.hpp"
+#include "database/dao/TravelTimeDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -75,6 +74,7 @@
 #include "SOCI_ConvertersLong.hpp"
 #include <DatabaseHelper.hpp>
 #include "model/VehicleOwnershipModel.hpp"
+
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -1459,6 +1459,11 @@ void HM_Model::startImpl()
 	if (conn.isConnected())
 	{
 		loadLTVersion(conn);
+		if(config.ltParams.schoolAssignmentModel.enabled)
+		{
+		loadPrimarySchools(conn);
+		loadPreSchools(conn);
+		}
 
 		{
 			soci::session sql;
@@ -1653,12 +1658,6 @@ void HM_Model::startImpl()
 
 	    loadData<SchoolAssignmentCoefficientsDao>( conn_calibration, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
 	    PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
-
-	    loadData<PrimarySchoolDao>( conn_calibration, primarySchools, primarySchoolById, &PrimarySchool::getSchoolId);
-	    PrintOutV("Number of Primary School rows: " << primarySchools.size() << std::endl );
-
-	    loadData<PreSchoolDao>( conn_calibration, preSchools, preSchoolById, &PreSchool::getPreSchoolId);
-	    PrintOutV("Number of Pre School rows: " << preSchools.size() << std::endl );
 
 		//::TODO::uncomment after Diem finalized job and emp sec tables. gishara
 		//loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
@@ -2226,6 +2225,67 @@ void  HM_Model::loadLTVersion(DB_Connection &conn)
 	PrintOutV("LT Database Baseline Date: " << ltVersionList.back()->getChange_date().tm_mday << "/" << ltVersionList.back()->getChange_date().tm_mon << "/" << ltVersionList.back()->getChange_date().tm_year  + 1900 << endl);
 	PrintOutV("LT Database Baseline Comment: " << ltVersionList.back()->getComments() << endl);
 	PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
+}
+
+void HM_Model::loadPrimarySchools(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "school";
+
+	//SQL statement
+	soci::rowset<School> primarySchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where primary_school = true");
+
+	for (soci::rowset<School>::const_iterator itPrimarySchool = primarySchoolObjs.begin(); itPrimarySchool != primarySchoolObjs.end(); ++itPrimarySchool)
+	{
+		School* primarySchool = new School(*itPrimarySchool);
+		primarySchools.push_back(primarySchool);
+		primarySchoolById.insert(std::pair<BigSerial, School*>( primarySchool->getId(), primarySchool ));
+	}
+
+	PrintOutV("Number of Primary School rows: " << primarySchools.size() << std::endl );
+
+}
+
+void HM_Model::loadPreSchools(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "school";
+
+	//SQL statement
+	soci::rowset<School> preSchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where pre_school = true");
+
+	for (soci::rowset<School>::const_iterator itPreSchool = preSchoolObjs.begin(); itPreSchool != preSchoolObjs.end(); ++itPreSchool)
+	{
+		School* preSchool = new School(*itPreSchool);
+		preSchools.push_back(preSchool);
+		preSchoolById.insert(std::pair<BigSerial, School*>( preSchool->getId(), preSchool ));
+	}
+
+	PrintOutV("Number of Pre School rows: " << preSchools.size() << std::endl );
+}
+
+const TravelTime* HM_Model::loadTravelTime(BigSerial originTaz, BigSerial destTaz)
+{
+	// Loads necessary data from database.
+	DB_Config dbConfig(LT_DB_CONFIG_FILE);
+	dbConfig.load();
+	// Connect to database and load data for this model.
+	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+	conn.connect();
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	conn.setSchema(config.schemas.calibration_schema);
+	const TravelTime *travelTime;
+	if (conn.isConnected())
+	{
+		TravelTimeDao travelTimeDao(conn);
+		travelTime = travelTimeDao.getTravelTimeByOriginDest(originTaz,destTaz);
+	}
+	return travelTime;
+
 }
 
 HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()
@@ -3262,14 +3322,14 @@ SchoolAssignmentCoefficients* HM_Model::getSchoolAssignmentCoefficientsById( Big
 	return nullptr;
 }
 
-HM_Model::PrimarySchoolList HM_Model::getPrimarySchoolList() const
+HM_Model::SchoolList HM_Model::getPrimarySchoolList() const
 {
 	return this->primarySchools;
 }
 
-PrimarySchool* HM_Model::getPrimarySchoolById( BigSerial id) const
+School* HM_Model::getPrimarySchoolById( BigSerial id) const
 {
-	PrimarySchoolMap::const_iterator itr = primarySchoolById.find(id);
+	SchoolMap::const_iterator itr = primarySchoolById.find(id);
 
 	if (itr != primarySchoolById.end())
 	{
@@ -3296,14 +3356,14 @@ HHCoordinates* HM_Model::getHHCoordinateByHHId(BigSerial houseHoldId) const
 	return nullptr;
 }
 
-HM_Model::PreSchoolList HM_Model::getPreSchoolList() const
+HM_Model::SchoolList HM_Model::getPreSchoolList() const
 {
 	return this->preSchools;
 }
 
-PreSchool* HM_Model::getPreSchoolById( BigSerial id) const
+School* HM_Model::getPreSchoolById( BigSerial id) const
 {
-	PreSchoolMap::const_iterator itr = preSchoolById.find(id);
+	SchoolMap::const_iterator itr = preSchoolById.find(id);
 
 	if (itr != preSchoolById.end())
 	{

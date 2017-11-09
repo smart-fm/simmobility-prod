@@ -129,7 +129,6 @@ protected:
 			MobilityServiceControllerType type_, unsigned id, TT_EstimateType ttEstimateType);
 
 public:
-
 	virtual ~OnCallController();
 
 	/*
@@ -164,6 +163,45 @@ public:
 	virtual const Node* getCurrentNode(const Person* driver) const;
 
 protected:
+	/** Store list of available drivers */
+	std::vector<const Person *> availableDrivers;
+
+	/** Store queue of requests */
+	std::list<TripRequestMessage> requestQueue;
+
+	/**List of drivers who have been assigned a schedule, but are carrying only 1 passenger,
+	 * so they can potentially serve 1 more request (used by incremental controller)*/
+	//aa!!: If it is used only by the IncrementalSharing, can we move it there?
+	std::set<const Person *> partiallyAvailableDrivers;
+
+	/** Keeps track of current local tick */
+	unsigned int localTick = 0;
+
+	/** Keeps track of how often to process messages */
+	unsigned int scheduleComputationPeriod;
+
+	//jo
+	/** Keeps track of when to rebalance */
+	unsigned int nextRebalancingFrame = 0;
+	unsigned int rebalancingInterval = 720;
+	Rebalancer* rebalancer;
+
+	/**
+	 * Associates to each driver her current schedule. If a driver has nothing to do,
+	 * an empty schedule is associated to her
+	 */
+	std::map<const Person*, Schedule> driverSchedules;
+
+	//TODO: These should not be hardcoded
+	const double additionalDelayThreshold = std::numeric_limits<double>::max();
+	const double waitingTimeThreshold = std::numeric_limits<double>::max();
+
+	//Number of passengers (the driver is not considered in this number)
+	//TODO: it should be vehicle based
+	const unsigned maxVehicleOccupancy = 2;
+
+	TT_EstimateType ttEstimateType;
+
 	/**
 	 * Inherited from base class to output result
 	 */
@@ -180,17 +218,13 @@ protected:
 	 */
 	virtual void driverUnavailable(Person* person);
 
-	/** Store list of available drivers */
-	std::vector<const Person *> availableDrivers;
-
-	/** Store queue of requests */
-	std::list<TripRequestMessage> requestQueue;
-
-	/**List of drivers who have been assigned a schedule, but are carrying only 1 passenger,
-	 * so they can potentially serve 1 more request (used by incremental controller)*/
-	//aa!!: If it is used only by the IncrementalSharing, can we move it there?
-	std::set<const Person *> partiallyAvailableDrivers;
-
+	/**
+	 * Sends the schedule to the driver
+	 * @param driver The person to whom the schedule is to be sent
+	 * @param schedule The computed schedule that is to be sent
+	 * @param isUpdatedSchedule indicates whether the schedule is an update to a previously sent schedule
+	 * (this parameter is used by the incremental sharing controller)
+	 */
 	virtual void assignSchedule(const Person* driver, const Schedule& schedule, bool isUpdatedSchedule = false);
 
 	/**
@@ -206,8 +240,8 @@ protected:
 	 * schedule is computed.
 	 */
 	virtual double computeSchedule(const Node* initialPositon, const Schedule& currentSchedule,
-			const Group<TripRequestMessage>& additionalRequests,
-			Schedule& newSchedule, bool isOptimalityRequired) const;
+	                               const Group<TripRequestMessage>& additionalRequests, Schedule& newSchedule,
+	                               bool isOptimalityRequired) const;
 
 	/**
 	 * Checks if the schedule is feasible, i.e. if:
@@ -219,23 +253,19 @@ protected:
 	 * If the schedule is feasible, it returns the travel time. Otherwise, it returns a negative number.
 	 * The return value and the thresholds are expressed in ms.
 	 */
-	virtual double evaluateSchedule(const Node* initialPositon, const Schedule& schedule, double additionalDelayThreshold, double waitingTimeThreshold) const;
+	virtual double evaluateSchedule(const Node* initialPositon, const Schedule& schedule,
+	                                double additionalDelayThreshold, double waitingTimeThreshold) const;
 
 	/**
 	 * True if it is possible to combine these two requests together while respecting the constraints
 	 */
 	virtual bool canBeShared(const TripRequestMessage& r1, const TripRequestMessage& r2,
-			double additionalDelayThreshold, double waitingTimeThreshold ) const;
+	                         double additionalDelayThreshold, double waitingTimeThreshold ) const;
 
 	/**
 	 * Inherited from base class to update this agent
 	 */
 	Entity::UpdateStatus frame_tick(timeslice now);
-
-#ifndef NDEBUG
-	bool isComputingSchedules; //true during computing schedules. Used for debug purposes
-	void consistencyChecks(const std::string& label) const;
-#endif
 
 	/**
 	 * Subscribes a vehicle driver to the controller
@@ -275,37 +305,10 @@ protected:
 	void assignSchedules(const std::map<const Person*, Schedule>& schedulesToAssign,
 				bool isUpdatedSchedule = false);
 
-	/** Keeps track of current local tick */
-	unsigned int localTick = 0;
-
-	/** Keeps track of how often to process messages */
-	unsigned int scheduleComputationPeriod;
-
-	//jo
-	/** Keeps track of when to rebalance */
-	unsigned int nextRebalancingFrame = 0;
-	unsigned int rebalancingInterval = 720;
-	Rebalancer* rebalancer;
-
-	/**
-	 * Associates to each driver her current schedule. If a driver has nothing to do,
-	 * an empty schedule is associated to her
-	 */
-	//aa!!: Maintaing and continuously updating these copies of the schedule on the controller is
-	//			1) computationally expensive and 2) prone to errors as we "try" to make them correspond
-	//			to the actual schedule on the driver, but nothing assures that this is the case and, more importantly,
-	//			nothing assure that it will be the case with further development, possibly done by other people.
-	//			I think we should keep just the copy on the driver, as a buffered variable
-	//			(see https://github.com/smart-fm/simmobility/wiki/Parallel-Framework#buffered-variables)
-	//			and remove this driverSchedules in the controller
-	std::map<const Person*, Schedule> driverSchedules;
-
-	//TODO: These should not be hardcoded
-	const double additionalDelayThreshold = std::numeric_limits<double>::max();
-	const double waitingTimeThreshold = std::numeric_limits<double>::max();
-	const unsigned maxVehicleOccupancy = 2; //number of passengers (the driver is not considered in this number) //TODO: it should be vehicle based
-
-	TT_EstimateType ttEstimateType;
+#ifndef NDEBUG
+	bool isComputingSchedules; //true during computing schedules. Used for debug purposes
+	void consistencyChecks(const std::string& label) const;
+#endif
 };
 
 }

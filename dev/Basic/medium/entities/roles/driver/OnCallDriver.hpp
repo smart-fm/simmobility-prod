@@ -57,6 +57,15 @@ protected:
 			nextItem = currentItem + 1;
 		}
 
+		void updateSchedule(const Schedule &updatedSchedule)
+		{
+			auto currIt = *currentItem;
+			assignedSchedule = updatedSchedule;
+			assignedSchedule.insert(assignedSchedule.begin(), currIt);
+			currentItem = assignedSchedule.begin();
+			nextItem = currentItem + 1;
+		}
+
 		const Schedule& getSchedule() const
 		{
 			return assignedSchedule;
@@ -88,6 +97,13 @@ protected:
 	 * Marks the current schedule item as completed
 	 */
 	void scheduleItemCompleted();
+
+	/**
+	 * Checks if the current item in the schedule has been rescheduled
+	 * @param updatedSchedule  the updated schedule
+	 * @return true if the current item in the schedule has been rescheduled
+	 */
+	bool currentItemRescheduled(const Schedule &updatedSchedule);
 
 	/**
 	 * Sends the schedule received acknowledgement message

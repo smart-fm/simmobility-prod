@@ -68,6 +68,26 @@ void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, con
 		movement->performScheduleItem();
 		break;
 	}
+	case MSG_SCHEDULE_UPDATE:
+	{
+		const SchedulePropositionMessage &msg = MSG_CAST(SchedulePropositionMessage, message);
+		const Schedule &updatedSchedule = msg.getSchedule();
+
+		//As this is an updated schedule, this will be a partial schedule. It contains only items that the controller
+		//knows the driver has not completed. So, we check if the item we are performing currently has been
+		//re-scheduled. If so, we must discontinue it and start performing the new sequence. Else, we continue
+		//whatever we were doing. In either case, we must update the schedule
+		if(currentItemRescheduled(updatedSchedule))
+		{
+			driverSchedule.setSchedule(updatedSchedule);
+			movement->performScheduleItem();
+		}
+		else
+		{
+			driverSchedule.updateSchedule(updatedSchedule);
+		}
+		break;
+	}
 	case MSG_UNSUBSCRIBE_SUCCESSFUL:
 	{
 		parent->setToBeRemoved();
@@ -155,6 +175,22 @@ void OnCallDriver::scheduleItemCompleted()
 	{
 		sendAvailableMessage();
 	}
+}
+
+
+bool OnCallDriver::currentItemRescheduled(const Schedule &updatedSchedule)
+{
+	auto currItem = *(driverSchedule.getCurrScheduleItem());
+
+	for(auto schItem : updatedSchedule)
+	{
+		if(schItem == currItem)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void OnCallDriver::sendScheduleAckMessage(bool success)
@@ -317,3 +353,4 @@ void OnCallDriver::endShift()
 	                << parent->getDatabaseId() << ": Shift ended"  << endl;
 #endif
 }
+

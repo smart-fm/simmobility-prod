@@ -5,22 +5,12 @@
  *      Author: Akshay Padmanabha
  */
 
+#include "OnCallController.hpp"
+
 #include "geospatial/network/RoadNetwork.hpp"
-#include "logging/ControllerLog.hpp"
-#include "message/MessageBus.hpp"
+#include "path/PathSetManager.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/Utils.hpp"
-#include <algorithm>    // std::sort, next_permutation, find
-
-#include <cstring>
-#include "OnCallController.hpp"
-#include "path/PathSetManager.hpp" // for PrivateTrafficRouteChoice
-#include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
-#include "message/MobilityServiceControllerMessage.hpp"
-
-#include <iterator> // for std::begin
-#include "Rebalancer.hpp"
-#include <cmath> // For pow
 
 using namespace sim_mob;
 using namespace messaging;
@@ -157,8 +147,8 @@ void OnCallController::onDriverShiftEnd(Person *driver)
 
 	unsubscribeDriver(driver);
 
-	MessageBus::PostMessage((MessageHandler *) driver, MSG_UNSUBSCRIBE_SUCCESSFUL, MessageBus::MessagePtr(
-			new DriverUnsubscribeMessage(driver)));
+	MessageBus::PostMessage((MessageHandler *) driver, MSG_UNSUBSCRIBE_SUCCESSFUL,
+	                        MessageBus::MessagePtr(new DriverUnsubscribeMessage(driver)));
 }
 
 void OnCallController::onDriverScheduleStatus(Person *driver)

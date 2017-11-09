@@ -7,15 +7,15 @@
 
 #ifndef OnCallController_HPP_
 #define OnCallController_HPP_
-#include <vector>
 #include <string>
+#include <vector>
+#include <unordered_map>
 
 #include "entities/Agent.hpp"
+#include "entities/controllers/Rebalancer.hpp"
 #include "message/Message.hpp"
 #include "message/MobilityServiceControllerMessage.hpp"
 #include "MobilityServiceController.hpp"
-#include "entities/controllers/Rebalancer.hpp"
-#include <unordered_map>
 
 
 namespace sim_mob

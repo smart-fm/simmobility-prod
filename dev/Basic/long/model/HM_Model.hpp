@@ -44,8 +44,7 @@
 #include "database/entity/OwnerTenantMovingRate.hpp"
 #include "database/entity/HouseholdPlanningArea.hpp"
 #include "database/entity/SchoolAssignmentCoefficients.hpp"
-#include "database/entity/PrimarySchool.hpp"
-#include "database/entity/PreSchool.hpp"
+#include "database/entity/School.hpp"
 #include "database/entity/HHCoordinates.hpp"
 #include "database/entity/AlternativeHedonicPrice.hpp"
 #include "database/entity/ScreeningModelCoefficients.hpp"
@@ -54,6 +53,7 @@
 #include "database/entity/LtVersion.hpp"
 #include "database/entity/BuildingMatch.hpp"
 #include "database/entity/SlaBuilding.hpp"
+#include "database/entity/TravelTime.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -175,14 +175,11 @@ namespace sim_mob
             typedef std::vector<SchoolAssignmentCoefficients*> SchoolAssignmentCoefficientsList;
             typedef boost::unordered_map<BigSerial, SchoolAssignmentCoefficients*> SchoolAssignmentCoefficientsMap;
 
-            typedef std::vector<PrimarySchool*> PrimarySchoolList;
-            typedef boost::unordered_map<BigSerial, PrimarySchool*> PrimarySchoolMap;
+            typedef std::vector<School*> SchoolList;
+            typedef boost::unordered_map<BigSerial, School*> SchoolMap;
 
             typedef std::vector<HHCoordinates*> HHCoordinatesList;
             typedef boost::unordered_map<BigSerial, HHCoordinates*> HHCoordinatesMap;
-
-            typedef std::vector<PreSchool*> PreSchoolList;
-            typedef boost::unordered_map<BigSerial, PreSchool*> PreSchoolMap;
 
             typedef std::vector<HouseholdUnit*> HouseholdUnitList;
             typedef boost::unordered_map<BigSerial, HouseholdUnit*> HouseholdUnitMap;
@@ -423,12 +420,12 @@ namespace sim_mob
             HouseholdPlanningArea* getHouseholdPlanningAreaByHHId(BigSerial houseHoldId) const;
             SchoolAssignmentCoefficientsList getSchoolAssignmentCoefficientsList() const;
             SchoolAssignmentCoefficients* getSchoolAssignmentCoefficientsById( BigSerial id) const;
-            PrimarySchoolList getPrimarySchoolList() const;
-            PrimarySchool* getPrimarySchoolById( BigSerial id) const;
+            SchoolList getPrimarySchoolList() const;
+            School* getPrimarySchoolById( BigSerial id) const;
             HHCoordinatesList getHHCoordinatesList() const;
             HHCoordinates* getHHCoordinateByHHId(BigSerial houseHoldId) const;
-            PreSchoolList getPreSchoolList() const;
-            PreSchool* getPreSchoolById( BigSerial id) const;
+            SchoolList getPreSchoolList() const;
+            School* getPreSchoolById( BigSerial id) const;
 
 
 
@@ -454,6 +451,9 @@ namespace sim_mob
             set<int> logsumUniqueCounter;
 
             void  loadLTVersion(DB_Connection &conn);
+            void loadPrimarySchools(DB_Connection &conn);
+            void loadPreSchools(DB_Connection &conn);
+            const TravelTime* loadTravelTime(BigSerial originTaz, BigSerial destTaz);
 
 
         protected:
@@ -623,12 +623,12 @@ namespace sim_mob
             HouseholdPlanningAreaMap hhPlanningAreaMap;
             SchoolAssignmentCoefficientsList schoolAssignmentCoefficients;
             SchoolAssignmentCoefficientsMap SchoolAssignmentCoefficientsById;
-            PrimarySchoolList primarySchools;
-            PrimarySchoolMap primarySchoolById;
+            SchoolList primarySchools;
+            SchoolMap primarySchoolById;
             HHCoordinatesList hhCoordinates;
             HHCoordinatesMap hhCoordinatesById;
-            PreSchoolList preSchools;
-            PreSchoolMap preSchoolById;
+            SchoolList preSchools;
+            SchoolMap preSchoolById;
             bool resume ;
             bool initialLoading;
             IndvidualEmpSecList indEmpSecList;

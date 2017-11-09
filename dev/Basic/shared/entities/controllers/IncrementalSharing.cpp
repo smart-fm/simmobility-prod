@@ -32,7 +32,6 @@ void IncrementalSharing::computeSchedules()
 		return;
 	}
 
-	const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
 	std::map<const Person *, Schedule> schedulesComputedSoFar; // We will put here the schedule that we will have constructed per each driver
 
 	for (const Person *driver : availableDrivers)
@@ -40,7 +39,6 @@ void IncrementalSharing::computeSchedules()
 		const Node *driverNode = driver->exportServiceDriver()->getCurrentNode(); // the node in which the driver is currently located
 		Schedule schedule;
 		unsigned aggregatedRequests = 0; // Number of requests that we have aggregated so far
-
 
 		schedule = buildSchedule(maxAggregatedRequests, maxWaitingTime, driverNode, schedule, &aggregatedRequests);
 
@@ -164,12 +162,6 @@ Schedule IncrementalSharing::buildSchedule(unsigned int maxAggregatedRequests, d
 
 void IncrementalSharing::matchPartiallyAvailableDrivers()
 {
-	//aa!!: This fact that we retrieve the node itself from the node id querying a big map happens too much
-	//			and everywhere in the code.
-	//			I think it would be better to modify the TripRequestMessage, having the const Node* instead of
-	//			(or in addition to) nodeId, both for the pickUp and dropOff location.
-	const std::map<unsigned int, Node *> &nodeIdMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
-
 	unsigned maxAggRequests = maxAggregatedRequests - 1;
 
 	// We will put here the schedule that we will have constructed per each driver

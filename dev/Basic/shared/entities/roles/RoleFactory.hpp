@@ -148,12 +148,6 @@ public:
 		{
 			return "busdriver";
 		}
-
-		/*if (mode =="Taxi")
-		{
-			return "taxidriver";
-		}*/
-
 		if (mode == "BusTravel" || mode == "MRT" || mode == "Sharing" || mode == "PrivateBus" ||
 				mode == "TaxiTravel" || mode == "SMS_Taxi" || mode == "RAIL_SMS_Taxi")
 		{
@@ -186,17 +180,6 @@ public:
 		if (mode == "Activity")
 		{
 			return "activityRole";
-		}
-		if (mode == "TaxiTravel")
-		{
-			if(isTTWalk)
-			{
-				return "pedestrian";
-			}
-			else
-			{
-				return "passenger";
-			}
 		}
 		if (!mode.empty())
 		{

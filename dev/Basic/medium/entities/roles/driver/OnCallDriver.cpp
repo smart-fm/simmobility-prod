@@ -377,18 +377,7 @@ void OnCallDriver::dropoffPassenger()
 
 void OnCallDriver::endShift()
 {
-	//Notify the controller(s)
-	/*for(auto ctrlr : subscribedControllers)
-	{
-		MessageBus::PostMessage(ctrlr, MSG_DRIVER_SHIFT_END,
-		                        MessageBus::MessagePtr(new DriverShiftCompleted(parent)));
-	}
-
-	isWaitingForUnsubscribeAck = true;*/
-
-#ifndef NDEBUG
 	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
 	                << parent->getDatabaseId() << ": Shift ended"  << endl;
-#endif
 }
 

@@ -536,18 +536,20 @@ public:
 	void processVirtualQueues();
 
 	/**
-	 * pick up taxi-traveler at current conflux.
+	 * This method picks up the traveller (on hail or on call) at current conflux.
 	 * @param personId is a pointer to the person id, default value is empty string (used to pick up unknown
 	 * passengers by on hail drivers)
-	 * @return person who successfully get boarding. if result is null, means no traveler exist.
+	 * @return person picked up, else nullptr. nullptr is acceptable for on hail drivers, as it indicates that
+	 * there is no one to pick up. However, for on call drivers we expect to pick up a person and a nullptr at this
+	 * stage would indicate an error
 	 */
-	Person_MT* pickupTaxiTraveler(const std::string& personId);
+	Person_MT* pickupTraveller(const std::string &personId);
 
 	/**
-	 * drop off taxi-traveler at current conflux.
-	 * @param person with taxi-passenger role
+	 * Drops off the traveller (on hail or on call) at current conflux.
+	 * @param person with passenger role
 	 */
-	void dropOffTaxiTraveler(Person_MT* person);
+	void dropOffTraveller(Person_MT *person);
 
 	/**
 	 * helper struct to maintain sum of travel times experienced by drivers crossing a link along with the count of those drivers

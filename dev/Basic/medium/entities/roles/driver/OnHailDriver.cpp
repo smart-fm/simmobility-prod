@@ -142,7 +142,7 @@ Person_MT* OnHailDriver::tryPickUpPassengerAtNode(const Node *node, const string
 	}
 #endif
 
-	return conflux->pickupTaxiTraveler(personId);
+	return conflux->pickupTraveller(personId);
 }
 
 void OnHailDriver::addPassenger(Person_MT *person)
@@ -190,7 +190,7 @@ void OnHailDriver::alightPassenger()
 	const SegmentStats *currSegStats = movement->getMesoPathMover().getCurrSegStats();
 	Conflux *conflux = currSegStats->getParentConflux();
 
-	conflux->dropOffTaxiTraveler(person);
+	conflux->dropOffTraveller(person);
 	passenger = nullptr;
 
 #ifndef NDEBUG

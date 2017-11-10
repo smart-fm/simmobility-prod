@@ -1826,7 +1826,7 @@ void Conflux::assignPersonToPedestrianlist(Person_MT* person)
 	}
 }
 
-void Conflux::dropOffTaxiTraveler(Person_MT* person)
+void Conflux::dropOffTraveller(Person_MT *person)
 {
 	if(person)
 	{
@@ -1834,7 +1834,7 @@ void Conflux::dropOffTaxiTraveler(Person_MT* person)
 	}
 }
 
-Person_MT* Conflux::pickupTaxiTraveler(const std::string& personId)
+Person_MT* Conflux::pickupTraveller(const std::string &personId)
 {
 	Person_MT* personPickedUp = nullptr;
 	if(!travelingPersons.empty())

@@ -257,7 +257,7 @@ void OnCallDriver::pickupPassenger()
 	//Get the passenger name from the schedule
 	const string &passengerId = driverSchedule.getCurrScheduleItem()->tripRequest.userId;
 
-	Person_MT *personPickedUp = conflux->pickupTaxiTraveler(passengerId);
+	Person_MT *personPickedUp = conflux->pickupTraveller(passengerId);
 
 #ifndef NDEBUG
 	if (!personPickedUp)
@@ -324,7 +324,7 @@ void OnCallDriver::dropoffPassenger()
 	const SegmentStats *segStats = pathMover.getCurrSegStats();
 	Conflux *conflux = segStats->getParentConflux();
 	passengerToBeDroppedOff->setFinalPointDriverDistance(movement->getTravelMetric().distance);
-	conflux->dropOffTaxiTraveler(person);
+	conflux->dropOffTraveller(person);
 
 	//Remove passenger from vehicle
 	passengers.erase(itPassengers);

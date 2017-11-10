@@ -115,7 +115,7 @@ void TaxiDriver::alightPassenger()
 			const SegmentStats *segStats = pathMover.getCurrSegStats();
 			Conflux *parentConflux = segStats->getParentConflux();
 			passenger->setFinalPointDriverDistance(this->Movement()->getTravelMetric().distance);
-			parentConflux->dropOffTaxiTraveler(parentPerson);
+			parentConflux->dropOffTraveller(parentPerson);
 
 			if(!taxiDriverMovement->isSubscribedToOnHail())
 			{
@@ -261,7 +261,7 @@ void TaxiDriver::pickUpPassngerAtNode(const std::string personId)
 		return;
 	}
 
-	Person_MT *personToPickUp = parentConflux->pickupTaxiTraveler(personId);
+	Person_MT *personToPickUp = parentConflux->pickupTraveller(personId);
 
 #ifndef NDEBUG
 	if (!personToPickUp && !taxiDriverMovement->isSubscribedToOnHail())

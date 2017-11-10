@@ -95,6 +95,9 @@ std::string OnCallDriverMovement::frame_tick_output()
 
 bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 {
+	//Update the value of current node
+	currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getFromNode();
+
 	if(pathMover.isEndOfPath())
 	{
 		switch (onCallDriver->getDriverStatus())
@@ -137,12 +140,6 @@ bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 	if(onCallDriver->getDriverStatus() != PARKED)
 	{
 		 retVal = DriverMovement::moveToNextSegment(params);
-	}
-
-	if(!pathMover.isPathCompleted())
-	{
-		//Update the value of current node
-		currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getFromNode();
 	}
 
 	return retVal;

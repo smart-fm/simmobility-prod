@@ -122,6 +122,9 @@ bool OnHailDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 			(pathMover.hasNextSegStats(false) || pathMover.isEndOfPath()));
 	const SegmentStats *currSegStats = pathMover.getCurrSegStats();
 
+	//Update the value of current node
+	currNode = currSegStats->getRoadSegment()->getParentLink()->getFromNode();
+
 	switch (onHailDriver->getDriverStatus())
 	{
 	case CRUISING:
@@ -188,15 +191,7 @@ bool OnHailDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		performDecisionActions(decision);
 	}
 
-	bool retVal = DriverMovement::moveToNextSegment(params);
-
-	if(!pathMover.isPathCompleted())
-	{
-		//Update the value of current node
-		currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getFromNode();
-	}
-
-	return retVal;
+	return DriverMovement::moveToNextSegment(params);
 }
 
 void OnHailDriverMovement::performDecisionActions(BehaviourDecision decision)

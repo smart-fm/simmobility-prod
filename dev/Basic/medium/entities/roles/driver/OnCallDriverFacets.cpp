@@ -275,30 +275,28 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	//Get route to the node
 	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
-	if(!route.empty())
+#ifndef NDEBUG
+	if(route.empty())
 	{
-		vector<const SegmentStats *> routeSegStats;
-		pathMover.buildSegStatsPath(route, routeSegStats);
-		pathMover.resetPath(routeSegStats);
-		onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_ON_CALL);
-		onCallDriver->sendScheduleAckMessage(true);
-
-		ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
-		                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving from node "
-		                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-		                << " to pickup node " << pickupNode->getNodeId() << endl;
+		stringstream msg;
+		msg << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
+		    << " could not find a path to the pickup node " << pickupNode->getNodeId()
+		    << " from the current node " << currNode->getNodeId() << " and link ";
+		msg << (currLink ? currLink->getLinkId() : 0);
+		throw no_path_error(msg.str());
 	}
-	else
-	{
-		onCallDriver->sendScheduleAckMessage(false);
-		continueCruising();
-		performScheduleItem();
+#endif
 
-		ControllerLog() << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
-		                << " could not find a path to the pickup node " << pickupNode->getNodeId()
-		                << " from the current node " << currNode->getNodeId() << " and link "
-		                << (currLink ? currLink->getLinkId() : 0);
-	}
+	vector<const SegmentStats *> routeSegStats;
+	pathMover.buildSegStatsPath(route, routeSegStats);
+	pathMover.resetPath(routeSegStats);
+	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_ON_CALL);
+	onCallDriver->sendScheduleAckMessage(true);
+
+	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+	                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving from node "
+	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+	                << " to pickup node " << pickupNode->getNodeId() << endl;
 
 	//Set vehicle to moving
 	onCallDriver->getResource()->setMoving(true);

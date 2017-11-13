@@ -10,8 +10,8 @@
 using namespace sim_mob::long_term;
 
 School::School(BigSerial id, BigSerial fmBuildingId ,double floorArea, int schoolSlot, double centroidX, double centroidY, bool giftedProgram, bool sapProgram,
-			   std::string planningArea, BigSerial tazName, bool primarySchool, bool preSchool) : id(id),fmBuildingId(fmBuildingId), floorArea(floorArea), schoolSlot(schoolSlot),centroidX(centroidX),centroidY(centroidY),
-			   giftedProgram(giftedProgram), sapProgram(sapProgram), planningArea(planningArea),tazName(tazName),primarySchool(primarySchool),preSchool(preSchool){}
+			   std::string planningArea, BigSerial tazName, std::string schoolType) : id(id),fmBuildingId(fmBuildingId), floorArea(floorArea), schoolSlot(schoolSlot),centroidX(centroidX),centroidY(centroidY),
+			   giftedProgram(giftedProgram), sapProgram(sapProgram), planningArea(planningArea),tazName(tazName),schoolType(schoolType){}
 
 School::~School(){}
 
@@ -85,26 +85,6 @@ void School::setPlanningArea(std::string planningArea)
 	this->planningArea = planningArea;
 }
 
-bool School::isPreSchool() const
-{
-	return preSchool;
-}
-
-void School::setPreSchool(bool preSchool)
-{
-	this->preSchool = preSchool;
-}
-
-bool School::isPrimarySchool() const
-{
-	return primarySchool;
-}
-
-void School::setPrimarySchool(bool primarySchool)
-{
-	this->primarySchool = primarySchool;
-}
-
 bool School::isSapProgram() const
 {
 	return sapProgram;
@@ -133,6 +113,16 @@ BigSerial School::getTazName() const
 void School::setTazName(BigSerial tazName)
 {
 	this->tazName = tazName;
+}
+
+std::string School::getSchoolType() const
+{
+	return schoolType;
+}
+
+void School::setSchoolType(std::string schoolType)
+{
+	this->schoolType = schoolType;
 }
 
 int School::getNumStudents() const
@@ -175,10 +165,7 @@ int School::getNumSelectedStudents()
 
 void School::setSelectedStudentList(std::vector<BigSerial*>selectedStudents)
 {
-	//for(BigSerial studentId: selectedStudentsList)
-	//{
-		this->selectedStudents = selectedStudents;
-	//}
+	this->selectedStudents = selectedStudents;
 }
 
 void School::setNumStudentsCanBeAssigned(int numStudents)

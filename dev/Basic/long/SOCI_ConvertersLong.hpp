@@ -237,8 +237,7 @@ struct type_conversion<sim_mob::long_term::School>
     	school.setSapProgram(values.get<int>("sap_program",0));
     	school.setPlanningArea(values.get<std::string>("planning_area",std::string()));
     	school.setTazName(values.get<BigSerial>("taz_name",0));
-    	school.setPrimarySchool(values.get<int>("primary_school",0));
-    	school.setPreSchool(values.get<int>("pre_school",0));
+    	school.setSchoolType(values.get<std::string>("school_type",std::string()));
     }
 };
 

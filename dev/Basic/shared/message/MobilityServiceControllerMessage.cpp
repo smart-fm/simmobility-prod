@@ -18,44 +18,23 @@ const Schedule &SchedulePropositionMessage::getSchedule() const
 
 bool TripRequestMessage::operator==(const TripRequestMessage &other) const
 {
-	if ( timeOfRequest == other.timeOfRequest &&
-			userId == other.userId &&
-			startNode == other.startNode &&
-			destinationNode == other.destinationNode &&
-			extraTripTimeThreshold == other.extraTripTimeThreshold)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	return timeOfRequest == other.timeOfRequest &&
+	       userId == other.userId &&
+	       startNode == other.startNode &&
+	       destinationNode == other.destinationNode &&
+	       extraTripTimeThreshold == other.extraTripTimeThreshold &&
+	       requestType == other.requestType;
 };
 
 
 bool TripRequestMessage::operator!=(const TripRequestMessage &other) const
 {
-	if (timeOfRequest != other.timeOfRequest ||
-			userId != other.userId ||
-			startNode != other.startNode ||
-			destinationNode != other.destinationNode ||
-			extraTripTimeThreshold != other.extraTripTimeThreshold)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	return !(this->operator==(other));
 };
 
 bool TripRequestMessage::operator>(const TripRequestMessage &other) const
 {
-	if (operator==(other) || operator<(other))
-	{
-		return false;
-	}
-	return true;
+	return !(operator==(other) || operator<(other));
 }
 
 bool TripRequestMessage::operator<(const TripRequestMessage &other) const
@@ -128,7 +107,7 @@ bool ScheduleItem::operator==(const ScheduleItem &rhs) const
 	}
 	case CRUISE:
 	{
-		if(rhs.scheduleItemType == CRUISE)
+		if (rhs.scheduleItemType == CRUISE)
 		{
 			result = (nodeToCruiseTo == rhs.nodeToCruiseTo);
 		}
@@ -137,9 +116,9 @@ bool ScheduleItem::operator==(const ScheduleItem &rhs) const
 	}
 	case PARK:
 	{
-		if(rhs.scheduleItemType == PARK)
+		if (rhs.scheduleItemType == PARK)
 		{
-			result = (parking == parking);
+			result = (parking == rhs.parking);
 		}
 
 		break;
@@ -150,17 +129,26 @@ bool ScheduleItem::operator==(const ScheduleItem &rhs) const
 }
 
 //{ SCHEDULE FUNCTIONS
-const std::vector<ScheduleItem>& Schedule::getItems() const
-{	return items; }
+const std::vector<ScheduleItem> &Schedule::getItems() const
+{ return items; }
 
-const size_t Schedule::size() const{ return items.size(); }
+const size_t Schedule::size() const
+{ return items.size(); }
 
-const bool Schedule::empty() const{ return items.empty(); }
+const bool Schedule::empty() const
+{ return items.empty(); }
 
-Schedule::iterator Schedule::begin() {return items.begin(); };
-Schedule::const_iterator Schedule::begin() const {return items.begin(); };
-Schedule::const_iterator Schedule::end() const {return items.end(); };
-Schedule::iterator Schedule::end(){return items.end(); };
+Schedule::iterator Schedule::begin()
+{ return items.begin(); };
+
+Schedule::const_iterator Schedule::begin() const
+{ return items.begin(); };
+
+Schedule::const_iterator Schedule::end() const
+{ return items.end(); };
+
+Schedule::iterator Schedule::end()
+{ return items.end(); };
 
 void Schedule::insert(std::vector<ScheduleItem>::iterator position, const ScheduleItem scheduleItem)
 {
@@ -171,25 +159,28 @@ void Schedule::insert(std::vector<ScheduleItem>::iterator position, const Schedu
 void Schedule::insert(Schedule::iterator position, Schedule::iterator first, Schedule::iterator last)
 {
 	items.insert(position, first, last);
-	for (const_iterator it = first ; it != last; ++it)
+	for (const_iterator it = first; it != last; ++it)
+	{
 		onAddingScheduleItem(*it);
+	}
 };
 
 
-const ScheduleItem& Schedule::back() const
-{	return items.back(); }
+const ScheduleItem &Schedule::back() const
+{ return items.back(); }
 
-const ScheduleItem& Schedule::front() const
-{	return items.front(); }
+const ScheduleItem &Schedule::front() const
+{ return items.front(); }
 
-ScheduleItem& Schedule::front()
-{	return items.front(); }
+ScheduleItem &Schedule::front()
+{ return items.front(); }
 
 void Schedule::pop_back()
 {
-	onRemovingScheduleItem(back() );
+	onRemovingScheduleItem(back());
 	items.pop_back();
 }
+
 void Schedule::push_back(ScheduleItem item)
 {
 	onAddingScheduleItem(item);
@@ -202,118 +193,123 @@ Schedule::iterator Schedule::erase(Schedule::iterator position)
 	return items.erase(position);
 }
 
-const ScheduleItem& Schedule::at(size_t n) const
-{	return items.at(n); }
+const ScheduleItem &Schedule::at(size_t n) const
+{ return items.at(n); }
 
-ScheduleItem& Schedule::at(size_t n)
-{	return items.at(n); }
+ScheduleItem &Schedule::at(size_t n)
+{ return items.at(n); }
 
-void Schedule::onAddingScheduleItem(const ScheduleItem& item)
+void Schedule::onAddingScheduleItem(const ScheduleItem &item)
 {
 	switch (item.scheduleItemType)
 	{
-		case DROPOFF:
+	case DROPOFF:
+	{
+		const Node *dropOffNode = item.tripRequest.destinationNode;
+		if (doWeComputeBarycenter)
 		{
-			const Node *dropOffNode = item.tripRequest.destinationNode;
-			if (doWeComputeBarycenter)
-			{
-				dropOffBarycenter.setX( ( dropOffBarycenter.getX() * passengerCount + dropOffNode->getLocation().getX() ) / (passengerCount+1) );
-				dropOffBarycenter.setY( ( dropOffBarycenter.getY() * passengerCount + dropOffNode->getLocation().getY() ) / (passengerCount+1) );
-			}
-			passengerCount++;
-			break;
+			dropOffBarycenter.setX(
+					(dropOffBarycenter.getX() * passengerCount + dropOffNode->getLocation().getX()) / (passengerCount + 1));
+			dropOffBarycenter.setY(
+					(dropOffBarycenter.getY() * passengerCount + dropOffNode->getLocation().getY()) / (passengerCount + 1));
 		}
+		passengerCount++;
+		break;
+	}
 		// otherwise, do nothing
 	}
 }
 
-void Schedule::onRemovingScheduleItem(const ScheduleItem& item)
+void Schedule::onRemovingScheduleItem(const ScheduleItem &item)
 {
 	switch (item.scheduleItemType)
 	{
-		case DROPOFF:
+	case DROPOFF:
+	{
+		const Node *dropOffNode = item.tripRequest.destinationNode;
+		if (doWeComputeBarycenter)
 		{
-			const Node *dropOffNode = item.tripRequest.destinationNode;
-			if (doWeComputeBarycenter)
-			{
-				dropOffBarycenter.setX( ( dropOffBarycenter.getX() * passengerCount - dropOffNode->getLocation().getX() ) / (passengerCount+1) );
-				dropOffBarycenter.setY( ( dropOffBarycenter.getY() * passengerCount - dropOffNode->getLocation().getY() ) / (passengerCount+1) );
-			}
-			passengerCount--;
-			break;
+			dropOffBarycenter.setX(
+					(dropOffBarycenter.getX() * passengerCount - dropOffNode->getLocation().getX()) / (passengerCount + 1));
+			dropOffBarycenter.setY(
+					(dropOffBarycenter.getY() * passengerCount - dropOffNode->getLocation().getY()) / (passengerCount + 1));
 		}
+		passengerCount--;
+		break;
+	}
 		// otherwise, do nothing
 	}
 }
 
-const Point& Schedule::getDropOffBarycenter() const
-{ return dropOffBarycenter;}
+const Point &Schedule::getDropOffBarycenter() const
+{ return dropOffBarycenter; }
 
-short Schedule::getPassengerCount() const {	return passengerCount; }
+short Schedule::getPassengerCount() const
+{ return passengerCount; }
 
 //} SCHEDULE FUNCTIONS
-
-
-
 
 
 } // End of namespace
 
 
-std::ostream& operator<<(std::ostream& strm, const sim_mob::TripRequestMessage& request)
+std::ostream &operator<<(std::ostream &strm, const sim_mob::TripRequestMessage &request)
 {
-	return strm << "request issued by "<<request.userId<< " at " << request.timeOfRequest<<
-			" to go from node "<< request.startNode->getNodeId() <<
-			", to node "<< request.destinationNode->getNodeId();
+	return strm << "request issued by " << request.userId << " at " << request.timeOfRequest <<
+	            " to go from node " << request.startNode->getNodeId() <<
+	            ", to node " << request.destinationNode->getNodeId();
 }
 
-std::ostream& operator<<(std::ostream& strm, const sim_mob::ScheduleItem& item)
+std::ostream &operator<<(std::ostream &strm, const sim_mob::ScheduleItem &item)
 {
 	strm << "ScheduleItem ";
 	switch (item.scheduleItemType)
 	{
-		case (sim_mob::ScheduleItemType::PICKUP):
-		{
-			strm<<"PICKUP of "<< item.tripRequest;
-			break;
-		}
-		case (sim_mob::ScheduleItemType::DROPOFF):
-		{
-			strm<<"DROPOFF of "<<item.tripRequest;
-			break;
-		}
-		case (sim_mob::ScheduleItemType::CRUISE):
-		{
-			const sim_mob::Node* nodeToCruiseTo = item.nodeToCruiseTo;
+	case (sim_mob::ScheduleItemType::PICKUP):
+	{
+		strm << "PICKUP of " << item.tripRequest;
+		break;
+	}
+	case (sim_mob::ScheduleItemType::DROPOFF):
+	{
+		strm << "DROPOFF of " << item.tripRequest;
+		break;
+	}
+	case (sim_mob::ScheduleItemType::CRUISE):
+	{
+		const sim_mob::Node *nodeToCruiseTo = item.nodeToCruiseTo;
 #ifndef NDEBUG
-			if (!nodeToCruiseTo)
-				throw std::runtime_error("Invalid CRUISE ScheduleItem: the nodeToCruiseTo is NULL");
+		if (!nodeToCruiseTo)
+			throw std::runtime_error("Invalid CRUISE ScheduleItem: the nodeToCruiseTo is NULL");
 #endif
-			strm<<"CRUISE to node "<<item.nodeToCruiseTo->getNodeId();
-			break;
-		}
-		case (sim_mob::ScheduleItemType::PARK):
-		{
-			strm<<"Parking to "<<item.parking->getParkingId();
-			break;
-		}
-		default:{throw std::runtime_error("unrecognized schedule item type");}
+		strm << "CRUISE to node " << item.nodeToCruiseTo->getNodeId();
+		break;
+	}
+	case (sim_mob::ScheduleItemType::PARK):
+	{
+		strm << "Parking to " << item.parking->getParkingId();
+		break;
+	}
+	default:
+	{
+		throw std::runtime_error("unrecognized schedule item type");
+	}
 	};
 	return strm;
 }
 
-std::ostream& operator<<(std::ostream& strm, const sim_mob::Schedule& schedule)
+std::ostream &operator<<(std::ostream &strm, const sim_mob::Schedule &schedule)
 {
-	strm<<"Schedule [";
-	for (const sim_mob::ScheduleItem& item : schedule)
+	strm << "Schedule [";
+	for (const sim_mob::ScheduleItem &item : schedule)
 	{
-		strm<< item <<", ";
+		strm << item << ", ";
 	}
-	strm<<" ]";
+	strm << " ]";
 	return strm;
 }
 
 bool operator==(sim_mob::TripRequestMessage r1, const sim_mob::TripRequestMessage r2)
 {
-	return r1.operator ==(r2);
+	return r1.operator==(r2);
 }

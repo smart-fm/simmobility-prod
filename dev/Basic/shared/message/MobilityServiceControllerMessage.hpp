@@ -30,6 +30,19 @@ enum MobilityServiceControllerMessage
 	MSG_SCHEDULE_UPDATE
 };
 
+/**Enumeration to indicate the type of trip requested by the passenger*/
+enum class RequestType
+{
+	/**Specifies that the trip must be exclusive to the passenger - single rider request*/
+	TRIP_REQUEST_SINGLE,
+
+	/**Specifies that the trip may be shared with another passenger - shared trip request*/
+	TRIP_REQUEST_SHARED,
+
+	/**Does not specify any preference - the controller will assign arbitrarily*/
+	TRIP_REQUEST_DEFAULT
+};
+
 /**
  * Message to subscribe a driver
  */
@@ -124,23 +137,21 @@ class TripRequestMessage : public messaging::Message
 {
 public:
 	TripRequestMessage() : timeOfRequest(timeslice(0, 0)), userId("no-id"), startNode(0),
-	                       destinationNode(0), extraTripTimeThreshold(0)
+	                       destinationNode(0), extraTripTimeThreshold(0), requestType(RequestType::TRIP_REQUEST_DEFAULT)
 	{};
 
 	TripRequestMessage(const TripRequestMessage &r) :
-			timeOfRequest(r.timeOfRequest),
-			userId(r.userId), startNode(r.startNode),
-			destinationNode(r.destinationNode),
-			extraTripTimeThreshold(r.extraTripTimeThreshold)
+			timeOfRequest(r.timeOfRequest), userId(r.userId), startNode(r.startNode),
+			destinationNode(r.destinationNode), extraTripTimeThreshold(r.extraTripTimeThreshold),
+			requestType(r.requestType)
 	{
 	};
 
 
-	TripRequestMessage(const timeslice &ct, const std::string &p,
-	                   const Node *sn, const Node *dn,
-	                   const unsigned int &threshold) : timeOfRequest(ct), userId(p),
-	                                                    startNode(sn), destinationNode(dn),
-	                                                    extraTripTimeThreshold(threshold)
+	TripRequestMessage(const timeslice &ct, const std::string &p, const Node *sn, const Node *dn,
+	                   const unsigned int &threshold, const RequestType reqType = RequestType::TRIP_REQUEST_DEFAULT) :
+			timeOfRequest(ct), userId(p), startNode(sn), destinationNode(dn), extraTripTimeThreshold(threshold),
+			requestType(reqType)
 	{
 	};
 
@@ -161,6 +172,7 @@ public:
 	std::string userId;
 	const Node *startNode;
 	const Node *destinationNode;
+	RequestType requestType;
 
 	/**
 	 * The time the passenger can tolerate to spend more w.r.t. the fastest option in which

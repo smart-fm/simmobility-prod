@@ -293,7 +293,7 @@ public:
 						}
 						PopulationSqlDao populationDao(populationConn);
 						long long personId = std::stol(person->getDatabaseId(), &sz); //gets the numerical part before '-' from the person id
-						PersonParams personInfo;
+						PersonParams personInfo(false);
 						populationDao.getOneById(personId, personInfo);
 						person->setPersonInfo(personInfo);
 					}

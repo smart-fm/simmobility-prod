@@ -1035,16 +1035,7 @@ void OnCallController::assignSchedules(const unordered_map<const Person *, Sched
 	}
 }
 
-//aa!!: This function I did here is very bad! Ideally, we should have a single function assignSchedules that
-//			is able to handle both map and unordered_map, but I was not able to do it. I asked help on:
-//					https://stackoverflow.com/q/45601144/2110769
-//			Once we get a good suggestion from there, we should immediately get rid of this.
-void OnCallController::assignSchedules(const map<const Person *, Schedule> &schedulesToAssign,
-                                       bool isUpdatedSchedule)
-{
-	assignSchedules(unordered_map<const Person *, Schedule>(schedulesToAssign.begin(), schedulesToAssign.end()),
-	                isUpdatedSchedule);
-}
+
 
 
 

@@ -298,11 +298,7 @@ protected:
 	 */
 	virtual void onDriverScheduleStatus(Person *driver);
 
-	//aa!!: Please, write a comment on what this function does
 	void assignSchedules(const std::unordered_map<const Person*, Schedule>& schedulesToAssign,
-			bool isUpdatedSchedule = false);
-
-	void assignSchedules(const std::map<const Person*, Schedule>& schedulesToAssign,
 				bool isUpdatedSchedule = false);
 
 #ifndef NDEBUG

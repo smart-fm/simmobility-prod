@@ -239,8 +239,8 @@ private:
 	 * @param controllers map of controllers
 	 * @param controllerType the type of controller to be subscribed
 	 */
-	void subscribeToOrIgnoreController(const std::multimap<MobilityServiceControllerType, MobilityServiceController *>& controllers,
-							   MobilityServiceControllerType controllerType);
+	void subscribeToOrIgnoreController(const std::unordered_map<unsigned int, MobilityServiceController *>& controllers,
+									   unsigned int controllerId);
 };
 
 class TaxiDriverBehavior : public DriverBehavior

@@ -18,7 +18,7 @@
 namespace sim_mob
 {
 
-typedef std::multimap<MobilityServiceControllerType, MobilityServiceController*> SvcControllerMap;
+typedef std::unordered_map<unsigned int , MobilityServiceController*> SvcControllerMap;
 
 class MobilityServiceControllerManager : public Agent
 {
@@ -74,7 +74,7 @@ public:
 protected:
 	//This constructor is protected beacause we want to allow its construction only through the GetInstance(..) function
 	MobilityServiceControllerManager(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered):
-	Agent(mtxStrat, -1),controllers(std::multimap<MobilityServiceControllerType, MobilityServiceController*>())
+	Agent(mtxStrat, -1),controllers(std::unordered_map<unsigned int, MobilityServiceController*>())
 	{
 #ifndef NDEBUG
 		consistencyChecks();
@@ -99,7 +99,7 @@ protected:
 
 private:
 	/** Stores the various controllers with the type as key*/
-	std::multimap<MobilityServiceControllerType, MobilityServiceController*> controllers;
+	std::unordered_map<unsigned int, MobilityServiceController*> controllers;
 
 	/** Store self instance */
 	static MobilityServiceControllerManager* instance;

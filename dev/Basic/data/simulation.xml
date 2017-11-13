@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.1" encoding="UTF-8"?>
 
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 <config>
@@ -98,8 +98,8 @@
 <generic_props>
 </generic_props>
 
-<mobilityServiceController enabled="true" maxFleetSize="10000">
-    <controller id="1" type="1" vehicleIds="" scheduleComputationPeriod="1"/>
+<mobilityServiceController enabled="true">
+    <controller id="1" type="1" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="1"/>
 </mobilityServiceController>
 
 <merge_log_files value="true"/>

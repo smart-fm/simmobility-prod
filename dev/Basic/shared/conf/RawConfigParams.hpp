@@ -623,6 +623,7 @@ struct MobilityServiceControllerConfig
 	MobilityServiceControllerType type;
 	unsigned int scheduleComputationPeriod;
 	std::vector<std::string> vehicleIds;
+	unsigned int maxFleetSize;
 
 	MobilityServiceControllerConfig() : type(SERVICE_CONTROLLER_UNKNOWN), scheduleComputationPeriod(0) {}
 };
@@ -640,9 +641,6 @@ struct MobilityServiceControllerParams
 
     /// Is vehicle controller enabled?
     bool enabled;
-
-	/// Maximum fleet size
-	unsigned int maxFleetSize;
 
 	/// Maps controller IDs to controller configurations
 	std::map<unsigned int, MobilityServiceControllerConfig> enabledControllers;

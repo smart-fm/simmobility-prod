@@ -192,7 +192,7 @@ public:
 	 * @param controllers map of controllers
 	 * @param type the type of controller to be subscribed
 	 */
-	void subscribeToOrIgnoreController(const SvcControllerMap& controllers, MobilityServiceControllerType type);
+	void subscribeToOrIgnoreController(const SvcControllerMap& controllers, unsigned int controllerId);
 
 	/**
 	 * Picks up the passenger

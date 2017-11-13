@@ -97,7 +97,8 @@ void PedestrianMovement::frame_init()
 					unsigned int randomController = Utils::generateInt(0, controllers.size() - 1);
 					auto itControllers = controllers.begin();
 					advance(itControllers, randomController);
-					MobilityServiceControllerType type = itControllers->first;
+					MobilityServiceControllerType type = itControllers->second->getServiceType();
+					unsigned int controllerId = itControllers->first;
 					const MobilityServiceController* controller = itControllers->second;
 
 #ifndef NDEBUG
@@ -117,7 +118,7 @@ void PedestrianMovement::frame_init()
 					MessageBus::PostMessage(itControllers->second, MSG_TRIP_REQUEST, MessageBus::MessagePtr(request));
 
 
-					ControllerLog() << "Request sent to controller of type "<< toString(type) << ": "<< *request << std::endl;
+					ControllerLog() << "Request sent to controller of type "<< toString(type) << ": ID : "<< controllerId<<": "<< *request << std::endl;
 				}
 			}
 		}

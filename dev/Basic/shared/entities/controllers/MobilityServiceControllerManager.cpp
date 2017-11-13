@@ -108,7 +108,7 @@ bool MobilityServiceControllerManager::addMobilityServiceController(MobilityServ
 		return false;
 	}
 	}
-	controllers.insert(std::make_pair(type, controller));
+	controllers.insert(std::make_pair(controllerId, controller));
 
 #ifndef NDEBUG
 	controller->consistencyChecks();
@@ -152,11 +152,11 @@ void MobilityServiceControllerManager::consistencyChecks() const
 	const MobilityServiceController *controller;
 	try
 	{
-		for (const std::pair<MobilityServiceControllerType, const MobilityServiceController *> p : controllers)
+		for (const std::pair<unsigned int , const MobilityServiceController *> p : controllers)
 		{
 			controller = p.second;
 			controller->consistencyChecks();
-			const MobilityServiceControllerType typeKey = p.first;
+			const MobilityServiceControllerType typeKey = p.second->getServiceType();
 			sim_mob::consistencyChecks(typeKey);
 			const MobilityServiceControllerType ownedType = controller->getServiceType();
 			if (ownedType != typeKey)
@@ -193,7 +193,7 @@ bool MobilityServiceControllerManager::isNonspatial()
 const std::string MobilityServiceControllerManager::getControllersStr() const
 {
 	std::stringstream msg;
-	for (const std::pair<MobilityServiceControllerType, const MobilityServiceController *> &p: controllers)
+	for (const std::pair<unsigned int, const MobilityServiceController *> &p: controllers)
 	{
 		msg << "pointer:" << p.second << ":" << p.second->toString() << ", ";
 	}

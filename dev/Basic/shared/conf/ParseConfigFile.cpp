@@ -826,8 +826,6 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
     if (node)
     {
     	cfg.mobilityServiceController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
-		cfg.mobilityServiceController.maxFleetSize = ParseUnsignedInt(GetNamedAttributeValue(node, "maxFleetSize"));
-
 		std::vector<DOMElement*> controllers = GetElementsByName(node, "controller");
 
 		for (std::vector<DOMElement*>::const_iterator it = controllers.begin(); it != controllers.end(); ++it)
@@ -840,6 +838,8 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
 
 			unsigned int scheduleComputationPeriod =
 					ParseUnsignedInt(GetNamedAttributeValue(*it, "scheduleComputationPeriod"));
+
+			unsigned int maxFleetSize = ParseUnsignedInt(GetNamedAttributeValue(*it, "maxFleetSize"));
 
 			if (cfg.mobilityServiceController.enabledControllers.count(key) > 0)
 			{
@@ -854,6 +854,7 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
 				MobilityServiceControllerConfig vcc;
 				vcc.type = type;
 				vcc.scheduleComputationPeriod = scheduleComputationPeriod;
+				vcc.maxFleetSize=maxFleetSize;
 				cfg.mobilityServiceController.enabledControllers[key] = vcc;
 			}
 		}

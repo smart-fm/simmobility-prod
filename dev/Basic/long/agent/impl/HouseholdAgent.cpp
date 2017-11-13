@@ -251,7 +251,8 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 					{
 						schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
 					}
-					if(day == ++startDay)
+					int secondSimDay = (startDay + 1);
+					if(day == secondSimDay)
 					{
 						schoolAssignmentModel.setStudentLimitInPrimarySchool();
 					}

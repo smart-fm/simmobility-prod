@@ -130,7 +130,6 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 	double distanceFromHomeToSchool = (distanceCalculateEuclidean(priSchool->getCentroidX(),priSchool->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
 	School::DistanceIndividual distanceInd{individualId,distanceFromHomeToSchool};
 	priSchool->addIndividualDistance(&distanceInd);
-
 	}
 	schoolExpVec.clear();
 	expSchoolMap.clear();
@@ -140,6 +139,12 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 
 void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
 {
+	static bool wasExecuted = false;
+	if (wasExecuted)
+	{
+		return;
+	}
+	wasExecuted = true;
 	HM_Model::SchoolList primarySchools = model->getPrimarySchoolList();
 	std::size_t const studentLimitPerSchool = 3000;
 	for (School *priSchool:primarySchools )
@@ -155,15 +160,10 @@ void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
 			std::vector<BigSerial> selectedStudents;
 			for(School::DistanceIndividual *distInd:distIndWithinLimit )
 			{
-				//selectedStudents.push_back(distInd.individualId);
 				BigSerial schoolId = priSchool->getId();
 				writeSchoolAssignmentsToFile(distInd->individualId,schoolId);
 				priSchool->addSelectedStudent(&distInd->individualId);
 			}
-			//priSchool->setSelectedStudentList(selectedStudents);
-
-			//School *prSchoolFromMap = model->getPrimarySchoolById(priSchool->getId());
-			//prSchoolFromMap->setSelectedStudentList(selectedStudents);
 
 			//reallocate the rest of the students among schools within 5km and still have positions
 			for(School::DistanceIndividual *distInd:disIndToReallocate )
@@ -171,29 +171,22 @@ void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
 				reAllocatePrimarySchoolStudents(distInd->individualId);
 			}
 
-			clear_delete_vector(distanceIndividualList);
-			clear_delete_vector(distIndWithinLimit);
-			clear_delete_vector(disIndToReallocate);
+			distanceIndividualList.clear();
+			distIndWithinLimit.clear();
+			disIndToReallocate.clear();
 
 		}
 		else
 		{
 			std::vector<BigSerial*> students = priSchool->getStudents();
-			//priSchool->setSelectedStudentList(students);
 			for(BigSerial *individualId : students)
 			{
-				//priSchool->addSelectedStudent(individualId);
-
-				//School *prSchoolFromMap = model->getPrimarySchoolById(priSchool->getId());
-				//prSchoolFromMap->addSelectedStudent(individualId);
-
 				BigSerial schoolId = priSchool->getId();
 				writeSchoolAssignmentsToFile(*individualId,schoolId);
 			}
-			clear_delete_vector(students);
+			students.clear();
 		}
 	}
-
 }
 
 void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individualId)
@@ -290,7 +283,6 @@ void SchoolAssignmentSubModel::assignPreSchool(const Household *household,BigSer
 			minDistance = distanceFromHomeToSchool;
 			selectedPreSchoolId = (*preSchoolsItr)->getId();
 		}
-
 	}
 	writePreSchoolAssignmentsToFile(household->getId(),individualId,selectedPreSchoolId);
 }

@@ -164,14 +164,13 @@ public:
 
 protected:
 	/** Store list of available drivers */
-	std::vector<const Person *> availableDrivers;
+	std::set<const Person *> availableDrivers;
 
 	/** Store queue of requests */
 	std::list<TripRequestMessage> requestQueue;
 
 	/**List of drivers who have been assigned a schedule, but are carrying only 1 passenger,
 	 * so they can potentially serve 1 more request (used by incremental controller)*/
-	//aa!!: If it is used only by the IncrementalSharing, can we move it there?
 	std::set<const Person *> partiallyAvailableDrivers;
 
 	/** Keeps track of current local tick */

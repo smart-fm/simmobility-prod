@@ -41,7 +41,7 @@ void OnCallController::subscribeDriver(Person *driver)
 #endif
 
 	MobilityServiceController::subscribeDriver(driver);
-	availableDrivers.push_back(driver);
+	availableDrivers.insert(driver);
 
 #ifndef NDEBUG
 	if (driverSchedules.find(driver) != driverSchedules.end() )
@@ -51,8 +51,9 @@ void OnCallController::subscribeDriver(Person *driver)
 	driverSchedules.emplace(driver, Schedule());
 
 #ifndef NDEBUG
-	ControllerLog()<<"After the subscription, subscribedDrivers.size()="<< subscribedDrivers.size()<<", availableDrivers.size()="<< availableDrivers.size() <<
-			", driverSchedules.size()="<< driverSchedules.size()<< std::endl ;
+	ControllerLog() << "After the subscription, subscribedDrivers.size()=" << subscribedDrivers.size()
+	                << ", availableDrivers.size()=" << availableDrivers.size()
+	                << ", driverSchedules.size()=" << driverSchedules.size() << std::endl;
 	consistencyChecks("after subscription");
 #endif
 }
@@ -83,9 +84,7 @@ void OnCallController::unsubscribeDriver(Person *driver)
 
 	driverSchedules.erase(driver);
 
-	//http://en.cppreference.com/w/cpp/algorithm/remove
-	availableDrivers.erase(std::remove(availableDrivers.begin(),
-	                                   availableDrivers.end(), driver), availableDrivers.end());
+	availableDrivers.erase(driver);
 
 #ifndef NDEBUG
 	consistencyChecks("unsubscribeDriver: end");
@@ -96,14 +95,11 @@ void OnCallController::driverAvailable(const Person *driver)
 {
 #ifndef NDEBUG
 	consistencyChecks("driverAvailable: start");
-	for(auto it = availableDrivers.begin(); it != availableDrivers.end(); ++it)
+	if(availableDrivers.find(driver) != availableDrivers.end())
 	{
-		if(*it == driver)
-		{
-			std::stringstream msg;
-			msg << "Driver id " << driver->getDatabaseId() << " is already present in availableDrivers";
-			throw runtime_error(msg.str());
-		}
+		std::stringstream msg;
+		msg << "Driver id " << driver->getDatabaseId() << " is already present in availableDrivers";
+		throw runtime_error(msg.str());
 	}
 
 	if(driverSchedules.find(driver) == driverSchedules.end())
@@ -114,7 +110,7 @@ void OnCallController::driverAvailable(const Person *driver)
 	}
 #endif
 
-	availableDrivers.push_back(driver);
+	availableDrivers.insert(driver);
 
 	// The driver has an empty schedule now
 	driverSchedules[driver] = Schedule();
@@ -133,8 +129,7 @@ void OnCallController::driverUnavailable(Person *person)
 	consistencyChecks("driverUnavailable: start");
 #endif
 
-	availableDrivers.erase(std::remove(availableDrivers.begin(),
-	                                   availableDrivers.end(), person), availableDrivers.end());
+	availableDrivers.erase(person);
 
 #ifndef NDEBUG
 	consistencyChecks("driverUnavailable: end");
@@ -194,7 +189,7 @@ Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
 		if (currTick.frame() >= rebalancingInterval && currTick.frame() >= nextRebalancingFrame)
 		{
 			nextRebalancingFrame = currTick.frame() + rebalancingInterval;
-			rebalancer->rebalance(availableDrivers, currTick);
+			rebalancer->rebalance(vector<const Person *>(availableDrivers.begin(), availableDrivers.end()), currTick);
 		}
 	}
 	else
@@ -340,12 +335,11 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 
 #ifndef NDEBUG
 	if (driverSchedules.find(driver) == driverSchedules.end() ||
-		(std::find(availableDrivers.begin(), availableDrivers.end(), driver) == availableDrivers.end() &&
+		(availableDrivers.find(driver) == availableDrivers.end() &&
 		 (!partiallyAvailableDrivers.empty() && partiallyAvailableDrivers.find(driver) == partiallyAvailableDrivers.end())))
 	{
 		std::string answer1 = (driverSchedules.find(driver) != driverSchedules.end() ? "yes" : "no");
-		std::string answer2 = (std::find(availableDrivers.begin(), availableDrivers.end(),
-										 driver) != availableDrivers.end() ? "yes" : "no");
+		std::string answer2 = (availableDrivers.find(driver) != availableDrivers.end() ? "yes" : "no");
 		std::string driverId;
 		try
 		{
@@ -393,8 +387,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 #endif
 
 	// The driver is not available anymore
-	availableDrivers.erase(std::remove(availableDrivers.begin(),
-	                                   availableDrivers.end(), driver), availableDrivers.end());
+	availableDrivers.erase(driver);
 
 	//If this schedule only caters to 1 person, the add the driver to the list of partially available drivers
 	//Schedule size 3 indicates a schedule for 1 person: pick-up, drop-off and park
@@ -477,7 +470,7 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 	double bestX, bestY;
 
 	const Person *bestDriver = NULL;
-	std::vector<const Person *>::const_iterator driver = availableDrivers.begin();
+	auto driver = availableDrivers.begin();
 
 #ifndef NDEBUG
 	unsigned nonCruisingDrivers = 0;
@@ -900,7 +893,8 @@ const std::string OnCallController::getRequestQueueStr() const
 	return msg.str();
 }
 
-void OnCallController::sendCruiseCommand(const Person *driver, const Node *nodeToCruiseTo, const timeslice currTick) const
+void
+OnCallController::sendCruiseCommand(const Person *driver, const Node *nodeToCruiseTo, const timeslice currTick) const
 {
 #ifndef NDEBUG
 	bool found = false;

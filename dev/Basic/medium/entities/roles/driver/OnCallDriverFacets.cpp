@@ -270,6 +270,15 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	if(pathMover.isDrivingPathSet())
 	{
 		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+
+		//If the pickup node is at the end of the current link, we do not need to go anywhere
+		//We can pick the passenger up at this point
+		if(currLink->getToNode() == pickupNode)
+		{
+			onCallDriver->pickupPassenger();
+			performScheduleItem();
+			return;
+		}
 	}
 
 	//Get route to the node
@@ -317,6 +326,15 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 	if(pathMover.isDrivingPathSet())
 	{
 		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+
+		//If the drop-off node is at the end of the current link, we do not need to go anywhere
+		//We can drop the passenger off at this point
+		if(currLink->getToNode() == dropOffNode)
+		{
+			onCallDriver->dropoffPassenger();
+			performScheduleItem();
+			return;
+		}
 	}
 
 	//Get route to the node
@@ -343,6 +361,9 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 	pathMover.buildSegStatsPath(route, routeSegStats);
 	pathMover.resetPath(routeSegStats);
 	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_WITH_PASSENGER);
+
+	//Set vehicle to moving
+	onCallDriver->getResource()->setMoving(true);
 }
 
 void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)

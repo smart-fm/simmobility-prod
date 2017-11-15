@@ -1,10 +1,12 @@
 #pragma once
 
-#include "Message.hpp"
 #include <boost/ptr_container/ptr_vector.hpp>
-#include "entities/Person.hpp"
 #include <stdexcept>
-#include <geospatial/network/SMSVehicleParking.hpp>
+
+#include "Message.hpp"
+
+#include "entities/Person.hpp"
+#include "geospatial/network/SMSVehicleParking.hpp"
 
 
 namespace sim_mob
@@ -28,26 +30,18 @@ enum MobilityServiceControllerMessage
 	MSG_SCHEDULE_UPDATE
 };
 
-/*
-struct TripRequest
+/**Enumeration to indicate the type of trip requested by the passenger*/
+enum class RequestType
 {
-	TripRequest():currTick(timeslice(0,0)){};
-	~TripRequest(){};
-	TripRequest(const TripRequest& r):userId(r.userId),currTick(r.currTick),startNodeId(r.startNodeId),
-			destinationNodeId(r.destinationNodeId),extraTripTimeThreshold(r.extraTripTimeThreshold)
-	{};
-	std::string userId;
-	timeslice currTick;
-	//TODO: to enhance performance, instead of storing here node ids,
-	// we could directly store Node*, to avoid continuous access to the
-	// RoadNetwork::getInstance()->getMapOfIdvsNodes()
-	// For example, in SharedController::computeSchedules() we make a search into
-	// that map, many times, redundantly and uselessly.
-	unsigned int startNodeId;
-	unsigned int destinationNodeId;
-	unsigned int extraTripTimeThreshold;
+	/**Specifies that the trip must be exclusive to the passenger - single rider request*/
+	TRIP_REQUEST_SINGLE,
+
+	/**Specifies that the trip may be shared with another passenger - shared trip request*/
+	TRIP_REQUEST_SHARED,
+
+	/**Does not specify any preference - the controller will assign arbitrarily*/
+	TRIP_REQUEST_DEFAULT
 };
-*/
 
 /**
  * Message to subscribe a driver
@@ -143,23 +137,21 @@ class TripRequestMessage : public messaging::Message
 {
 public:
 	TripRequestMessage() : timeOfRequest(timeslice(0, 0)), userId("no-id"), startNode(0),
-	                       destinationNode(0), extraTripTimeThreshold(0)
+	                       destinationNode(0), extraTripTimeThreshold(0), requestType(RequestType::TRIP_REQUEST_DEFAULT)
 	{};
 
 	TripRequestMessage(const TripRequestMessage &r) :
-			timeOfRequest(r.timeOfRequest),
-			userId(r.userId), startNode(r.startNode),
-			destinationNode(r.destinationNode),
-			extraTripTimeThreshold(r.extraTripTimeThreshold)
+			timeOfRequest(r.timeOfRequest), userId(r.userId), startNode(r.startNode),
+			destinationNode(r.destinationNode), extraTripTimeThreshold(r.extraTripTimeThreshold),
+			requestType(r.requestType)
 	{
 	};
 
 
-	TripRequestMessage(const timeslice &ct, const std::string &p,
-	                   const Node *sn, const Node *dn,
-	                   const unsigned int &threshold) : timeOfRequest(ct), userId(p),
-	                                                    startNode(sn), destinationNode(dn),
-	                                                    extraTripTimeThreshold(threshold)
+	TripRequestMessage(const timeslice &ct, const std::string &p, const Node *sn, const Node *dn,
+	                   const unsigned int &threshold, const RequestType reqType = RequestType::TRIP_REQUEST_DEFAULT) :
+			timeOfRequest(ct), userId(p), startNode(sn), destinationNode(dn), extraTripTimeThreshold(threshold),
+			requestType(reqType)
 	{
 	};
 
@@ -180,6 +172,7 @@ public:
 	std::string userId;
 	const Node *startNode;
 	const Node *destinationNode;
+	RequestType requestType;
 
 	/**
 	 * The time the passenger can tolerate to spend more w.r.t. the fastest option in which
@@ -219,11 +212,13 @@ struct ScheduleItem
 	};
 
 	ScheduleItem(const ScheduleItemType scheduleItemType_, const SMSVehicleParking *parkingLocation)
-			:scheduleItemType(scheduleItemType_),nodeToCruiseTo(NULL),tripRequest(), parking(parkingLocation)
+			: scheduleItemType(scheduleItemType_), nodeToCruiseTo(NULL), tripRequest(), parking(parkingLocation)
 	{
 #ifndef NDEBUG
-		if (scheduleItemType!= ScheduleItemType::PARK)
+		if (scheduleItemType != ScheduleItemType::PARK)
+		{
 			throw std::runtime_error("Only PARK is admitted here");
+		}
 #endif
 	};
 
@@ -240,83 +235,76 @@ struct ScheduleItem
 	const SMSVehicleParking *parking;
 };
 
-class Schedule{
-	private:
-		//TODO: It would be more elegant using std::variant, available from c++17
-		//aa!!: Given that we are inserting many elements now, it may be better to use a list instead of a vector
-		//			(see http://john-ahlgren.blogspot.com/2013/10/stl-container-performance.html)
-		std::vector<ScheduleItem> items;
-
-		/**
-		 * The barycenter of all the dropOff locations.
-		 * Only needed for the ProximityBased controller
-		 */
-		Point dropOffBarycenter;
-
-		short passengerCount;
-
-	public:
-		Schedule(): passengerCount(0), dropOffBarycenter(Point()){};
-
-		//{ EMULATE STANDARD CONTAINER FUNCTIONS
-		typedef std::vector<ScheduleItem>::const_iterator const_iterator;
-		typedef std::vector<ScheduleItem>::iterator iterator;
-
-		const std::vector<ScheduleItem>& getItems() const;
-		const size_t size() const;
-		const bool empty() const;
-		Schedule::iterator begin() ;
-		Schedule::const_iterator begin()  const;
-		const_iterator end()  const;
-		iterator end() ;
-		void insert(iterator position, const ScheduleItem scheduleItem);
-		void insert(iterator position, iterator first, iterator last);
-		const ScheduleItem& back() const;
-		ScheduleItem& front();
-		const ScheduleItem& front() const;
-		void pop_back();
-		void push_back(ScheduleItem item);
-		iterator erase(iterator position);
-		ScheduleItem& at(size_t n);
-		const ScheduleItem& at(size_t n) const;
-		//} EMULATE STANDARD CONTAINER FUNCTIONS
-
-		/**
-		 * Performs the appropriate internal data update when a pick up is added
-		 */
-		void onAddingScheduleItem(const ScheduleItem& item);
-		void onRemovingScheduleItem(const ScheduleItem& item);
-		const Point& getDropOffBarycenter() const;
-		short getPassengerCount() const;
-};
-
-
-/**
- * Message to propose a trip to a driver
- */
-/*
-class SchedulePropositionMessage: public messaging::Message
+class Schedule
 {
-public:
-	SchedulePropositionMessage(timeslice ct, const std::string& person,
-		const unsigned int startNode, const unsigned int destinationNode,
-		const unsigned int threshold) :
-			currTick(ct), personId(person),
-			startNodeId(startNode), destinationNodeId(destinationNode),
-			extraTripTimeThreshold(threshold)
-	{
-	}
-	virtual ~SchedulePropositionMessage()
-	{
-	}
+private:
+	//TODO: It would be more elegant using std::variant, available from c++17
+	//aa!!: Given that we are inserting many elements now, it may be better to use a list instead of a vector
+	//			(see http://john-ahlgren.blogspot.com/2013/10/stl-container-performance.html)
+	std::vector<ScheduleItem> items;
 
-	const timeslice currTick;
-	const std::string personId;
-	const unsigned int startNodeId;
-	const unsigned int destinationNodeId;
-	const unsigned int extraTripTimeThreshold;
+	/**
+	 * The barycenter of all the dropOff locations.
+	 * Only needed for the ProximityBased controller
+	 */
+	Point dropOffBarycenter;
+
+	short passengerCount;
+
+public:
+	Schedule() : passengerCount(0), dropOffBarycenter(Point())
+	{};
+
+	//{ EMULATE STANDARD CONTAINER FUNCTIONS
+	typedef std::vector<ScheduleItem>::const_iterator const_iterator;
+	typedef std::vector<ScheduleItem>::iterator iterator;
+
+	const std::vector<ScheduleItem> &getItems() const;
+
+	const size_t size() const;
+
+	const bool empty() const;
+
+	Schedule::iterator begin();
+
+	Schedule::const_iterator begin() const;
+
+	const_iterator end() const;
+
+	iterator end();
+
+	void insert(iterator position, const ScheduleItem scheduleItem);
+
+	void insert(iterator position, iterator first, iterator last);
+
+	const ScheduleItem &back() const;
+
+	ScheduleItem &front();
+
+	const ScheduleItem &front() const;
+
+	void pop_back();
+
+	void push_back(ScheduleItem item);
+
+	iterator erase(iterator position);
+
+	ScheduleItem &at(size_t n);
+
+	const ScheduleItem &at(size_t n) const;
+	//} EMULATE STANDARD CONTAINER FUNCTIONS
+
+	/**
+	 * Performs the appropriate internal data update when a pick up is added
+	 */
+	void onAddingScheduleItem(const ScheduleItem &item);
+
+	void onRemovingScheduleItem(const ScheduleItem &item);
+
+	const Point &getDropOffBarycenter() const;
+
+	short getPassengerCount() const;
 };
-*/
 
 class SchedulePropositionMessage : public messaging::Message
 {

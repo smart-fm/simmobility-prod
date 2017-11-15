@@ -11,6 +11,7 @@
 #include "entities/controllers/SharedController.hpp"
 #include "entities/controllers/IncrementalSharing.hpp"
 #include "entities/controllers/ProximityBased.hpp"
+#include "entities/controllers/AMOD_Controller.hpp"
 
 using namespace sim_mob;
 
@@ -101,6 +102,11 @@ bool MobilityServiceControllerManager::addMobilityServiceController(MobilityServ
 	{
 		controller = new ProximityBased(getMutexStrategy(), scheduleComputationPeriod, controllerId,
 		                                    ttEstimateType);
+		break;
+	}
+	case SERVICE_CONTROLLER_AMOD:
+	{
+		controller = new AMOD_Controller(getMutexStrategy(), scheduleComputationPeriod, controllerId, ttEstimateType);
 		break;
 	}
 	default:

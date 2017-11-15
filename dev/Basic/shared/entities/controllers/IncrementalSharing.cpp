@@ -32,7 +32,8 @@ void IncrementalSharing::computeSchedules()
 		return;
 	}
 
-	std::map<const Person *, Schedule> schedulesComputedSoFar; // We will put here the schedule that we will have constructed per each driver
+	//This will contain the constructed schedule for every driver
+	std::unordered_map<const Person *, Schedule> schedulesComputedSoFar;
 
 	for (const Person *driver : availableDrivers)
 	{
@@ -164,11 +165,8 @@ void IncrementalSharing::matchPartiallyAvailableDrivers()
 {
 	unsigned maxAggRequests = maxAggregatedRequests - 1;
 
-	// We will put here the schedule that we will have constructed per each driver
-	//aa!!: An unordered map instead of a map should be more efficient. As we are not performing any
-	//			search, we can add in an unordered way, saving the time for an ordered insertion
-	//			(see http://john-ahlgren.blogspot.com/2013/10/stl-container-performance.html)
-	std::map<const Person *, Schedule> schedulesComputedSoFar;
+	//This will contain the constructed schedule for every driver
+	std::unordered_map<const Person *, Schedule> schedulesComputedSoFar;
 
 	for (const Person *driver : partiallyAvailableDrivers)
 	{

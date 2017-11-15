@@ -201,6 +201,10 @@ const std::string toString(const MobilityServiceControllerType type)
 	{
 		return "SERVICE_CONTROLLER_PROXIMITY";
 	}
+	case SERVICE_CONTROLLER_AMOD:
+	{
+		return "SERVICE_CONTROLLER_AMOD";
+	}
 	default:
 	{
 		std::stringstream msg;
@@ -220,6 +224,7 @@ void consistencyChecks(const MobilityServiceControllerType type)
 	case SERVICE_CONTROLLER_ON_HAIL:
 	case SERVICE_CONTROLLER_INCREMENTAL:
 	case SERVICE_CONTROLLER_PROXIMITY:
+	case SERVICE_CONTROLLER_AMOD:
 	{
 		break;
 	}

@@ -371,6 +371,10 @@ void OnCallDriver::dropoffPassenger()
 			dropOffAnotherPerson = nxtItem->scheduleItemType == DROPOFF
 			                       && currItem->tripRequest.destinationNode == nxtItem->tripRequest.destinationNode;
 		}
+		else
+		{
+			dropOffAnotherPerson = false;
+		}
 
 	}while(dropOffAnotherPerson);
 }

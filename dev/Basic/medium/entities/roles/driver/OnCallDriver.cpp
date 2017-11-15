@@ -148,7 +148,7 @@ void OnCallDriver::subscribeToOrIgnoreController(const SvcControllerMap& control
 		}
 #endif
 
-		for (auto itController = range; itController != controllers.end(); ++itController)
+		auto itController = range;
 		{
 			MessageBus::PostMessage(itController->second, MSG_DRIVER_SUBSCRIBE,
 			                        MessageBus::MessagePtr(new DriverSubscribeMessage(parent)));

@@ -70,13 +70,13 @@ void FleetController::LoadTaxiFleetFromDB()
 		int shiftDuration = 3600 * r.get<int>(COLUMN_SHIFT_DURATION);
 		fleetItem.endTime = fleetItem.startTime + shiftDuration;
 		fleetItem.controllerSubscription = r.get<unsigned int>(COLUMN_CONTROLLER_SUBSCRIPTIONS);
-		taxiFleet.push_back(fleetItem);
-   }
-}
-
-const std::vector<FleetController::FleetItem>& FleetController::getTaxiFleet() const
-{
-	return taxiFleet;
+		std::map<unsigned int, MobilityServiceControllerConfig>::const_iterator controllerIdIt = ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.find(fleetItem.controllerSubscription);
+		if(controllerIdIt == ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.end())
+		{
+			throw std::runtime_error("Invalid Controller Subscription Id.");
+		}
+		taxiFleet.insert(std::pair<unsigned int,FleetItem>(fleetItem.controllerSubscription,fleetItem));
+	}
 }
 
 Entity::UpdateStatus FleetController::frame_init(timeslice now)

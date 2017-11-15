@@ -34,73 +34,79 @@ FleetController_MT * FleetController_MT::getInstance()
 
 void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
 {
-
-
 	std::map<unsigned int, MobilityServiceControllerConfig>::const_iterator it = ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.begin();
-	while(it != ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.end())
-	{
-		const unsigned int maxFleetSize = it->second.maxFleetSize;
-		unsigned int currTaxi = 0, vehToBeLoaded = min(maxFleetSize, (unsigned int)taxiFleet.size());
-		auto serviceVehicle = taxiFleet.begin();
 
-		ControllerLog() << "Total number of service vehicles loaded from database: " << taxiFleet.size() << std::endl;
-		ControllerLog() << "Max. fleet size configured: " << maxFleetSize << std::endl;
+    while(it !=  ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.end()) {
 
-		while(currTaxi < vehToBeLoaded && serviceVehicle != taxiFleet.end())
-		{
-			if ((*serviceVehicle).startNode)
-			{
-				Person_MT* person = new Person_MT("FleetController", ConfigManager::GetInstance().FullConfig().mutexStategy(), -1);
-				person->setServiceVehicle((*serviceVehicle));
-				person->setDatabaseId((*serviceVehicle).driverId);
-				person->setPersonCharacteristics();
+        std::pair<std::multimap<unsigned int, FleetItem>::iterator, std::multimap<unsigned int, FleetItem>::iterator> lTaxiFleetIt = taxiFleet.equal_range(
+                it->first);
 
-				string tripType;
+        const unsigned int maxFleetSize = it->second.maxFleetSize;
 
-                MobilityServiceControllerType  type = it->second.type;
+        std::multimap<unsigned int, FleetItem>::iterator lstart = lTaxiFleetIt.first;
 
-				switch(type)
-				{
-					case SERVICE_CONTROLLER_ON_HAIL:
-						tripType = "OnHailTrip";
-						break;
+        std::multimap<unsigned int, FleetItem>::iterator lend = lTaxiFleetIt.second;
 
-					case SERVICE_CONTROLLER_GREEDY:
-					case SERVICE_CONTROLLER_SHARED:
-					case SERVICE_CONTROLLER_FRAZZOLI:
-					case SERVICE_CONTROLLER_INCREMENTAL:
-					case SERVICE_CONTROLLER_PROXIMITY:
-						tripType = "OnCallTrip";
-						break;
+        unsigned int currTaxi = 0;
 
-					default:
-						tripType = "TaxiTrip";
-				}
+        ControllerLog() << "Total number of service vehicles loaded from database: " << taxiFleet.count(it->first)
+                        << std::endl;
+        ControllerLog() << "Max. fleet size configured: " << maxFleetSize << std::endl;
 
-				vector<TripChainItem*> tripChain;
-				TaxiTrip *taxiTrip = new TaxiTrip("0", tripType, 0, -1, DailyTime((*serviceVehicle).startTime * 1000.0),
-												  DailyTime((*serviceVehicle).endTime * 1000), 0, (*serviceVehicle).startNode,
-												  "node", nullptr, "node");
-				tripChain.push_back((TripChainItem *)taxiTrip);
-				person->setTripChain(tripChain);
+        while (lstart != lend && currTaxi < maxFleetSize) {
 
-				addOrStashTaxis(person, agentList);
+                if ((*lstart).second.startNode) {
+                    Person_MT *person = new Person_MT("FleetController",
+                                                      ConfigManager::GetInstance().FullConfig().mutexStategy(), -1);
+                    person->setServiceVehicle((*lstart).second);
+                    person->setDatabaseId((*lstart).second.driverId);
+                    person->setPersonCharacteristics();
 
-				//Valid vehicle loaded
-				currTaxi++;
-			}
-			else
-			{
-				Warn() << "Vehicle " << (*serviceVehicle).vehicleNo << ", with driver " << (*serviceVehicle).driverId
-					   << " has invalid start node.";
-			}
+                    string tripType;
 
-			serviceVehicle++;
-		}
-		it++;
-	}
+                    MobilityServiceControllerType type = it->second.type;
 
+                    switch (type) {
+                        case SERVICE_CONTROLLER_ON_HAIL:
+                            tripType = "OnHailTrip";
+                            break;
 
+                        case SERVICE_CONTROLLER_GREEDY:
+                        case SERVICE_CONTROLLER_SHARED:
+                        case SERVICE_CONTROLLER_FRAZZOLI:
+                        case SERVICE_CONTROLLER_INCREMENTAL:
+                        case SERVICE_CONTROLLER_PROXIMITY:
+                            tripType = "OnCallTrip";
+                            break;
+
+                        default:
+                            tripType = "TaxiTrip";
+                    }
+
+                    vector<TripChainItem *> tripChain;
+                    TaxiTrip *taxiTrip = new TaxiTrip("0", tripType, 0, -1,
+                                                      DailyTime((*lstart).second.startTime * 1000.0),
+                                                      DailyTime((*lstart).second.endTime * 1000), 0,
+                                                      (*lstart).second.startNode,
+                                                      "node", nullptr, "node");
+                    tripChain.push_back((TripChainItem *) taxiTrip);
+                    person->setTripChain(tripChain);
+
+                    addOrStashTaxis(person, agentList);
+
+                    //Valid vehicle loaded
+
+                }
+                else {
+                    Warn() << "Vehicle " << (*lstart).second.vehicleNo << ", with driver " << (*lstart).second.driverId
+                           << " has invalid start node.";
+                }
+
+                currTaxi++;
+                lstart++;
+        }
+        it++;
+    }
 }
 
 void FleetController_MT::addOrStashTaxis(Person *person, std::set<Entity *> &activeAgents)

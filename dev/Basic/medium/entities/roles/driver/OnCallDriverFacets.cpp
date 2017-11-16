@@ -484,13 +484,13 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 			msg << "No downstream nodes are reachable from node " << fromNode->getNodeId();
 			throw runtime_error(msg.str());
 		}
+#endif
 
 		//Add all nodes that are reachable from the current lane to vector
 		for(auto it = itTurningsFromCurrLane->second.begin(); it != itTurningsFromCurrLane->second.end(); ++it)
 		{
 			reachableNodes.push_back(it->second->getToLane()->getParentSegment()->getParentLink()->getToNode());
 		}
-#endif
 	}
 	else
 	{

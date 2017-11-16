@@ -64,11 +64,11 @@ public:
 	/**
 	 * Returns the vector of fleet items (taxis)
 	 */
-	const std::vector<FleetItem>& getTaxiFleet() const;
 
 protected:
-	/**Stores taxi information*/
-	std::vector<FleetItem> taxiFleet;
+	/**Stores taxi information*/;
+	std::multimap<unsigned int,FleetItem> taxiFleet;
+	std::multimap<unsigned int,FleetItem>::const_iterator taxiFleetIt;
 
 	/**
 	 * Taxis waiting to be added to the simulation, prioritized by start time.

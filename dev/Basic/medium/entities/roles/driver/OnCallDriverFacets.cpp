@@ -44,7 +44,7 @@ void OnCallDriverMovement::frame_init()
 
 	for(auto &ctrlr : controllers)
 	{
-		onCallDriver->subscribeToOrIgnoreController(controllers, ctrlr.first);
+		onCallDriver->subscribeToOrIgnoreController(controllers, ctrlr.second->getControllerId());
 	}
 
 	//In the beginning there is nothing to do, yet we require a path to begin moving.

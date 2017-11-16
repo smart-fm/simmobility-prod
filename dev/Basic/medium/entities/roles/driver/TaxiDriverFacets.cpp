@@ -52,37 +52,37 @@ void TaxiDriverMovement::frame_init()
 
 	serviceVehicle = parentTaxiDriver->getParent()->getServiceVehicle();
 
-	const std::multimap<MobilityServiceControllerType, MobilityServiceController*>& controllers =
+	const std::unordered_map<unsigned int , MobilityServiceController*>& controllers =
 			MobilityServiceControllerManager::GetInstance()->getControllers();
 
 	for (auto &p: controllers)
 	{
-		const MobilityServiceControllerType type = p.first;
-		subscribeToOrIgnoreController(controllers, type);
+		unsigned int controllerId = p.first;
+		subscribeToOrIgnoreController(controllers, controllerId);
 	}
 
 	(isSubscribedToOnHail() && cruiseOrDriveToTaxiStand())?driveToTaxiStand():selectNextLinkWhileCruising();  // for 1 : drive_to_taxiStand or cruise
 }
 
 void TaxiDriverMovement::subscribeToOrIgnoreController(
-		const multimap<MobilityServiceControllerType, MobilityServiceController *> &controllers,
-		MobilityServiceControllerType controllerType)
+		const unordered_map<unsigned int , MobilityServiceController *> &controllers,
+		unsigned int controllerId)
 {
-	if (serviceVehicle.controllerSubscription & controllerType)
+	if (serviceVehicle.controllerSubscription & controllerId)
 	{
-		auto range = controllers.equal_range(controllerType);
+		auto range = controllers.find(controllerId);
 
 #ifndef NDEBUG
-		if (range.first == range.second)
+		if (range == controllers.end())
 		{
 			std::stringstream msg;
-			msg << "Driver " << parentDriver->getParent()->getDatabaseId() << " wants to subscribe to type "
-			    << toString(controllerType) << ", but no controller of that type is registered";
+			msg << "Driver " << parentDriver->getParent()->getDatabaseId() << " wants to subscribe to Id "
+			    << (controllerId) << ", but no controller of that Id is registered";
 			throw std::runtime_error(msg.str());
 		}
 #endif
 
-		for (auto itController = range.first; itController != range.second; ++itController)
+		for (auto itController = range; itController != controllers.end(); ++itController)
 		{
 
 #ifndef NDEBUG
@@ -335,11 +335,22 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 
 bool TaxiDriverMovement::isSubscribedToOnHail() const
 {
-	if (serviceVehicle.controllerSubscription & MobilityServiceControllerType::SERVICE_CONTROLLER_ON_HAIL)
+	std::map<unsigned int, MobilityServiceControllerConfig>::const_iterator it = ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.begin();
+	MobilityServiceControllerType  type;
+	while(it != ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.end())
+	{
+		if(serviceVehicle.controllerSubscription == it->first)
+		{
+			type = it->second.type;
+			break;
+		}
+		it++;
+	}
+	if (type & MobilityServiceControllerType::SERVICE_CONTROLLER_ON_HAIL)
 	{
 		return true;
 	}
-	else if (serviceVehicle.controllerSubscription & MobilityServiceControllerType::SERVICE_CONTROLLER_UNKNOWN)
+	else if (type & MobilityServiceControllerType::SERVICE_CONTROLLER_UNKNOWN)
 	{
 		stringstream msg;
 		msg << "Driver " << serviceVehicle.driverId << " subscribes to unknown service controller";

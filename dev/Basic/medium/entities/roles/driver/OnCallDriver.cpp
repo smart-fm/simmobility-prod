@@ -132,23 +132,23 @@ const MobilityServiceDriver* OnCallDriver::exportServiceDriver() const
 	return this;
 }
 
-void OnCallDriver::subscribeToOrIgnoreController(const SvcControllerMap& controllers, MobilityServiceControllerType type)
+void OnCallDriver::subscribeToOrIgnoreController(const SvcControllerMap& controllers, unsigned int controllerId)
 {
-	if (parent->getServiceVehicle().controllerSubscription & type)
+	if (parent->getServiceVehicle().controllerSubscription & controllerId)
 	{
-		auto range = controllers.equal_range(type);
+		auto range = controllers.find(controllerId);
 
 #ifndef NDEBUG
-		if (range.first == range.second)
+		if (range == controllers.end())
 		{
 			std::stringstream msg;
-			msg << "OnCallDriver " << parent->getDatabaseId() << " wants to subscribe to type "
-			    << toString(type) << ", but no controller of that type is registered";
+			msg << "OnCallDriver " << parent->getDatabaseId() << " wants to subscribe to id "
+			    << controllerId << ", but no controller of that id is registered";
 			throw std::runtime_error(msg.str());
 		}
 #endif
 
-		for (auto itController = range.first; itController != range.second; ++itController)
+		auto itController = range;
 		{
 			MessageBus::PostMessage(itController->second, MSG_DRIVER_SUBSCRIBE,
 			                        MessageBus::MessagePtr(new DriverSubscribeMessage(parent)));

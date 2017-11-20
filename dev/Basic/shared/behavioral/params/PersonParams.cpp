@@ -58,7 +58,7 @@ std::map<long, Address> PersonParams::addressLookup = std::map<long, Address>();
 std::map<unsigned int, unsigned int> PersonParams::postCodeToNodeMapping = std::map<unsigned int, unsigned int>();
 std::map<int, std::vector<long> > PersonParams::zoneAddresses = std::map<int, std::vector<long> >();
 
-PersonParams::PersonParams() :
+PersonParams::PersonParams(bool allocateTimeWindowLookup) :
 		personId(""), hhId(""), personTypeId(-1), ageId(-1), isUniversityStudent(-1), studentTypeId(-1), isFemale(-1), incomeId(-1), worksAtHome(-1),
 			hasFixedWorkTiming(-1), homeLocation(-1), fixedWorkLocation(-1), fixedSchoolLocation(-1), stopType(-1), drivingLicence(-1),
 			hhOnlyAdults(-1), hhOnlyWorkers(-1), hhNumUnder4(-1), hasUnder15(-1), vehicleOwnershipCategory(VehicleOwnershipOption::INVALID),
@@ -66,7 +66,9 @@ PersonParams::PersonParams() :
 			genderId(-1), missingIncome(-1), homeAddressId(-1), activityAddressId(-1), carLicense(false), motorLicense(false),
 			vanbusLicense(false), fixedWorkplace(false), student(false), hhSize(-1), hhNumAdults(-1), hhNumWorkers(-1), hhNumUnder15(-1), householdFactor(-1)
 {
-	initTimeWindows();
+	if (allocateTimeWindowLookup) {
+		initTimeWindows();
+	}
 }
 
 PersonParams::~PersonParams()

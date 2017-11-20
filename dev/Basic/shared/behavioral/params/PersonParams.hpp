@@ -156,7 +156,7 @@ private:
 class PersonParams
 {
 public:
-	PersonParams();
+	PersonParams(bool allocateTimeWindowLookup = true);
 	virtual ~PersonParams();
 
 	const std::string& getHhId() const

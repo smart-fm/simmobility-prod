@@ -718,7 +718,9 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 	}
     else if (MT_Config::getInstance().RunningMidDemand())
 	{
-		Print() << "Mid-term run mode: preday\n" << endl;
+		Print() << "Mid-term run mode: preday" << endl;
+		Print() << "Number of threads: " << MT_Config::getInstance().getNumPredayThreads()
+		        << std::endl << std::endl;
 		return performMainDemand();
 	}
 	else

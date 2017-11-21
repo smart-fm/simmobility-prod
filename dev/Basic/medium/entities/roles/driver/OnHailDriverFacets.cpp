@@ -282,11 +282,6 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 		msg << (currLink ? currLink->getLinkId() : 0);
 		throw no_path_error(msg.str());
 	}
-
-	ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
-	                << onHailDriver->getParent()->getDatabaseId() << ": Begin driving to taxi stand at link "
-	                << taxiStandLink->getLinkId() << " from the current node " << currNode->getNodeId()
-	                << " and link " << (currLink ? currLink->getLinkId() : 0) << endl;
 #endif
 
 	std::vector<const SegmentStats *> routeSegStats;
@@ -294,6 +289,11 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 	pathMover.resetPath(routeSegStats);
 	onHailDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_TO_TAXISTAND);
 	onHailDriver->behaviour->resetQueuingStintTime();
+
+	ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
+	                << onHailDriver->getParent()->getDatabaseId() << ": Begin driving to taxi stand at link "
+	                << taxiStandLink->getLinkId() << " from the current node " << currNode->getNodeId()
+	                << " and link " << (currLink ? currLink->getLinkId() : 0) << endl;
 }
 
 void OnHailDriverMovement::beginCruising(const Node *node)
@@ -326,11 +326,6 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 		msg << (currLink ? currLink->getLinkId() : 0);
 		throw no_path_error(msg.str());
 	}
-
-	ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
-	                << onHailDriver->getParent()->getDatabaseId() << ": Begin cruising from node "
-	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-	                << " to node " << node->getNodeId() << endl;
 #endif
 
 	std::vector<const SegmentStats *> routeSegStats;
@@ -338,6 +333,11 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 	pathMover.resetPath(routeSegStats);
 	onHailDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
 	onHailDriver->behaviour->resetCruisingStintTime();
+
+	ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
+	                << onHailDriver->getParent()->getDatabaseId() << ": Begin cruising from node "
+	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+	                << " to node " << node->getNodeId() << endl;
 }
 
 void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
@@ -372,17 +372,17 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 			msg << (currLink ? currLink->getLinkId() : 0);
 			throw no_path_error(msg.str());
 		}
-
-		ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
-		                << onHailDriver->getParent()->getDatabaseId() << ": Begin driving with pax from node "
-		                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-		                << " to node " << destination->getNodeId() << endl;
 #endif
 
 		std::vector<const SegmentStats *> routeSegStats;
 		pathMover.buildSegStatsPath(route, routeSegStats);
 		pathMover.resetPath(routeSegStats);
 		onHailDriver->setDriverStatus(DRIVE_WITH_PASSENGER);
+
+		ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
+		                << onHailDriver->getParent()->getDatabaseId() << ": Begin driving with pax from node "
+		                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+		                << " to node " << destination->getNodeId() << endl;
 	}
 	else
 	{

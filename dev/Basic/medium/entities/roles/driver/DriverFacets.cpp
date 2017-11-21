@@ -1098,6 +1098,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 	}
 	else
 	{
+		currLane = nullptr;
 		params.elapsedSeconds = params.secondsInTick;
 		parentDriver->parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
 	}

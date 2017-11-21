@@ -53,8 +53,10 @@ protected:
 
 	/**
 	 * This method enables the driver to continue cruising, one link at a time
+	 * @param fromNode the node the driver has reached when the defined path has been traversed
+	 * and wants to continue cruising
 	 */
-	void continueCruising();
+	void continueCruising(const Node *fromNode);
 
 	/**
 	 * This method parks the vehicle in the parking location

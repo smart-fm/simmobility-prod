@@ -19,6 +19,7 @@
 #include <iostream>
 #include <list>
 #include <queue>
+#include <conf/ConfigManager.hpp>
 #include "event/EventPublisher.hpp"
 #include "util/LangHelpers.hpp"
 #include "logging/Log.hpp"
@@ -513,7 +514,14 @@ void MessageBus::ThreadDispatchMessages() {
             if (entry.destination && entry.message.get()) {
                 ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->context);
                 if (!entry.processOnMainThread && context->threadId != destinationContext->threadId) {
-                    throw runtime_error("Thread contexts inconsistency.");
+                    //The recepient of the message has moved to a different thread context
+	                //This is possible in MT, but not in LT or ST
+	                if(ConfigManager::GetInstance().FullConfig().RunningMidTerm()) {
+		                //Forward the message to the correct thread
+		                PostMessage(entry.destination, entry.type, entry.message, entry.processOnMainThread);
+	                } else {
+		                throw runtime_error("Thread contexts inconsistency.");
+	                }
                 }
                 entry.destination->HandleMessage(entry.type, *(entry.message.get()));
             }

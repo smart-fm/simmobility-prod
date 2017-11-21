@@ -49,7 +49,7 @@ void OnCallDriverMovement::frame_init()
 
 	//In the beginning there is nothing to do, yet we require a path to begin moving.
 	//So cruise to a random node, by creating a default schedule
-	continueCruising();
+	continueCruising(currNode);
 
 	//Begin performing schedule.
 	performScheduleItem();
@@ -67,7 +67,8 @@ void OnCallDriverMovement::frame_tick()
 	{
 		if(pathMover.isEndOfPath())
 		{
-			continueCruising();
+			const Node *endOfPathNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
+			continueCruising(endOfPathNode);
 			performScheduleItem();
 		}
 		break;
@@ -96,7 +97,8 @@ std::string OnCallDriverMovement::frame_tick_output()
 bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 {
 	//Update the value of current node
-	currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getFromNode();
+	const Link *currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+	currNode = currLink->getFromNode();
 
 	if(pathMover.isEndOfPath())
 	{
@@ -104,7 +106,7 @@ bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		{
 		case CRUISING:
 		{
-			continueCruising();
+			continueCruising(currLink->getToNode());
 			performScheduleItem();
 			break;
 		}
@@ -154,7 +156,8 @@ void OnCallDriverMovement::performScheduleItem()
 
 		if(onCallDriver->driverSchedule.isScheduleCompleted())
 		{
-			continueCruising();
+			const Node *endOfPathNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
+			continueCruising(endOfPathNode);
 		}
 
 		//Get the current schedule item
@@ -413,10 +416,10 @@ void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
 	}
 }
 
-void OnCallDriverMovement::continueCruising()
+void OnCallDriverMovement::continueCruising(const Node *fromNode)
 {
 	//Cruise to a random node, by creating a default schedule
-	ScheduleItem cruise(CRUISE, onCallDriver->behaviour->chooseDownstreamNode(currNode));
+	ScheduleItem cruise(CRUISE, onCallDriver->behaviour->chooseDownstreamNode(fromNode));
 	Schedule schedule;
 	schedule.push_back(cruise);
 	onCallDriver->driverSchedule.setSchedule(schedule);
@@ -484,13 +487,13 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 			msg << "No downstream nodes are reachable from node " << fromNode->getNodeId();
 			throw runtime_error(msg.str());
 		}
+#endif
 
 		//Add all nodes that are reachable from the current lane to vector
 		for(auto it = itTurningsFromCurrLane->second.begin(); it != itTurningsFromCurrLane->second.end(); ++it)
 		{
 			reachableNodes.push_back(it->second->getToLane()->getParentSegment()->getParentLink()->getToNode());
 		}
-#endif
 	}
 	else
 	{

@@ -443,12 +443,9 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 
 	if (!nxtSegStat)
 	{
-
 		const SegmentStats* lastSeg = currSegStat ;
-
 		//vehicle is done
 		pathMover.advanceInPath();
-
 		if (pathMover.isPathCompleted())
 		{
 			const Link* currLink = currSegStat->getRoadSegment()->getParentLink();
@@ -461,10 +458,8 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
 			currLane = nullptr;
 			parentDriver->parent->setToBeRemoved();
-
 			// linkExitTime and segmentExitTime are equal for the last segment in the path.
 			updateScreenlineCounts(lastSeg, linkExitTime);
-
 		}
 		return false;
 	}

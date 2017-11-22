@@ -443,8 +443,12 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 
 	if (!nxtSegStat)
 	{
+
+		const SegmentStats* lastSeg = currSegStat ;
+
 		//vehicle is done
 		pathMover.advanceInPath();
+
 		if (pathMover.isPathCompleted())
 		{
 			const Link* currLink = currSegStat->getRoadSegment()->getParentLink();
@@ -457,6 +461,10 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
 			currLane = nullptr;
 			parentDriver->parent->setToBeRemoved();
+
+			// linkExitTime and segmentExitTime are equal for the last segment in the path.
+			updateScreenlineCounts(lastSeg, linkExitTime);
+
 		}
 		return false;
 	}
@@ -485,6 +493,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	}
 */
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - convertToSeconds(params.now.ms())); //in seconds
+
 
 	const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat);
 	if (canGoToNextRdSeg(params, nxtSegStat, nextLink))
@@ -1246,7 +1255,7 @@ void DriverMovement::updateScreenlineCounts(const SegmentStats* prevSegStat, dou
 	Person_MT *parent = parentDriver->parent;
 	const TripChainItem* tripChain = *(parent->currTripChainItem);
 	const std::string& travelMode = tripChain->getMode();
-	ScreenLineCounter::getInstance()->updateScreenLineCount(pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId(), segEnterExitTime, travelMode);
+	ScreenLineCounter::getInstance()->updateScreenLineCount(prevSegStat->getRoadSegment()->getRoadSegmentId(), segEnterExitTime, travelMode);
 }
 
 void DriverMovement::updateTrafficSensor(double oldPos, double newPos, double speed, double acceleration)

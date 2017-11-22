@@ -632,6 +632,10 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 
 		if (!nxtSegStat)
 		{
+
+			const SegmentStats* lastSeg = currSegStat ;
+
+
 			//vehicle is done
 			pathMover.advanceInPath();
 			if (pathMover.isPathCompleted())
@@ -646,6 +650,10 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
 				currLane = nullptr;
 				parentBusDriver->parent->setToBeRemoved();
+
+				// linkExitTime and segmentExitTime are equal for the last segment in the path.
+				updateScreenlineCounts(lastSeg, linkExitTime);
+
 			}
 			params.elapsedSeconds = params.secondsInTick;
 			return true;

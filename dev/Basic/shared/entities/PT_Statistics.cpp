@@ -318,10 +318,23 @@ void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
 
 	std::vector<std::string> lines;
 	boost::split(lines, personWaiting.busLines, boost::is_any_of("/"));
-	unsigned int personArrivalTime = personBoardingTime - personWaiting.waitingTime;
+	unsigned int personArrivalTime;
+	if (personWaiting.waitingTime >personBoardingTime) // This is the case when current tick crosses mid night time 00:00:00
+	{
+		personArrivalTime = (unsigned int )SECONDS_IN_DAY -(personWaiting.waitingTime - personBoardingTime);
+	}
+	else
+	{
+		personArrivalTime = personBoardingTime - personWaiting.waitingTime;
+	}
+
 	if(personArrivalTime > SECONDS_IN_DAY) // personWaiting.waitingTime > personWaiting.currentTime(from start of day)
 	{
-		throw std::runtime_error("invalid currentTime or waiting time passed with person waiting message");
+		std::stringstream msg;
+		msg << "Invalid currentTime or waiting time passed with person waiting message! "
+		    << "\npersonBoardingTime: " << personBoardingTime << ", waitingTime: " << personWaiting.waitingTime
+		    << "\npersonArrivalTime: " << personArrivalTime;
+		throw std::runtime_error(msg.str());
 	}
 	unsigned int interval = personArrivalTime / intervalWidth;
 	for(const std::string& line : lines)

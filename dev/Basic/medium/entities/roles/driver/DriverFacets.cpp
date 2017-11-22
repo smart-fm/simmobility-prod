@@ -489,7 +489,6 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 */
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - convertToSeconds(params.now.ms())); //in seconds
 
-
 	const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat);
 	if (canGoToNextRdSeg(params, nxtSegStat, nextLink))
 	{

@@ -240,6 +240,12 @@ private:
 
 	void processPathSetFileName(xercesc::DOMElement* node);
 
+	/**
+  * Process the trip chain output node in simrun_MidTerm.xml
+  * @param node is the node corresponding to the trip_chain_output element inside simrun_Midterm.xml file
+  */
+	void processTripChainOutputNode(xercesc::DOMElement* node);
+
     /**
      * Processes the travel modes element in config xml
      *

@@ -373,6 +373,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//before starting the groups, initialize the time interval for one of the pathset manager's helpers
 	PathSetManager::initTimeInterval();
 
+	Print() << "\nDay activity schedule source (store procedure): "
+	        << config.getDatabaseProcMappings().procedureMappings["day_activity_schedule"] << std::endl;
 	Print() << "\nSimulating...\n";
 
 	//Start work groups and all threads.

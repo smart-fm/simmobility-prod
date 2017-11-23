@@ -245,17 +245,17 @@ void OnCallDriverMovement::beginCruising(const Node *node)
 		msg << (currLink ? currLink->getLinkId() : 0);
 		throw no_path_error(msg.str());
 	}
-
-	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
-	                << onCallDriver->getParent()->getDatabaseId() << ": Begin cruising from node "
-	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-	                << " to node " << node->getNodeId() << endl;
 #endif
 
 	vector<const SegmentStats *> routeSegStats;
 	pathMover.buildSegStatsPath(route, routeSegStats);
 	pathMover.resetPath(routeSegStats);
 	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
+
+	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+	                << onCallDriver->getParent()->getDatabaseId() << ": Begin cruising from node "
+	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+	                << " to node " << node->getNodeId() << endl;
 }
 
 void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
@@ -353,11 +353,6 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 		msg << (currLink ? currLink->getLinkId() : 0);
 		throw no_path_error(msg.str());
 	}
-
-	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
-	                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving with passenger from node "
-	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-	                << " to drop off node " << dropOffNode->getNodeId() << endl;
 #endif
 
 	vector<const SegmentStats *> routeSegStats;
@@ -367,6 +362,11 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 
 	//Set vehicle to moving
 	onCallDriver->getResource()->setMoving(true);
+
+	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+	                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving with passenger from node "
+	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+	                << " to drop off node " << dropOffNode->getNodeId() << endl;
 }
 
 void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
@@ -398,17 +398,17 @@ void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
 			msg << (currLink ? currLink->getLinkId() : 0);
 			throw no_path_error(msg.str());
 		}
-
-		ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
-		                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving to park, from node "
-		                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-		                << " to parking node " << parkingNode->getNodeId() << endl;
 #endif
 
 		vector<const SegmentStats *> routeSegStats;
 		pathMover.buildSegStatsPath(route, routeSegStats);
 		pathMover.resetPath(routeSegStats);
 		onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_TO_PARKING);
+
+		ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+		                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving to park, from node "
+		                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+		                << " to parking node " << parkingNode->getNodeId() << endl;
 	}
 	else
 	{

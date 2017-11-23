@@ -40,6 +40,10 @@ Role<Person_ST>* Passenger::clone(Person_ST *parent) const
 	{
 		personRoleType = Role<Person_ST>::RL_PRIVATEBUSPASSENGER;
 	}
+    else if (parent->currSubTrip->getMode() == "Taxi" || parent->currSubTrip->getMode() == "SMS" || parent->currSubTrip->getMode() == "AMOD")
+    {
+        personRoleType = Role<Person_ST>::RL_TAXIPASSENGER;
+    }
 	else
 	{
 		std::stringstream msg;
@@ -98,6 +102,17 @@ void Passenger::collectTravelTime()
 	{
 		personTravelTime.mode = "ON_PBUS";
 	}
+    else if (roleType == Role<Person_ST>::RL_TAXIPASSENGER)
+    {
+        if((*(parent->currSubTrip)).travelMode == "TaxiTravel")
+        {
+            personTravelTime.mode = "ON_TAXI";
+        }
+        else if((*(parent->currSubTrip)).travelMode == "SMS_Taxi")
+        {
+            personTravelTime.mode = "ON_SMS_TAXI";
+        }
+    }
 	else
 	{
 		personTravelTime.mode = "ON_BUS";
@@ -111,18 +126,22 @@ void Passenger::HandleParentMessage(messaging::Message::MessageType type, const 
 {
 	switch(type)
 	{
-	case MSG_WAKEUP_MRT_PAX:
-	{
-		setAlightVehicle(true);
-		break;
-	}
-	
-	case MSG_WAKEUP_BUS_PAX:
-	{
-		const BusStopMessage &busStopMsg = MSG_CAST(BusStopMessage, message);
-		makeAlightingDecision(busStopMsg.nextStop, busStopMsg.busDriver);
-		break;
-	}
+        case MSG_WAKEUP_MRT_PAX:
+        {
+            setAlightVehicle(true);
+            break;
+        }
+
+        case MSG_WAKEUP_BUS_PAX:
+        {
+            const BusStopMessage &busStopMsg = MSG_CAST(BusStopMessage, message);
+            makeAlightingDecision(busStopMsg.nextStop, busStopMsg.busDriver);
+            break;
+        }
+        default:
+        {
+            break;
+        }
 	}
 }
 

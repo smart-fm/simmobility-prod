@@ -404,7 +404,11 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
 
 void ExpandShortTermConfigFile::loadPublicTransitNetworkFromDatabase()
 {
-	PT_NetworkCreater::init();
+    StoredProcedureMap procedureMap = cfg.getDatabaseProcMappings();
+    //Create default PT network
+    const std::string storedProcForVertex = procedureMap.procedureMappings["pt_vertices"];
+    const std::string storedProcForEdges = procedureMap.procedureMappings["pt_edges"];
+    PT_NetworkCreater::createNetwork(storedProcForVertex, storedProcForEdges);
 }
 
 void ExpandShortTermConfigFile::loadAMOD_Controller()

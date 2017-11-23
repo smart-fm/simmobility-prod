@@ -8,6 +8,8 @@
 #include "entities/Person_ST.hpp"
 #include "entities/PT_Statistics.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "config/ST_Config.hpp"
+
 
 using namespace std;
 using namespace sim_mob;
@@ -23,9 +25,15 @@ Pedestrian::~Pedestrian()
 
 Role<Person_ST>* Pedestrian::clone(Person_ST *parent) const
 {
+    Role<Person_ST>::Type personRoleType = Role<Person_ST>::RL_PEDESTRIAN;
+    if (parent->currSubTrip->getMode() == "TravelPedestrian")
+    {
+        personRoleType = Role<Person_ST>::RL_TRAVELPEDESTRIAN;
+    }
+
 	PedestrianBehaviour *behaviour = new PedestrianBehaviour();
 	PedestrianMovement *movement = new PedestrianMovement();
-	Pedestrian *pedestrian = new Pedestrian(parent, behaviour, movement);
+    Pedestrian* pedestrian = new Pedestrian(parent, behaviour, movement,personRoleType,"Pedestrain_");
 	behaviour->setParentPedestrian(pedestrian);
 	movement->setParentPedestrian(pedestrian);
 	return pedestrian;

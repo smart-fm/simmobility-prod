@@ -411,7 +411,8 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	        << "\nNumber of trips/activities [demand] completed: " << config.numTripsCompleted << "\n";
 
 	size_t numActivities = 0, numBusDriver = 0, numCarPassenger = 0, numDriver = 0, numPassenger = 0, numPedestrian = 0;
-	size_t numPersons = 0, numPrivateBusPassenger = 0, numTrainPassenger = 0, numWaitBus = 0;
+	size_t numPersons = 0, numPrivateBusPassenger = 0, numTrainPassenger = 0, numWaitBus = 0, numTaxiPassenger=0;
+    size_t numTravelPedestrian = 0, numWaitTaxi = 0;
 
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it)
 	{
@@ -453,6 +454,12 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 				case Role<Person_ST>::RL_WAITBUSACTIVITY:
 					numWaitBus++;
 					break;
+                case Role<Person_ST>::RL_TAXIPASSENGER:
+                    numTaxiPassenger++;
+                    break;
+                case Role<Person_ST>::RL_TRAVELPEDESTRIAN:
+                    numTravelPedestrian++;
+                    break;
 				}
 			}
 		}
@@ -463,7 +470,9 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 			<< numCarPassenger << " CarPassengers,\t" << numDriver << " Drivers,\t"
 			<< numPassenger << " Passengers,\t" << numPedestrian << " Pedestrians,\t"
 			<< numPrivateBusPassenger << " PrivateBusPassenger,\t"
-			<< numTrainPassenger << " TrainPassengers,\t"	<< numWaitBus << " Waiting for bus\n";
+			<< numTrainPassenger << " TrainPassengers,\t"	<< numWaitBus << " Waiting for bus\t"
+            << numDriver << " Drivers,\n" << numPassenger << " Passengers,\n" << numPedestrian << " Pedestrians,\t"
+            << numTravelPedestrian << " Travel pedestrians,\n" ;
 
     if (config.numAgentsKilled > 0)
 	{

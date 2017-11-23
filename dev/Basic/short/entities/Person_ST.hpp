@@ -13,6 +13,7 @@
 #include "event/args/EventArgs.hpp"
 #include "event/EventListener.hpp"
 #include "event/EventPublisher.hpp"
+#include "entities/FleetController.hpp"
 
 namespace sim_mob
 {
@@ -48,12 +49,19 @@ private:
 
 	/**Stores the configuration properties of the agent loaded from the XML configuration file*/
 	std::map<std::string, std::string> configProperties;
-	
+
+    /**Used by confluxes to move the person for his tick duration across link and sub-trip boundaries*/
+    double remainingTimeThisTick;
+
+    /**Stores the service vehicle information*/
+    FleetController::FleetItem serviceVehicle;
 	/**
 	 * Converts the trips that have travel mode as bus travel into a trip chain than contains the detailed public transit trip
 	 */
 	void convertPublicTransitODsToTrips();
-	
+
+    /**Alters trip chain in accordance to route choice for taxi trip*/
+    void convertToTaxiTrips();
 	/**
 	 * Inserts a waiting activity before bus travel
 	 */
@@ -71,7 +79,10 @@ private:
 	 * @return true, if the trip chain item is advanced
      */
 	bool advanceCurrentTripChainItem();
-	
+
+    /**Adds the walk and wait legs for the travel by smart mobility*/
+    void addWalkAndWaitLegs(std::vector<SubTrip> &subTrips, const std::vector<SubTrip>::iterator &itSubTrip,
+                            const Node *destination) const;
 	/**
 	 * Assigns a person waiting at a bus stop to the bus stop agent
 	 */
@@ -85,6 +96,8 @@ private:
 	{
 		regionAndPathTracker.enable();
 	}
+
+    void convertToSmartMobilityTrips();
 
 protected:
 	/**
@@ -300,6 +313,27 @@ public:
 	{
 		return this->rsTravelStats;
 	}
+    void setRemainingTimeThisTick(double remainingTimeThisTick)
+    {
+        this->remainingTimeThisTick = remainingTimeThisTick;
+    }
+    void setServiceVehicle(const FleetController::FleetItem &svcVehicle)
+    {
+        serviceVehicle = svcVehicle;
+    }
+
+    const FleetController::FleetItem& getServiceVehicle() const
+    {
+        return serviceVehicle;
+    }
+    const MobilityServiceDriver* exportServiceDriver() const
+    {
+        if(currRole)
+        {
+            return currRole->exportServiceDriver();
+        }
+        return nullptr;
+    }
 
 	SegmentTravelStats& startCurrRdSegTravelStat(const RoadSegment* rdSeg, double entryTime);
 

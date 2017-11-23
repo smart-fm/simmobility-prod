@@ -134,6 +134,12 @@ public:
 	const Node *chooseDownstreamNode(const Node *fromNode) const;
 
 	/**
+	 * This method chooses a random node
+	 * @return
+	 */
+	const Node *chooseRandomNode() const;
+
+	/**
 	 * Checks if the driver's shift has ended
 	 * @return true if the driver's shift has ended, false otherwise
 	 */

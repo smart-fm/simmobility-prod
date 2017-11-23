@@ -517,7 +517,27 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 
 	//Select one node from the reachable nodes at random
 	unsigned int random = Utils::generateInt(0, reachableNodes.size() - 1);
-	return reachableNodes[random];
+	const Node *selectedNode = reachableNodes[random];
+
+	//Check if we've selected a node which is the same as the fromNode
+	//This can happen when there are small loops in the network and we will fail to get an
+	//updated path
+	while(selectedNode == fromNode)
+	{
+		//Choose a random node anywhere in the network
+		selectedNode = chooseRandomNode();
+	}
+
+	return selectedNode;
+}
+
+const Node* OnCallDriverBehaviour::chooseRandomNode() const
+{
+	auto nodeMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
+	auto itRandomNode = nodeMap.begin();
+	advance(itRandomNode, Utils::generateInt(0, nodeMap.size() - 1));
+
+	return itRandomNode->second;
 }
 
 bool OnCallDriverBehaviour::hasDriverShiftEnded() const

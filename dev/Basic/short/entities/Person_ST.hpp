@@ -50,9 +50,6 @@ private:
 	/**Stores the configuration properties of the agent loaded from the XML configuration file*/
 	std::map<std::string, std::string> configProperties;
 
-    /**Used by confluxes to move the person for his tick duration across link and sub-trip boundaries*/
-    double remainingTimeThisTick;
-
     /**Stores the service vehicle information*/
     FleetController::FleetItem serviceVehicle;
 	/**
@@ -313,10 +310,7 @@ public:
 	{
 		return this->rsTravelStats;
 	}
-    void setRemainingTimeThisTick(double remainingTimeThisTick)
-    {
-        this->remainingTimeThisTick = remainingTimeThisTick;
-    }
+
     void setServiceVehicle(const FleetController::FleetItem &svcVehicle)
     {
         serviceVehicle = svcVehicle;

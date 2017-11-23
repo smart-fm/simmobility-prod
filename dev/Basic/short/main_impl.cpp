@@ -53,6 +53,8 @@
 #include "util/StateSwitcher.hpp"
 #include "util/Utils.hpp"
 #include "workers/WorkGroupManager.hpp"
+#include "entities/roles/waitTaxiActivity/WaitTaxiActivity.hpp"
+#include <entities/FleetController_ST.hpp>
 
 
 //Note: This must be the LAST include, so that other header files don't have
@@ -93,12 +95,12 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	Print() <<"Starting SimMobility, version " << SIMMOB_VERSION << endl;
 	DailyTime::initAllTimes();
 
-    ST_Config& stCfg = ST_Config::getInstance();
+	ST_Config& stCfg = ST_Config::getInstance();
 
 	//Parse the config file (this *does not* create anything, it just reads it.).
-    ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
 
-    ParseShortTermConfigFile stParse(shortConfigFile, ConfigManager::GetInstanceRW().FullConfig(), stCfg);
+	ParseShortTermConfigFile stParse(shortConfigFile, ConfigManager::GetInstanceRW().FullConfig(), stCfg);
 	
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
@@ -125,16 +127,16 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		prof = new ProfileBuilder();
 	}
 	
-    //Save a handle to the shared definition of the configuration.
-    const ConfigParams &config = ConfigManager::GetInstance().FullConfig();
-    const MutexStrategy &mtx = config.mutexStategy();
+	//Save a handle to the shared definition of the configuration.
+	const ConfigParams &config = ConfigManager::GetInstance().FullConfig();
+	const MutexStrategy &mtx = config.mutexStategy();
 
 	//Create an instance of role factory
 	RoleFactory<Person_ST> *rf = new RoleFactory<Person_ST>;
 	RoleFactory<Person_ST>::setInstance(rf);
 
 	//Register our Role types.
-    if (stCfg.commSimEnabled())
+	if (stCfg.commSimEnabled())
 	{
 		rf->registerRole("driver", new DriverComm(nullptr, mtx));
 	}
@@ -149,6 +151,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	rf->registerRole("activityRole", new ActivityPerformer<Person_ST>(nullptr));
 	rf->registerRole("waitBusActivity", new WaitBusActivity(nullptr));
 	rf->registerRole("taxidriver", new Driver(nullptr, mtx));
+	rf->registerRole("waitTaxiActivity", new WaitTaxiActivity(nullptr));
 
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
@@ -157,7 +160,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	Print() << "\nLoading the configuration files: " << configFileName << ", " << shortConfigFile << "..." << std::endl;
 	ExpandShortTermConfigFile expand(stCfg, ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 
-    if (config.PathSetMode())
+	if (config.PathSetMode())
 	{
 		//Initialise path-set manager
 		PrivateTrafficRouteChoice* pvtRtChoice = PrivateTrafficRouteChoice::getInstance();
@@ -228,7 +231,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	communicationWorkers->initWorkers(nullptr);
 
 	//If communication simulator is enabled, start the Broker.
-    if(stCfg.commSimEnabled())
+	if(stCfg.commSimEnabled())
 	{
 		//NOTE: I am fairly sure that MtxStrat_Locked is the wrong mutex strategy. However, Broker doesn't
 		//      register any buffered properties (except x/y, which Agent registers), and it never updates these.
@@ -285,6 +288,15 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	{
 		personWorkers->assignAWorker(FMOD::FMOD_Controller::instance());
 	}
+	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+	{
+		personWorkers->assignAWorker(FleetController_ST::getInstance());
+		auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+		for (auto it = controllers.begin(); it != controllers.end(); it++)
+		{
+			personWorkers->assignAWorker(it->second);
+		}
+	}
 
 	if(config.simulation.closedLoop.enabled)
 	{
@@ -322,7 +334,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	
 	for (unsigned int currTick = 0; currTick < endTick; currTick++) 
 	{
-        if (config.InteractiveMode())
+		if (config.InteractiveMode())
 		{
 			if(ctrlMgr->getSimState() == STOP) 
 			{
@@ -373,7 +385,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	gettimeofday(&loop_end_time, nullptr);
 	int loop_time = (int) ProfileBuilder::diff_ms(loop_end_time, loop_start_time);
 	Print() << "100%\n\nTime required to execute the simulation: "
-	        << DailyTime((uint32_t) loop_time).getStrRepr() << std::endl;
+			<< DailyTime((uint32_t) loop_time).getStrRepr() << std::endl;
 
 	//Finalize partition manager
 	if (!config.MPI_Disabled() && config.using_MPI) 
@@ -399,20 +411,20 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	}
 
 	Print() << "Time required for initialisation [Loading configuration, network, demand ...]: "
-	        << DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl;
+			<< DailyTime((uint32_t) loop_start_offset).getStrRepr() << std::endl;
 
 	if(config.numPathNotFound > 0)
 	{
 		Print() << "\nPersons not simulated as the path was not found [Refer to warn.log for more details]: "
-		        << config.numPathNotFound << endl;
+				<< config.numPathNotFound << endl;
 	}
 
 	Print() << "\nNumber of trips/activities [demand] loaded: " << config.numTripsLoaded
-	        << "\nNumber of trips/activities [demand] completed: " << config.numTripsCompleted << "\n";
+			<< "\nNumber of trips/activities [demand] completed: " << config.numTripsCompleted << "\n";
 
 	size_t numActivities = 0, numBusDriver = 0, numCarPassenger = 0, numDriver = 0, numPassenger = 0, numPedestrian = 0;
 	size_t numPersons = 0, numPrivateBusPassenger = 0, numTrainPassenger = 0, numWaitBus = 0, numTaxiPassenger=0;
-    size_t numTravelPedestrian = 0, numWaitTaxi = 0;
+	size_t numTravelPedestrian = 0, numWaitTaxi = 0;
 
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it)
 	{
@@ -454,12 +466,15 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 				case Role<Person_ST>::RL_WAITBUSACTIVITY:
 					numWaitBus++;
 					break;
-                case Role<Person_ST>::RL_TAXIPASSENGER:
-                    numTaxiPassenger++;
-                    break;
-                case Role<Person_ST>::RL_TRAVELPEDESTRIAN:
-                    numTravelPedestrian++;
-                    break;
+				case Role<Person_ST>::RL_TAXIPASSENGER:
+					numTaxiPassenger++;
+					break;
+				case Role<Person_ST>::RL_TRAVELPEDESTRIAN:
+					numTravelPedestrian++;
+					break;
+					case Role<Person_ST>::RL_WAITTAXIACTIVITY:
+						numWaitTaxi++;
+						break;
 				}
 			}
 		}
@@ -471,13 +486,13 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 			<< numPassenger << " Passengers,\t" << numPedestrian << " Pedestrians,\t"
 			<< numPrivateBusPassenger << " PrivateBusPassenger,\t"
 			<< numTrainPassenger << " TrainPassengers,\t"	<< numWaitBus << " Waiting for bus\t"
-            << numDriver << " Drivers,\n" << numPassenger << " Passengers,\n" << numPedestrian << " Pedestrians,\t"
-            << numTravelPedestrian << " Travel pedestrians,\n" ;
+			<< numPassenger << " Passengers,\t" << numPedestrian << " Pedestrians,\t"
+			<< numTravelPedestrian << " Travel pedestrians,\t"<< numWaitTaxi << " Waiting for Taxi,\t"<< numTaxiPassenger << " TaxiPassenger\n" ;
 
-    if (config.numAgentsKilled > 0)
+	if (config.numAgentsKilled > 0)
 	{
 		Print() << "\nAgents removed from simulation due to errors [Refer to warn.log for more details]: "
-		        << config.numAgentsKilled << endl;
+				<< config.numAgentsKilled << endl;
 	}
 
 	if (!Agent::pending_agents.empty()) 
@@ -491,7 +506,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	PT_Statistics::resetInstance();
 
 	//Save our output files if we are merging them later.
-    if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.mergeLogFiles)
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.mergeLogFiles)
 	{
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
@@ -561,8 +576,8 @@ int run_simmob_interactive_loop()
 			std::map<std::string,std::string> paras;
 			ctrlMgr->getLoadScenarioParas(paras);
 			std::string configFileName = paras["configFileName"];
-            std::string stConfigFile = paras["shortTermConfigFile"];
-            retVal = performMain(configFileName, stConfigFile, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
+			std::string stConfigFile = paras["shortTermConfigFile"];
+			retVal = performMain(configFileName, stConfigFile, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
 			ctrlMgr->setSimState(STOP);
 			ConfigManager::GetInstanceRW().reset();
 			Print() << "scenario finished" << std::endl;
@@ -585,9 +600,9 @@ int main_impl(int ARGC, char* ARGV[])
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
-    std::string shortConfigFile = "data/shortTerm.xml";
+	std::string shortConfigFile = "data/shortTerm.xml";
 	
-    if (args.size() > 2)
+	if (args.size() > 2)
 	{
 		configFileName = args[1];
 		shortConfigFile = args[2];
@@ -673,7 +688,7 @@ int main_impl(int ARGC, char* ARGV[])
 	{
 		returnVal = run_simmob_interactive_loop();
 	}
-    else
+	else
 	{
 		returnVal = performMain(configFileName, shortConfigFile, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
 	}

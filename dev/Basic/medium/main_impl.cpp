@@ -373,6 +373,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//before starting the groups, initialize the time interval for one of the pathset manager's helpers
 	PathSetManager::initTimeInterval();
 
+	Print() << "\nDay activity schedule source (store procedure): "
+	        << config.getDatabaseProcMappings().procedureMappings["day_activity_schedule"] << std::endl;
 	Print() << "\nSimulating...\n";
 
 	//Start work groups and all threads.
@@ -718,7 +720,9 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 	}
     else if (MT_Config::getInstance().RunningMidDemand())
 	{
-		Print() << "Mid-term run mode: preday\n" << endl;
+		Print() << "Mid-term run mode: preday" << endl;
+		Print() << "Number of threads: " << MT_Config::getInstance().getNumPredayThreads()
+		        << std::endl << std::endl;
 		return performMainDemand();
 	}
 	else

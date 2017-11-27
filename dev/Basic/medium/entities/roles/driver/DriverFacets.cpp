@@ -1247,6 +1247,11 @@ void DriverMovement::updateLinkTravelTimes(const SegmentStats* prevSegStat, doub
 
 void DriverMovement::updateScreenlineCounts(const SegmentStats* prevSegStat, double segEnterExitTime)
 {
+	MT_Config& mtConfig = MT_Config::getInstance();
+	if(!mtConfig.screenLineParams.outputEnabled) //double check for SceenLine Enabled
+	{
+		return;
+	}
 	Person_MT *parent = parentDriver->parent;
 	const TripChainItem* tripChain = *(parent->currTripChainItem);
 	const std::string& travelMode = tripChain->getMode();

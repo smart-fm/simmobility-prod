@@ -100,9 +100,7 @@ void ScreenLineCounter::updateScreenLineCount(unsigned int segId, double entryTi
     {
         return;
     }
-    //TimeInterval timeInterval = ScreenLineCounter::getTimeInterval(entryTimeSec + (double)simStartTime.getValue()/1000);
     TimeInterval timeInterval = ScreenLineCounter::getTimeInterval(entryTimeSec);
-
     {
 		boost::unique_lock<boost::mutex> lock(instanceMutex);
 		screenlineMap[timeInterval][segId][travelMode].count++; //increment count for the relevant time interval, segment and mode

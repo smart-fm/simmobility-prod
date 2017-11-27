@@ -317,7 +317,14 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	const MT_Config& mtConfig = MT_Config::getInstance();
 
 	PeriodicPersonLoader* periodicPersonLoader = new MT_PersonLoader(Agent::all_agents, Agent::pending_agents);
-	const ScreenLineCounter* screenLnCtr = ScreenLineCounter::getInstance(); //This line is necessary. It creates the singleton ScreenlineCounter object before any workers are created.
+
+	//ScreenLineCounter initialization before Worker creation
+	ScreenLineCounter* screenLnCtr = nullptr;
+	if(mtConfig.screenLineParams.outputEnabled)
+	{
+		screenLnCtr = ScreenLineCounter::getInstance(); //This line is necessary. It creates the singleton ScreenlineCounter object before any workers are created.
+	}
+
 	WithindayModelsHelper::loadZones(); //load zone information from db
 
 	{ //Begin scope: WorkGroups
@@ -594,7 +601,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}  //End scope: WorkGroups.
 
     //Save screen line counts
-    if(mtConfig.screenLineParams.outputEnabled)
+    if(screenLnCtr)
     {
         screenLnCtr->exportScreenLineCount();
     }

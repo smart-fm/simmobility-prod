@@ -1,4 +1,4 @@
-<?xml version="1.1" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 
@@ -48,7 +48,6 @@
 	    <mapping name="pt_mrt_block_polyline" procedure="get_pt_train_block_polylines()"/>
 	    <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
 	    <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
-	    <mapping name="mrt_road_segments" procedure="get_pt_train_segments()"/>
 	    <!-- ERP (Electronic Road Pricing) Related stored procedures-->
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
@@ -66,7 +65,7 @@
 
         <!-- Singapore network -->
 
-        <proc_map id="withinday" format="aimsun">
+        <proc_map id="singapore" format="aimsun">
 	    <!-- Road Network Related stored procedures-->
             <mapping name="nodes" procedure="get_test_singapore_nodes()"/>
             <mapping name="links" procedure="get_singapore_links()"/>
@@ -128,7 +127,7 @@
 
     <system>
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
-        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="withinday"/>
+        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="simmobcity"/>
         <population_database  database="fm_hpchead" credentials="fm_hpchead" proc_map=""/>
 
         <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->

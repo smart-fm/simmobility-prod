@@ -211,7 +211,7 @@ private:
 	 * Threaded logsum computation for calibration
 	 * Loops through all elements in personList within the specified range and
 	 * invokes logsum computations for each of them.
-	 * This function does not update new logsums in mongodb. Updates only in memory.
+	 * This function does not update new logsums in DB. Updates only in memory.
 	 *
 	 * @param first personList iterator corresponding to the first person to be
 	 * 				processed

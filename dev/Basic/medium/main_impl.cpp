@@ -674,6 +674,53 @@ bool performMainDemand()
 	return true;
 }
 
+bool performMidFullLoop(const std::string& configFileName, std::list<std::string>& resLogFiles)
+{
+	Print() << "Mid-Term demand: Started\n";
+
+	PredayManager predayManager;
+	predayManager.loadZones();
+	predayManager.loadCosts();
+	predayManager.loadPersonIds();
+	predayManager.loadUnavailableODs();
+
+
+	Print() << "LogSum computation: Started\n";
+	predayManager.runLogSumComputation();
+	Print() << "LogSum computation: Completed\n";
+
+    predayManager.loadZoneNodes();
+    predayManager.loadPostcodeNodeMapping();
+    PersonParams::removeInvalidAddress();
+
+	Print() << "Preday simulation: Started\n";
+	predayManager.runPredaySimulation();
+	Print() << "Preday simulation: Completed\n";
+
+	Print() << "Update Day Activity Schedule: Started\n";
+	predayManager.updateDayActivityScheduleTable();
+	Print() << "Update Day Activity Schedule: Completed\n";
+
+	Print() << "Mid-Term demand: Completed\n";
+
+	Print() << "Mid-Term supply: Started\n";
+	performMainSupply(configFileName, resLogFiles);
+
+	/*Print() << "Update historical travel time: Started\n";
+	TravelTimeManager::getInstance()->feedbackLinkTravelTime();
+	Print() << "Update historical travel time: Completed\n";
+
+	Print() << "Subtrip metrics feedback: Started\n";
+	std::string stFeedbackCmd = "python scripts/python/TravelTimeAggregator.py " +
+								ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput;
+	int res = std::system(stFeedbackCmd.c_str());
+	Print() << "Subtrip metrics feedback: Completed\n";*/
+
+	Print() << "Mid-Term supply: Completed\n";
+
+	return true;
+}
+
 /**
  * Main simulation loop.
  * \note
@@ -703,7 +750,9 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 	//load configuration file for mid-term
 	ParseMidTermConfigFile parseMT_Cfg(mtConfigFileName, MT_Config::getInstance(), ConfigManager::GetInstanceRW().FullConfig());
 
-	//Enable or disable logging (all together, for now).
+	Print() << "Number of threads: befrore the wrong one " << MT_Config::getInstance().getNumPredayThreads()
+			<< std::endl << std::endl;
+	//Enable or dgetindividualids_nishant_1000isable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
 	//      has been loaded or not. The new Config class makes this much clearer.
@@ -731,6 +780,13 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 		Print() << "Number of threads: " << MT_Config::getInstance().getNumPredayThreads()
 		        << std::endl << std::endl;
 		return performMainDemand();
+	}
+	else if (MT_Config::getInstance().RunningMidFullLoop())
+	{
+		Print() << "Mid-term run mode: Full" << endl;
+		Print() << "Number of threads: " << MT_Config::getInstance().getNumPredayThreads()
+				<< std::endl << std::endl;
+		return performMidFullLoop(configFileName, resLogFiles);
 	}
 	else
 	{

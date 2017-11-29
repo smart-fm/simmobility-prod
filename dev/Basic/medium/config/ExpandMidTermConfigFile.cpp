@@ -54,7 +54,7 @@ void ExpandMidTermConfigFile::processConfig()
 
 	TravelTimeManager::getInstance()->loadTravelTimes();
 
-    if (mtCfg.RunningMidSupply() && mtCfg.isRegionRestrictionEnabled())
+	if ((mtCfg.RunningMidSupply() || mtCfg.RunningMidFullLoop()) && mtCfg.isRegionRestrictionEnabled())
     {
         RestrictedRegion::getInstance().populate();
     }
@@ -91,7 +91,7 @@ void ExpandMidTermConfigFile::processConfig()
     }
 
     //check each segment's capacity
-    if(!RoadNetwork::getInstance()->checkSegmentCapacity() && mtCfg.RunningMidSupply())
+    if(!RoadNetwork::getInstance()->checkSegmentCapacity() && (mtCfg.RunningMidSupply() || mtCfg.RunningMidFullLoop()))
     {
     	throw std::runtime_error("some segments have no capacity!");
     }
@@ -99,7 +99,7 @@ void ExpandMidTermConfigFile::processConfig()
     //TODO: put its option in config xml
     //generateOD("/home/fm-simmobility/vahid/OD.txt", "/home/fm-simmobility/vahid/ODs.xml");
     //Process Confluxes if required
-    if (mtCfg.RunningMidSupply())
+    if (mtCfg.RunningMidSupply() || mtCfg.RunningMidFullLoop())
     {
         size_t sizeBefore = mtCfg.getConfluxes().size();
         Conflux::CreateConfluxes();

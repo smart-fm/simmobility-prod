@@ -150,6 +150,12 @@ public:
 	 */
 	void dispatchLT_Persons();
 
+	void runLogSumComputation();
+
+	void runPredaySimulation();
+
+	void updateDayActivityScheduleTable();
+
 	/**
 	 * preday calibration function
 	 */

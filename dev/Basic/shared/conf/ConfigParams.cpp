@@ -367,6 +367,25 @@ void ConfigParams::setLinkTravelTimesFile(const string &linkTravelTimesFile)
 	ConfigParams::linkTravelTimesFile = linkTravelTimesFile;
 }
 
+void ConfigParams::setLinkTravelTimeFeedback(const bool value)
+{
+	ConfigParams::linktravelTimeFeedbackEnabled = value;
+}
+
+void ConfigParams::setAlphaValueForLinkTTFeedback(const float alpha)
+{
+	ConfigParams::alphaForLinkTTFeedback = alpha;
+}
+
+bool ConfigParams::isLinkTravelTimeFeedbackEnabled()
+{
+	return ConfigParams::linktravelTimeFeedbackEnabled ;
+}
+
+float ConfigParams::getAlphaValueForLinkTTFeedback()
+{
+	return ConfigParams::alphaForLinkTTFeedback ;
+}
 
 const std::string &ConfigParams::getTravelModeStr(int travelModeId) const
 {

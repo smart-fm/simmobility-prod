@@ -2,13 +2,13 @@ import argparse
 import datetime
 import csv
 import psycopg2
-
+import os
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ constants ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 DB_HOST = '172.25.184.48'
 DB_PORT = '5432'
 DB_USER = 'postgres'
 DB_PASSWORD = '5M_S1mM0bility'
-DB_NAME = 'simmobility_virtualcity'
+DB_NAME = 'simmobcity'
 
 ZONE_TABLE = 'demand.taz_2012'
 AM_COSTS_TABLE = 'demand.learned_amcosts'

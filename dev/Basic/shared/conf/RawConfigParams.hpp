@@ -483,7 +483,7 @@ struct PathSetConf
     /// supply link travel time file name
     std::string supplyLinkFile;
 
-    /// realtime travel time table name
+    /// historical travel time table name
     std::string RTTT_Conf;
 
     /// default travel time table name
@@ -745,6 +745,9 @@ public:
 
     /// subtrip level travel metrics output enabled
     bool subTripTravelTimeEnabled;
+
+    /// subtrip level zone to zone travel time feedback enabled
+    bool isSubtripTravelTimeFeedbackEnabled;
 
     /// subtrip level travel metrics output file
     std::string subTripLevelTravelTimeOutput;

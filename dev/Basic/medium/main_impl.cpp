@@ -81,6 +81,7 @@
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if output is disabled.
 #include <iostream>
+#include <path/ParsePathXmlConfig.hpp>
 
 using std::cout;
 using std::endl;
@@ -264,11 +265,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//NOTE: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not okay.
 	const MutexStrategy& mtx = ConfigManager::GetInstance().FullConfig().mutexStategy();
-	
+
 	//Create an instance of role factory
 	RoleFactory<Person_MT>* rf = new RoleFactory<Person_MT>();
 	RoleFactory<Person_MT>::setInstance(rf);
-	
+
 	rf->registerRole("driver", new sim_mob::medium::Driver(nullptr));
 	rf->registerRole("activityRole", new sim_mob::ActivityPerformer<Person_MT>(nullptr));
 	rf->registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, mtx));
@@ -451,7 +452,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 				delete ag;
 			}
 		}
-		
+
 		unsigned long currTimeMS = currTick * config.baseGranMS();
 
 		//Check if we are running in closed loop with DynaMIT
@@ -623,10 +624,37 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	safe_delete_item(periodicPersonLoader);
 	cout << "\nSimulation complete. Closing worker threads...\n" << endl;
 
+	// updating the travel time tables if feed back is enabled
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	if (cfg.isLinkTravelTimeFeedbackEnabled())
+	{
+
+		std::string historicalTTtableName = ConfigManager::GetInstance().FullConfig().getRTTT();
+		std::string pathTolinkTTfile = cfg.getLinkTravelTimesFile();
+		float alpha = cfg.getAlphaValueForLinkTTFeedback();
+
+		Print() << "Update historical travel time: Started\n";
+		std::string linkTTupdateCmd = "python scripts/python/upsert_link_travel_time.py " +
+				             pathTolinkTTfile + " " + historicalTTtableName + " " + std::to_string(alpha);
+		int res = std::system(linkTTupdateCmd.c_str());
+		Print() << "Update historical travel time: Completed\n";
+	}
+
+	if (cfg.isSubtripTravelTimeFeedbackEnabled)
+	{
+		Print() << "Subtrip metrics feedback: Started\n";
+		std::string stFeedbackCmd = "python scripts/python/TravelTimeAggregator.py " +
+                                    ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput;
+		std::cout <<"The python command " <<stFeedbackCmd<<"\n";
+		int res = std::system(stFeedbackCmd.c_str());
+		Print() << "Subtrip metrics feedback: Completed\n";
+	}
+
 	//Delete our profile pointer (if it exists)
 	safe_delete_item(prof);
 	return true;
 }
+
 
 /**
  * The preday demand simulator
@@ -676,6 +704,7 @@ bool performMainDemand()
 
 bool performMidFullLoop(const std::string& configFileName, std::list<std::string>& resLogFiles)
 {
+
 	Print() << "Mid-Term demand: Started\n";
 
 	PredayManager predayManager;
@@ -709,16 +738,6 @@ bool performMidFullLoop(const std::string& configFileName, std::list<std::string
 
 	Print() << "Mid-Term supply: Started\n";
 	performMainSupply(configFileName, resLogFiles);
-
-	/*Print() << "Update historical travel time: Started\n";
-	TravelTimeManager::getInstance()->feedbackLinkTravelTime();
-	Print() << "Update historical travel time: Completed\n";
-
-	Print() << "Subtrip metrics feedback: Started\n";
-	std::string stFeedbackCmd = "python scripts/python/TravelTimeAggregator.py " +
-								ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput;
-	int res = std::system(stFeedbackCmd.c_str());
-	Print() << "Subtrip metrics feedback: Completed\n";*/
 
 	Print() << "Mid-Term supply: Completed\n";
 
@@ -754,8 +773,6 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 	//load configuration file for mid-term
 	ParseMidTermConfigFile parseMT_Cfg(mtConfigFileName, MT_Config::getInstance(), ConfigManager::GetInstanceRW().FullConfig());
 
-	Print() << "Number of threads: befrore the wrong one " << MT_Config::getInstance().getNumPredayThreads()
-			<< std::endl << std::endl;
 	//Enable or dgetindividualids_nishant_1000isable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
@@ -794,7 +811,7 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 	}
 	else
 	{
-		throw std::runtime_error("Invalid Mid-term run mode. Admissible values are \"demand\" and \"supply\"");
+		throw std::runtime_error("Invalid Mid-term run mode. Admissible values are \"demand\", \"supply\" and \"full\" ");
 	}
 }
 

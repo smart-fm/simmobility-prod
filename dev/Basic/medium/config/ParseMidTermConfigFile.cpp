@@ -304,6 +304,12 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 	child = GetSingleElementByName(node, "link_travel_time", true);
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
 	cfg.setLinkTravelTimesFile(value);
+	cfg.setLinkTravelTimeFeedback(ParseBoolean(GetNamedAttributeValue(child, "feedback")));
+	if (cfg.isLinkTravelTimeFeedbackEnabled())
+	{
+		cfg.setAlphaValueForLinkTTFeedback(ParseFloat(GetNamedAttributeValue(child, "alpha")));
+	}
+
 }
 
 void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* node)
@@ -578,6 +584,10 @@ void ParseMidTermConfigFile::processSubtripTravelMetricsOutputNode(xercesc::DOME
 			cfg.subTripTravelTimeEnabled = true;
 			cfg.subTripLevelTravelTimeOutput =
 					ParseString(GetNamedAttributeValue(node, "file"), "subtrip_travel_times.csv");
+			if(ParseBoolean(GetNamedAttributeValue(node, "feedback")))
+			{
+				cfg.isSubtripTravelTimeFeedbackEnabled = true;
+			}
 		}
 	}
 }

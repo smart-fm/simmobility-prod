@@ -156,6 +156,9 @@ public:
 
 	void updateDayActivityScheduleTable();
 
+	void updateGetPersonBetweenStoredProc();
+
+
 	/**
 	 * preday calibration function
 	 */

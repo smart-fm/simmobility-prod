@@ -703,6 +703,10 @@ bool performMidFullLoop(const std::string& configFileName, std::list<std::string
 
 	Print() << "Mid-Term demand: Completed\n";
 
+	Print() << "Update getpersonsbetween stored procedure: Started\n";
+	predayManager.updateGetPersonBetweenStoredProc();
+	Print() << "Update getpersonsbetween stored procedure: Completed\n";
+
 	Print() << "Mid-Term supply: Started\n";
 	performMainSupply(configFileName, resLogFiles);
 

@@ -1045,6 +1045,50 @@ void PredayManager::updateDayActivityScheduleTable()
 	sql_.close();
 }
 
+void PredayManager::updateGetPersonBetweenStoredProc()
+{
+	MT_Config& mtCfg = MT_Config::getInstance();
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+
+	std::string tableName = mtCfg.dasConfig.schema + "." + mtCfg.dasConfig.table;
+	std::string storedProcName = cfg.getDatabaseProcMappings().procedureMappings["day_activity_schedule"];
+
+	soci::session sql_(soci::postgresql, ConfigManager::GetInstanceRW().FullConfig().getDatabaseConnectionString(false));
+	/// Delete the stored proc if it already exists
+	soci::statement query = (sql_.prepare << "DROP FUNCTION IF EXISTS " << storedProcName << "(numeric, numeric)");
+
+	query.execute();
+
+
+	/// Create the table
+	query = (sql_.prepare << "CREATE OR REPLACE FUNCTION " << storedProcName<< "("
+								" IN start_time numeric,"
+								" IN end_time numeric)"
+								" RETURNS TABLE(person_id character varying, tour_no integer, "
+								" tour_type character varying, stop_no integer, stop_type character"
+								" varying, stop_location integer, stop_mode character varying, "
+								" primary_stop boolean, arrival_time numeric, departure_time numeric,"
+								" prev_stop_location integer, prev_stop_departure_time numeric, "
+								" prev_stop_taz integer, stop_taz integer) AS"
+								" $BODY$ "
+								" select person_id, tour_no, tour_type, stop_no, stop_type, stop_location, stop_mode, primary_stop, arrival_time, "
+								" departure_time, prev_stop_location, prev_stop_departure_time, prev_stop_zone, stop_zone"
+								" from " << tableName <<
+								" where person_id in (select person_id from " << tableName<<" where prev_stop_departure_time between $1 and $2 and tour_no = 1 and stop_no = 1) "
+                                " order  by person_id, tour_no, stop_no"
+								" $BODY$ "
+								" LANGUAGE sql volatile");
+
+
+	query.execute();
+
+	/// Alter table owner
+	query = (sql_.prepare << "ALTER FUNCTION " << storedProcName << "(numeric, numeric) OWNER TO postgres");
+	query.execute();
+
+	sql_.close();
+}
+
 void sim_mob::medium::PredayManager::distributeAndProcessForCalibration(threadedFnPtr fnPtr)
 {
 	boost::thread_group threadGroup;

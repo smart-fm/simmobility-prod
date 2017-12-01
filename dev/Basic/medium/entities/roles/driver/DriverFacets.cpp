@@ -697,17 +697,16 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 		}
 		else
 		{
-			DebugStream << "Driver " << parentDriver->parent->getId()
-					<< "was neither in virtual queue nor in previous segment!"
-					<< "\ndriver| segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
-					<< "|id: " << pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
-					<< "|lane: " << currLane->getLaneId()
-					<< "\nPerson| segment: " << parentDriver->parent->getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
-					<< "|id: " << parentDriver->parent->getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
-					<< "|lane: " << (parentDriver->parent->getCurrLane() ? parentDriver->parent->getCurrLane()->getLaneId() : 0)
-					<< std::endl;
-
-			throw::std::runtime_error(DebugStream.str());
+			/**
+			 * Person is in the virtual queue, but the path changed while there. As a result the
+			 * next seg stats from the path mover no longer matches the current seg stats stored
+			 * in the person object (the one we have permission to move to)
+			 * We must now, get permission for the the new next segment
+			 */
+			parentDriver->parent->requestedNextSegStats = pathMover.getNextSegStats(false);
+			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
+			currLane = nullptr;
+			return;
 		}
 		params.elapsedSeconds = params.secondsInTick;
 		parentDriver->parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)

@@ -387,6 +387,23 @@ void OnCallDriver::dropoffPassenger()
 
 void OnCallDriver::endShift()
 {
+	auto currItem = driverSchedule.getCurrScheduleItem();
+
+	//Check if we are in the middle of a schedule
+	if(currItem->scheduleItemType != CRUISE && currItem->scheduleItemType != PARK)
+	{
+		return;
+	}
+
+	//Notify the controller(s)
+	for(auto ctrlr : subscribedControllers)
+	{
+		MessageBus::PostMessage(ctrlr, MSG_DRIVER_SHIFT_END,
+		                        MessageBus::MessagePtr(new DriverShiftCompleted(parent)));
+	}
+
+	isWaitingForUnsubscribeAck = true;
+
 	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
 	                << parent->getDatabaseId() << ": Shift ended"  << endl;
 }

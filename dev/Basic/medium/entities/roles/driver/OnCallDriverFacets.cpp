@@ -203,6 +203,14 @@ void OnCallDriverMovement::performScheduleItem()
 		{
 			//Drive to parking node
 			beginDriveToParkingNode(itScheduleItem->parking->getAccessNode());
+
+			//We need to call the beginDriveToParkingNode method above even if the shift has ended,
+			//this is to allow the driver to notify the controller and receive a unsubscribe successful
+			//reply
+			if(hasShiftEnded && !onCallDriver->isWaitingForUnsubscribeAck)
+			{
+				onCallDriver->endShift();
+			}
 			break;
 		}
 		}

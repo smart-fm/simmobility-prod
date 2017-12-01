@@ -36,6 +36,9 @@ protected:
 	 * regarding successful unsubscription*/
 	bool isWaitingForUnsubscribeAck;
 
+	/**Indicates that the schedule has been set or updated by the controller*/
+	bool isScheduleUpdated;
+
 	/**Wrapper for the schedule that has been given by the controller. */
 	struct DriverSchedule
 	{

@@ -61,6 +61,14 @@ void OnCallDriverMovement::frame_init()
 
 void OnCallDriverMovement::frame_tick()
 {
+	if(onCallDriver->isScheduleUpdated)
+	{
+		performScheduleItem();
+
+		//Reset the value
+		onCallDriver->isScheduleUpdated = false;
+	}
+
 	switch (onCallDriver->getDriverStatus())
 	{
 	case CRUISING:

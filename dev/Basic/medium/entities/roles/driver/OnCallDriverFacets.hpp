@@ -24,6 +24,11 @@ private:
 
 protected:
 	/**
+	 * This method allows us to perform the task in the assigned schedule
+	 */
+	virtual void performScheduleItem();
+
+	/**
 	 * This method looks up the path for driving to the node from the current
 	 * position and begins the drive towards it
 	 * @param node the chosen node to cruise to
@@ -92,11 +97,6 @@ public:
 	 * @return true if successfully moved to next segment, false otherwise
 	 */
 	virtual bool moveToNextSegment(DriverUpdateParams &params);
-
-	/**
-	 * This method allows us to perform the task in the assigned schedule
-	 */
-	virtual void performScheduleItem();
 
 	void setOnCallDriver(OnCallDriver *driver)
 	{

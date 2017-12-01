@@ -13,7 +13,7 @@ using namespace std;
 OnCallDriver::OnCallDriver(Person_MT *parent, const MutexStrategy &mtx, OnCallDriverBehaviour *behaviour,
                            OnCallDriverMovement *movement, string roleName, Type roleType) :
 		Driver(parent, behaviour, movement, roleName, roleType), movement(movement), behaviour(behaviour),
-		isWaitingForUnsubscribeAck(false)
+		isWaitingForUnsubscribeAck(false), isScheduleUpdated(false)
 {
 }
 
@@ -65,7 +65,10 @@ void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, con
 	{
 		const SchedulePropositionMessage &msg = MSG_CAST(SchedulePropositionMessage, message);
 		driverSchedule.setSchedule(msg.getSchedule());
-		movement->performScheduleItem();
+
+		//Set the schedule updated to true, so that we perform the schedule item during the
+		//frame tick
+		isScheduleUpdated = true;
 		break;
 	}
 	case MSG_SCHEDULE_UPDATE:
@@ -80,7 +83,10 @@ void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, con
 		if(currentItemRescheduled(updatedSchedule))
 		{
 			driverSchedule.setSchedule(updatedSchedule);
-			movement->performScheduleItem();
+
+			//Set the schedule updated to true, so that we perform the schedule item during the
+			//frame tick
+			isScheduleUpdated = true;
 		}
 		else
 		{

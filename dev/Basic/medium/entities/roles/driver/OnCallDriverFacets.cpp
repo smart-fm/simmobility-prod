@@ -343,6 +343,15 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 
 	//Set vehicle to moving
 	onCallDriver->getResource()->setMoving(true);
+
+	//If we're exiting a parking, currLane would be null. So set it to lane infinity
+	if(!currLane)
+	{
+		auto currSegStats = pathMover.getCurrSegStats();
+		currLane = currSegStats->laneInfinity;
+		onCallDriver->getParent()->setCurrSegStats(currSegStats);
+		onCallDriver->getParent()->setCurrLane(currLane);
+	}
 }
 
 void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
@@ -398,6 +407,16 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 	                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving with passenger from node "
 	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
 	                << " to drop off node " << dropOffNode->getNodeId() << endl;
+
+	//If we're exiting a parking, currLane would be null. So set it to lane infinity
+	//Note: This is possible as the pick-up could have been at the parking node itself
+	if(!currLane)
+	{
+		auto currSegStats = pathMover.getCurrSegStats();
+		currLane = currSegStats->laneInfinity;
+		onCallDriver->getParent()->setCurrSegStats(currSegStats);
+		onCallDriver->getParent()->setCurrLane(currLane);
+	}
 }
 
 void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
@@ -490,6 +509,7 @@ void OnCallDriverMovement::parkVehicle(DriverUpdateParams &params)
 
 	//Clear the previous path. We will begin from the node
 	pathMover.eraseFullPath();
+	currLane = nullptr;
 
 	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
 	                << onCallDriver->getParent()->getDatabaseId() << ": Parked at node "

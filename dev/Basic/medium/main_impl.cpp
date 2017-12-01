@@ -624,6 +624,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	safe_delete_item(periodicPersonLoader);
 	cout << "\nSimulation complete. Closing worker threads...\n" << endl;
 
+	// flushing the subtrip_metrics csv stream to subtrip_metrics.csv.
+	sim_mob::BasicLogger& csv = sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput);
+	csv.flush();
+
 	// updating the travel time tables if feed back is enabled
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	if (cfg.isLinkTravelTimeFeedbackEnabled())

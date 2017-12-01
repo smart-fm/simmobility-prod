@@ -284,6 +284,8 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	const Link *currLink = nullptr;
 	bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
 
+	bool canPickPaxImmediately = false;
+
 	//If the driving path has already been set, we must find path to the node from
 	//the current segment
 	if(pathMover.isDrivingPathSet())
@@ -294,10 +296,23 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 		//We can pick the passenger up at this point
 		if(currLink->getToNode() == pickupNode)
 		{
-			onCallDriver->pickupPassenger();
-			performScheduleItem();
-			return;
+			canPickPaxImmediately = true;
 		}
+	}
+	else if(onCallDriver->getDriverStatus() == PARKED && currNode == pickupNode)
+	{
+		//In case the driver was parked, if the pickup location is the same as that of
+		//the parking node then we can pick up the passenger at this point
+		canPickPaxImmediately = true;
+	}
+
+	if(canPickPaxImmediately)
+	{
+		onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_ON_CALL);
+		onCallDriver->sendScheduleAckMessage(true);
+		onCallDriver->pickupPassenger();
+		performScheduleItem();
+		return;
 	}
 
 	//Get route to the node

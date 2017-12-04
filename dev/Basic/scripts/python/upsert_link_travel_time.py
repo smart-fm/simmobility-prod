@@ -74,15 +74,17 @@ with open('old_link_TTs') as f:
 differenceOfValues = []
 sumOfOldVals = 0
 updatedVals= {}
+oldValsForMean = []
 for key in oldVals:
     if key in newVals:
         updatedVals[key] = (1 - alpha) * oldVals[key] + alpha * newVals[key]
         differenceOfValues.append(oldVals[key] - newVals[key])
         sumOfOldVals += oldVals[key]
+        oldValsForMean.append(oldVals[key])
     else:
         updatedVals[key] = oldVals[key]
 
-rmsnForLinkTTupdate = np.sqrt(np.mean(np.square(differenceOfValues))) / (np.mean(sumOfOldVals))
+rmsnForLinkTTupdate = np.sqrt(np.mean(np.square(differenceOfValues))) / (np.mean(oldValsForMean))
 print 'RMSN value for link travel time update: ', rmsnForLinkTTupdate
 with open('RMSN_records_link_TT.txt','a') as f:
     f.write("RMSN value for differences in link travel times:"+ str(rmsnForLinkTTupdate ) + "\n")

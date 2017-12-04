@@ -19,7 +19,7 @@ TCOST_CAR_TABLE = 'demand.learned_tcost_car'
 TCOST_BUS_TABLE = 'demand.learned_tcost_bus'
 SUBTRIP_METRICS_TABLE = 'output.subtrip_metrics'
 
-HALF = 0.5
+ALPHA=0.8
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ helper functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #identify whether time is in AM peak period
@@ -400,29 +400,29 @@ class TT_Aggregator:
 					update_param_tuple = ()
 					update_query = "UPDATE " + AM_COSTS_TABLE + " SET" 
 					if newCarIvt > 0: 
-						update_query = update_query + " car_ivt=((%s + " + AM_COSTS_TABLE + ".car_ivt) * %s)" 
-						update_param_tuple = update_param_tuple + (newCarIvt, HALF)
+						update_query = update_query + " car_ivt=(%s * %s+ " + AM_COSTS_TABLE + ".car_ivt * %s)" 
+						update_param_tuple = update_param_tuple + (newCarIvt, ALPHA=0.8
 						prevCarIvtValues.append(self.oldValsCarsAMDict[(orgZ,desZ)])
 						currentCarIvtValues.append(newCarIvt)
 						comma_required = True
 					if newPubIvt > 0: 
 						if comma_required: 
 							update_query = update_query + ","
-						update_query = update_query + " pub_ivt=((%s + " + AM_COSTS_TABLE + ".pub_ivt) * %s)" 
-						update_param_tuple = update_param_tuple + (newPubIvt, HALF)
+						update_query = update_query + " pub_ivt=(%s * %s+ " + AM_COSTS_TABLE + ".pub_ivt * %s)" 
+						update_param_tuple = update_param_tuple + (newPubIvt,  ALPHA=0.8
 
 					comma_required = True
 					if newPubWtt > 0: 
 						if comma_required: 
 							update_query = update_query + ","
-						update_query = update_query + " pub_wtt=((%s + " + AM_COSTS_TABLE + ".pub_wtt) * %s)" 
-						update_param_tuple = update_param_tuple + (newPubWtt, HALF)
+						update_query = update_query + " pub_wtt=(%s * %s+ " + AM_COSTS_TABLE + ".pub_wtt * %s)" 
+						update_param_tuple = update_param_tuple + (newPubWtt,  ALPHA=0.8
 						comma_required = True
 					if newPubWalkt > 0: 
 						if comma_required: 
 							update_query = update_query + ","
-						update_query = update_query + " pub_walkt=((%s + " + AM_COSTS_TABLE + ".pub_walkt) * %s)" 
-						update_param_tuple = update_param_tuple + (newPubWalkt, HALF)
+						update_query = update_query + " pub_walkt=(%s * %s+ " + AM_COSTS_TABLE + ".pub_walkt * %s)" 
+						update_param_tuple = update_param_tuple + (newPubWalkt,  ALPHA=0.8
 					update_query = update_query + " WHERE origin_zone=%s and destination_zone=%s"
 					update_param_tuple = update_param_tuple + (orgZ, desZ)
 					cur.execute(update_query, update_param_tuple)
@@ -438,28 +438,28 @@ class TT_Aggregator:
 					update_param_tuple = ()
 					update_query = "UPDATE " + PM_COSTS_TABLE + " SET" 
 					if newCarIvt > 0: 
-						update_query = update_query + " car_ivt=((%s + " + PM_COSTS_TABLE + ".car_ivt) * %s)" 
-						update_param_tuple = update_param_tuple + (newCarIvt, HALF)
+						update_query = update_query + " car_ivt=(%s * %s+ " + PM_COSTS_TABLE + ".car_ivt * %s)" 
+						update_param_tuple = update_param_tuple + (newCarIvt,  ALPHA=0.8
 						prevCarIvtValues.append(self.oldValsCarsPMDict[(orgZ,desZ)])
 						currentCarIvtValues.append(newCarIvt)
 						comma_required = True
 					if newPubIvt > 0: 
 						if comma_required: 
 							update_query = update_query + ","
-						update_query = update_query + " pub_ivt=((%s + " + PM_COSTS_TABLE + ".pub_ivt) * %s)" 
-						update_param_tuple = update_param_tuple + (newPubIvt, HALF)
+						update_query = update_query + " pub_ivt=(%s * %s+ " + PM_COSTS_TABLE + ".pub_ivt * %s)" 
+						update_param_tuple = update_param_tuple + (newPubIvt,  ALPHA=0.8
 						comma_required = True
 					if newPubWtt > 0: 
 						if comma_required: 
 							update_query = update_query + ","
-						update_query = update_query + " pub_wtt=((%s + " + PM_COSTS_TABLE + ".pub_wtt) * %s)" 
-						update_param_tuple = update_param_tuple + (newPubWtt, HALF)
+						update_query = update_query + " pub_wtt=(%s * %s+ " + PM_COSTS_TABLE + ".pub_wtt * %s)" 
+						update_param_tuple = update_param_tuple + (newPubWtt,  ALPHA=0.8
 						comma_required = True
 					if newPubWalkt > 0: 
 						if comma_required: 
 							update_query = update_query + ","
-						update_query = update_query + " pub_walkt=((%s + " + PM_COSTS_TABLE + ".pub_walkt) * %s)" 
-						update_param_tuple = update_param_tuple + (newPubWalkt, HALF)
+						update_query = update_query + " pub_walkt=(%s * %s+ " + PM_COSTS_TABLE + ".pub_walkt * %s)" 
+						update_param_tuple = update_param_tuple + (newPubWalkt,  ALPHA=0.8
 					update_query = update_query + " WHERE origin_zone=%s and destination_zone=%s"
 					update_param_tuple = update_param_tuple + (orgZ, desZ)
 					cur.execute(update_query, update_param_tuple)
@@ -475,28 +475,28 @@ class TT_Aggregator:
 					update_param_tuple = ()
 					update_query = "UPDATE " + OP_COSTS_TABLE + " SET" 
 					if newCarIvt > 0: 
-						update_query = update_query + " car_ivt=((%s + " + OP_COSTS_TABLE + ".car_ivt) * %s)" 
-						update_param_tuple = update_param_tuple + (newCarIvt, HALF)
+						update_query = update_query + " car_ivt=(%s * %s+ " + OP_COSTS_TABLE + ".car_ivt * %s)" 
+						update_param_tuple = update_param_tuple + (newCarIvt,  ALPHA=0.8
 						prevCarIvtValues.append(self.oldValsCarsOPDict[(orgZ,desZ)])
 						currentCarIvtValues.append(newCarIvt)
 						comma_required = True
 					if newPubIvt > 0: 
 						if comma_required: 
 							update_query = update_query + ","
-						update_query = update_query + " pub_ivt=((%s + " + OP_COSTS_TABLE + ".pub_ivt) * %s)" 
-						update_param_tuple = update_param_tuple + (newPubIvt, HALF)
+						update_query = update_query + " pub_ivt=(%s * %s+ " + OP_COSTS_TABLE + ".pub_ivt * %s)" 
+						update_param_tuple = update_param_tuple + (newPubIvt,  ALPHA=0.8
 						comma_required = True
 					if newPubWtt > 0: 
 						if comma_required: 
 							update_query = update_query + ","
-						update_query = update_query + " pub_wtt=((%s + " + OP_COSTS_TABLE + ".pub_wtt) * %s)" 
-						update_param_tuple = update_param_tuple + (newPubWtt, HALF)
+						update_query = update_query + " pub_wtt=(%s * %s+ " + OP_COSTS_TABLE + ".pub_wtt * %s)" 
+						update_param_tuple = update_param_tuple + (newPubWtt,  ALPHA=0.8
 						comma_required = True
 					if newPubWalkt > 0: 
 						if comma_required: 
 							update_query = update_query + ","
-						update_query = update_query + " pub_walkt=((%s + " + OP_COSTS_TABLE + ".pub_walkt) * %s)" 
-						update_param_tuple = update_param_tuple + (newPubWalkt, HALF)
+						update_query = update_query + " pub_walkt=(%s * %s+ " + OP_COSTS_TABLE + ".pub_walkt * %s)" 
+						update_param_tuple = update_param_tuple + (newPubWalkt,  ALPHA=0.8
 					update_query = update_query + " WHERE origin_zone=%s and destination_zone=%s"
 					update_param_tuple = update_param_tuple + (orgZ, desZ)
 					cur.execute(update_query, update_param_tuple)
@@ -517,14 +517,14 @@ class TT_Aggregator:
 						if newTTCarArr > 0: 
 							if comma_required: 
 								update_query = update_query + ","
-							update_query = update_query + " " + arrival_col + "=((%s + " + TCOST_CAR_TABLE + "." + arrival_col + ") * %s)" 
-							update_param_tuple = update_param_tuple + (newTTCarArr, HALF)
+							update_query = update_query + " " + arrival_col + "=(%s * %s+ " + TCOST_CAR_TABLE + "." + arrival_col + " * %s)" 
+							update_param_tuple = update_param_tuple + (newTTCarArr,  ALPHA=0.8
 							comma_required = True
 						if newTTCarDep > 0: 
 							if comma_required: 
 								update_query = update_query + ","
-							update_query = update_query + " " + departure_col + "=((%s + " + TCOST_CAR_TABLE + "." + departure_col + ") * %s)" 
-							update_param_tuple = update_param_tuple + (newTTCarDep, HALF)
+							update_query = update_query + " " + departure_col + "=(%s * %s+ " + TCOST_CAR_TABLE + "." + departure_col + " * %s)" 
+							update_param_tuple = update_param_tuple + (newTTCarDep,  ALPHA=0.8
 							comma_required = True
 				if updatesAvailable:
 					update_query = update_query + " WHERE origin_zone=%s and destination_zone=%s"
@@ -546,14 +546,14 @@ class TT_Aggregator:
 						if newTTBusArr > 0: 
 							if comma_required: 
 								update_query = update_query + ","
-							update_query = update_query + " " + arrival_col + "=((%s + " + TCOST_BUS_TABLE + "." + arrival_col + ") * %s)" 
-							update_param_tuple = update_param_tuple + (newTTBusArr, HALF)
+							update_query = update_query + " " + arrival_col + "=(%s * %s+ " + TCOST_BUS_TABLE + "." + arrival_col + " * %s)" 
+							update_param_tuple = update_param_tuple + (newTTBusArr,  ALPHA=0.8
 							comma_required = True
 						if newTTBusDep > 0: 
 							if comma_required: 
 								update_query = update_query + ","
-							update_query = update_query + " " + departure_col + "=((%s + " + TCOST_BUS_TABLE + "." + departure_col + ") * %s)" 
-							update_param_tuple = update_param_tuple + (newTTBusDep, HALF)
+							update_query = update_query + " " + departure_col + "=(%s * %s+ " + TCOST_BUS_TABLE + "." + departure_col + " * %s)" 
+							update_param_tuple = update_param_tuple + (newTTBusDep,  ALPHA=0.8
 							comma_required = True
 				if updatesAvailable:
 					update_query = update_query + " WHERE origin_zone=%s and destination_zone=%s"

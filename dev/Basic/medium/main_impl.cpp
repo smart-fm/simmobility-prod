@@ -644,16 +644,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		Print() << "Update historical travel time: Completed\n";
 	}
 
-	if (cfg.isSubtripTravelTimeFeedbackEnabled)
-	{
-		Print() << "Subtrip metrics feedback: Started\n";
-		std::string stFeedbackCmd = "python scripts/python/TravelTimeAggregator.py " +
-                                    ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput;
-		std::cout <<"The python command " <<stFeedbackCmd<<"\n";
-		int res = std::system(stFeedbackCmd.c_str());
-		Print() << "Subtrip metrics feedback: Completed\n";
-	}
-
 	//Delete our profile pointer (if it exists)
 	safe_delete_item(prof);
 	return true;
@@ -744,6 +734,22 @@ bool performMidFullLoop(const std::string& configFileName, std::list<std::string
 	performMainSupply(configFileName, resLogFiles);
 
 	Print() << "Mid-Term supply: Completed\n";
+
+	// flushing the subtrip_metrics csv stream to subtrip_metrics.csv.
+	sim_mob::BasicLogger& csv = sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput);
+	csv.flush();
+
+	// updating the travel time tables if feed back is enabled
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+
+	if (cfg.isSubtripTravelTimeFeedbackEnabled)
+	{
+		Print() << "Subtrip metrics feedback: Started\n";
+		std::string stFeedbackCmd = "python scripts/python/TravelTimeAggregator.py " + ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput;
+		std::cout <<"The python command " <<stFeedbackCmd<<"\n";
+		int res = std::system(stFeedbackCmd.c_str());
+		Print() << "Subtrip metrics feedback: Completed\n";
+	}
 
 	return true;
 }

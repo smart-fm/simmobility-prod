@@ -360,7 +360,7 @@ void OnCallDriver::dropoffPassenger()
 		passengers.erase(itPassengers);
 
 		ControllerLog() << "Drop-off of user " << person->getDatabaseId() << " at time "
-		                << person->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()
+		                << parent->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()
 		                << ", and driverId " << getParent()->getDatabaseId() << std::endl;
 
 		//Mark schedule item as completed

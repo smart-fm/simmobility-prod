@@ -2,7 +2,8 @@ import argparse
 import datetime
 import csv
 import psycopg2
-import os
+import time
+import numpy
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ constants ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 DB_HOST = '172.25.184.48'
 DB_PORT = '5432'
@@ -307,7 +308,8 @@ class TT_Aggregator:
 					#self.addOPPubWalkt(orgZ, desZ, float(row[7]))
 				self.addTTBus(orgZ, desZ, tripStartTime, tripEndTime, travelTime)
 			else:
-				print 'ignoring record with mode ' + mode
+				#print 'ignoring record with mode ' + mode
+				doNothing = 1
 		return
 	
 	def computeMeans(self):
@@ -340,6 +342,48 @@ class TT_Aggregator:
 		connection_string = "dbname='" + DB_NAME + "' user='" + DB_USER + "' host='" + DB_HOST + "' port='" + DB_PORT + "' password='" + DB_PASSWORD + "'"
 		conn = psycopg2.connect(connection_string)
 		cur = conn.cursor()
+
+		queryToRetrieveOlderValues = 'SELECT origin_zone,destination_zone,car_ivt,pub_ivt FROM ' + AM_COSTS_TABLE
+		cur.execute(queryToRetrieveOlderValues)
+		self.oldValsAM = cur.fetchall()
+		self.oldValsCarsAMDict = {}
+		self.oldValsPublicAMDict = {}
+		for row in self.oldValsAM:
+				# origin_taz, destination_taz, car_ivt,pub_ivt
+			orgZ = int(row[0])
+			desZ = int(row[1])
+			self.oldValsCarsAMDict[(orgZ,desZ)] = float(row[2])
+			self.oldValsPublicAMDict[(orgZ, desZ)] = float(row[3])
+
+		queryToRetrieveOlderValues = 'SELECT origin_zone,destination_zone,car_ivt,pub_ivt FROM ' + PM_COSTS_TABLE
+		cur.execute(queryToRetrieveOlderValues)
+		self.oldValsPM = cur.fetchall()
+		self.oldValsCarsPMDict = {}
+		self.oldValsPublicPMDict = {}
+		for row in self.oldValsPM:
+				# origin_taz, destination_taz, car_ivt,pub_ivt
+			orgZ = int(row[0])
+			desZ = int(row[1])
+			self.oldValsCarsPMDict[(orgZ, desZ)] = float(row[2])
+			self.oldValsPublicPMDict[(orgZ, desZ)] = float(row[3])
+
+		queryToRetrieveOlderValues = 'SELECT origin_zone,destination_zone,car_ivt,pub_ivt FROM ' + OP_COSTS_TABLE
+		cur.execute(queryToRetrieveOlderValues)
+		self.oldValsOP = cur.fetchall()
+		self.oldValsCarsOPDict = {}
+		self.oldValsPublicOPDict = {}
+		for row in self.oldValsOP:
+				# origin_taz, destination_taz,car_ivt,pub_ivt
+			orgZ = int(row[0])
+			desZ = int(row[1])
+			self.oldValsCarsOPDict[(orgZ, desZ)] = float(row[2])
+			self.oldValsPublicOPDict[(orgZ, desZ)] = float(row[3])
+
+		prevCarIvtValues = []
+		currentCarIvtValues = []
+		prevPublicIvtValues = []
+		currentPublicIvtValues = []
+
 		for i in range(self.NUM_ZONES):
 			orgZ = self.zoneCode[i+1]
 			for j in range(self.NUM_ZONES):
@@ -358,13 +402,16 @@ class TT_Aggregator:
 					if newCarIvt > 0: 
 						update_query = update_query + " car_ivt=((%s + " + AM_COSTS_TABLE + ".car_ivt) * %s)" 
 						update_param_tuple = update_param_tuple + (newCarIvt, HALF)
+						prevCarIvtValues.append(self.oldValsCarsAMDict[(orgZ,desZ)])
+						currentCarIvtValues.append(newCarIvt)
 						comma_required = True
 					if newPubIvt > 0: 
 						if comma_required: 
 							update_query = update_query + ","
 						update_query = update_query + " pub_ivt=((%s + " + AM_COSTS_TABLE + ".pub_ivt) * %s)" 
 						update_param_tuple = update_param_tuple + (newPubIvt, HALF)
-						comma_required = True
+
+					comma_required = True
 					if newPubWtt > 0: 
 						if comma_required: 
 							update_query = update_query + ","
@@ -393,6 +440,8 @@ class TT_Aggregator:
 					if newCarIvt > 0: 
 						update_query = update_query + " car_ivt=((%s + " + PM_COSTS_TABLE + ".car_ivt) * %s)" 
 						update_param_tuple = update_param_tuple + (newCarIvt, HALF)
+						prevCarIvtValues.append(self.oldValsCarsPMDict[(orgZ,desZ)])
+						currentCarIvtValues.append(newCarIvt)
 						comma_required = True
 					if newPubIvt > 0: 
 						if comma_required: 
@@ -428,6 +477,8 @@ class TT_Aggregator:
 					if newCarIvt > 0: 
 						update_query = update_query + " car_ivt=((%s + " + OP_COSTS_TABLE + ".car_ivt) * %s)" 
 						update_param_tuple = update_param_tuple + (newCarIvt, HALF)
+						prevCarIvtValues.append(self.oldValsCarsOPDict[(orgZ,desZ)])
+						currentCarIvtValues.append(newCarIvt)
 						comma_required = True
 					if newPubIvt > 0: 
 						if comma_required: 
@@ -509,6 +560,25 @@ class TT_Aggregator:
 					update_param_tuple = update_param_tuple + (orgZ, desZ)
 					cur.execute(update_query, update_param_tuple)
 					conn.commit()
+
+		# calculating the RMSN
+		# taking into only those values which are non zeros both in observed and simulated
+		prevCarIvtValues = numpy.array(prevCarIvtValues)
+		currentCarIvtValues = numpy.array(currentCarIvtValues)
+		rmsn = {}
+		rmsn["Car"] = numpy.sqrt(numpy.mean(numpy.square(prevCarIvtValues - currentCarIvtValues))) / (numpy.mean(prevCarIvtValues))
+		prevCarIvtValues = list(prevCarIvtValues)
+		currentCarIvtValues = list(currentCarIvtValues)
+		with open('Car_ivt.csv','a') as f:
+			csvwriter = csv.writer(f)
+			csvwriter.writerow(['Old Values','New Values'])
+			for i in range(len(prevCarIvtValues)):
+				csvwriter.writerow([prevCarIvtValues[i], currentCarIvtValues[i]])
+
+		with open('RMSN_records_zone_to_zone_TT.txt','a') as f:
+			f.write("RMSN value for differences in zone to zone car ivt:"+ str(rmsn["Car"] ) + "\n")
+
+		print "\nRMSN value for differences in zone to zone car ivt:", rmsn["Car"],"\n"
 		return
 
 

@@ -14,6 +14,7 @@ import psycopg2
 import sys
 import os
 import time
+import numpy as np
 
 # inserting into the .48 server database
 DB_HOST = '172.25.184.48'
@@ -69,12 +70,22 @@ with open('old_link_TTs') as f:
 # If values are present in both old and new dictionary use the update rule:  (1-alpha)* <old_TT> + (alpha)*<new_TT>
 # If the values of link travel time are not present in the simulated file- old values are retained
 # # If the values of link travel time are not present in the simulated file- new values are retained
+
+differenceOfValues = []
+sumOfOldVals = 0
 updatedVals= {}
 for key in oldVals:
     if key in newVals:
         updatedVals[key] = (1 - alpha) * oldVals[key] + alpha * newVals[key]
+        differenceOfValues.append(oldVals[key] - newVals[key])
+        sumOfOldVals += oldVals[key]
     else:
         updatedVals[key] = oldVals[key]
+
+rmsnForLinkTTupdate = np.sqrt(np.mean(np.square(differenceOfValues))) / (np.mean(sumOfOldVals))
+print 'RMSN value for link travel time update: ', rmsnForLinkTTupdate
+with open('RMSN_records_link_TT.txt','a') as f:
+    f.write("RMSN value for differences in link travel times:"+ str(rmsnForLinkTTupdate ) + "\n")
 
 for key in newVals:
     if key not in oldVals:

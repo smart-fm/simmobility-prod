@@ -1080,7 +1080,12 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		}
 		currLane = laneInNextSegment;
 		double actualT = params.elapsedSeconds + (convertToSeconds(params.now.ms()));
-		parentDriver->parent->currLinkTravelStats.start(currSegStats->getRoadSegment()->getParentLink(), actualT);
+		try{
+			parentDriver->parent->currLinkTravelStats.start(currSegStats->getRoadSegment()->getParentLink(), actualT);
+		}catch(const std::runtime_error& e)
+		{
+			throw std::runtime_error("Error in the movement of driver "+ parentDriver->parent->getDatabaseId()+":"+e.what() );
+		}
 		nextSurveillanceStn = currLane->getParentSegment()->getSurveillanceStations().begin();
 
 		setLastAccept(currLane, actualT, currSegStats);

@@ -111,7 +111,7 @@ void MobilityServiceController::unsubscribeDriver(Person *driver)
 		throw std::runtime_error(msg.str() );
 	}
 #endif
-	ControllerLog() << "Unsubscription of driver with pointer " << driver << " at time "
+	ControllerLog() << "Unsubscription of driver "<< driver->getDatabaseId()  <<" with pointer " << driver << " at time "
 	                << currTick << std::endl;
 	subscribedDrivers.erase(std::remove(subscribedDrivers.begin(),
 	                                    subscribedDrivers.end(), driver), subscribedDrivers.end());

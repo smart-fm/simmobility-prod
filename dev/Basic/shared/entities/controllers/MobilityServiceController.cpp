@@ -14,8 +14,8 @@ namespace sim_mob
 {
 
 //aa!!: The fololoShould come from the xml
-const unsigned MobilityServiceController::toleratedExtraTime = 150; //seconds
-const double MobilityServiceController::maxWaitingTime = 600; // seconds
+const unsigned MobilityServiceController::toleratedExtraTime = 1800; //seconds
+const double MobilityServiceController::maxWaitingTime = 1800; // seconds
 const unsigned MobilityServiceController::maxAggregatedRequests = 2;
 
 

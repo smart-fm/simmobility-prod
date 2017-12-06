@@ -2,6 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#include "entities/roles/passenger/Passenger.hpp"
 #include "exceptions/Exceptions.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "logging/ControllerLog.hpp"
@@ -98,6 +99,11 @@ void OnHailDriverMovement::frame_tick()
 		DriverUpdateParams &params = onHailDriver->getParams();
 		params.elapsedSeconds = params.secondsInTick;
 		onHailDriver->getParent()->setRemainingTimeThisTick(0.0);
+		break;
+	}
+	case DRIVE_WITH_PASSENGER:
+	{
+		onHailDriver->passenger->Movement()->frame_tick();
 		break;
 	}
 	}

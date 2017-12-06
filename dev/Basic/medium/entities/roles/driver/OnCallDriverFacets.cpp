@@ -82,6 +82,14 @@ void OnCallDriverMovement::frame_tick()
 		}
 		break;
 	}
+	case DRIVE_WITH_PASSENGER:
+	{
+		for(auto itPax : onCallDriver->passengers)
+		{
+			itPax.second->Movement()->frame_tick();
+		}
+		break;
+	}
 	case PARKED:
 	{
 		//Skip the multiple calls to frame_tick() from the conflux

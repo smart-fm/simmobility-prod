@@ -1335,6 +1335,7 @@ bool Conflux::callMovementFrameInit(timeslice now, Person_MT* person)
 		}
 	}
 	//Failsafe: no Role at all?
+	//aa!!: We should crash in debug mode only
 	if (!person->getRole())
 	{
 		std::stringstream debugMsgs;

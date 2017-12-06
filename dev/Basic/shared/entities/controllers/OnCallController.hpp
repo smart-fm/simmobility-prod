@@ -177,7 +177,8 @@ protected:
 	/** Keeps track of current local tick */
 	unsigned int localTick = 0;
 
-	/** Keeps track of how often to process messages */
+	/** Keeps track of how often to process messages. The messages will be process at every
+	 * scheduleComputationPeriod frame ticks*/
 	unsigned int scheduleComputationPeriod;
 
 	//jo

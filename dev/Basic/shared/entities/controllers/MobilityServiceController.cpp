@@ -14,8 +14,8 @@ namespace sim_mob
 {
 
 //aa!!: The fololoShould come from the xml
-const unsigned MobilityServiceController::toleratedExtraTime = 150; //seconds
-const double MobilityServiceController::maxWaitingTime = 600; // seconds
+const unsigned MobilityServiceController::toleratedExtraTime = 1800; //seconds
+const double MobilityServiceController::maxWaitingTime = 1800; // seconds
 const unsigned MobilityServiceController::maxAggregatedRequests = 2;
 
 
@@ -111,7 +111,7 @@ void MobilityServiceController::unsubscribeDriver(Person *driver)
 		throw std::runtime_error(msg.str() );
 	}
 #endif
-	ControllerLog() << "Unsubscription of driver with pointer " << driver << " at time "
+	ControllerLog() << "Unsubscription of driver "<< driver->getDatabaseId()  <<" with pointer " << driver << " at time "
 	                << currTick << std::endl;
 	subscribedDrivers.erase(std::remove(subscribedDrivers.begin(),
 	                                    subscribedDrivers.end(), driver), subscribedDrivers.end());

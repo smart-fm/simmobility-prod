@@ -704,12 +704,12 @@ TaxiDriver::~TaxiDriver()
 		{
 			MessageBus::PostMessage(*it, MSG_DRIVER_UNSUBSCRIBE,
 			                        MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));
-#ifndef NDEBUG
-						ControllerLog()<< __FILE__ <<":" <<__LINE__<<":" <<__FUNCTION__<< ": Driver with pointer "<< this <<
-								" unsubscribed because it is being destroyed "<< std::endl;
-#endif
 		}
 	}
+	ControllerLog()<< __FILE__ <<":" <<__LINE__<<":" <<__FUNCTION__<< ": Driver "<< parent->getDatabaseId()<<
+			" with pointer "<< this <<
+						" is being destroyed at second "<< getParams().secondsInTick <<  std::endl;
+
 }
 
 bool TaxiDriver::isInProgressItemInSchedule(const ScheduleItem &itemInProgress, const Schedule &updatedSchedule)

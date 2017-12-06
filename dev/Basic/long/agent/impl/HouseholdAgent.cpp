@@ -237,36 +237,16 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
     if(config.ltParams.schoolAssignmentModel.enabled)
     {
-		if( getId() < model->FAKE_IDS_START)
-		{
-			std::vector<BigSerial> individuals = household->getIndividuals();
-			std::vector<BigSerial>::iterator individualsItr;
-			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
-			{
-				const Individual* individual = model->getPrimaySchoolIndById((*individualsItr));
-				SchoolAssignmentSubModel schoolAssignmentModel(model);
-				if (individual!= nullptr)
-				{
-					if(day == startDay)
-					{
-						schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
-					}
-					int secondSimDay = (startDay + 1);
-					if(day == secondSimDay)
-					{
-						schoolAssignmentModel.setStudentLimitInPrimarySchool();
-					}
-				}
-				else
-				{
-					const Individual* individual = model->getPreSchoolIndById((*individualsItr));
-					if (individual!= nullptr && day == startDay)
-					{
-						schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
-					}
-				}
-			}
-		}
+    	if( getId() < model->FAKE_IDS_START)
+    	{
+    		SchoolAssignmentSubModel schoolAssignmentModel(model);
+    		int secondSimDay = (startDay + 1);
+    		if(day == secondSimDay)
+    		{
+    			schoolAssignmentModel.setStudentLimitInPrimarySchool();
+    		}
+
+    	}
     }
 
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
@@ -427,6 +407,44 @@ void HouseholdAgent::onWorkerEnter()
         	MessageBus::SubscribeEvent(LTEID_HM_BTO_UNIT_ADDED, this);
         }
     }
+
+    if(config.ltParams.schoolAssignmentModel.enabled)
+      {
+  		if( getId() < model->FAKE_IDS_START)
+  		{
+  			std::vector<BigSerial> individuals = household->getIndividuals();
+  			std::vector<BigSerial>::iterator individualsItr;
+  			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+  			{
+  				const Individual* individual = model->getPrimaySchoolIndById((*individualsItr));
+  				SchoolAssignmentSubModel schoolAssignmentModel(model);
+  				if (individual!= nullptr)
+  				{
+  					//if(day == startDay)
+  					//{
+  						model->incrementPrimarySchoolAssignIndividualCount();
+  						schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
+  						PrintOutV("number of individuals assigned for primary schools " << model->getPrimaySchoolAssignIndividualCount()<< std::endl);
+  					//}
+  					//int secondSimDay = (startDay + 1);
+  					//if(day == secondSimDay)
+  					//{
+  					//	schoolAssignmentModel.setStudentLimitInPrimarySchool();
+  					//}
+  				}
+  				else
+  				{
+  					const Individual* individual = model->getPreSchoolIndById((*individualsItr));
+  					if (individual!= nullptr)
+  					{
+  						model->incrementPreSchoolAssignIndividualCount();
+  						schoolAssignmentModel.assignPreSchool(this->getHousehold(),individual->getId(),this, day);
+  						PrintOutV("number of individuals assigned for pre schools " << model->getPreSchoolAssignIndividualCount()<< std::endl);
+  					}
+  				}
+  			}
+  		}
+      }
 }
 
 void HouseholdAgent::onWorkerExit()

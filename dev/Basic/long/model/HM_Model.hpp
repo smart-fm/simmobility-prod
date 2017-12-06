@@ -455,6 +455,11 @@ namespace sim_mob
             void loadPreSchools(DB_Connection &conn);
             const TravelTime* loadTravelTime(BigSerial originTaz, BigSerial destTaz);
 
+            TazList& getTazList();
+            void incrementPrimarySchoolAssignIndividualCount();
+            int getPrimaySchoolAssignIndividualCount();
+            void incrementPreSchoolAssignIndividualCount();
+            int getPreSchoolAssignIndividualCount();
 
         protected:
             /**
@@ -645,6 +650,12 @@ namespace sim_mob
 
 			SlaBuildingList slaBuilding;
 			SlaBuildingMap	slaBuildingById;
+<<<<<<< HEAD
+=======
+			int numPrimarySchoolAssignIndividuals;
+			int numPreSchoolAssignIndividuals;
+
+>>>>>>> 53035c1... added counters for pre school and primary school individuals with school assignment
         };
     }
 }

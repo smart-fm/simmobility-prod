@@ -154,7 +154,7 @@
 	</vehicleOwnershipModel>
         <taxiAccessModel enabled='false'>
 	</taxiAccessModel>
-	<schoolAssignmentModel enabled = 'false'>
+	<schoolAssignmentModel enabled = 'true'>
 		<schoolChangeWaitingTimeInDays value ="1" />
 	</schoolAssignmentModel>
 

@@ -212,7 +212,7 @@ double HM_Model::TazStats::getAvgHHSize() const
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
 											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
-											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false){}
+											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false),numPrimarySchoolAssignIndividuals(0),numPreSchoolAssignIndividuals(0){}
 
 HM_Model::~HM_Model()
 {
@@ -1432,7 +1432,7 @@ void HM_Model::setTaxiAccess2012(const Household *household)
 
 void HM_Model::startImpl()
 {
-	PredayLT_LogsumManager::getInstance();
+	//PredayLT_LogsumManager::getInstance();
 
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -1581,6 +1581,9 @@ void HM_Model::startImpl()
 			preSchoolIndById.insert(std::make_pair((*it)->getId(), *it));
 
 		}
+
+		PrintOutV("Number of pre school individuals: " << preSchoolIndList.size() << std::endl );
+		PrintOutV("Number of primary school individuals: " << primarySchoolIndList.size() << std::endl );
 
 		loadData<PostcodeDao>(conn, postcodes, postcodesById,	&Postcode::getAddressId);
 		PrintOutV("Number of postcodes: " << postcodes.size() << std::endl );
@@ -1786,8 +1789,8 @@ void HM_Model::startImpl()
 		const int FROZEN_HH = 3;
 
 
-		if( household->getTenureStatus() != FROZEN_HH )
-			continue;
+		//if( household->getTenureStatus() != FROZEN_HH )
+		//	continue;
 
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
 
@@ -2235,7 +2238,7 @@ void HM_Model::loadPrimarySchools(DB_Connection &conn)
 	std::string tableName = "school";
 
 	//SQL statement
-	soci::rowset<School> primarySchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where primary_school = true");
+	soci::rowset<School> primarySchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where school_type = 'primary_school'");
 
 	for (soci::rowset<School>::const_iterator itPrimarySchool = primarySchoolObjs.begin(); itPrimarySchool != primarySchoolObjs.end(); ++itPrimarySchool)
 	{
@@ -2256,7 +2259,7 @@ void HM_Model::loadPreSchools(DB_Connection &conn)
 	std::string tableName = "school";
 
 	//SQL statement
-	soci::rowset<School> preSchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where pre_school = true");
+	soci::rowset<School> preSchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where school_type = 'pre_school'");
 
 	for (soci::rowset<School>::const_iterator itPreSchool = preSchoolObjs.begin(); itPreSchool != preSchoolObjs.end(); ++itPreSchool)
 	{
@@ -3399,6 +3402,31 @@ IndvidualEmpSec* HM_Model::getIndvidualEmpSecByIndId(BigSerial indId) const
 	}
 
 	return nullptr;
+}
+
+HM_Model::TazList&  HM_Model::getTazList()
+{
+	return tazs;
+}
+
+void HM_Model::incrementPrimarySchoolAssignIndividualCount()
+{
+	++numPrimarySchoolAssignIndividuals;
+}
+
+int HM_Model::getPrimaySchoolAssignIndividualCount()
+{
+	return this->numPrimarySchoolAssignIndividuals;
+}
+
+void HM_Model::incrementPreSchoolAssignIndividualCount()
+{
+	++numPreSchoolAssignIndividuals;
+}
+
+int HM_Model::getPreSchoolAssignIndividualCount()
+{
+	return this->numPreSchoolAssignIndividuals;
 }
 
 void HM_Model::stopImpl()

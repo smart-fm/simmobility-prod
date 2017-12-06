@@ -2,6 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#include <entities/ParkingAgent.hpp>
 #include "OnCallDriverFacets.hpp"
 
 #include "entities/controllers/MobilityServiceControllerManager.hpp"
@@ -159,9 +160,6 @@ void OnCallDriverMovement::performScheduleItem()
 {
 	try
 	{
-		//Store the previous status
-		MobilityServiceDriverStatus prevStatus = onCallDriver->getDriverStatus();
-
 		if(onCallDriver->driverSchedule.isScheduleCompleted())
 		{
 			const Node *endOfPathNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
@@ -213,12 +211,6 @@ void OnCallDriverMovement::performScheduleItem()
 			}
 			break;
 		}
-		}
-
-		//Reload the driver onto the network if it was in the parking
-		if(prevStatus == PARKED)
-		{
-			onCallDriver->reload();
 		}
 	}
 	catch(no_path_error &ex)
@@ -502,7 +494,13 @@ void OnCallDriverMovement::parkVehicle(DriverUpdateParams &params)
 	onCallDriver->getParent()->setRemainingTimeThisTick(0.0);
 
 	//Update the value of current node as we return after this method
-	currNode = onCallDriver->driverSchedule.getCurrScheduleItem()->parking->getAccessNode();
+	const SMSVehicleParking *parking = onCallDriver->driverSchedule.getCurrScheduleItem()->parking;
+	currNode = parking->getAccessNode();
+
+	//Add the person to the parking agent
+	ParkingAgent *pkAgent = ParkingAgent::getParkingAgent(parking);
+	pkAgent->addParkedPerson(parent);
+	onCallDriver->setToBeRemovedFromParking(false);
 
 	onCallDriver->setDriverStatus(PARKED);
 	onCallDriver->scheduleItemCompleted();

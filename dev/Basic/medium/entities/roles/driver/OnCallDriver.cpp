@@ -13,7 +13,7 @@ using namespace std;
 OnCallDriver::OnCallDriver(Person_MT *parent, const MutexStrategy &mtx, OnCallDriverBehaviour *behaviour,
                            OnCallDriverMovement *movement, string roleName, Type roleType) :
 		Driver(parent, behaviour, movement, roleName, roleType), movement(movement), behaviour(behaviour),
-		isWaitingForUnsubscribeAck(false), isScheduleUpdated(false)
+		isWaitingForUnsubscribeAck(false), isScheduleUpdated(false), toBeRemovedFromParking(false)
 {
 }
 
@@ -69,6 +69,10 @@ void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, con
 		//Set the schedule updated to true, so that we perform the schedule item during the
 		//frame tick
 		isScheduleUpdated = true;
+
+		//Set this to true so that the driver is removed from the parking
+		//(even if it is not it doesn't matter)
+		toBeRemovedFromParking = true;
 		break;
 	}
 	case MSG_SCHEDULE_UPDATE:
@@ -105,7 +109,7 @@ void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, con
 		//awake and can end the shift
 		if(driverStatus == PARKED)
 		{
-			reload();
+			toBeRemovedFromParking = true;
 			endShift();
 		}
 		break;
@@ -243,14 +247,6 @@ void OnCallDriver::sendWakeUpShiftEndMsg()
 	Conflux *cflx = movement->getMesoPathMover().getCurrSegStats()->getParentConflux();
 	MessageBus::PostMessage(cflx, MSG_WAKEUP_SHIFT_END, MessageBus::MessagePtr(new PersonMessage(parent)),
 		                        false, timeToShiftEnd / tick);
-}
-
-void OnCallDriver::reload()
-{
-	//We are starting afresh from the parking node, so we need to set the current segment stats
-	parent->setCurrSegStats(movement->getMesoPathMover().getCurrSegStats());
-	Conflux *conflux = Conflux::getConfluxFromNode(movement->getCurrentNode());
-	MessageBus::PostMessage(conflux, MSG_PERSON_LOAD, MessageBus::MessagePtr(new PersonMessage(parent)));
 }
 
 void OnCallDriver::pickupPassenger()

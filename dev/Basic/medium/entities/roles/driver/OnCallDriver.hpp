@@ -25,6 +25,9 @@ private:
 	/**Stores the controllers that the driver is subscribed to*/
 	std::vector<MobilityServiceController *> subscribedControllers;
 
+	/**Indicates whether the driver is to be removed from the parking*/
+	bool toBeRemovedFromParking;
+
 protected:
 	/**Pointer to the on call driver's movement facet object*/
 	OnCallDriverMovement *movement;
@@ -130,11 +133,6 @@ protected:
 	 */
 	void sendWakeUpShiftEndMsg();
 
-	/**
-	 * Reloads the driver on to the network from the parking
-	 */
-	void reload();
-
 public:
 	OnCallDriver(Person_MT *parent, const MutexStrategy &mtx,
 	             OnCallDriverBehaviour *behaviour, OnCallDriverMovement *movement,
@@ -211,6 +209,16 @@ public:
 	 * Performs the tasks required to end the driver shift
 	 */
 	void endShift();
+
+	const bool isToBeRemovedFromParking() const
+	{
+		return toBeRemovedFromParking;
+	}
+
+	void setToBeRemovedFromParking(bool value)
+	{
+		toBeRemovedFromParking = value;
+	}
 
 	friend class OnCallDriverMovement;
 	friend class OnCallDriverBehaviour;

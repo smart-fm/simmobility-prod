@@ -469,12 +469,14 @@ void Conflux::processAgents(timeslice frameNumber)
 	orderedPersons.insert(orderedPersons.end(), activityPerformers.begin(), activityPerformers.end()); // append activity performers
 	orderedPersons.insert(orderedPersons.end(), travelingPersons.begin(), travelingPersons.end());
 	orderedPersons.insert(orderedPersons.end(), brokenPersons.begin(), brokenPersons.end());
+
 	for (PersonList::iterator personIt = orderedPersons.begin(); personIt != orderedPersons.end(); personIt++) //iterate and update all persons
 	{
 		(*personIt)->currTick = currFrame;
 		updateAgent(*personIt);
 		(*personIt)->latestUpdatedFrameTick = currFrame.frame();
 	}
+
 	updateBusStopAgents(); //finally update bus stop agents in this conflux
 
 	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++)
@@ -483,6 +485,9 @@ void Conflux::processAgents(timeslice frameNumber)
 		(*it)->currTick = currFrame;
 		(*it)->update(currFrame);
 	}
+
+	//Update the parking agents
+	updateParkingAgents();
 }
 
 void  Conflux::processStartingAgents()
@@ -508,6 +513,11 @@ void  Conflux::processStartingAgents()
 }
 
 void Conflux::updateQueuingTaxiDriverAgent(Person_MT* person)
+{
+	updateAgent(person);
+}
+
+void Conflux::updateParkedServiceDriver(Person_MT *person)
 {
 	updateAgent(person);
 }
@@ -1746,6 +1756,14 @@ void Conflux::updateBusStopAgents()
 	}
 }
 
+void Conflux::updateParkingAgents()
+{
+	for(auto agent : parkingAgents)
+	{
+		agent->update(currFrame);
+	}
+}
+
 void Conflux::assignPersonToStationAgent(Person_MT* person)
 {
 	Role<Person_MT>* role = person->getRole();
@@ -2520,6 +2538,18 @@ void Conflux::addStationAgent(Agent* stationAgent)
 	stationAgent->currWorkerProvider = currWorkerProvider;
 	stationAgents.push_back(stationAgent);
 }
+
+void Conflux::addParkingAgent(Agent *parkingAgent)
+{
+	if(!parkingAgent)
+	{
+		return;
+	}
+
+	parkingAgent->currWorkerProvider = currWorkerProvider;
+	parkingAgents.push_back(parkingAgent);
+}
+
 void Conflux::driverStatistics(timeslice now)
 {
 	std::map<int, int> statSegs;

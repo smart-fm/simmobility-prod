@@ -29,10 +29,10 @@ namespace sim_mob
 
 			struct OrderByDistance
 			{
-				bool operator ()( const DistanceIndividual *a, const DistanceIndividual *b ) const
+				bool operator ()( const DistanceIndividual &a, const DistanceIndividual &b ) const
 
 				{
-					return a->distanceToSchool < b->distanceToSchool;
+					return a.distanceToSchool < b.distanceToSchool;
 				}
 			};
 
@@ -68,20 +68,20 @@ namespace sim_mob
 			void setSchoolType(std::string schoolType);
 
 			int getNumStudents() const;
-			std::vector<School::DistanceIndividual*> getSortedDistanceIndList();
-			std::vector<BigSerial*> getStudents();
+			std::vector<School::DistanceIndividual> getSortedDistanceIndList();
+			std::vector<BigSerial> getStudents();
 			int getNumSelectedStudents();
 			int getNumStudentsCanBeAssigned();
 			double getReAllocationProb();
 			int getNumOfSelectedStudents();
 			std::vector<School*> getSortedProbSchoolList(std::vector<School*> studentsWithProb);
 
-			void addStudent(BigSerial *studentId);
-			void addIndividualDistance(DistanceIndividual *distanceIndividual);
-			void setSelectedStudentList(std::vector<BigSerial*>selectedStudents);
+			void addStudent(BigSerial studentId);
+			void addIndividualDistance(DistanceIndividual distanceIndividual);
+			void setSelectedStudentList(std::vector<BigSerial>selectedStudents);
 			void setNumStudentsCanBeAssigned(int numStudents);
 			void setReAllocationProb(double probability);
-			void addSelectedStudent(BigSerial *individualId);
+			void addSelectedStudent(BigSerial individualId);
 
 			BigSerial id;
 			BigSerial fmBuildingId;
@@ -96,9 +96,9 @@ namespace sim_mob
 			std::string schoolType;
 
 			int numStudents;
-			std::vector<BigSerial*> students;
-			std::vector<BigSerial*> selectedStudents;
-			std::vector<School::DistanceIndividual*> distanceIndList;
+			std::vector<BigSerial> students;
+			std::vector<BigSerial> selectedStudents;
+			std::vector<School::DistanceIndividual> distanceIndList;
 			int numStudentsCanBeAssigned;
 			double reAllocationProb;
 

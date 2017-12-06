@@ -130,18 +130,18 @@ int School::getNumStudents() const
 	return this->numStudents;
 }
 
-void School::addStudent(BigSerial *studentId)
+void School::addStudent(BigSerial studentId)
 {
 	this->students.push_back(studentId);
 	numStudents++;
 }
 
-void School::addIndividualDistance(DistanceIndividual *distanceIndividual)
+void School::addIndividualDistance(DistanceIndividual distanceIndividual)
 {
 	distanceIndList.push_back(distanceIndividual);
 }
 
-std::vector<School::DistanceIndividual*>  School::getSortedDistanceIndList()
+std::vector<School::DistanceIndividual>  School::getSortedDistanceIndList()
 {
 	std::sort(distanceIndList.begin(), distanceIndList.end(), School::OrderByDistance());
 	return distanceIndList;
@@ -153,7 +153,7 @@ std::vector<School*> getSortedProbSchoolList( std::vector<School*> studentsWithP
 	return studentsWithProb;
 }
 
-std::vector<BigSerial*> School::getStudents()
+std::vector<BigSerial> School::getStudents()
 {
 	return this->students;
 }
@@ -163,7 +163,7 @@ int School::getNumSelectedStudents()
 	return this->selectedStudents.size();
 }
 
-void School::setSelectedStudentList(std::vector<BigSerial*>selectedStudents)
+void School::setSelectedStudentList(std::vector<BigSerial>selectedStudents)
 {
 	this->selectedStudents = selectedStudents;
 }
@@ -188,7 +188,7 @@ double School::getReAllocationProb()
 	return this->reAllocationProb;
 }
 
-void School::addSelectedStudent(BigSerial *individualId)
+void School::addSelectedStudent(BigSerial individualId)
 {
 	this->selectedStudents.push_back(individualId);
 }

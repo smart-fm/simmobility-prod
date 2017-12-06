@@ -126,10 +126,10 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 	}
 
 	School *priSchool = model->getPrimarySchoolById(selectedSchoolId);
-	priSchool->addStudent(&individualId);
+	priSchool->addStudent(individualId);
 	double distanceFromHomeToSchool = (distanceCalculateEuclidean(priSchool->getCentroidX(),priSchool->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
 	School::DistanceIndividual distanceInd{individualId,distanceFromHomeToSchool};
-	priSchool->addIndividualDistance(&distanceInd);
+	priSchool->addIndividualDistance(distanceInd);
 	}
 	schoolExpVec.clear();
 	expSchoolMap.clear();
@@ -152,23 +152,23 @@ void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
 		if(priSchool->getNumStudents() > studentLimitPerSchool)
 		{
 			//sort the individuals by distance to school
-			std::vector<School::DistanceIndividual*> distanceIndividualList = priSchool->getSortedDistanceIndList();
+			std::vector<School::DistanceIndividual> distanceIndividualList = priSchool->getSortedDistanceIndList();
 			//select the top 3000 students
-			std::vector<School::DistanceIndividual*> distIndWithinLimit(distanceIndividualList.begin(), distanceIndividualList.begin() + studentLimitPerSchool);
+			std::vector<School::DistanceIndividual> distIndWithinLimit(distanceIndividualList.begin(), distanceIndividualList.begin() + studentLimitPerSchool);
 			//the rest of the students need to be reallocated
-			std::vector<School::DistanceIndividual*> disIndToReallocate(distanceIndividualList.begin() + studentLimitPerSchool, distanceIndividualList.end());
+			std::vector<School::DistanceIndividual> disIndToReallocate(distanceIndividualList.begin() + studentLimitPerSchool, distanceIndividualList.end());
 			std::vector<BigSerial> selectedStudents;
-			for(School::DistanceIndividual *distInd:distIndWithinLimit )
+			for(School::DistanceIndividual distInd:distIndWithinLimit )
 			{
 				BigSerial schoolId = priSchool->getId();
-				writeSchoolAssignmentsToFile(distInd->individualId,schoolId);
-				priSchool->addSelectedStudent(&distInd->individualId);
+				//writeSchoolAssignmentsToFile(distInd->individualId,schoolId);
+				priSchool->addSelectedStudent(distInd.individualId);
 			}
 
 			//reallocate the rest of the students among schools within 5km and still have positions
-			for(School::DistanceIndividual *distInd:disIndToReallocate )
+			for(School::DistanceIndividual distInd:disIndToReallocate )
 			{
-				reAllocatePrimarySchoolStudents(distInd->individualId);
+				reAllocatePrimarySchoolStudents(distInd.individualId);
 			}
 
 			distanceIndividualList.clear();
@@ -176,16 +176,27 @@ void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
 			disIndToReallocate.clear();
 
 		}
-		else
+//		else
+//		{
+//			std::vector<BigSerial*> students = priSchool->getStudents();
+//			for(BigSerial *individualId : students)
+//			{
+//				BigSerial schoolId = priSchool->getId();
+//				writeSchoolAssignmentsToFile(*individualId,schoolId);
+//			}
+//			students.clear();
+//		}
+	}
+
+	for (School *priSchool:primarySchools )
+	{
+		std::vector<BigSerial> students = priSchool->getStudents();
+		for(BigSerial individualId : students)
 		{
-			std::vector<BigSerial*> students = priSchool->getStudents();
-			for(BigSerial *individualId : students)
-			{
-				BigSerial schoolId = priSchool->getId();
-				writeSchoolAssignmentsToFile(*individualId,schoolId);
-			}
-			students.clear();
+			BigSerial schoolId = priSchool->getId();
+			writeSchoolAssignmentsToFile(individualId,schoolId);
 		}
+		students.clear();
 	}
 }
 
@@ -235,10 +246,10 @@ void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individ
 
 
 		std::random_device rd;
-			std::mt19937 gen(rd());
-			std::uniform_real_distribution<> dis(0.0, 1.0);
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<> dis(0.0, 1.0);
 
-			double randomNum =  dis(gen);
+		double randomNum =  dis(gen);
 		double pTemp = 0;
 
 		BigSerial selectedSchoolId = 0;
@@ -249,8 +260,8 @@ void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individ
 			{
 				selectedSchoolId = probSchoolItr->first;
 				School *priSchool = model->getPrimarySchoolById(selectedSchoolId);
-				priSchool->addSelectedStudent(&individualId);
-				writeSchoolAssignmentsToFile(individualId,selectedSchoolId);
+				priSchool->addSelectedStudent(individualId);
+				//writeSchoolAssignmentsToFile(individualId,selectedSchoolId);
 				break;
 			}
 			else

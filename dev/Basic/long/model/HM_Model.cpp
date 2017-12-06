@@ -2273,21 +2273,25 @@ void HM_Model::loadPreSchools(DB_Connection &conn)
 
 const TravelTime* HM_Model::loadTravelTime(BigSerial originTaz, BigSerial destTaz)
 {
-	// Loads necessary data from database.
-	DB_Config dbConfig(LT_DB_CONFIG_FILE);
-	dbConfig.load();
-	// Connect to database and load data for this model.
-	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-	conn.connect();
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	conn.setSchema(config.schemas.calibration_schema);
-	const TravelTime *travelTime;
-	if (conn.isConnected())
 	{
-		TravelTimeDao travelTimeDao(conn);
-		travelTime = travelTimeDao.getTravelTimeByOriginDest(originTaz,destTaz);
+		boost::mutex::scoped_lock lock( mtx );
+
+		// Loads necessary data from database.
+		DB_Config dbConfig(LT_DB_CONFIG_FILE);
+		dbConfig.load();
+		// Connect to database and load data for this model.
+		DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+		conn.connect();
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+		conn.setSchema(config.schemas.calibration_schema);
+		const TravelTime *travelTime;
+		if (conn.isConnected())
+		{
+			TravelTimeDao travelTimeDao(conn);
+			travelTime = travelTimeDao.getTravelTimeByOriginDest(originTaz,destTaz);
+		}
+		return travelTime;
 	}
-	return travelTime;
 
 }
 

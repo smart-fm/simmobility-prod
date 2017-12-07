@@ -968,37 +968,13 @@ unsigned int Conflux::resetOutputBounds()
 	boost::unique_lock<boost::recursive_mutex> lock(mutexOfVirtualQueue);
 	unsigned int vqCount = 0;
 	vqBounds.clear();
-	Conflux *confluxThis = this;
-	const Node*confluxNode = confluxThis->getConfluxNode();
+	const Link* lnk = nullptr;
 	SegmentStats* segStats = nullptr;
 	int outputEstimate = 0;
 	for (VirtualQueueMap::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++)
 	{
-		const Link* lnk = i->first;
-		if(lnk->getLinkId()==7983)
-		{
-			int debug =1;
-		}
-
-		if (upstreamSegStatsMap.find(lnk) == upstreamSegStatsMap.end())
-		{
-			//std::cout << "Bam!!\n";
-			for (auto item : upstreamSegStatsMap)
-			{
-				if (item.first->getLinkId() == lnk->getLinkId())
-				{
-					if(item.first == lnk)
-					{
-						std::cout << "Are you serious?\n";
-						const SegmentStatsList sec=item.second;
-						int stop =9;
-					}
-				}
-			}
-		}
-
-		const SegmentStatsList &temp = upstreamSegStatsMap.at(lnk);
-		segStats = temp.front();
+		lnk = i->first;
+		segStats = upstreamSegStatsMap.at(lnk).front();
 
 		outputEstimate = segStats->computeExpectedOutputPerTick();
 

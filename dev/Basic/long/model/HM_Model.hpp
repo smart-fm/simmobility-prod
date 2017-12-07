@@ -199,6 +199,9 @@ namespace sim_mob
             typedef std::vector<SlaBuilding*> SlaBuildingList;
             typedef boost::unordered_map<string, SlaBuilding*> SlaBuildingMap;
 
+            typedef pair<BigSerial, BigSerial> OriginDestKey;
+            typedef std::multimap<OriginDestKey, TravelTime*> TravelTimeMap;
+
             /**
              * Taz statistics
              */
@@ -427,8 +430,6 @@ namespace sim_mob
             SchoolList getPreSchoolList() const;
             School* getPreSchoolById( BigSerial id) const;
 
-
-
             OwnerTenantMovingRate* getOwnerTenantMovingRates(int index);
             TenureTransitionRate* getTenureTransitionRates(int index);
             int getOwnerTenantMovingRatesSize();
@@ -453,13 +454,15 @@ namespace sim_mob
             void  loadLTVersion(DB_Connection &conn);
             void loadPrimarySchools(DB_Connection &conn);
             void loadPreSchools(DB_Connection &conn);
-            const TravelTime* loadTravelTime(BigSerial originTaz, BigSerial destTaz);
+            void loadTravelTime(DB_Connection &conn);
+            const TravelTime* getTravelTimeByOriginDestTaz(BigSerial originTaz, BigSerial destTaz);
 
             TazList& getTazList();
             void incrementPrimarySchoolAssignIndividualCount();
             int getPrimaySchoolAssignIndividualCount();
             void incrementPreSchoolAssignIndividualCount();
             int getPreSchoolAssignIndividualCount();
+            void addStudentToPrimarySchool(BigSerial individualId, int schoolId, BigSerial householdId);
 
         protected:
             /**
@@ -654,6 +657,7 @@ namespace sim_mob
 =======
 			int numPrimarySchoolAssignIndividuals;
 			int numPreSchoolAssignIndividuals;
+			TravelTimeMap travelTimeByOriginDestTaz;
 
 >>>>>>> 53035c1... added counters for pre school and primary school individuals with school assignment
         };

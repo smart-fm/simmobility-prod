@@ -1463,6 +1463,7 @@ void HM_Model::startImpl()
 		{
 		loadPrimarySchools(conn);
 		loadPreSchools(conn);
+		loadTravelTime(conn_calibration);
 		}
 
 		{
@@ -2271,25 +2272,34 @@ void HM_Model::loadPreSchools(DB_Connection &conn)
 	PrintOutV("Number of Pre School rows: " << preSchools.size() << std::endl );
 }
 
-const TravelTime* HM_Model::loadTravelTime(BigSerial originTaz, BigSerial destTaz)
+void HM_Model::loadTravelTime(DB_Connection &conn)
 {
-	{
-		boost::mutex::scoped_lock lock( mtx );
+	TravelTimeDao travelTimeDao(conn);
+	std::vector<TravelTime*> travelTimeList;
+	loadData<TravelTimeDao>( conn, travelTimeList );
 
-		// Loads necessary data from database.
-		DB_Config dbConfig(LT_DB_CONFIG_FILE);
-		dbConfig.load();
-		// Connect to database and load data for this model.
-		DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-		conn.connect();
-		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-		conn.setSchema(config.schemas.calibration_schema);
-		const TravelTime *travelTime;
-		if (conn.isConnected())
-		{
-			TravelTimeDao travelTimeDao(conn);
-			travelTime = travelTimeDao.getTravelTimeByOriginDest(originTaz,destTaz);
-		}
+	for(TravelTime* travelTime : travelTimeList)
+	{
+		OriginDestKey key = make_pair(travelTime->getOrigin(),travelTime->getDestination());
+		travelTimeByOriginDestTaz.insert(make_pair(key, travelTime));
+	}
+
+	PrintOutV("Number of Travel Time rows: " << travelTimeList.size() << std::endl );
+
+}
+
+const TravelTime* HM_Model::getTravelTimeByOriginDestTaz(BigSerial originTaz, BigSerial destTaz)
+{
+	HM_Model::OriginDestKey originDestKey= make_pair(originTaz, destTaz);
+	auto range = travelTimeByOriginDestTaz.equal_range(originDestKey);
+	size_t sz = distance(range.first, range.second);
+	if(sz==0)
+	{
+		return nullptr;
+	}
+	else
+	{
+		const TravelTime* travelTime = range.first->second;
 		return travelTime;
 	}
 
@@ -3431,6 +3441,19 @@ void HM_Model::incrementPreSchoolAssignIndividualCount()
 int HM_Model::getPreSchoolAssignIndividualCount()
 {
 	return this->numPreSchoolAssignIndividuals;
+}
+
+void HM_Model::addStudentToPrimarySchool(BigSerial individualId, int schoolId, BigSerial householdId)
+{
+	{
+		boost::mutex::scoped_lock lock( mtx );
+		School *priSchool = getPrimarySchoolById(schoolId);
+		priSchool->addStudent(individualId);
+		HHCoordinates *hhCoords = getHHCoordinateByHHId(householdId);
+		double distanceFromHomeToSchool = (distanceCalculateEuclidean(priSchool->getCentroidX(),priSchool->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
+		School::DistanceIndividual distanceInd{individualId,distanceFromHomeToSchool};
+		priSchool->addIndividualDistance(distanceInd);
+	}
 }
 
 void HM_Model::stopImpl()

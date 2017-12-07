@@ -21,6 +21,15 @@ OnHailDriverMovement::~OnHailDriverMovement()
 {
 }
 
+void OnHailDriverMovement::resetDriverLaneAndSegment()
+{
+	auto currSegStats = pathMover.getCurrSegStats();
+	auto parent = onHailDriver->getParent();
+	currLane = currSegStats->laneInfinity;
+	parent->setCurrSegStats(currSegStats);
+	parent->setCurrLane(currLane);
+}
+
 void OnHailDriverMovement::frame_init()
 {
 	//Create the vehicle and assign it to the role
@@ -75,6 +84,9 @@ void OnHailDriverMovement::frame_tick()
 				//Person was picked up
 				onHailDriver->addPassenger(person);
 				beginDriveWithPassenger(person);
+
+				//Driver must start from lane infinity at this point
+				resetDriverLaneAndSegment();
 			}
 			catch (no_path_error &ex)
 			{
@@ -92,6 +104,8 @@ void OnHailDriverMovement::frame_tick()
 			//Perform the actions required based on the decision
 			performDecisionActions(decision);
 
+			//Driver must start from lane infinity at this point
+			resetDriverLaneAndSegment();
 			onHailDriver->setToBeRemovedFromTaxiStand(true);
 		}
 
@@ -350,13 +364,29 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 {
 	auto currSubTrip = person->currSubTrip;
 	const Node *destination = (*currSubTrip).destination.node;
-	const Link *currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+	const Link *currLink = nullptr;
 
-	//We call this method when at the end of a link or when at a taxi stand. In either case,
-	//we should have a current link and we'd be crossing into the next link soon.
-	//If the 'toNode' for the link is the destination for the person,
-	//we can simply alight it, as we're about to move into the next link
-	if(currLink->getToNode() != destination)
+	bool canDropPaxImmediately = false;
+
+	if(pathMover.isDrivingPathSet())
+	{
+		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+
+		//If the drop-off node is at the end of the current link, we do not need to go anywhere
+		//We can drop the passenger off at this point
+		if(currLink->getToNode() == destination)
+		{
+			canDropPaxImmediately = true;
+		}
+	}
+	else if(onHailDriver->getDriverStatus() == QUEUING_AT_TAXISTAND && currNode == destination)
+	{
+		//The passenger's destination is the same as the current node (which is the node at the end
+		// of the taxi stand link)
+		canDropPaxImmediately = true;
+	}
+
+	if(!canDropPaxImmediately)
 	{
 		//Create a sub-trip for the route choice
 		SubTrip subTrip;
@@ -416,17 +446,34 @@ void OnHailDriverMovement::beginQueuingAtTaxiStand(DriverUpdateParams &params)
 		removeFromQueue();
 	}
 
+	//Finalise the link travel time, as we will not be calling the DriverMovement::frame_tick()
+	//where this normally happens
+	const SegmentStats *currSegStat = pathMover.getCurrSegStats();
+	const Link *currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+	const Link *nextLink = RoadNetwork::getInstance()->getDownstreamLinks(currLink->getToNodeId()).front();
+	auto parent = onHailDriver->getParent();
+
+	double actualT = params.elapsedSeconds + params.now.ms() / 1000;
+	parent->currLinkTravelStats.finalize(currLink, actualT, nextLink);
+	TravelTimeManager::getInstance()->addTravelTime(parent->currLinkTravelStats); //in seconds
+	currSegStat->getParentConflux()->setLinkTravelTimes(actualT, currLink);
+	parent->currLinkTravelStats.reset();
+
 	vehicle->setMoving(false);
 	params.elapsedSeconds = params.secondsInTick;
-	onHailDriver->getParent()->setRemainingTimeThisTick(0.0);
+	parent->setRemainingTimeThisTick(0.0);
 	onHailDriver->setDriverStatus(QUEUING_AT_TAXISTAND);
 	onHailDriver->setToBeRemovedFromTaxiStand(false);
 
 	//Update the value of current node as we return after this method
-	currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getFromNode();
+	currNode = currLink->getToNode();
 
-	ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
-	                << onHailDriver->getParent()->getDatabaseId() << ": Begin queueing at taxi stand at segment "
+	//Clear the previous path. We will begin from the node
+	pathMover.eraseFullPath();
+	currLane = nullptr;
+
+	ControllerLog() << parent->currTick.ms() << "ms: OnHailDriver "
+	                << parent->getDatabaseId() << ": Begin queueing at taxi stand at segment "
 	                << chosenTaxiStand->getRoadSegmentId() << endl;
 }
 

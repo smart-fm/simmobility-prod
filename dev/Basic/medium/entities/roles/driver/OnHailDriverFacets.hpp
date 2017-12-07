@@ -35,11 +35,6 @@ std::ostream& operator<<(std::ostream &strm, BehaviourDecision &decision)
 
 	case BehaviourDecision ::END_SHIFT:
 		return strm << "END_SHIFT";
-
-	default:
-	std::stringstream msg;
-		msg << "Unknown enum value for BehaviourDecision " << (int)decision;
-		throw std::runtime_error(msg.str());
 	}
 }
 
@@ -58,6 +53,13 @@ private:
 
 	/**The taxi stand most recently chosen by the driver*/
 	const TaxiStand *chosenTaxiStand;
+
+protected:
+	/**
+	 * Sets the current lane to lane infinity of the current segment. This method must be called when
+	 * the driver is exiting a taxi stand
+	 */
+	void resetDriverLaneAndSegment();
 
 public:
 	OnHailDriverMovement();

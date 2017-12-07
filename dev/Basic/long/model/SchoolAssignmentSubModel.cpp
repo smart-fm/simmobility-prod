@@ -24,24 +24,20 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 
 	HM_Model::SchoolList primarySchools = model->getPrimarySchoolList();
 	HM_Model::SchoolList::iterator schoolsItr;
-
 	vector<double> schoolExpVec;
 	map<BigSerial,double> expSchoolMap;
 	double totalExp = 0;
 	HHCoordinates *hhCoords = model->getHHCoordinateByHHId(household->getId());
-
 	for(schoolsItr = primarySchools.begin(); schoolsItr != primarySchools.end(); ++schoolsItr )
 	{
 		double valueSchool = 0;
 		HouseholdPlanningArea *hhPlanningArea = model->getHouseholdPlanningAreaByHHId(household->getId());
 		const std::string hhDGP = hhPlanningArea->getPlanningArea();
 		const std::string schoolPlanningArea = (*schoolsItr)->getPlanningArea();
-
 		if (hhDGP.compare(schoolPlanningArea) == 0)
 		{
 			valueSchool = valueSchool + model->getSchoolAssignmentCoefficientsById(HOME_SCHOOL_SAME_DGP)->getCoefficientEstimate();
 		}
-
 		if( (*schoolsItr)->getTazName() == hhPlanningArea->getTazId())
 		{
 			valueSchool = valueSchool + model->getSchoolAssignmentCoefficientsById(HOME_SCHOOL_SAME_TAZ)->getCoefficientEstimate();
@@ -57,8 +53,7 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 		valueSchool = valueSchool + (*schoolsItr)->isGiftedProgram() * model->getSchoolAssignmentCoefficientsById(HAS_GIFTED_PROGRAM)->getCoefficientEstimate();
 		valueSchool = valueSchool + (*schoolsItr)->isSapProgram() * model->getSchoolAssignmentCoefficientsById(HAS_SAP_PROGRAM)->getCoefficientEstimate();
 
-		const TravelTime *travelTime = model->loadTravelTime(hhPlanningArea->getTazName(),(*schoolsItr)->getTazName());
-
+		const TravelTime *travelTime = model->getTravelTimeByOriginDestTaz(hhPlanningArea->getTazName(),(*schoolsItr)->getTazName());
 		if(travelTime != nullptr)
 		{
 			double carTravelTime = travelTime->getCarTravelTime();
@@ -66,11 +61,8 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 			double publicTravelTime = travelTime->getPublicTravelTime();
 			valueSchool = valueSchool + publicTravelTime * model->getSchoolAssignmentCoefficientsById(PUBLIC_TRANS_TRAVEL_TIME)->getCoefficientEstimate();
 		}
-
 		valueSchool = valueSchool + (household->getWorkers() * distanceFromHomeToSchool) * model->getSchoolAssignmentCoefficientsById(WORKERS_IN_HH_X_DISTANCE)->getCoefficientEstimate();
-
 		double income = household->getIncome();
-
 		const int lowIncomeLimit = 3500;
 		const int highIncomeLimit = 10000;
 		if(income <= lowIncomeLimit) //low income
@@ -81,7 +73,6 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 		{
 			valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(HIGH_INCOME_HH_X_DISTANCE)->getCoefficientEstimate();
 		}
-
 		valueSchool = valueSchool + (distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(GIFTED_PROGRAM_X_DISTANCE)->getCoefficientEstimate()) * (*schoolsItr)->isGiftedProgram();
 		valueSchool = valueSchool + (distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(SAP_PROGRAM_X_DISTANCE)->getCoefficientEstimate()) * (*schoolsItr)->isSapProgram();
 
@@ -106,10 +97,8 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<> dis(0.0, 1.0);
-
 	double randomNum =  dis(gen);
 	double pTemp = 0;
-
 	BigSerial selectedSchoolId = 0;
 	std::map<BigSerial,double>::const_iterator probSchoolItr;
 	for(probSchoolItr = probSchoolMap.begin(); probSchoolItr != probSchoolMap.end(); ++probSchoolItr)
@@ -124,16 +113,10 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 			pTemp = pTemp + (*probSchoolItr).second;
 		}
 	}
-
-	School *priSchool = model->getPrimarySchoolById(selectedSchoolId);
-	priSchool->addStudent(individualId);
-	double distanceFromHomeToSchool = (distanceCalculateEuclidean(priSchool->getCentroidX(),priSchool->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
-	School::DistanceIndividual distanceInd{individualId,distanceFromHomeToSchool};
-	priSchool->addIndividualDistance(distanceInd);
+	model->addStudentToPrimarySchool(individualId,selectedSchoolId,household->getId());
 	}
 	schoolExpVec.clear();
 	expSchoolMap.clear();
-
 
 }
 
@@ -161,7 +144,6 @@ void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
 			for(School::DistanceIndividual distInd:distIndWithinLimit )
 			{
 				BigSerial schoolId = priSchool->getId();
-				//writeSchoolAssignmentsToFile(distInd->individualId,schoolId);
 				priSchool->addSelectedStudent(distInd.individualId);
 			}
 
@@ -176,25 +158,25 @@ void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
 			disIndToReallocate.clear();
 
 		}
-//		else
-//		{
-//			std::vector<BigSerial*> students = priSchool->getStudents();
-//			for(BigSerial *individualId : students)
-//			{
-//				BigSerial schoolId = priSchool->getId();
-//				writeSchoolAssignmentsToFile(*individualId,schoolId);
-//			}
-//			students.clear();
-//		}
+		else
+		{
+			std::vector<BigSerial> students = priSchool->getStudents();
+			for(BigSerial individualId : students)
+			{
+				priSchool->addSelectedStudent(individualId);
+			}
+		}
 	}
 
 	for (School *priSchool:primarySchools )
 	{
-		std::vector<BigSerial> students = priSchool->getStudents();
+		std::vector<BigSerial> students = priSchool->getSelectedStudents();
 		for(BigSerial individualId : students)
 		{
+			Individual *individual = model->getIndividualById(individualId);
+			BigSerial studentId = individual->getStudentId();
 			BigSerial schoolId = priSchool->getId();
-			writeSchoolAssignmentsToFile(individualId,schoolId);
+			writeSchoolAssignmentsToFile(individualId,studentId,schoolId);
 		}
 		students.clear();
 	}
@@ -209,14 +191,10 @@ void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individ
 	{
 		double totalStudentLimitDif = 0;
 		int numStudentsCanBeAssigned = 0;
-
 		for(School *primaryScool : primarySchools)
 		{
-			//PrintOut("num students before"<<primaryScool->getNumSelectedStudents());
 			if(individual->getIsPrimarySchoolWithin5Km(primaryScool->getId()))
 			{
-
-
 				int numSelectedStudents = primaryScool->getNumSelectedStudents();
 				if(numSelectedStudents < studentLimitPerSchool)
 				{
@@ -244,14 +222,11 @@ void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individ
 			}
 		}
 
-
 		std::random_device rd;
 		std::mt19937 gen(rd());
 		std::uniform_real_distribution<> dis(0.0, 1.0);
-
 		double randomNum =  dis(gen);
 		double pTemp = 0;
-
 		BigSerial selectedSchoolId = 0;
 		std::map<BigSerial,double>::const_iterator probSchoolItr;
 		for(probSchoolItr = probSchoolMap.begin(); probSchoolItr != probSchoolMap.end(); ++probSchoolItr)
@@ -261,7 +236,6 @@ void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individ
 				selectedSchoolId = probSchoolItr->first;
 				School *priSchool = model->getPrimarySchoolById(selectedSchoolId);
 				priSchool->addSelectedStudent(individualId);
-				//writeSchoolAssignmentsToFile(individualId,selectedSchoolId);
 				break;
 			}
 			else
@@ -271,9 +245,7 @@ void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individ
 		}
 		schoolsWithProb.clear();
 		probSchoolMap.clear();
-
 	}
-
 }
 
 void SchoolAssignmentSubModel::assignPreSchool(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day)
@@ -285,7 +257,6 @@ void SchoolAssignmentSubModel::assignPreSchool(const Household *household,BigSer
 	double hhCentroidY = hhCoords->getCentroidY();
 	double minDistance = distanceCalculateEuclidean(preSchools.at(0)->getCentroidX(),preSchools.at(0)->getCentroidY(),hhCentroidX,hhCentroidY);
 	BigSerial selectedPreSchoolId = preSchools.at(0)->getId();
-
 	for(preSchoolsItr = preSchools.begin(); preSchoolsItr != preSchools.end(); ++preSchoolsItr )
 	{
 		double distanceFromHomeToSchool = distanceCalculateEuclidean((*preSchoolsItr)->getCentroidX(),(*preSchoolsItr)->getCentroidY(),hhCentroidX,hhCentroidY);
@@ -295,6 +266,7 @@ void SchoolAssignmentSubModel::assignPreSchool(const Household *household,BigSer
 			selectedPreSchoolId = (*preSchoolsItr)->getId();
 		}
 	}
-	writePreSchoolAssignmentsToFile(household->getId(),individualId,selectedPreSchoolId);
+	Individual *individual = model->getIndividualById(individualId);
+	writePreSchoolAssignmentsToFile(individualId,individual->getStudentId(),selectedPreSchoolId);
 }
 

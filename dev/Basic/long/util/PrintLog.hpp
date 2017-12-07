@@ -550,23 +550,23 @@ namespace sim_mob
 	    	printBidGeneric( model,  id, bid, entry,bidsCounter,  accepted);
 	    }
 
-	    inline void writePreSchoolAssignmentsToFile(BigSerial hhId,BigSerial individualId,BigSerial schoolId)
+	    inline void writePreSchoolAssignmentsToFile(BigSerial individualId,BigSerial studentId,BigSerial schoolId)
 	    {
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_pre_school_assignment)
 				return;
 
-	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % hhId % individualId % schoolId;
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % studentId % schoolId;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRE_SCHOOL_ASSIGNMENT,fmtr.str());
 	    }
 
-	    inline void writeSchoolAssignmentsToFile(BigSerial individualId,BigSerial priSchoolId)
+	    inline void writeSchoolAssignmentsToFile(BigSerial individualId,BigSerial studentId, BigSerial priSchoolId)
 	    {
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_school_assignment)
 				return;
 
-	    	boost::format fmtr = boost::format("%1%, %2%") % individualId % priSchoolId;
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % studentId % priSchoolId ;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCHOOL_ASSIGNMENT,fmtr.str());
 	    }
 

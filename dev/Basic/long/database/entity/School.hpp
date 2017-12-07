@@ -70,6 +70,7 @@ namespace sim_mob
 			int getNumStudents() const;
 			std::vector<School::DistanceIndividual> getSortedDistanceIndList();
 			std::vector<BigSerial> getStudents();
+			std::vector<BigSerial> getSelectedStudents();
 			int getNumSelectedStudents();
 			int getNumStudentsCanBeAssigned();
 			double getReAllocationProb();
@@ -77,7 +78,7 @@ namespace sim_mob
 			std::vector<School*> getSortedProbSchoolList(std::vector<School*> studentsWithProb);
 
 			void addStudent(BigSerial studentId);
-			void addIndividualDistance(DistanceIndividual distanceIndividual);
+			void addIndividualDistance(DistanceIndividual &distanceIndividual);
 			void setSelectedStudentList(std::vector<BigSerial>selectedStudents);
 			void setNumStudentsCanBeAssigned(int numStudents);
 			void setReAllocationProb(double probability);

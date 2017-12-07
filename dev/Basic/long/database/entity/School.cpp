@@ -136,7 +136,7 @@ void School::addStudent(BigSerial studentId)
 	numStudents++;
 }
 
-void School::addIndividualDistance(DistanceIndividual distanceIndividual)
+void School::addIndividualDistance(DistanceIndividual &distanceIndividual)
 {
 	distanceIndList.push_back(distanceIndividual);
 }
@@ -156,6 +156,11 @@ std::vector<School*> getSortedProbSchoolList( std::vector<School*> studentsWithP
 std::vector<BigSerial> School::getStudents()
 {
 	return this->students;
+}
+
+std::vector<BigSerial> School::getSelectedStudents()
+{
+	return this->selectedStudents;
 }
 
 int School::getNumSelectedStudents()

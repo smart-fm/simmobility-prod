@@ -512,13 +512,15 @@ void  Conflux::processStartingAgents()
 	}
 }
 
-void Conflux::updateQueuingTaxiDriverAgent(Person_MT* person)
+void Conflux::updateQueuingTaxiDriverAgent(Person_MT *&person, timeslice now)
 {
+	person->currTick = now;
 	updateAgent(person);
 }
 
-void Conflux::updateParkedServiceDriver(Person_MT *person)
+void Conflux::updateParkedServiceDriver(Person_MT *&person, timeslice now)
 {
+	person->currTick = now;
 	updateAgent(person);
 }
 

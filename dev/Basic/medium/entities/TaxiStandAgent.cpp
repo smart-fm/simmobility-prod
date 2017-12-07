@@ -55,7 +55,7 @@ Entity::UpdateStatus TaxiStandAgent::frame_tick(timeslice now)
 	auto itWaitDriver = queuingDrivers.begin();
 	while(itWaitDriver != queuingDrivers.end())
 	{
-		parentConflux->updateQueuingTaxiDriverAgent((*itWaitDriver));
+		parentConflux->updateQueuingTaxiDriverAgent((*itWaitDriver), now);
 		OnHailDriver *driver = dynamic_cast<OnHailDriver *>((*itWaitDriver)->getRole());
 
 		if(!driver || driver->isToBeRemovedFromTaxiStand())

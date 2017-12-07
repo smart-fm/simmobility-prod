@@ -67,7 +67,7 @@ Entity::UpdateStatus ParkingAgent::frame_tick(timeslice now)
 	auto it = parkedPersons.begin();
 	while(it != parkedPersons.end())
 	{
-		parentConflux->updateParkedServiceDriver(*it);
+		parentConflux->updateParkedServiceDriver(*it, now);
 
 		OnCallDriver *onCallDriver = dynamic_cast<OnCallDriver *>((*it)->getRole());
 		if(!onCallDriver || onCallDriver->isToBeRemovedFromParking())

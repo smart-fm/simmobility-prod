@@ -701,9 +701,9 @@ public:
 	 */
 	static void CreateLaneGroups();
 
-	void updateQueuingTaxiDriverAgent(Person_MT* person);
+	void updateQueuingTaxiDriverAgent(Person_MT *&person, timeslice now);
 
-	void updateParkedServiceDriver(Person_MT *person);
+	void updateParkedServiceDriver(Person_MT *&person, timeslice now);
 
 	/**
 	 * exposes the Log() function for printing in output files

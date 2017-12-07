@@ -13,7 +13,8 @@ using namespace std;
 OnCallDriver::OnCallDriver(Person_MT *parent, const MutexStrategy &mtx, OnCallDriverBehaviour *behaviour,
                            OnCallDriverMovement *movement, string roleName, Type roleType) :
 		Driver(parent, behaviour, movement, roleName, roleType), movement(movement), behaviour(behaviour),
-		isWaitingForUnsubscribeAck(false), isScheduleUpdated(false), toBeRemovedFromParking(false)
+		isWaitingForUnsubscribeAck(false), isScheduleUpdated(false), toBeRemovedFromParking(false),
+		isExitingParking(false)
 {
 }
 

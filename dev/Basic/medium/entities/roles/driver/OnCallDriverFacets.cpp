@@ -282,7 +282,8 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	subTrip.destination = WayPoint(pickupNode);
 
 	const Link *currLink = nullptr;
-	bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
+	Person_MT *parent = onCallDriver->getParent();
+	bool useInSimulationTT = parent->usesInSimulationTravelTime();
 
 	bool canPickPaxImmediately = false;
 
@@ -299,11 +300,17 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 			canPickPaxImmediately = true;
 		}
 	}
-	else if(onCallDriver->getDriverStatus() == PARKED && currNode == pickupNode)
+	else if(onCallDriver->getDriverStatus() == PARKED)
 	{
-		//In case the driver was parked, if the pickup location is the same as that of
-		//the parking node then we can pick up the passenger at this point
-		canPickPaxImmediately = true;
+		//Driver was parked and is now moving to pick-up node, so set this to true
+		onCallDriver->isExitingParking = true;
+
+		if(currNode == pickupNode)
+		{
+			//In case the driver was parked, if the pickup location is the same as that of
+			//the parking node then we can pick up the passenger at this point
+			canPickPaxImmediately = true;
+		}
 	}
 
 	if(canPickPaxImmediately)
@@ -322,7 +329,7 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	if(route.empty())
 	{
 		stringstream msg;
-		msg << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
+		msg << "Path not found. Driver " << parent->getDatabaseId()
 		    << " could not find a path to the pickup node " << pickupNode->getNodeId()
 		    << " from the current node " << currNode->getNodeId() << " and link ";
 		msg << (currLink ? currLink->getLinkId() : 0);
@@ -336,8 +343,8 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_ON_CALL);
 	onCallDriver->sendScheduleAckMessage(true);
 
-	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
-	                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving from node "
+	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
+	                << parent->getDatabaseId() << ": Begin driving from node "
 	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
 	                << " to pickup node " << pickupNode->getNodeId() << endl;
 
@@ -345,12 +352,9 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	onCallDriver->getResource()->setMoving(true);
 
 	//If we're exiting a parking, currLane would be null. So set it to lane infinity
-	if(!currLane)
+	if(onCallDriver->isExitingParking)
 	{
-		auto currSegStats = pathMover.getCurrSegStats();
-		currLane = currSegStats->laneInfinity;
-		onCallDriver->getParent()->setCurrSegStats(currSegStats);
-		onCallDriver->getParent()->setCurrLane(currLane);
+		resetDriverLaneAndSegment();
 	}
 }
 
@@ -362,7 +366,8 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 	subTrip.destination = WayPoint(dropOffNode);
 
 	const Link *currLink = nullptr;
-	bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
+	Person_MT *parent = onCallDriver->getParent();
+	bool useInSimulationTT = parent->usesInSimulationTravelTime();
 
 	//If the driving path has already been set, we must find path to the node from
 	//the current segment
@@ -387,7 +392,7 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 	if(route.empty())
 	{
 		stringstream msg;
-		msg << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
+		msg << "Path not found. Driver " << parent->getDatabaseId()
 		    << " could not find a path to the drop off node " << dropOffNode->getNodeId()
 		    << " from the current node " << currNode->getNodeId() << " and link ";
 		msg << (currLink ? currLink->getLinkId() : 0);
@@ -403,19 +408,17 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 	//Set vehicle to moving
 	onCallDriver->getResource()->setMoving(true);
 
-	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
-	                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving with passenger from node "
+	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
+	                << parent->getDatabaseId() << ": Begin driving with passenger from node "
 	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
 	                << " to drop off node " << dropOffNode->getNodeId() << endl;
 
-	//If we're exiting a parking, currLane would be null. So set it to lane infinity
+	//If we're exiting a parking, this flag would be true. We need to set current lane to lane infinity
+	//and also set the current segment based on the updated path
 	//Note: This is possible as the pick-up could have been at the parking node itself
-	if(!currLane)
+	if(onCallDriver->isExitingParking)
 	{
-		auto currSegStats = pathMover.getCurrSegStats();
-		currLane = currSegStats->laneInfinity;
-		onCallDriver->getParent()->setCurrSegStats(currSegStats);
-		onCallDriver->getParent()->setCurrLane(currLane);
+		resetDriverLaneAndSegment();
 	}
 }
 
@@ -492,14 +495,14 @@ void OnCallDriverMovement::parkVehicle(DriverUpdateParams &params)
 	auto parent = onCallDriver->getParent();
 
 	double actualT = params.elapsedSeconds + params.now.ms() / 1000;
-	onCallDriver->getParent()->currLinkTravelStats.finalize(currLink, actualT, nextLink);
+	parent->currLinkTravelStats.finalize(currLink, actualT, nextLink);
 	TravelTimeManager::getInstance()->addTravelTime(parent->currLinkTravelStats); //in seconds
 	currSegStat->getParentConflux()->setLinkTravelTimes(actualT, currLink);
 	parent->currLinkTravelStats.reset();
 
 	vehicle->setMoving(false);
 	params.elapsedSeconds = params.secondsInTick;
-	onCallDriver->getParent()->setRemainingTimeThisTick(0.0);
+	parent->setRemainingTimeThisTick(0.0);
 
 	//Update the value of current node as we return after this method
 	const SMSVehicleParking *parking = onCallDriver->driverSchedule.getCurrScheduleItem()->parking;
@@ -517,9 +520,21 @@ void OnCallDriverMovement::parkVehicle(DriverUpdateParams &params)
 	pathMover.eraseFullPath();
 	currLane = nullptr;
 
-	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
-	                << onCallDriver->getParent()->getDatabaseId() << ": Parked at node "
+	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
+	                << parent->getDatabaseId() << ": Parked at node "
 	                << currNode->getNodeId() << endl;
+}
+
+void OnCallDriverMovement::resetDriverLaneAndSegment()
+{
+	auto currSegStats = pathMover.getCurrSegStats();
+	auto parent = onCallDriver->getParent();
+	currLane = currSegStats->laneInfinity;
+	parent->setCurrSegStats(currSegStats);
+	parent->setCurrLane(currLane);
+
+	//The job of this flag is done, so reset it
+	onCallDriver->isExitingParking = false;
 }
 
 const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) const

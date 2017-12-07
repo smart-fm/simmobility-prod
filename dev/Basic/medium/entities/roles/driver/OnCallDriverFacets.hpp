@@ -69,6 +69,12 @@ protected:
 	 */
 	void parkVehicle(DriverUpdateParams &params);
 
+	/**
+	 * Sets the current lane to lane infinity of the current segment. This method must be called when
+	 * the driver is exiting a parking
+	 */
+	void resetDriverLaneAndSegment();
+
 public:
 	OnCallDriverMovement();
 	virtual ~OnCallDriverMovement();

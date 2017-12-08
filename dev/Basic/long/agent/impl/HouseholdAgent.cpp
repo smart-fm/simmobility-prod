@@ -420,17 +420,9 @@ void HouseholdAgent::onWorkerEnter()
   				SchoolAssignmentSubModel schoolAssignmentModel(model);
   				if (individual!= nullptr)
   				{
-  					//if(day == startDay)
-  					//{
-  						model->incrementPrimarySchoolAssignIndividualCount();
-  						schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
-  						PrintOutV("number of individuals assigned for primary schools " << model->getPrimaySchoolAssignIndividualCount()<< std::endl);
-  					//}
-  					//int secondSimDay = (startDay + 1);
-  					//if(day == secondSimDay)
-  					//{
-  					//	schoolAssignmentModel.setStudentLimitInPrimarySchool();
-  					//}
+  					model->incrementPrimarySchoolAssignIndividualCount();
+  					schoolAssignmentModel.assignPrimarySchool(this->getHousehold(),individual->getId(),this, day);
+  					PrintOutV("number of individuals assigned for primary schools " << model->getPrimaySchoolAssignIndividualCount()<< std::endl);
   				}
   				else
   				{

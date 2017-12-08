@@ -1432,7 +1432,7 @@ void HM_Model::setTaxiAccess2012(const Household *household)
 
 void HM_Model::startImpl()
 {
-	//PredayLT_LogsumManager::getInstance();
+	PredayLT_LogsumManager::getInstance();
 
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -1789,9 +1789,9 @@ void HM_Model::startImpl()
 		//These households with tenure_status 3 are considered to be occupied by foreign workers
 		const int FROZEN_HH = 3;
 
-
-		//if( household->getTenureStatus() != FROZEN_HH )
-		//	continue;
+		//if you want to run job assignment model or school assignment model with foreign workers population, please comment this line.
+		if( household->getTenureStatus() == FROZEN_HH )
+			continue;
 
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
 

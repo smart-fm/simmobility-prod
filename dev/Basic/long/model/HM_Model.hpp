@@ -653,13 +653,9 @@ namespace sim_mob
 
 			SlaBuildingList slaBuilding;
 			SlaBuildingMap	slaBuildingById;
-<<<<<<< HEAD
-=======
 			int numPrimarySchoolAssignIndividuals;
 			int numPreSchoolAssignIndividuals;
 			TravelTimeMap travelTimeByOriginDestTaz;
-
->>>>>>> 53035c1... added counters for pre school and primary school individuals with school assignment
         };
     }
 }

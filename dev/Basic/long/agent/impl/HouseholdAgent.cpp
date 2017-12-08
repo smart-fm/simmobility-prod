@@ -468,7 +468,7 @@ void HouseholdAgent::onWorkerEnter()
 				for(int n = 0; n < individuals.size(); n++)
 				{
 					const Individual *individual = getModel()->getIndividualById(individuals[n]);
-					if(individual->getEmploymentStatusId() < 4  && individual->getOccupationId() != 10) //remove occupation with "armed forces" from job assignment
+					if(individual->getEmploymentStatusId() < 4)
 					{
 						model->incrementJobAssignIndividualCount();
 						jobAssignModel.computeJobAssignmentProbability(individual->getId());

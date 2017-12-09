@@ -66,13 +66,13 @@ private:
 
 	/**Stores the distance covered by the driver on the current way-point*/
 	double distCoveredOnCurrWayPt;
-
 	/**
 	 * Calculates the distance between the current poly-point and the next poly-point
 	 *
      * @return the calculated distance
      */
 	double calcDistFromCurrToNextPt();
+
 
 	/**
 	 * Advances the driver's position along the poly-line to the next poly-point
@@ -101,6 +101,7 @@ private:
 
 	/**Error message to be thrown if the entire route is done*/
 	const static std::string ErrorEntireRouteDone;
+
 
 public:
 	DriverPathMover();
@@ -234,6 +235,13 @@ public:
      */
 	const Point getPosition();
 
+    void buildPath(const std::vector<WayPoint>& pathWayPts, std::vector<Link *> &pathOfSegments);
+
+   // void buildPath(const std::vector<WayPoint>& pathWayPts);
+    void resetPath(std::vector<WayPoint>& segStatPath);
+   //void resetPath(std::vector<WayPoint>& segStatPath);
+    bool isEndOfPath();
+    void eraseFullPath();
 #ifndef SIMMOB_DISABLE_MPI
 	friend class PackageUtils;
 	friend class UnPackageUtils;

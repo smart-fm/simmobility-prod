@@ -22,3 +22,11 @@ public:
 	{		
 	}
 };
+class no_path_error : public runtime_error
+{
+public:
+
+    explicit no_path_error(const string &arg) : runtime_error(arg)
+    {
+    }
+};

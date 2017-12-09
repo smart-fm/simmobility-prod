@@ -7,6 +7,7 @@
 #include "message/Message.hpp"
 #include "entities/Person_ST.hpp"
 #include "geospatial/network/RoadSegment.hpp"
+#include "entities/roles/driver/OnCallDriver.hpp"
 
 namespace sim_mob
 {
@@ -22,6 +23,11 @@ const messaging::Message::MessageType MSG_ATTEMPT_BOARD_BUS = 1000004;
 const messaging::Message::MessageType MSG_BOARD_BUS_SUCCESS = 1000005;
 const messaging::Message::MessageType MSG_BOARD_BUS_FAIL = 1000006;
 const messaging::Message::MessageType MSG_ALIGHT_BUS = 1000007;
+enum OnCallDriverMessage
+{
+    MSG_WAKEUP_SHIFT_END = 1000008,
+    MSG_ATTEMPT_BOARD_Taxi
+};
 
 /**
  * Message to wrap a Person
@@ -96,5 +102,4 @@ public:
 	{
 	}
 } ;
-
 }

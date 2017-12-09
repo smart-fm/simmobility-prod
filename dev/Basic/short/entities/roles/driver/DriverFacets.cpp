@@ -139,14 +139,17 @@ void DriverMovement::frame_tick()
 		{
 			TravelTimeManager::getInstance()->addODTravelTime(std::make_pair(parentDriver->origin->getNodeId(),
 					parentDriver->destination->getNodeId()),
-					(*parentDriver->parent->currSubTrip).startTime.getValue(),
+					(*parentDriver->getParent()->currSubTrip).startTime.getValue(),
 					params.now.ms());
 		}
+        if(parentDriver->roleType != sim_mob::Role<sim_mob::Person_ST>::RL_ON_CALL_DRIVER)
+        {
 
-		parentDriver->getParent()->setToBeRemoved();
-		return;
+            parentDriver->getParent()->setToBeRemoved();
+
+        }
+        return;
 	}
-	
 	identifyAdjacentLanes(params);
 
 	//If the vehicle is in the loading queue, we need to check if some empty space has opened up.
@@ -252,7 +255,7 @@ bool DriverMovement::findEmptySpaceAhead()
 			Role<Person_ST> *role = person->getRole();
 			if (role != NULL)
 			{
-				if (role->roleType == Role<Person_ST>::RL_DRIVER || role->roleType == Role<Person_ST>::RL_BUSDRIVER)
+				if (role->roleType == Role<Person_ST>::RL_DRIVER || role->roleType == Role<Person_ST>::RL_BUSDRIVER || role->roleType == Role<Person_ST>::RL_ON_CALL_DRIVER)
 				{
 					Driver *nearbyDriver = dynamic_cast<Driver *> (role);
 					DriverUpdateParams &nearbyDriversParams = nearbyDriver->getParams();
@@ -582,16 +585,16 @@ bool DriverMovement::updateMovement()
 	{
 		double linkExitTimeSec = params.elapsedSeconds + (params.now.ms() / 1000);
 		
-		if (prevLink == parentDriver->parent->currLinkTravelStats.link)
+		if (prevLink == parentDriver->getParent()->currLinkTravelStats.link)
 		{			
-			parentDriver->parent->currLinkTravelStats.finalize(prevLink, linkExitTimeSec, fwdDriverMovement.getNextLink());
+			parentDriver->getParent()->currLinkTravelStats.finalize(prevLink, linkExitTimeSec, fwdDriverMovement.getNextLink());
 			
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode())
 			{
-				TravelTimeManager::getInstance()->addTravelTime(parentDriver->parent->currLinkTravelStats);
+				TravelTimeManager::getInstance()->addTravelTime(parentDriver->getParent()->currLinkTravelStats);
 			}			
 			
-			parentDriver->parent->currLinkTravelStats.reset();
+			parentDriver->getParent()->currLinkTravelStats.reset();
 		}		
 	}
 	
@@ -601,7 +604,7 @@ bool DriverMovement::updateMovement()
 	if(!prevLink && currLink || (prevLink && currLink && prevLink != currLink))
 	{
 		double linkEntryTimeSec = params.elapsedSeconds + (params.now.ms() / 1000);
-		parentDriver->parent->currLinkTravelStats.start(currLink, linkEntryTimeSec);
+		parentDriver->getParent()->currLinkTravelStats.start(currLink, linkEntryTimeSec);
 	}
 
 	if (!fwdDriverMovement.isDoneWithEntireRoute())
@@ -959,6 +962,7 @@ std::vector<WayPoint> DriverMovement::buildPath(std::vector<WayPoint> &wayPoints
 		//Create a way point for every segment and insert it into the path
 		for (vector<RoadSegment *>::const_iterator itSegments = segments.begin(); itSegments != segments.end(); ++itSegments)
 		{
+            ControllerLog()<<"RoadSegments: "<<(*itSegments)->getRoadSegmentId()<<endl;
 			path.push_back(WayPoint(*itSegments));			
 		}
 
@@ -1230,12 +1234,20 @@ void DriverMovement::identifyAdjacentLanes(DriverUpdateParams &params)
 	{
 		return;
 	}
-	
-	params.currLaneIndex = params.currLane->getLaneIndex();
+
+    if(params.currLane != nullptr)
+    {
+
+        params.currLaneIndex = params.currLane->getLaneIndex();
+    }
+    else
+    {
+        return;
+    }
 	const unsigned int numOfLanes = params.currLane->getParentSegment()->getNoOfLanes();
 
 	//Only 1 lane in the segment, so no adjacent lanes
-	if (numOfLanes == 1)
+	if (numOfLanes == 0 || numOfLanes == 1)
 	{
 		return;
 	}
@@ -2403,3 +2415,103 @@ void DriverMovement::updateTrafficSensor(double oldPos, double newPos, double sp
 	}
 }
 
+void DriverMovement::removeFromQueue()
+{
+    if (parentDriver->getParent())
+    {
+        if (isQueuing)
+        {
+            isQueuing = false;
+        }
+        else
+        {
+            std::stringstream DebugStream;
+            DebugStream << "removeFromQueue() was called for a driver who is not in queue. Person: " << parentDriver->parent->getId()
+                        << "|RoadSegment: " << currLane->getParentSegment()->getRoadSegmentId()
+                        << "|Lane: " << currLane->getLaneId() << std::endl;
+            throw std::runtime_error(DebugStream.str());
+        }
+    }
+}
+
+
+void DriverMovement::driveInRightPath(DriverUpdateParams &params, const Link* currLink,const Lane* currLane)
+{
+    //No turning path to the next link from the selected route. Change route.
+
+    bool isPathFound = false;
+
+    //Get the link that we are connected to from the current lane
+    const Node* currNode =  currLink->getFromNode();
+    const Node* destNode = currLink->getToNode();
+
+    const TurningGroup *tGroupToEnter = nullptr;
+    const Link *nextLink = nullptr;
+    const std::map<unsigned int, TurningGroup *> &tGroups = destNode->getTurningGroups(currLink->getLinkId());
+
+    //From the current node, get the turning group that has turning paths originating at the current lane
+    for (std::map<unsigned int, TurningGroup *>::const_iterator itGroups = tGroups.begin(); itGroups != tGroups.end(); ++itGroups)
+    {
+        const std::map<unsigned int, TurningPath *> *tPaths = itGroups->second->getTurningPaths(currLane->getLaneId());
+
+        if (tPaths)
+        {
+            tGroupToEnter = itGroups->second;
+            nextLink = tPaths->begin()->second->getToLane()->getParentSegment()->getParentLink();
+
+            //Create a temporary sub-trip
+            DailyTime startTime(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + params.now.ms());
+            SubTrip subtrip;
+
+            subtrip.origin = WayPoint(currNode);
+            subtrip.destination = parentDriver->parent->destNode;
+            subtrip.startTime = startTime;
+
+            //Get the path from the path-set manager if we're using route-choice, else find the shortest path
+            vector<WayPoint> path;
+            if (ConfigManager::GetInstance().FullConfig().PathSetMode())
+            {
+                set<const Link *> blackListLink;
+
+                bool useInSimulationTT = parentDriver->getParent()->usesInSimulationTravelTime();
+                isPathFound = PrivateTrafficRouteChoice::getInstance()->getBestPath(path, subtrip, true, blackListLink,
+                                                                                    false, false, false, nextLink, useInSimulationTT);
+            }
+
+            if (!isPathFound || !ConfigManager::GetInstance().FullConfig().PathSetMode())
+            {
+                const StreetDirectory& stdir = StreetDirectory::Instance();
+                path = stdir.SearchShortestDrivingPath<sim_mob::Link, sim_mob::Node>(*nextLink, *(parentDriver->destination));
+
+                if (path.empty())
+                {
+                    continue;
+                }
+            }
+
+            //Build the new path
+            path = buildPath(path);
+
+            //Prepend the path with the next turning group
+            path.insert(path.begin(), WayPoint(tGroupToEnter));
+
+            //Set the updated path
+            fwdDriverMovement.setPathStartingWithTurningGroup(path, currLane);
+
+            updatePosition(params);
+
+            //Set path found
+            isPathFound = true;
+            break;
+        }
+    }
+
+    if (!isPathFound)
+    {
+        stringstream msg;
+        msg << __func__ << "No alternate path found from lane " << currLane->getLaneId()
+            << " to destination node " << parentDriver->destination->getNodeId()
+            << " Frame: [" << params.now.frame() << "]";
+        throw runtime_error(msg.str());
+    }
+}

@@ -12,6 +12,9 @@
 #include "message/ST_Message.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
 
+#include <entities/roles/driver/OnCallDriverFacets.hpp>
+#include "entities/roles/pedestrian/PedestrianFacets.hpp"
+
 using namespace std;
 using namespace sim_mob;
 
@@ -28,7 +31,7 @@ Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, int 
 prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amodId("-1"),
 amodPickUpSegmentStr("-1"), startSegmentId(-1), segmentStartOffset(0), initialSpeed(0),
 amodSegmLength(0.0), amodSegmLength2(0.0), client_id(0), isPositionValid(false), isVehicleInLoadingQueue(false),
-rsTravelStats(nullptr)
+rsTravelStats(nullptr),currFrame(0,0)
 {
 	setPersonCharacteristics();
 }
@@ -37,7 +40,7 @@ Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, cons
 : Person(src, mtxStrat, tc), startLaneIndex(-1), boardingTimeSecs(0), alightingTimeSecs(0), 
 prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amodId("-1"),
 amodPickUpSegmentStr("-1"), startSegmentId(-1), segmentStartOffset(0), initialSpeed(0), amodSegmLength(0.0), amodSegmLength2(0.0),
-rsTravelStats(nullptr)
+rsTravelStats(nullptr),currFrame(0,0)
 {
 	if (!tripChain.empty())
 	{
@@ -160,17 +163,53 @@ Entity::UpdateStatus Person_ST::checkTripChain(unsigned int currentTime)
 {
 	if (tripChain.empty())
 	{
+#ifndef NDEBUG
+        if ( exportServiceDriver() )
+        {
+            Warn()<<__FILE__<<":"<< __LINE__<<": The driver "<<getDatabaseId() << " with pointer "<< this << " is done"<<std::endl;
+        }
+#endif
 		return UpdateStatus::Done;
 	}
 
 	//advance the trip, sub-trip or activity....
-	if (!isFirstTick)
-	{
-		if (!(advanceCurrentTripChainItem()))
-		{
-			return UpdateStatus::Done;
-		}
-	}
+
+    //advance the trip, sub-trip or activity....
+    TripChainItem *chainItem=*(tripChain.begin());
+    if(chainItem->itemType != TripChainItem::IT_ON_CALL_TRIP)
+    {
+        if (!isFirstTick)
+        {
+            if (!(advanceCurrentTripChainItem()))
+            {
+#ifndef NDEBUG
+                if (exportServiceDriver())
+                {
+                    Warn() << __FILE__ << ":" << __LINE__ << ": The driver " << getDatabaseId() << " with pointer "
+                           << this << " is done" << std::endl;
+                }
+#endif
+                return UpdateStatus::Done;
+            }
+            if (isTripValid())
+            {
+                currSubTrip->startTime = DailyTime(currentTime);
+            }
+        }
+    }
+    else
+    {
+        if (!isFirstTick)
+        {
+#ifndef NDEBUG
+            if ( exportServiceDriver() )
+            {
+                Warn()<<__FILE__<<":"<< __LINE__<<": The driver "<<getDatabaseId() << " with pointer "<< this << " is done"<<std::endl;
+            }
+#endif
+            return UpdateStatus::Done;
+        }
+    }
 	
 	//must be set to false whenever trip chain item changes. And it has to happen before a probable creation of (or changing to) a new role
 	setNextPathPlanned(false);
@@ -341,10 +380,27 @@ Entity::UpdateStatus Person_ST::frame_init(timeslice now)
 
 	//Now that the Role has been fully constructed, initialise it.
 	if ((*currTripChainItem))
-	{
-		currRole->Movement()->frame_init();
-	}
-
+    {
+           currRole->Movement()->frame_init();
+    }
+    /* check to add from MT: revisit*/
+    setInitialized(true);
+    switch(currRole->roleType)
+    {
+        case Role<Person_ST>::RL_ON_CALL_DRIVER:
+        {
+            auto *onCallDrvMvt = dynamic_cast<const OnCallDriverMovement *>(currRole->Movement());
+            if(onCallDrvMvt)
+            {
+                dynamic_cast<OnCallDriverMovement*>(currRole->Movement())->frame_tick();
+                result= UpdateStatus::Continue;
+            }
+            else
+            {
+                throw std::runtime_error("OnCallDriver role facets not/incorrectly initialized");
+            }
+        }
+    }
 	ConfigManager::GetInstanceRW().FullConfig().numTripsLoaded++;
 	
 	return result;
@@ -402,6 +458,11 @@ Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 					ap->setActivityEndTime(DailyTime(now.ms() + config.baseGranMS() + (tcItem->endTime.getValue() - tcItem->startTime.getValue())));
 					ap->setLocation(acItem->destination.node);
 				}
+                //register the person as a message handler if required
+                if (!GetContext())
+                {
+                    messaging::MessageBus::RegisterHandler(currRole->getParent());
+                }
 				
 				if (!isInitialized())
 				{
@@ -413,14 +474,53 @@ Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 				{
 					assignPersonToBusStopAgent();
 				}
-			}
-		}
-		else
-		{
-			ConfigManager::GetInstanceRW().FullConfig().numTripsCompleted++;
-		}
-	}
-
+                else if(currRole->roleType == Role<Person_ST>::RL_ON_CALL_DRIVER)
+                {
+                    auto *onCallDrvMvt = dynamic_cast<const OnCallDriverMovement *>(currRole->Movement());
+                    if(onCallDrvMvt)
+                    {
+                        retVal = UpdateStatus::Continue;
+                    }
+                    else
+                    {
+                        throw std::runtime_error("OnCallDriver role facets not/incorrectly initialized");
+                    }
+                }
+                else if(currRole->roleType == Role<Person_ST>::RL_DRIVER)
+                {
+                    const DriverMovement *driverMvt = dynamic_cast<const DriverMovement *>(currRole->Movement());
+                    if (driverMvt)
+                    {
+                        retVal = UpdateStatus::Continue;
+                    }
+                    else
+                    {
+                        throw std::runtime_error("Driver role facets not/incorrectly initialized");
+                    }
+                }
+                else if(currRole->roleType ==Role<Person_ST>::RL_PEDESTRIAN || currRole->roleType == Role<Person_ST>::RL_TRAVELPEDESTRIAN)
+                {
+                    const PedestrianMovement *pedestrianMvt = dynamic_cast<const PedestrianMovement *>(currRole->Movement());
+                    if (pedestrianMvt)
+                    {
+                        retVal = UpdateStatus::Continue;
+                    }
+                    else
+                    {
+                        throw std::runtime_error("Pedestrian role facets not/incorrectly initialized");
+                    }
+                }
+                else if(currRole->roleType == Role<Person_ST>::RL_WAITTAXIACTIVITY)
+                {
+                    retVal = UpdateStatus::Continue;
+                }
+            }
+        }
+        else
+        {
+            ConfigManager::GetInstanceRW().FullConfig().numTripsCompleted++;
+        }
+    }
 	return retVal;
 }
 
@@ -951,3 +1051,106 @@ void Person_ST::addWalkAndWaitLegs(vector<SubTrip> &subTrips, const vector<SubTr
 	subTrip.travelMode = "WaitingTaxiActivity";
 	subTrips.push_back(subTrip);
 }
+
+/*
+Entity::UpdateStatus Person_ST::update(timeslice frameNumber)
+{
+    UpdateStatus res = checkTripChain(frameNumber.ms());
+    Role<Person_ST>* personRole = getRole();
+    //register the person as a message handler if required
+    if (!GetContext())
+    {
+        messaging::MessageBus::RegisterHandler(currRole->getParent());
+    }
+    Person_ST::frame_init(frameNumber);
+}*/
+
+Entity::UpdateStatus Person_ST::movePerson(timeslice now, Person_ST* person)
+{
+    // We give the Agent the benefit of the doubt here and simply call frame_init().
+    // This allows them to override the start_time if it seems appropriate (e.g., if they
+    // are swapping trip chains). If frame_init() returns false, immediately exit.
+    if (!person->isInitialized())
+    {
+        //Call frame_init() and exit early if required.
+        if (!callMovementFrameInit(now, person))
+        {
+            return Entity::UpdateStatus::Done;
+        }
+
+        //Set call_frame_init to false here; you can only reset frame_init() in frame_tick()
+        person->setInitialized(true); //Only initialize once.
+    }
+
+    //Perform the main update tick
+    Role<Person_ST>* personRole = person->getRole();
+    if (person->isResetParamsRequired())
+    {
+        personRole->make_frame_tick_params(now);
+        person->setResetParamsRequired(false);
+    }
+    person->setLastUpdatedFrame(currFrame.frame());
+
+    Entity::UpdateStatus retVal = Entity::UpdateStatus::Continue;
+
+    //This persons next movement will be in the next tick
+    if (retVal.status != Entity::UpdateStatus::RS_DONE )
+    {
+        //now is the right time to ask for resetting of updateParams
+        person->setResetParamsRequired(true);
+    }
+
+    return retVal;
+}
+
+bool Person_ST::callMovementFrameInit(timeslice now, Person_ST* person)
+{
+    //register the person as a message handler if required
+    if (!person->GetContext())
+    {
+        messaging::MessageBus::RegisterHandler(person);
+    }
+
+    //Agents may be created with a null Role and a valid trip chain
+    if (!person->getRole())
+    {
+        //TODO: This UpdateStatus has a "prevParams" and "currParams" that should
+        //      (one would expect) be dealt with. Where does this happen?
+        Entity::UpdateStatus res = person->checkTripChain(now.ms());
+
+        //Reset the start time (to the current time tick) so our dispatcher doesn't complain.
+        person->setStartTime(now.ms());
+
+        //Nothing left to do?
+        if (res.status == Entity::UpdateStatus::RS_DONE)
+        {
+            return false;
+        }
+    }
+    //Failsafe: no Role at all?
+    if (!person->getRole())
+    {
+        std::stringstream debugMsgs;
+        debugMsgs << "Person " << person->getId() << " has no Role.";
+        throw std::runtime_error(debugMsgs.str());
+    }
+
+    //Get an UpdateParams instance.
+    //TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
+    //      We should replace this eventually (but this will require a larger code cleanup).
+    person->getRole()->make_frame_tick_params(now);
+
+    //Now that the Role has been fully constructed, initialize it.
+    if (person->getRole())
+    {
+        person->getRole()->Movement()->frame_init();
+
+        if (person->isToBeRemoved())
+        {
+            return false;
+        } //if agent initialization fails, person is set to be removed
+    }
+
+    return true;
+}
+

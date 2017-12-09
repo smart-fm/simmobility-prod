@@ -55,6 +55,7 @@
 #include "workers/WorkGroupManager.hpp"
 #include "entities/roles/waitTaxiActivity/WaitTaxiActivity.hpp"
 #include <entities/FleetController_ST.hpp>
+#include "entities/roles/driver/OnCallDriver.hpp"
 
 
 //Note: This must be the LAST include, so that other header files don't have
@@ -126,7 +127,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		ProfileBuilder::InitLogFile("profile_trace.txt");
 		prof = new ProfileBuilder();
 	}
-	
+
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams &config = ConfigManager::GetInstance().FullConfig();
 	const MutexStrategy &mtx = config.mutexStategy();
@@ -152,9 +153,10 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	rf->registerRole("waitBusActivity", new WaitBusActivity(nullptr));
 	rf->registerRole("taxidriver", new Driver(nullptr, mtx));
 	rf->registerRole("waitTaxiActivity", new WaitTaxiActivity(nullptr));
+    rf->registerRole("onCallDriver", new OnCallDriver(nullptr,mtx));
 
-	//Loader params for our Agents
-	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
+    //Loader params for our Agents
+    WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 
 	//Load the configuration file
 	Print() << "\nLoading the configuration files: " << configFileName << ", " << shortConfigFile << "..." << std::endl;
@@ -475,6 +477,11 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 					case Role<Person_ST>::RL_WAITTAXIACTIVITY:
 						numWaitTaxi++;
 						break;
+                    case Role<Person_ST>::RL_TAXIDRIVER:
+                    case Role<Person_ST>::RL_ON_HAIL_DRIVER:
+                    case Role<Person_ST>::RL_ON_CALL_DRIVER:
+                        numPersons--;
+                        break;
 				}
 			}
 		}
@@ -599,8 +606,8 @@ int main_impl(int ARGC, char* ARGV[])
 	//Argument 1: Configuration file
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
-	std::string configFileName = "data/config.xml";
-	std::string shortConfigFile = "data/shortTerm.xml";
+	std::string configFileName = "data/simulation.xml";
+	std::string shortConfigFile = "data/simrun_ShortTerm.xml";
 	
 	if (args.size() > 2)
 	{

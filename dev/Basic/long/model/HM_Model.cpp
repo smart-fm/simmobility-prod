@@ -4,6 +4,7 @@
  * File:   HM_Model.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
+ * 		   Gishara Premarathne <gishara@smart.mit.edu>
  * 
  * Created on October 21, 2013, 3:08 PM
  */
@@ -1453,8 +1454,6 @@ std::vector<HouseholdAgent*> HM_Model::getFreelanceAgents()
 
 void HM_Model::startImpl()
 {
-	//PredayLT_LogsumManager::getInstance();
-
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	MetadataEntry entry;
@@ -1467,6 +1466,10 @@ void HM_Model::startImpl()
 	conn.connect();
 	resume = config.ltParams.resume;
 	conn.setSchema(config.schemas.main_schema);
+	if(config.ltParams.outputHouseholdLogsums.enabled)
+	{
+		PredayLT_LogsumManager::getInstance();
+	}
 
 	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
 	conn_calibration.connect();
@@ -3579,11 +3582,16 @@ void HM_Model::loadJobsByTazAndIndustryType(DB_Connection &conn)
 {
 	soci::session sql;
 	sql.open(soci::postgresql, conn.getConnectionStr());
-
-
-	//const std::string storedProc = conn.getSchema() + "getJobsWithIndustryTypeAndTazId()";
-	const std::string storedProc = conn.getSchema() + "getJobsForForiegnersWithIndustryTypeAndTazId()";
-
+	std::string storedProc;
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	if(config.ltParams.jobAssignmentModel.foreignWorkers)
+	{
+		storedProc = conn.getSchema() + "getJobsForForiegnersWithIndustryTypeAndTazId()";
+	}
+	else
+	{
+		storedProc = conn.getSchema() + "getJobsWithIndustryTypeAndTazId()";
+	}
 	//SQL statement
 	soci::rowset<JobsWithIndustryTypeAndTazId> jobsWithIndTypeAndTazObj = (sql.prepare << "select * from " + storedProc);
 	for (soci::rowset<JobsWithIndustryTypeAndTazId>::const_iterator itJobs = jobsWithIndTypeAndTazObj.begin(); itJobs != jobsWithIndTypeAndTazObj.end(); ++itJobs)
@@ -3630,6 +3638,7 @@ bool HM_Model::assignIndividualJob(BigSerial individualId, BigSerial selectedTaz
 	size_t sz = distance(range.first, range.second);
 	if(sz==0)
 	{
+		//this part should not be reached with proper data. If you get this message please check whether you have enough jobs for individuals in each industry id.
 		PrintOutV("Individual id" <<  individualId << "has job id as 0" << std::endl);
 		return false;
 	}

@@ -9,7 +9,8 @@ for i in range(numberOfIterationsOfPreday):
         # update alpha value in TravelTimeAggregator python script
         k = numberOfIterationsOfPreday + 1
         alpha = k / (k + 1.0 )
-        systemCommandToUpdateAlphaValue = "sed -i 's/ALPHA.*=.*/ALPHA ="+ str(alpha) + "/g' "  + "scripts/python/TravelTimeAggregator.py" ;        os.system(systemCommandToUpdateAlphaValue)
+        systemCommandToUpdateAlphaValue = "sed -i 's/ALPHA.*=.*/ALPHA ="+ str(alpha) + "/g' "  + "scripts/python/TravelTimeAggregator.py" ;        
+        os.system(systemCommandToUpdateAlphaValue)
 
         # update the config file to specify whether to run "full" mode
         systemCommandToChangeRunMode = "sed -i 's/<mid_term_run_mode value.*/<mid_term_run_mode value = \"full\"\/>/g' data/simrun_MidTerm.xml"

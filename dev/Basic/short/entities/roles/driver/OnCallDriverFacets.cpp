@@ -88,7 +88,7 @@ void OnCallDriverMovement::frame_tick()
 
    if(onCallDriver->getDriverStatus() != PARKED)
     {
-        onCallDriver->getParent()->movePerson(onCallDriver->getParent()->currFrame,onCallDriver->getParent());
+       // onCallDriver->getParent()->movePerson(onCallDriver->getParent()->currFrame,onCallDriver->getParent());
         DriverMovement::frame_tick();
 
     }
@@ -235,13 +235,14 @@ void OnCallDriverMovement::beginCruising(const Node *node)
     subTrip.destination = WayPoint(node);
 
     const Link *currLink = nullptr;
+    const Lane *currLane;
     bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
 
     //If the driving path has already been set, we must find path to the node from
     //the current segment
-    if(pathMover.isDrivingPathSet())
+    if(fwdDriverMovement.isDrivingPathSet())
     {
-        currLink = pathMover.getCurrLink();
+        currLink = fwdDriverMovement.getCurrLink();
     }
 
     //Get route to the node
@@ -263,14 +264,8 @@ void OnCallDriverMovement::beginCruising(const Node *node)
                     << getCurrentNode()->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
                     << " to node " << node->getNodeId() << endl;
 #endif
-    vector<WayPoint> path;
-    path = buildPath(route);
-    fwdDriverMovement.setPath(path);
-
-    fwdDriverMovement.resetPath(path);
-    currLink = route.begin()->link;
-    currLane = route.begin()->lane;//pathMover.getCurrLink();
-   // onCallDriver->movement->driveInRightPath(onCallDriver->getParams(),currLink,currLane);
+   const vector<WayPoint> path =route;
+    rerouteWithPath(path);
     currNode=node;
     onCallDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
 }

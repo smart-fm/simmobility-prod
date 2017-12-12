@@ -385,22 +385,6 @@ Entity::UpdateStatus Person_ST::frame_init(timeslice now)
     }
     /* check to add from MT: revisit*/
     setInitialized(true);
-    switch(currRole->roleType)
-    {
-        case Role<Person_ST>::RL_ON_CALL_DRIVER:
-        {
-            auto *onCallDrvMvt = dynamic_cast<const OnCallDriverMovement *>(currRole->Movement());
-            if(onCallDrvMvt)
-            {
-                dynamic_cast<OnCallDriverMovement*>(currRole->Movement())->frame_tick();
-                result= UpdateStatus::Continue;
-            }
-            else
-            {
-                throw std::runtime_error("OnCallDriver role facets not/incorrectly initialized");
-            }
-        }
-    }
 	ConfigManager::GetInstanceRW().FullConfig().numTripsLoaded++;
 	
 	return result;

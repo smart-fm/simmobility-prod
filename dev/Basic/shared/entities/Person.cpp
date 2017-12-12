@@ -523,29 +523,29 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 	}
 
 	std::string origin, destination;
-	switch (subtripMetrics.origin.type)
+	switch (st.origin.type)
 	{
 	case WayPoint::NODE:
 	{
-		origin = std::to_string(subtripMetrics.origin.node->getNodeId());
+		origin = std::to_string(st.origin.node->getNodeId());
 		break;
 	}
 	case WayPoint::BUS_STOP:
 	{
-		origin = subtripMetrics.origin.busStop->getStopCode();
+		origin = st.origin.busStop->getStopCode();
 		break;
 	}
 
 	case WayPoint::TAXI_STAND:
 	{
-		origin = std::to_string(subtripMetrics.origin.taxiStand->getStandId());
+		origin = std::to_string(st.origin.taxiStand->getStandId());
 		break;
 	}
 	case WayPoint::TRAIN_STOP:
 	{
 		const char* const delimiter = "/";
 		std::ostringstream trainStopIdStrm;
-		const std::vector<std::string>& trainStopIdVect = subtripMetrics.origin.trainStop->getTrainStopIds();
+		const std::vector<std::string>& trainStopIdVect = st.origin.trainStop->getTrainStopIds();
 		std::copy(trainStopIdVect.begin(), trainStopIdVect.end(), std::ostream_iterator<std::string>(trainStopIdStrm, delimiter));
 		origin = trainStopIdStrm.str();
 		break;
@@ -553,33 +553,39 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 
 	case WayPoint::MRT_PLATFORM:
 	{
-		origin=subtripMetrics.origin.platform->getPlatformNo();
+		origin=st.origin.platform->getPlatformNo();
 		break;
 	}
 	default:
 	{
-		origin = std::to_string(subtripMetrics.origin.type);
+		std::stringstream msg;
+		msg << __func__ << ": Waypoint Not match for origin for person  "
+		<< personDbId  << ", travelling from " << st.startLocationId<< " to "
+		<< st.endLocationId << " at time "
+		<< (*currSubTrip).startTime.getStrRepr() << ". So Taking destination by default origin Waypoint Case\n";
+		Warn() << msg.str();
+		origin = st.startLocationId;
 		break;
 	}
 	}
 
-	switch (subtripMetrics.destination.type)
+	switch (st.destination.type)
 	{
 	case WayPoint::NODE:
 	{
-		destination = std::to_string(subtripMetrics.destination.node->getNodeId());
+		destination = std::to_string(st.destination.node->getNodeId());
 		break;
 	}
 	case WayPoint::BUS_STOP:
 	{
-		destination = subtripMetrics.destination.busStop->getStopCode();
+		destination = st.destination.busStop->getStopCode();
 		break;
 	}
 	case WayPoint::TRAIN_STOP:
 	{
 		const char* const delimiter = "/";
 		std::ostringstream trainStopIdStrm;
-		const std::vector<std::string>& trainStopIdVect = subtripMetrics.destination.trainStop->getTrainStopIds();
+		const std::vector<std::string>& trainStopIdVect = st.destination.trainStop->getTrainStopIds();
 		std::copy(trainStopIdVect.begin(), trainStopIdVect.end(), std::ostream_iterator<std::string>(trainStopIdStrm, delimiter));
 		destination = trainStopIdStrm.str();
 		break;
@@ -587,12 +593,18 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 
 	case WayPoint::MRT_PLATFORM:
 	{
-		destination=subtripMetrics.destination.platform->getPlatformNo();
+		destination=st.destination.platform->getPlatformNo();
 		break;
 	}
 	default:
 	{
-		destination = std::to_string(subtripMetrics.destination.type);
+		std::stringstream msg;
+		msg << __func__ << ": Waypoint Not match for destination for person "
+		<< personDbId  << ", travelling from " << st.startLocationId<< " to "
+		<< st.endLocationId << " at time "
+		<< (*currSubTrip).startTime.getStrRepr() << ". So Taking destination by default destination Waypoint Case\n";
+		Warn() << msg.str();
+		destination = st.endLocationId;
 		break;
 	}
 	}

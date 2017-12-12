@@ -328,7 +328,8 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 			}
 
-			hedonicCoeffObj = model->getHedonicCoeffsByUnitTypeId((*unitsItr).getUnitTypeId());
+			const UnitType *unitType = model->getUnitTypeById((*unitsItr).getUnitTypeId());
+			hedonicCoeffObj = model->getHedonicCoeffsByUnitTypeId(unitType->getAggregatedUnitType());
 		    privateLagTObj = model->getLagPrivateTByUnitTypeId((*unitsItr).getUnitTypeId());
 
 		    HPI = privateLagTObj->getIntercept() + ( privateLagTObj->getT4() * taoValueQ4) + ( privateLagTObj->getT5() * taoValueQ5) + ( privateLagTObj->getT6() * taoValueQ6) + ( privateLagTObj->getT7() * taoValueQ7)

@@ -9,9 +9,9 @@
 
 using namespace sim_mob::long_term;
 
-UnitType::UnitType(BigSerial id,std::string name,double typicalArea, double constructionCostPerUnit,double demolitionCostPerUnit, double minLosize, int dwellingType, double wtpOffset)
+UnitType::UnitType(BigSerial id,std::string name,double typicalArea, double constructionCostPerUnit,double demolitionCostPerUnit, double minLosize, int dwellingType, double wtpOffset, int aggregatedUnitType)
 : id(id), name(name), typicalArea(typicalArea),constructionCostPerUnit(constructionCostPerUnit),demolitionCostPerUnit(demolitionCostPerUnit), minLosize(minLosize),
-  dwellingType(dwellingType), wtpOffset(wtpOffset ){
+  dwellingType(dwellingType), wtpOffset(wtpOffset ), aggregatedUnitType(aggregatedUnitType){
 }
 
 UnitType::~UnitType() {
@@ -54,6 +54,15 @@ double UnitType::getWtpOffset() const
 	return wtpOffset;
 }
 
+int UnitType::getAggregatedUnitType() const
+{
+	return aggregatedUnitType;
+}
+
+void UnitType::setAggregatedUnitType(int aggregatedUnitType)
+{
+	this->aggregatedUnitType = aggregatedUnitType;
+}
 
 namespace sim_mob {
     namespace long_term {

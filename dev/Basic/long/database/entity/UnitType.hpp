@@ -17,7 +17,7 @@ namespace sim_mob {
         class UnitType {
         public:
             UnitType(BigSerial id = INVALID_ID,std::string name = EMPTY_STR,
-                     double typicalArea = 0.0, double constructionCostPerUnit = 0.0,double demolitionCostPerUnit = 0.0, double minLosize = 0.0, int dwellingType = 0, double wtpOffset = 0.0);
+                     double typicalArea = 0.0, double constructionCostPerUnit = 0.0,double demolitionCostPerUnit = 0.0, double minLosize = 0.0, int dwellingType = 0, double wtpOffset = 0.0, int aggregatedUnitType = 0);
 
             virtual ~UnitType();
 
@@ -34,13 +34,13 @@ namespace sim_mob {
             void setWtpOffset(double value);
             double getWtpOffset() const;
 
+            int getAggregatedUnitType() const;
+            void setAggregatedUnitType(int aggregatedUnitType);
 
             /**
              * Operator to print the TemplateUnitType data.
              */
-            friend std::ostream& operator<<(std::ostream& strm,
-                    const UnitType& data);
-
+            friend std::ostream& operator<<(std::ostream& strm,const UnitType& data);
 
         private:
             friend class UnitTypeDao;
@@ -53,6 +53,7 @@ namespace sim_mob {
             double minLosize;
             int	   dwellingType;
             double wtpOffset;
+            int aggregatedUnitType;
         };
     }
 }

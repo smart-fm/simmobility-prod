@@ -249,41 +249,8 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Buildi
 		ZZ_bus_400m = 1;
 
 
-	if( unit->getUnitType() <= 2 || unit->getUnitType() == 65 )
-		ZZ_hdb12 = 1;
-
-
-	if( unit->getUnitType() == 3 )
-		ZZ_hdb3 = 1;
-
-
-	if( unit->getUnitType() == 4 )
-		ZZ_hdb4 = 1;
-
-
-	if( unit->getUnitType() == 5 )
-		ZZ_hdb5m = 1;
-
-
-	HedonicCoeffsByUnitType *coeffs = nullptr;
-
-
-	//-----------------------------
-	//-----------------------------
-	if (ZZ_hdb12 == 1)
-		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(1));
-	else
-	if (ZZ_hdb3 == 1)
-		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(3));
-	else
-	if (ZZ_hdb4 == 1)
-		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(4));
-	else
-	if (ZZ_hdb5m == 1)
-		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(5));
-	else
-		coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(6));
-
+	UnitType *unitType = hmModel->getUnitTypeById(unit->getUnitType());
+	HedonicCoeffsByUnitType *coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(unitType->getAggregatedUnitType()));;
 	BigSerial tazId = hmModel->getUnitTazId( unit->getId() );
 	Taz* unitTaz =  hmModel->getTazById(tazId);
 	float otherMature = 0;

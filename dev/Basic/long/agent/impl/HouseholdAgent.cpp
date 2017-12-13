@@ -243,9 +243,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		PrintExit( day, household, 0);
 		bidder->setActive(false);
 
-		if( bidder->getMoveInWaitingTimeInDays() > 0 )
-			bidder->TakeUnitOwnership();
-
+		//transfer unit to a freelance agent if a household has done a successful bid and has not sold his house during MoveInWaitingTimeInDays.
 		if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 && bidder->getParent()->getHousehold()->getLastBidStatus() == 1 && bidder->getMoveInWaitingTimeInDays() <= 0)
 			TransferUnitToFreelanceAgent();
 
@@ -459,24 +457,26 @@ void HouseholdAgent::onWorkerEnter()
 		}
 	}
 
-	JobAssignmentModel jobAssignModel(model);
-	const Household *hh = this->getHousehold();
-
-	if( config.ltParams.jobAssignmentModel.enabled == true )
-	{
-	if( hh != NULL )
-	{
-		vector<BigSerial> individuals = household->getIndividuals();
-		for(int n = 0; n < individuals.size(); n++)
+		if( config.ltParams.jobAssignmentModel.enabled == true)
 		{
-			const Individual *individual = getModel()->getIndividualById(individuals[n]);
-				if(individual->getEmploymentStatusId() < 4)
+
+			JobAssignmentModel jobAssignModel(model);
+			const Household *hh = this->getHousehold();
+			if( (hh != NULL) && ((hh->getTenureStatus()==3 && config.ltParams.jobAssignmentModel.foreignWorkers == true) || (config.ltParams.jobAssignmentModel.foreignWorkers == false)))
+			{
+				vector<BigSerial> individuals = hh->getIndividuals();
+				for(int n = 0; n < individuals.size(); n++)
 				{
-					jobAssignModel.computeJobAssignmentProbability(individual->getId());
+					const Individual *individual = getModel()->getIndividualById(individuals[n]);
+					if(individual->getEmploymentStatusId() < 4)
+					{
+						model->incrementJobAssignIndividualCount();
+						jobAssignModel.computeJobAssignmentProbability(individual->getId());
+						PrintOutV("number of individuals assigned for jobs " << model->getJobAssignIndividualCount()<< std::endl);
+					}
 				}
+			}
 		}
-	}
-	}
 
 
     if (!marketSeller)

@@ -293,7 +293,7 @@ public:
 						}
 						PopulationSqlDao populationDao(populationConn);
 						long long personId = std::stol(person->getDatabaseId(), &sz); //gets the numerical part before '-' from the person id
-						PersonParams personInfo;
+						PersonParams personInfo(false);
 						populationDao.getOneById(personId, personInfo);
 						person->setPersonInfo(personInfo);
 					}
@@ -357,7 +357,7 @@ MT_PersonLoader::MT_PersonLoader(std::set<sim_mob::Entity*>& activeAgents, Start
 		}
 		PopulationSqlDao populationDao(populationConn);
 		populationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
-		populationDao.getAddresses(PersonParams::getAddressLookup(), PersonParams::getZoneAddresses());
+		populationDao.getAddresses();
 	}
 }
 

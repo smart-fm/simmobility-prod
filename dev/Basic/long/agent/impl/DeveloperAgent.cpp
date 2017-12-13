@@ -683,6 +683,8 @@ bool DeveloperAgent::onFrameInit(timeslice now) {
 
 Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
 
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
     if (devModel && isActive())
     {
     	currentTick = now.ms();
@@ -731,7 +733,7 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     		}
     	}
     	}
-    	else if(hasBTO)
+    	else if(config.ltParams.launchBTO && hasBTO)
     	{
     		launchBTOUnits(currentDate);
     	}

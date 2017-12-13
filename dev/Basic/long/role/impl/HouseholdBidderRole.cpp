@@ -442,11 +442,12 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	getParent()->getHousehold()->setTimeOffMarket(moveInWaitingTimeInDays + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid);
             		getParent()->setAcceptedBid(true);
 
-                	if(simulationEndDay < (moveInWaitingTimeInDays))
+                	if(simulationEndDay < (moveInWaitingTimeInDays + day))
                 	{
                 		getParent()->getHousehold()->setUnitId(unitIdToBeOwned);
                 		getParent()->getHousehold()->setHasMoved(0);
                 		getParent()->getHousehold()->setUnitPending(1);
+                		moveInWaitingTimeInDays = (moveInWaitingTimeInDays + day) - simulationEndDay;
                 		getParent()->getHousehold()->setPendingFromDate(getDateBySimDay(year,moveInWaitingTimeInDays));
                 	}
 
@@ -781,7 +782,12 @@ bool HouseholdBidderRole::pickEntryToBid()
 
            			//(1-avg(wtp/hedonic)) * hedonic
         			//We need to adjust the willingness to pay
-            		wp += entry->getHedonicPrice() * unitType->getWtpOffset();
+            		//wtpOffset is enabled by default. If you want to have wtpOffset as 0, set this value to false in the xml config file.
+            		bool wtpOffsetEnabled = config.ltParams.housingModel.wtpOffsetEnabled;
+            		if(wtpOffsetEnabled)
+            		{
+            			wp += entry->getHedonicPrice() * unitType->getWtpOffset();
+            		}
             	}
 
 

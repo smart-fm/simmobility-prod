@@ -13,6 +13,23 @@ JobsWithIndustryTypeAndTazId::JobsWithIndustryTypeAndTazId(BigSerial jobId, int 
 
 JobsWithIndustryTypeAndTazId::~JobsWithIndustryTypeAndTazId() {}
 
+JobsWithIndustryTypeAndTazId::JobsWithIndustryTypeAndTazId( const JobsWithIndustryTypeAndTazId& source)
+{
+	this->jobId = source.jobId;
+	this->industryTypeId = source.industryTypeId;
+	this->tazId = source.tazId;
+
+}
+
+JobsWithIndustryTypeAndTazId& JobsWithIndustryTypeAndTazId::operator=( const JobsWithIndustryTypeAndTazId& source)
+{
+	this->jobId = source.jobId;
+	this->industryTypeId = source.industryTypeId;
+	this->tazId = source.tazId;
+
+	return *this;
+}
+
 int JobsWithIndustryTypeAndTazId::getIndustryTypeId() const
 {
 	return industryTypeId;
@@ -42,5 +59,3 @@ void JobsWithIndustryTypeAndTazId::setTazId(BigSerial tazId)
 {
 	this->tazId = tazId;
 }
-
-

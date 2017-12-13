@@ -338,6 +338,18 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 	 streams.insert(std::make_pair(LOG_INDIVIDUAL_JOB_ASSIGN, indJobAsignFile));
 	 *indJobAsignFile << "individualId, jobId" << std::endl;
 
+
+	 //daily hm units
+	 std::ofstream* dailyHousingMarketUnitsFile = new std::ofstream("dailyHousingMarketUnits.csv");
+	 streams.insert(std::make_pair(LOG_DAILY_HOUSING_MARKET_UNITS, dailyHousingMarketUnitsFile));
+	 *dailyHousingMarketUnitsFile << "day, unitId" << std::endl;
+
+	 //unit time on-off values
+	 std::ofstream* unitTimesFile = new std::ofstream("unitTimes.csv");
+	 streams.insert(std::make_pair(LOG_DAILY_HOUSING_MARKET_UNIT_TIMES, unitTimesFile));
+	 *unitTimesFile << "unitId, timeOnMarket, timeOffMarket, biddingMarketEntryDay" << std::endl;
+
+
 }
 
 LoggerAgent::~LoggerAgent()

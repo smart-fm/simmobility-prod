@@ -13,6 +13,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
+#include <database/entity/JobsByIndustryTypeByTaz.hpp>
 #include <database/entity/WorkersGrpByLogsumParams.hpp>
 #include <map>
 #include <soci/soci.h>
@@ -23,7 +24,6 @@
 #include "database/entity/HedonicLogsums.hpp"
 #include "database/entity/TAOByUnitType.hpp"
 #include "database/entity/StudyArea.hpp"
-#include "database/entity/JobsBySectorByTaz.hpp"
 #include "database/entity/JobsWithIndustryTypeAndTazId.hpp"
 
 using namespace sim_mob;
@@ -271,26 +271,26 @@ struct type_conversion<sim_mob::long_term::JobAssignmentCoeffs>
 };
 
 template<>
-struct type_conversion<sim_mob::long_term::JobsBySectorByTaz>
+struct type_conversion<sim_mob::long_term::JobsByIndustryTypeByTaz>
 {
     typedef values base_type;
 
     static void
-    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::JobsBySectorByTaz& jobsBySectorByTaz)
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::JobsByIndustryTypeByTaz& jobsByIndustryByTaz)
     {
-    	jobsBySectorByTaz.setTazId(values.get<BigSerial>("taz_id",0));
-    	jobsBySectorByTaz.setSector1(values.get<int>("sector1",0));
-    	jobsBySectorByTaz.setSector2(values.get<int>("sector2",0));
-    	jobsBySectorByTaz.setSector3(values.get<int>("sector3",0));
-    	jobsBySectorByTaz.setSector4(values.get<int>("sector4",0));
-    	jobsBySectorByTaz.setSector5(values.get<int>("sector5",0));
-    	jobsBySectorByTaz.setSector6(values.get<int>("sector6",0));
-    	jobsBySectorByTaz.setSector7(values.get<int>("sector7",0));
-    	jobsBySectorByTaz.setSector8(values.get<int>("sector8",0));
-    	jobsBySectorByTaz.setSector9(values.get<int>("sector9",0));
-    	jobsBySectorByTaz.setSector10(values.get<int>("sector10",0));
-    	jobsBySectorByTaz.setSector11(values.get<int>("sector11",0));
-    	jobsBySectorByTaz.setSector98(values.get<int>("sector98",0));
+    	jobsByIndustryByTaz.setTazId(values.get<BigSerial>("taz_id",0));
+    	jobsByIndustryByTaz.setIndustryType1(values.get<int>("industry1",0));
+    	jobsByIndustryByTaz.setIndustryType2(values.get<int>("industry2",0));
+    	jobsByIndustryByTaz.setIndustryType3(values.get<int>("industry3",0));
+    	jobsByIndustryByTaz.setIndustryType4(values.get<int>("industry4",0));
+    	jobsByIndustryByTaz.setIndustryType5(values.get<int>("industry5",0));
+    	jobsByIndustryByTaz.setIndustryType6(values.get<int>("industry6",0));
+    	jobsByIndustryByTaz.setIndustryType7(values.get<int>("industry7",0));
+    	jobsByIndustryByTaz.setIndustryType8(values.get<int>("industry8",0));
+    	jobsByIndustryByTaz.setIndustryType9(values.get<int>("industry9",0));
+    	jobsByIndustryByTaz.setIndustryType10(values.get<int>("industry10",0));
+    	jobsByIndustryByTaz.setIndustryType11(values.get<int>("industry11",0));
+    	jobsByIndustryByTaz.setIndustryType98(values.get<int>("industry98",0));
     }
 };
 

@@ -308,10 +308,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
     if(resume)
     {
-    	currentOutputSchema = config.ltParams.currentOutputSchema;
     	if(conn.isConnected())
     	{
-    		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(currentOutputSchema);
+    		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(config.schemas.main_schema);
     		if(!simulationStartPointList.empty())
     		{
     			simVersionId = simulationStartPointList[simulationStartPointList.size()-1]->getId() + 1;
@@ -399,7 +398,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config configSchemaVersion  " << config.ltParams.configSchemaVersion << endl);
        	PrintOutV("XML Config currentOutputSchema " << config.ltParams.currentOutputSchema << endl);
        	PrintOutV("XML Config days " << config.ltParams.days << endl);
-        PrintOutV("XML Config DeveloperModel " << config.ltParams.developerModel.enabled << endl);
+    	PrintOutV("XML Config launch BTO " << config.ltParams.launchBTO << endl);
+
+       	PrintOutV("XML Config DeveloperModel " << config.ltParams.developerModel.enabled << endl);
         PrintOutV("XML Config DeveloperModel initialBuildingId " << config.ltParams.developerModel.initialBuildingId << endl);
         PrintOutV("XML Config DeveloperModel initialPostcode " << config.ltParams.developerModel.initialPostcode << endl);
         PrintOutV("XML Config DeveloperModel initialProjectId " << config.ltParams.developerModel.initialProjectId << endl);
@@ -514,7 +515,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             }
 
             PrintOutV(" Day " << currTick
-            	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
+            	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize(currTick)
 				   << " BTO_Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize())
 				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders()
 				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers()

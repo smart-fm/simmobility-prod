@@ -337,10 +337,5 @@ public:
 
 	SegmentTravelStats& finalizeCurrRdSegTravelStat(const RoadSegment* rdSeg,double exitTime,
 			const std::string travelMode);
-
-
-    Entity::UpdateStatus movePerson(timeslice now, Person_ST* person);
-
-    bool callMovementFrameInit(timeslice now, Person_ST* person);
 };
 }

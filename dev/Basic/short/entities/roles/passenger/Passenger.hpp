@@ -35,24 +35,9 @@ private:
     /** Driver who is driving the vehicle of this passenger*/
     const Driver* driver;
 
-    /**flag to indicate whether the passenger has decided to alight the bus*/
-    bool alightBus;
-
     /**record service info*/
     std::string service;
 
-    /**walking time to the platform*/
-    double remainingWalkTime = 0.0;
-
-    /**original walk time*/
-    double originalWalkTime = 0.0;
-
-    /**To get Passenger Travel distance in Taxi, Here it is Driver offset distance . Taxi Passenger Travel Distance
-     * Taxi Passenger Travel Distance = finalPointDriverDistance - startPointDriverDistance
-     */
-    double startPointDriverDistance =0.0;
-    double finalPointDriverDistance=0.0;
-	
 public:
 	explicit Passenger(Person_ST *parent, PassengerBehavior *behavior = nullptr, PassengerMovement *movement = nullptr,
 					std::string roleName = std::string("Passenger_"), Role<Person_ST>::Type roleType = Role<Person_ST>::RL_PASSENGER);
@@ -101,19 +86,6 @@ public:
 		this->alightVehicle = alight;
 	}
 
-    void setDriver(const Driver* driver)
-    {
-        this->driver = driver;
-    }
-    double getStartPointDriverDistance() const
-    {
-        return startPointDriverDistance;
-    }
-
-    void setStartPointDriverDistance(double DriverDistance)
-    {
-        startPointDriverDistance = DriverDistance;
-    }
 	const WayPoint& getEndPoint() const
 	{
 		return endPoint;
@@ -134,16 +106,6 @@ public:
 		this->startPoint = startPoint;
 	}
 
-    double getFinalPointDriverDistance() const
-    {
-        return finalPointDriverDistance;
-    }
-
-    void setFinalPointDriverDistance(double DriverDistance)
-    {
-        finalPointDriverDistance = DriverDistance;
-    }
-	
 	friend class PassengerBehavior;
 	friend class PassengerMovement;
 };

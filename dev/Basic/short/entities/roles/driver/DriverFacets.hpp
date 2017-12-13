@@ -225,10 +225,6 @@ protected:
 	/**The speed which the vehicle will try to achieve.*/
 	double targetSpeed;
 
-    DriverPathMover pathMover;
-
-    bool isQueuing;
-
     const Lane* currLane;
 	/**Iterator pointing to the next surveillance station on the segment*/
 	vector<SurveillanceStation *>::const_iterator nextSurveillanceStn;
@@ -281,7 +277,7 @@ protected:
 	 * @return overflow distance into the intersection if any, 0 otherwise
      */
 	double drive(DriverUpdateParams &params);
-    void removeFromQueue();
+
 	/**
 	 * Calculates the dwell time of a vehicle at a location 
 	 * 
@@ -475,20 +471,13 @@ public:
 		return cfModel;
 	}
 
-    const DriverPathMover & getPathMover() const
-    {
-        return pathMover;
-    }
-
     DriverPathMover &getPathMover()
     {
-        return pathMover;
+        return fwdDriverMovement;
     }
     const Lane * getCurrentLane()
     {
         return currLane;
     }
-
-    void driveInRightPath(DriverUpdateParams &params, const Link* currLink,const Lane* Lane);
 };
 }

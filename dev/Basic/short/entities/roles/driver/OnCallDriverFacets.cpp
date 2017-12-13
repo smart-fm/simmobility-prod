@@ -136,7 +136,7 @@ void OnCallDriverMovement::performScheduleItem()
     try {
         if (onCallDriver->driverSchedule.isScheduleCompleted())
         {
-            const Node *endOfPathNode = pathMover.getCurrLink()->getToNode();
+            const Node *endOfPathNode = fwdDriverMovement.getCurrLink()->getToNode();
             continueCruising(endOfPathNode);
         }
 

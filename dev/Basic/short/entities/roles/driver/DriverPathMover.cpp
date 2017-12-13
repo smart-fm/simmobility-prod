@@ -747,69 +747,6 @@ const Point DriverPathMover::getPosition()
 		throw std::runtime_error(msg.str());
 	}
 }
-
-void DriverPathMover::buildPath(const std::vector<WayPoint>& pathWayPts,std::vector<Link *> &pathOfSegments)
-{
-
-    std::vector<WayPoint> path;
-    std::vector<Link*>::const_iterator itSegments = pathOfSegments.begin();
-
-    while(itSegments != pathOfSegments.end())
-    {
-        //Create a Way-point for every road segment in the path of road-segments and add it to the final path
-        path.push_back(WayPoint(*itSegments));
-
-        //If there is a change in links between the segments, add the turning group that connects the two links
-        if(itSegments + 1 != pathOfSegments.end() && (*itSegments)->getLinkId() != (*(itSegments + 1))->getLinkId() )
-        {
-            const Link *currLink = (*itSegments);
-            unsigned int nextLinkId = (*(itSegments + 1))->getLinkId();
-
-            //Get the turning group between this link and the next link and add it to the path
-
-            const TurningGroup *turningGroup = currLink->getToNode()->getTurningGroup(currLink->getLinkId(), nextLinkId);
-
-            if (turningGroup)
-            {
-                path.push_back(WayPoint(turningGroup));
-            }
-            else
-            {
-                stringstream msg;
-                msg << __func__ << ": No turning between the links " << currLink->getLinkId() << " and " << nextLinkId;
-                msg << "\nInvalid Path for route ";
-                throw std::runtime_error(msg.str());
-            }
-        }
-
-        ++itSegments;
-    }
-
-    setPath(path);
-}
-void DriverPathMover::resetPath(std::vector<WayPoint>& segStatPath)
-{
-    if (segStatPath.empty())
-    {
-        throw std::runtime_error("cannot assign an empty path");
-    }
-    if (!drivingPath.empty() && (currWayPointIt != drivingPath.end()))
-    {
-        WayPoint currSegStat = *currWayPointIt;
-        drivingPath.clear();
-        drivingPath = segStatPath;
-        currWayPointIt = std::find(drivingPath.begin(), drivingPath.end(), currSegStat);
-        if (currWayPointIt == drivingPath.end())
-        {
-            throw std::runtime_error("resetPath() - new path does not contain current segment");
-        }
-    }
-    else
-    {
-        drivingPath = segStatPath;
-        currWayPointIt = drivingPath.begin();
-    }
-}
 bool DriverPathMover::isEndOfPath()
 {
     bool retVal = false;
@@ -820,9 +757,4 @@ bool DriverPathMover::isEndOfPath()
     }
 
     return retVal;
-}
-
-void DriverPathMover::eraseFullPath()
-{
-    drivingPath.erase(drivingPath.begin(),drivingPath.end());
 }

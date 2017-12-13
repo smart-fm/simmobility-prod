@@ -606,8 +606,8 @@ int main_impl(int ARGC, char* ARGV[])
 	//Argument 1: Configuration file
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
-	std::string configFileName = "data/simulation.xml";
-	std::string shortConfigFile = "data/simrun_ShortTerm.xml";
+	std::string configFileName = "data/config.xml";
+	std::string shortConfigFile = "data/shortTerm.xml";
 	
 	if (args.size() > 2)
 	{

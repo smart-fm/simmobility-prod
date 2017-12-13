@@ -234,14 +234,7 @@ public:
      * @return the point representing the current position
      */
 	const Point getPosition();
-
-    void buildPath(const std::vector<WayPoint>& pathWayPts, std::vector<Link *> &pathOfSegments);
-
-   // void buildPath(const std::vector<WayPoint>& pathWayPts);
-    void resetPath(std::vector<WayPoint>& segStatPath);
-   //void resetPath(std::vector<WayPoint>& segStatPath);
     bool isEndOfPath();
-    void eraseFullPath();
 #ifndef SIMMOB_DISABLE_MPI
 	friend class PackageUtils;
 	friend class UnPackageUtils;

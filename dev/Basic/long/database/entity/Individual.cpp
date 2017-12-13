@@ -238,7 +238,7 @@ std::tm Individual::getDateOfBirth() const
 
 bool Individual::getIsPrimarySchoolWithin5Km(BigSerial primarySchoolId) const
 {
-	boost::unordered_map<BigSerial,PrimarySchool*>::const_iterator itr = primarySchoolsWithin5KmById.find(primarySchoolId);
+	boost::unordered_map<BigSerial,School*>::const_iterator itr = primarySchoolsWithin5KmById.find(primarySchoolId);
 	if (itr != primarySchoolsWithin5KmById.end())
 	{
 		return true;
@@ -285,7 +285,7 @@ void Individual::setDateOfBirth( std::tm dob )
 	this->dateOfBirth = dob;
 }
 
-void Individual::addprimarySchoolIdWithin5km(BigSerial schoolId,PrimarySchool *primarySchool)
+void Individual::addprimarySchoolIdWithin5km(BigSerial schoolId,School *primarySchool)
 {
 	this->primarySchoolsWithin5KmById.insert(std::make_pair(schoolId,primarySchool));
 }

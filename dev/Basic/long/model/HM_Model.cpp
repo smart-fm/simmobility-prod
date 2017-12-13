@@ -52,11 +52,10 @@
 #include "database/dao/VehicleOwnershipChangesDao.hpp"
 #include "database/dao/HouseholdPlanningAreaDao.hpp"
 #include "database/dao/SchoolAssignmentCoefficientsDao.hpp"
-#include "database/dao/PrimarySchoolDao.hpp"
-#include "database/dao/PreSchoolDao.hpp"
 #include "database/dao/HHCoordinatesDao.hpp"
 #include "database/dao/HouseholdUnitDao.hpp"
 #include "database/dao/IndvidualEmpSecDao.hpp"
+#include "database/dao/TravelTimeDao.hpp"
 #include "database/dao/IndLogsumJobAssignmentDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
@@ -79,6 +78,7 @@
 #include <DatabaseHelper.hpp>
 #include "model/VehicleOwnershipModel.hpp"
 #include "model/JobAssignmentModel.hpp"
+
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -216,7 +216,8 @@ double HM_Model::TazStats::getAvgHHSize() const
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
 											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
-											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false),jobAssignIndCount(0), isConnected(false){}
+											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false),jobAssignIndCount(0), isConnected(false),
+											numPrimarySchoolAssignIndividuals(0),numPreSchoolAssignIndividuals(0){}
 
 HM_Model::~HM_Model()
 {
@@ -1485,13 +1486,20 @@ void HM_Model::startImpl()
 	{
 		loadLTVersion(conn);
 		loadStudyAreas(conn);
+
+		if(config.ltParams.schoolAssignmentModel.enabled)
+		{
+		loadPrimarySchools(conn);
+		loadPreSchools(conn);
+		loadTravelTime(conn_calibration);
+		}
+
 		if(config.ltParams.jobAssignmentModel.enabled)
 		{
-			loadJobsByTazAndIndustryType(conn_calibration);
+			loadJobsByTazAndIndustryType(conn);
 			loadJobAssignments(conn);
 			loadJobsByTazAndIndustryType(conn);
 		}
-
 
 		{
 			soci::session sql;
@@ -1616,6 +1624,9 @@ void HM_Model::startImpl()
 
 		}
 
+		PrintOutV("Number of pre school individuals: " << preSchoolIndList.size() << std::endl );
+		PrintOutV("Number of primary school individuals: " << primarySchoolIndList.size() << std::endl );
+
 		loadData<PostcodeDao>(conn, postcodes, postcodesById,	&Postcode::getAddressId);
 		PrintOutV("Number of postcodes: " << postcodes.size() << std::endl );
 		PrintOutV("Number of postcodes by id: " << postcodesById.size() << std::endl );
@@ -1693,12 +1704,6 @@ void HM_Model::startImpl()
 	    loadData<SchoolAssignmentCoefficientsDao>( conn_calibration, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
 	    PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
 
-	    loadData<PrimarySchoolDao>( conn_calibration, primarySchools, primarySchoolById, &PrimarySchool::getSchoolId);
-	    PrintOutV("Number of Primary School rows: " << primarySchools.size() << std::endl );
-
-	    loadData<PreSchoolDao>( conn_calibration, preSchools, preSchoolById, &PreSchool::getPreSchoolId);
-	    PrintOutV("Number of Pre School rows: " << preSchools.size() << std::endl );
-
 		loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
 		PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
 
@@ -1773,9 +1778,7 @@ void HM_Model::startImpl()
 
 		//These households with tenure_status 3 are considered to be occupied by foreign workers
 		const int FROZEN_HH = 3;
-
-
-		//note: if you want to run job assignment model for foriegn workers comment this line.
+		//note::if you want to run job assignment model or school assignment model with foreign workers population, please comment this line.
 		if( household->getTenureStatus() == FROZEN_HH )
 			continue;
 
@@ -2290,6 +2293,80 @@ void  HM_Model::loadLTVersion(DB_Connection &conn)
 	PrintOutV("LT Database Baseline Date: " << ltVersionList.back()->getChange_date().tm_mday << "/" << ltVersionList.back()->getChange_date().tm_mon << "/" << ltVersionList.back()->getChange_date().tm_year  + 1900 << endl);
 	PrintOutV("LT Database Baseline Comment: " << ltVersionList.back()->getComments() << endl);
 	PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
+}
+
+void HM_Model::loadPrimarySchools(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "school";
+
+	//SQL statement
+	soci::rowset<School> primarySchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where school_type = 'primary_school'");
+
+	for (soci::rowset<School>::const_iterator itPrimarySchool = primarySchoolObjs.begin(); itPrimarySchool != primarySchoolObjs.end(); ++itPrimarySchool)
+	{
+		School* primarySchool = new School(*itPrimarySchool);
+		primarySchools.push_back(primarySchool);
+		primarySchoolById.insert(std::pair<BigSerial, School*>( primarySchool->getId(), primarySchool ));
+	}
+
+	PrintOutV("Number of Primary School rows: " << primarySchools.size() << std::endl );
+
+}
+
+void HM_Model::loadPreSchools(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "school";
+
+	//SQL statement
+	soci::rowset<School> preSchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where school_type = 'pre_school'");
+
+	for (soci::rowset<School>::const_iterator itPreSchool = preSchoolObjs.begin(); itPreSchool != preSchoolObjs.end(); ++itPreSchool)
+	{
+		School* preSchool = new School(*itPreSchool);
+		preSchools.push_back(preSchool);
+		preSchoolById.insert(std::pair<BigSerial, School*>( preSchool->getId(), preSchool ));
+	}
+
+	PrintOutV("Number of Pre School rows: " << preSchools.size() << std::endl );
+}
+
+void HM_Model::loadTravelTime(DB_Connection &conn)
+{
+	TravelTimeDao travelTimeDao(conn);
+	std::vector<TravelTime*> travelTimeList;
+	loadData<TravelTimeDao>( conn, travelTimeList );
+
+	for(TravelTime* travelTime : travelTimeList)
+	{
+		OriginDestKey key = make_pair(travelTime->getOrigin(),travelTime->getDestination());
+		travelTimeByOriginDestTaz.insert(make_pair(key, travelTime));
+	}
+
+	PrintOutV("Number of Travel Time rows: " << travelTimeList.size() << std::endl );
+
+}
+
+const TravelTime* HM_Model::getTravelTimeByOriginDestTaz(BigSerial originTaz, BigSerial destTaz)
+{
+	HM_Model::OriginDestKey originDestKey= make_pair(originTaz, destTaz);
+	auto range = travelTimeByOriginDestTaz.equal_range(originDestKey);
+	size_t sz = distance(range.first, range.second);
+	if(sz==0)
+	{
+		return nullptr;
+	}
+	else
+	{
+		const TravelTime* travelTime = range.first->second;
+		return travelTime;
+	}
+
 }
 
 HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()
@@ -3351,14 +3428,14 @@ SchoolAssignmentCoefficients* HM_Model::getSchoolAssignmentCoefficientsById( Big
 	return nullptr;
 }
 
-HM_Model::PrimarySchoolList HM_Model::getPrimarySchoolList() const
+HM_Model::SchoolList HM_Model::getPrimarySchoolList() const
 {
 	return this->primarySchools;
 }
 
-PrimarySchool* HM_Model::getPrimarySchoolById( BigSerial id) const
+School* HM_Model::getPrimarySchoolById( BigSerial id) const
 {
-	PrimarySchoolMap::const_iterator itr = primarySchoolById.find(id);
+	SchoolMap::const_iterator itr = primarySchoolById.find(id);
 
 	if (itr != primarySchoolById.end())
 	{
@@ -3385,14 +3462,14 @@ HHCoordinates* HM_Model::getHHCoordinateByHHId(BigSerial houseHoldId) const
 	return nullptr;
 }
 
-HM_Model::PreSchoolList HM_Model::getPreSchoolList() const
+HM_Model::SchoolList HM_Model::getPreSchoolList() const
 {
 	return this->preSchools;
 }
 
-PreSchool* HM_Model::getPreSchoolById( BigSerial id) const
+School* HM_Model::getPreSchoolById( BigSerial id) const
 {
-	PreSchoolMap::const_iterator itr = preSchoolById.find(id);
+	SchoolMap::const_iterator itr = preSchoolById.find(id);
 
 	if (itr != preSchoolById.end())
 	{
@@ -3429,6 +3506,7 @@ IndvidualEmpSec* HM_Model::getIndvidualEmpSecByIndId(BigSerial indId) const
 
 	return nullptr;
 }
+
 
 HM_Model::StudyAreaList& HM_Model::getStudyAreas()
 {
@@ -3524,6 +3602,39 @@ JobsByIndustryTypeByTaz* HM_Model::getJobsBySectorByTazId(BigSerial tazId) const
 HM_Model::TazList&  HM_Model::getTazList()
 {
 	return tazs;
+}
+
+void HM_Model::incrementPrimarySchoolAssignIndividualCount()
+{
+	++numPrimarySchoolAssignIndividuals;
+}
+
+int HM_Model::getPrimaySchoolAssignIndividualCount()
+{
+	return this->numPrimarySchoolAssignIndividuals;
+}
+
+void HM_Model::incrementPreSchoolAssignIndividualCount()
+{
+	++numPreSchoolAssignIndividuals;
+}
+
+int HM_Model::getPreSchoolAssignIndividualCount()
+{
+	return this->numPreSchoolAssignIndividuals;
+}
+
+void HM_Model::addStudentToPrimarySchool(BigSerial individualId, int schoolId, BigSerial householdId)
+{
+	{
+		boost::mutex::scoped_lock lock( mtx );
+		School *priSchool = getPrimarySchoolById(schoolId);
+		priSchool->addStudent(individualId);
+		HHCoordinates *hhCoords = getHHCoordinateByHHId(householdId);
+		double distanceFromHomeToSchool = (distanceCalculateEuclidean(priSchool->getCentroidX(),priSchool->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
+		School::DistanceIndividual distanceInd{individualId,distanceFromHomeToSchool};
+		priSchool->addIndividualDistance(distanceInd);
+	}
 }
 
 void HM_Model::loadIndLogsumJobAssignments(BigSerial individuaId)

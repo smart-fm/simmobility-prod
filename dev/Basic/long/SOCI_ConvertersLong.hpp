@@ -324,5 +324,27 @@ struct type_conversion<sim_mob::long_term::JobsWithIndustryTypeAndTazId>
     }
 };
 
+template<>
+struct type_conversion<sim_mob::long_term::School>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::School& school)
+    {
+    	school.setId(values.get<BigSerial>("id",0));
+    	school.setFmBuildingId(values.get<BigSerial>("fm_building_id",0));
+    	school.setFloorArea(values.get<double>("floor_area",0));
+    	school.setSchoolSlot(values.get<int>("school_slot",0));
+    	school.setCentroidX(values.get<double>("centroid_x",0));
+    	school.setCentroidY(values.get<double>("centroid_y",0));
+    	school.setGiftedProgram(values.get<int>("gifted_program",0));
+    	school.setSapProgram(values.get<int>("sap_program",0));
+    	school.setPlanningArea(values.get<std::string>("planning_area",std::string()));
+    	school.setTazName(values.get<BigSerial>("taz_name",0));
+    	school.setSchoolType(values.get<std::string>("school_type",std::string()));
+    }
+};
+
 } //namespace soci
 

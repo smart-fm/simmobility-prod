@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/erase.hpp>
+#include <boost/algorithm/string.hpp>
 #include <cmath>
 #include <cstdio>
 #include <ostream>
@@ -38,6 +40,7 @@
 #include "path/PathSetManager.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/Utils.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -413,6 +416,7 @@ bool DriverMovement::advance(DriverUpdateParams& params)
 
 bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 {
+	MT_Config& mtConfig = MT_Config::getInstance();
 	bool res = false;
 	bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
 	const SegmentStats* currSegStat = pathMover.getCurrSegStats();
@@ -440,6 +444,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 
 	if (!nxtSegStat)
 	{
+		const SegmentStats* lastSeg = currSegStat ;
 		//vehicle is done
 		pathMover.advanceInPath();
 		if (pathMover.isPathCompleted())
@@ -454,6 +459,8 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
 			currLane = nullptr;
 			parentDriver->parent->setToBeRemoved();
+			// linkExitTime and segmentExitTime are equal for the last segment in the path.
+			updateScreenlineCounts(lastSeg, linkExitTime);
 		}
 		return false;
 	}
@@ -492,6 +499,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		}
 
 		setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat); // decrement from the currLane before updating it
+		const Lane *prevLane = currLane;
 		currLane = laneInNextSegment;
 		pathMover.advanceInPath();
 		pathMover.setPositionInSegment(nxtSegStat->getLength());
@@ -499,15 +507,53 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		setLastAccept(currLane, segExitTimeSec, nxtSegStat);
 
 		const SegmentStats* prevSegStats = pathMover.getPrevSegStats(true); //previous segment is in the same link
-		if (prevSegStats
-				&& prevSegStats->getRoadSegment() != pathMover.getCurrSegStats()->getRoadSegment())
+		if ((mtConfig.screenLineParams.outputEnabled) && prevSegStats
+			&& prevSegStats->getRoadSegment() != pathMover.getCurrSegStats()->getRoadSegment())
 		{
 			// update road segment travel times
 			updateScreenlineCounts(prevSegStats, segExitTimeSec);
+			
+			//Check if the current and next lanes belong to different links
+			unsigned int prevLinkId = prevLane->getParentSegment()->getLinkId();
+			unsigned int currLinkId = currLane->getParentSegment()->getLinkId();
+
+			if(prevLinkId != currLinkId)
+			{
+				//Link has changed, add the length of the turning path to the distance covered
+				const Node *node = currLane->getParentSegment()->getParentLink()->getFromNode();
+				const TurningGroup *tGroup = node->getTurningGroup(prevLinkId, currLinkId);
+				const map<unsigned int, TurningPath*> *tPaths = tGroup->getTurningPaths(prevLane->getLaneId());
+
+				if(tPaths)
+				{
+					auto itTurning = tPaths->find(currLane->getLaneId());
+
+					if (itTurning != tPaths->end())
+					{
+						travelMetric.distance += itTurning->second->getLength();
+					}
+					else
+					{
+						std::stringstream msg;
+						msg << "Vehicle is trying to move from link " << prevLinkId << " to " << currLinkId
+						    << ". Current lane is " << currLane->getLaneId()
+						    << ", but it is not connected to the selected next lane " << currLane->getLaneId();
+						throw std::runtime_error(msg.str());
+					}
+				}
+				else
+				{
+					std::stringstream msg;
+					msg << "Vehicle is trying to move from link " << prevLinkId << " to " << currLinkId
+					    << ". Current lane is " << currLane->getLaneId()
+					    << ", but it is not connected to the next link!";
+					throw std::runtime_error(msg.str());
+				}
+			}
 		}
 
 		res = true;
-		advance(params);
+		advance(params);		
 	}
 	else
 	{
@@ -532,15 +578,18 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
  */
 void DriverMovement::onSegmentCompleted(const RoadSegment* completedRS, const RoadSegment* nextRS)
 {
-	//1.record
-	traversed.push_back(completedRS);
+	if(traversed.empty() || traversed.back() != completedRS)
+	{
+		//1.record
+		traversed.push_back(completedRS);
 
-	//2. update travel distance
-	travelMetric.distance += completedRS->getPolyLine()->getLength();
+		//2. update travel distance
+		travelMetric.distance += completedRS->getPolyLine()->getLength();
 
-	//3. update the next surveillance station
-	nextSurveillanceStn = nextRS ? nextRS->getSurveillanceStations().begin() :
-	                      completedRS->getSurveillanceStations().end();
+		//3. update the next surveillance station
+		nextSurveillanceStn = nextRS ? nextRS->getSurveillanceStations().begin() :
+		                      completedRS->getSurveillanceStations().end();
+	}
 }
 
 void DriverMovement::onLinkCompleted(const Link * completedLink, const Link * nextLink)
@@ -564,6 +613,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 	//This function gets called for 2 cases.
 	//1. Driver is added to virtual queue
 	//2. Driver is in previous segment trying to add to the next
+	MT_Config& mtConfig = MT_Config::getInstance();
 	const SegmentStats* nextSegStats = pathMover.getNextSegStats(false);
 	const SegmentStats* nextToNextSegStats = pathMover.getSecondSegStatsAhead();
 	const Lane* laneInNextSegment = getBestTargetLane(nextSegStats, nextToNextSegStats);
@@ -608,11 +658,13 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 			updateLinkStats(prevSegStats);
 
 			// update road segment screenline counts
-			updateScreenlineCounts(prevSegStats, linkExitTimeSec);
+			if (mtConfig.screenLineParams.outputEnabled) {
+				updateScreenlineCounts(prevSegStats, linkExitTimeSec);
+			}
 		}
-		setLastAccept(currLane, linkExitTimeSec, nextSegStats);
-		setParentData(params);
-		parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
+			setLastAccept(currLane, linkExitTimeSec, nextSegStats);
+			setParentData(params);
+			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 	}
 	else
 	{
@@ -790,9 +842,10 @@ bool DriverMovement::advanceMovingVehicle(DriverUpdateParams& params)
 	}
 
 	const SegmentStats* currSegStats = pathMover.getCurrSegStats();
+	const LaneStats *laneStats = currSegStats->getLaneStats().find(currLane)->second;
 	//We can infer that the path is not completed if this function is called.
 	//Therefore currSegStats cannot be NULL. It is safe to use it in this function.
-	double velocity = currSegStats->getSegSpeed(true);
+	double velocity = laneStats->getLaneVehSpeed(true);
 	double output = getOutputCounter(currLane, currSegStats);
 
 	// add driver to queue if required
@@ -868,7 +921,9 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& params
 	double finalTimeSpent = 0.0;
 	double finalDistToSegEnd = 0.0;
 
-	double velocity = pathMover.getCurrSegStats()->getSegSpeed(true);
+	const LaneStats *laneStats = pathMover.getCurrSegStats()->getLaneStats().find(currLane)->second;
+	double velocity = laneStats->getLaneVehSpeed(true);
+
 	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
 	double outRate = getOutputFlowRate(currLane);
 
@@ -981,6 +1036,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 	}
 
 	const Lane* laneInNextSegment = getBestTargetLane(currSegStats, nextSegStats);
+	const LaneStats *laneInNextSegStats = currSegStats->getLaneStats().find(laneInNextSegment)->second;
 
 	//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
 	double departTime = getLastAccept(laneInNextSegment, currSegStats);
@@ -992,7 +1048,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		}
 		else
 		{
-			departTime += (PASSENGER_CAR_UNIT / (currSegStats->getNumVehicleLanes() * currSegStats->getSegSpeed(true)));
+			departTime += (PASSENGER_CAR_UNIT / laneInNextSegStats->getLaneVehSpeed(true));
 		}
 	}
 
@@ -1097,20 +1153,35 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 			{
 				continue;
 			}
+
 			totalLength = nextSegStats->getLaneTotalVehicleLength(lane);
 			queueLength = nextSegStats->getLaneQueueLength(lane);
-			if (minLength > totalLength)
-			{ //if total length of vehicles is less than current minLength
+
+			if(queueLength == 0)
+			{
+				//If lane has 0 queue length, we select it
 				minLength = totalLength;
 				minQueueLength = queueLength;
 				minLane = lane;
 			}
-			else if (minLength == totalLength)
-			{ //if total length of vehicles is equal to current minLength
-				if (minQueueLength > queueLength)
-				{ //and if the queue length is less than current minQueueLength
+			else
+			{
+				if(minQueueLength > queueLength)
+				{
+					//Choose lane with lower queue length
+					minLength = totalLength;
 					minQueueLength = queueLength;
 					minLane = lane;
+				}
+				else if(minQueueLength == queueLength)
+				{
+					//In case of a tie, use the one with smaller total length
+					if(minLength > totalLength)
+					{
+						minLength = totalLength;
+						minQueueLength = queueLength;
+						minLane = lane;
+					}
 				}
 			}
 		}
@@ -1179,10 +1250,15 @@ void DriverMovement::updateLinkTravelTimes(const SegmentStats* prevSegStat, doub
 
 void DriverMovement::updateScreenlineCounts(const SegmentStats* prevSegStat, double segEnterExitTime)
 {
+	MT_Config& mtConfig = MT_Config::getInstance();
+	if(!mtConfig.screenLineParams.outputEnabled) //double check for SceenLine Enabled
+	{
+		return;
+	}
 	Person_MT *parent = parentDriver->parent;
 	const TripChainItem* tripChain = *(parent->currTripChainItem);
 	const std::string& travelMode = tripChain->getMode();
-	ScreenLineCounter::getInstance()->updateScreenLineCount(pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId(), segEnterExitTime, travelMode);
+	ScreenLineCounter::getInstance()->updateScreenLineCount(prevSegStat->getRoadSegment()->getRoadSegmentId(), segEnterExitTime, travelMode);
 }
 
 void DriverMovement::updateTrafficSensor(double oldPos, double newPos, double speed, double acceleration)

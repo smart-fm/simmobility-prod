@@ -22,7 +22,7 @@ namespace sim_mob {
          */
         class ParcelDao : public db::SqlAbstractDao<Parcel> {
         public:
-            ParcelDao(db::DB_Connection& connection);
+            ParcelDao(db::DB_Connection& connection,const std::string& tableName);
             virtual ~ParcelDao();
 
         private:

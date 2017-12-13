@@ -51,6 +51,8 @@ namespace sim_mob
                 BigSerial getUnitId() const;
                 double getWP() const;
                 double getBestBid() const;
+                void  setBestBid(double val);
+
                 long int getTries() const;
                 bool isValid() const;
                 

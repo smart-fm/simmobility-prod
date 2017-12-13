@@ -13,6 +13,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
+#include <database/entity/JobsByIndustryTypeByTaz.hpp>
 #include <database/entity/WorkersGrpByLogsumParams.hpp>
 #include <map>
 #include <soci/soci.h>
@@ -22,6 +23,8 @@
 #include "database/entity/LtVersion.hpp"
 #include "database/entity/HedonicLogsums.hpp"
 #include "database/entity/TAOByUnitType.hpp"
+#include "database/entity/StudyArea.hpp"
+#include "database/entity/JobsWithIndustryTypeAndTazId.hpp"
 
 using namespace sim_mob;
 using namespace long_term;
@@ -51,6 +54,8 @@ struct type_conversion<sim_mob::long_term::HedonicCoeffs>
     	hedonicCoeffs.setAge(values.get<double>("age", 0));
     	hedonicCoeffs.setLogAgeSquared(values.get<double>("age_squared", 0));
     	hedonicCoeffs.setMisage(values.get<double>("misage", 0));
+    	hedonicCoeffs.setStorey(values.get<double>("storey", 0));
+    	hedonicCoeffs.setStoreySquared(values.get<double>("storey_squared", 0));
 
     }
 };
@@ -65,7 +70,7 @@ struct type_conversion<sim_mob::long_term::HedonicCoeffsByUnitType>
     {
     	hedonicCoeffsByUT.setUnitTypeId(values.get<BigSerial>("unit_type_id", INVALID_ID));
     	hedonicCoeffsByUT.setIntercept(values.get<double>("intercept", 0));
-    	hedonicCoeffsByUT.setLogSqrtArea(values.get<double>("log_area", 0));
+    	hedonicCoeffsByUT.setLogArea(values.get<double>("log_area", 0));
     	hedonicCoeffsByUT.setFreehold( values.get<double>("freehold", 0));
     	hedonicCoeffsByUT.setLogsumWeighted(values.get<double>("logsum_weighted", 0));
     	hedonicCoeffsByUT.setPms1km(values.get<double>("pms_1km", 0));
@@ -78,6 +83,10 @@ struct type_conversion<sim_mob::long_term::HedonicCoeffsByUnitType>
     	hedonicCoeffsByUT.setAge(values.get<double>("age", 0));
     	hedonicCoeffsByUT.setAgeSquared(values.get<double>("age_squared", 0));
     	hedonicCoeffsByUT.setMisage(values.get<double>("misage", 0));
+    	hedonicCoeffsByUT.setNonMature(values.get<double>("non_mature", 0));
+    	hedonicCoeffsByUT.setOtherMature(values.get<double>("other_mature", 0));
+    	hedonicCoeffsByUT.setStorey(values.get<double>("storey", 0));
+    	hedonicCoeffsByUT.setStoreySquared(values.get<double>("storey_squared", 0));
 
     }
 };
@@ -218,6 +227,102 @@ struct type_conversion<sim_mob::long_term::LagPrivate_TByUnitType>
     }
 };
 
+template<>
+struct type_conversion<sim_mob::long_term::StudyArea>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::StudyArea& studyArea)
+    {
+    	studyArea.setId(values.get<BigSerial>("id",0));
+    	studyArea.setFmTazId(values.get<BigSerial>("fm_taz_id",0));
+    	studyArea.setStudyCode(values.get<std::string>("study_code",std::string()));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::JobAssignmentCoeffs>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::JobAssignmentCoeffs& jobAssignmentCoeff)
+    {
+    	jobAssignmentCoeff.setId(values.get<int>("id",0));
+    	jobAssignmentCoeff.setBetaInc1(values.get<double>("beta_inc1",0));
+    	jobAssignmentCoeff.setBetaInc2(values.get<double>("beta_inc2",0));
+    	jobAssignmentCoeff.setBetaInc3(values.get<double>("beta_inc3",0));
+    	jobAssignmentCoeff.setBetaLgs(values.get<double>("beta_lgs",0));
+    	jobAssignmentCoeff.setBetaS1(values.get<double>("beta_s1",0));
+    	jobAssignmentCoeff.setBetaS2(values.get<double>("beta_s2",0));
+    	jobAssignmentCoeff.setBetaS3(values.get<double>("beta_s3",0));
+    	jobAssignmentCoeff.setBetaS4(values.get<double>("beta_s4",0));
+    	jobAssignmentCoeff.setBetaS5(values.get<double>("beta_s5",0));
+    	jobAssignmentCoeff.setBetaS6(values.get<double>("beta_s6",0));
+    	jobAssignmentCoeff.setBetaS7(values.get<double>("beta_s7",0));
+    	jobAssignmentCoeff.setBetaS8(values.get<double>("beta_s8",0));
+    	jobAssignmentCoeff.setBetaS9(values.get<double>("beta_s9",0));
+    	jobAssignmentCoeff.setBetaS10(values.get<double>("beta_s10",0));
+    	jobAssignmentCoeff.setBetaS11(values.get<double>("beta_s11",0));
+    	jobAssignmentCoeff.setBetaS98(values.get<double>("beta_s98",0));
+    	jobAssignmentCoeff.setBetaLnJob(values.get<double>("beta_lnjob",0));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::JobsByIndustryTypeByTaz>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::JobsByIndustryTypeByTaz& jobsByIndustryByTaz)
+    {
+    	jobsByIndustryByTaz.setTazId(values.get<BigSerial>("taz_id",0));
+    	jobsByIndustryByTaz.setIndustryType1(values.get<int>("industry1",0));
+    	jobsByIndustryByTaz.setIndustryType2(values.get<int>("industry2",0));
+    	jobsByIndustryByTaz.setIndustryType3(values.get<int>("industry3",0));
+    	jobsByIndustryByTaz.setIndustryType4(values.get<int>("industry4",0));
+    	jobsByIndustryByTaz.setIndustryType5(values.get<int>("industry5",0));
+    	jobsByIndustryByTaz.setIndustryType6(values.get<int>("industry6",0));
+    	jobsByIndustryByTaz.setIndustryType7(values.get<int>("industry7",0));
+    	jobsByIndustryByTaz.setIndustryType8(values.get<int>("industry8",0));
+    	jobsByIndustryByTaz.setIndustryType9(values.get<int>("industry9",0));
+    	jobsByIndustryByTaz.setIndustryType10(values.get<int>("industry10",0));
+    	jobsByIndustryByTaz.setIndustryType11(values.get<int>("industry11",0));
+    	jobsByIndustryByTaz.setIndustryType98(values.get<int>("industry98",0));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::IndLogsumJobAssignment>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::IndLogsumJobAssignment& indLogsumJobAssignment)
+    {
+    	indLogsumJobAssignment.setIndividualId(values.get<BigSerial>("individual_id",0));
+    	indLogsumJobAssignment.setTazId(values.get<std::string>("taz_id",0));
+    	indLogsumJobAssignment.setLogsum(values.get<float>("logsum",.0));
+
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::JobsWithIndustryTypeAndTazId>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::JobsWithIndustryTypeAndTazId& jobsWithIndustryTypeAndTazId)
+    {
+    	jobsWithIndustryTypeAndTazId.setJobId(values.get<BigSerial>("job_id",0));
+    	jobsWithIndustryTypeAndTazId.setIndustryTypeId(values.get<int>("industry_type_id",0));
+    	jobsWithIndustryTypeAndTazId.setTazId(values.get<BigSerial>("taz_id",0));
+
+    }
+};
 
 template<>
 struct type_conversion<sim_mob::long_term::School>

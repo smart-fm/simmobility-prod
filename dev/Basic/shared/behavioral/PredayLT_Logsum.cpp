@@ -39,7 +39,7 @@ public:
 	 */
 	PopulationSqlDao ltPopulationDao;
 
-	LT_PopulationSqlDaoContext(const DB_Config& ltDbConfig, DB_Connection conn): ltDbConnection(conn), ltPopulationDao(conn)
+	LT_PopulationSqlDaoContext(const DB_Config& ltDbConfig, DB_Connection conn): ltDbConnection(sim_mob::db::POSTGRES, ltDbConfig), ltPopulationDao(ltDbConnection)
 	{
 		ltDbConnection.connect();
 		if(!ltDbConnection.isConnected()) { throw std::runtime_error("LT database connection failure!"); }
@@ -196,7 +196,7 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 		ensureContext();
 		PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
 		ltPopulationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
-		ltPopulationDao.getAddresses(PersonParams::getAddressLookup(), PersonParams::getZoneAddresses());
+		ltPopulationDao.getAddresses();
 		logsumManager.dataLoadReqd = false;
 	}
 	return logsumManager;
@@ -206,6 +206,8 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 {
 	ensureContext();
 	PersonParams personParams;
+
+    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
 
 	if( personParamsFromLT != nullptr)
 	{
@@ -305,12 +307,13 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 			}
 
 		}
-		LogsumTourModeParams tmParams(orgZnParams, destZnParams, amCostParams, pmCostParams, personParams, WORK);
-		PredayLogsumLuaProvider::getPredayModel().computeTourModeLogsum(personParams, tmParams);
+
+        LogsumTourModeParams tmParams(orgZnParams, destZnParams, amCostParams, pmCostParams, personParams, cfg.getActivityTypeId("Work"));
+        PredayLogsumLuaProvider::getPredayModel().computeTourModeLogsum(personParams, cfg.getActivityTypeConfigMap(), tmParams);
 
 	}
 
-	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
+    LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, cfg.getNumTravelModes());
 
 	try
 	{
@@ -325,7 +328,7 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 	}
 
 
-	PredayLogsumLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams, zoneMap.size());
+    PredayLogsumLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, cfg.getActivityTypeConfigMap(), tmdParams, zoneMap.size());
 	PredayLogsumLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);
 	PredayLogsumLuaProvider::getPredayModel().computeDayPatternBinaryLogsums(personParams);
 

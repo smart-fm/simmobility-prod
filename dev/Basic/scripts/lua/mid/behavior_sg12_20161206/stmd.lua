@@ -2,6 +2,7 @@
 Model - Mode/destination choice for work-based tour
 Type - logit
 Authors - Siyu Li, Harish Loganathan, Olga Petrik
+Updated version for TRB 2018 case study - Bat-hen Nahmias 
 ]]
 
 -- all require statements do not work with C++. They need to be commented. The order in which lua files are loaded must be explicitly controlled in C++. 
@@ -13,14 +14,17 @@ Authors - Siyu Li, Harish Loganathan, Olga Petrik
 --!! see the documentation on the definition of AM,PM and OP table!!
 
 local beta_cost_bus_mrt_1 = -0.19
+local beta_cost_rail_SMS_1 = -0.19
 local beta_cost_private_bus_1 = -0.696
 local beta_cost_drive1_1 = 0
 local beta_cost_share2_1= 0
 local beta_cost_share3_1= 0
 local beta_cost_motor_1 = 0
 local beta_cost_taxi_1 = 0
+local beta_cost_SMS_1 = 0
 
 local beta_tt_bus_mrt = -3.78
+local beta_tt_rail_SMS = -3.78
 local beta_tt_private_bus = 0
 local beta_tt_drive1 = -4.64
 local beta_tt_share2 = -5.45
@@ -28,6 +32,7 @@ local beta_tt_share3 = -3.53
 local beta_tt_motor = 0
 local beta_tt_walk = -0.675
 local beta_tt_taxi = 0
+local beta_tt_SMS = 0
 
 local beta_log = 0.775
 local beta_area = 0
@@ -35,6 +40,7 @@ local beta_population = 0
 local beta_employment = 0
 
 local beta_central_bus_mrt = 0
+local beta_central_rail_SMS = 0
 local beta_central_private_bus = 0
 local beta_central_drive1 = 0
 local beta_central_share2 = 0
@@ -42,8 +48,10 @@ local beta_central_share3 = 0
 local beta_central_motor = 0
 local beta_central_walk = 0
 local beta_central_taxi = 0
+local beta_central_SMS = 0
 
 local beta_distance_bus_mrt = 0
+local beta_distance_rail_SMS = 0
 local beta_distance_private_bus = 0 
 local beta_distance_drive1 = 0
 local beta_distance_share2 = 0
@@ -51,9 +59,11 @@ local beta_distance_share3 = 0
 local beta_distance_motor = 0
 local beta_distance_walk = 0
 local beta_distance_taxi = 0
+local beta_distance_SMS = 0
 
 local beta_cons_bus = 2.4
 local beta_cons_mrt = 1.81
+local beta_cons_rail_SMS = 1.81
 local beta_cons_private_bus = 1.694
 local beta_cons_drive1 = 0
 local beta_cons_share2 = 1.45
@@ -61,19 +71,23 @@ local beta_cons_share3 = 0.47
 local beta_cons_motor = -5.7
 local beta_cons_walk = -2.12
 local beta_cons_taxi = -3.99
+local beta_cons_SMS = -3.99
 
 local beta_female_bus = 0
 local beta_female_mrt = 0
+local beta_female_rail_SMS = 0
 local beta_female_private_bus = 0
 local beta_female_drive1 = 0
 local beta_female_share2 = 0
 local beta_female_share3 = 0
 local beta_female_motor = 0
 local beta_female_taxi = 0
+local beta_female_SMS = 0
 local beta_female_walk = 0
 
 local beta_mode_work_bus = 0
 local beta_mode_work_mrt = 0
+local beta_mode_work_rail_SMS = 0
 local beta_mode_work_private_bus = 0
 local beta_mode_work_drive1 = 5.67
 local beta_mode_work_share2 = 3.39
@@ -83,7 +97,7 @@ local beta_mode_work_walk= 0
 
 --choice set
 local choice = {}
-for i = 1, 1169*9 do 
+for i = 1, 1169*11 do 
 	choice[i] = i
 end
 
@@ -95,6 +109,7 @@ local function computeUtilities(params,dbparams)
 	local female_dummy = params.female_dummy
 	local mode_work_bus = dbparams.mode_to_work == 1 and 1 or 0
 	local mode_work_mrt = dbparams.mode_to_work == 2 and 1 or 0
+	local mode_work_rail_SMS = dbparams.mode_to_work == 2 and 1 or 0
 	local mode_work_private_bus = dbparams.mode_to_work == 3 and 1 or 0
 	local mode_work_drive1 = dbparams.mode_to_work == 4 and 1 or 0
 	local mode_work_share2 = dbparams.mode_to_work == 5 and 1 or 0
@@ -104,6 +119,7 @@ local function computeUtilities(params,dbparams)
 
 	local cost_bus = {}
 	local cost_mrt = {}
+	local cost_rail_SMS = {}
 	local cost_private_bus = {}
 	local cost_drive1 = {}
 	local cost_share2 = {}
@@ -112,11 +128,16 @@ local function computeUtilities(params,dbparams)
 	local cost_taxi={}
 	local cost_taxi_1 = {}
 	local cost_taxi_2 = {}
+	
+	local cost_SMS={}
+	local cost_SMS_1 = {}
+	local cost_SMS_2 = {}
 
 	local central_dummy={}
 
 	local tt_bus = {}
 	local tt_mrt = {}
+	local tt_rail_SMS = {}
 	local tt_private_bus = {}
 	local tt_drive1 = {}
 	local tt_share2 = {}
@@ -124,6 +145,7 @@ local function computeUtilities(params,dbparams)
 	local tt_motor = {}
 	local tt_walk = {}
 	local tt_taxi = {}
+	local tt_SMS = {}
 	local tt_car_ivt = {}
 	local tt_public_ivt = {}
 	local tt_public_out = {}
@@ -140,6 +162,7 @@ local function computeUtilities(params,dbparams)
 	for i =1,1169 do
 		cost_bus[i] = dbparams:cost_public_first(i) + dbparams:cost_public_second(i)
 		cost_mrt[i] = cost_bus[i]
+		cost_rail_SMS[i] = cost_bus[i]
 		cost_private_bus[i] = cost_bus[i]
 
 		cost_drive1[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)
@@ -154,6 +177,10 @@ local function computeUtilities(params,dbparams)
 		cost_taxi_1[i] = 3.4+((d1[i]*(d1[i]>10 and 1 or 0)-10*(d1[i]>10 and 1 or 0))/0.35+(d1[i]*(d1[i]<=10 and 1 or 0)+10*(d1[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_first(i) + central_dummy[i]*3
 		cost_taxi_2[i] = 3.4+((d2[i]*(d2[i]>10 and 1 or 0)-10*(d2[i]>10 and 1 or 0))/0.35+(d2[i]*(d2[i]<=10 and 1 or 0)+10*(d2[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i) + central_dummy[i]*3
 		cost_taxi[i] = cost_taxi_1[i] + cost_taxi_2[i]
+		
+		cost_SMS_1[i] = 3.4+((d1[i]*(d1[i]>10 and 1 or 0)-10*(d1[i]>10 and 1 or 0))/0.35+(d1[i]*(d1[i]<=10 and 1 or 0)+10*(d1[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_first(i) + central_dummy[i]*3
+		cost_SMS_2[i] = 3.4+((d2[i]*(d2[i]>10 and 1 or 0)-10*(d2[i]>10 and 1 or 0))/0.35+(d2[i]*(d2[i]<=10 and 1 or 0)+10*(d2[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i) + central_dummy[i]*3
+		cost_SMS[i] = cost_SMS_1[i] + cost_SMS_2[i]
 
 		tt_car_ivt[i] = dbparams:tt_car_ivt_first(i) + dbparams:tt_car_ivt_second(i)
 		tt_public_ivt[i] = dbparams:tt_public_ivt_first(i) + dbparams:tt_public_ivt_second(i)
@@ -161,6 +188,7 @@ local function computeUtilities(params,dbparams)
 
 		tt_bus[i] = tt_public_ivt[i]+ tt_public_out[i]
 		tt_mrt[i] = tt_public_ivt[i]+ tt_public_out[i]
+		tt_rail_SMS[i] = tt_public_ivt[i]+ tt_public_out[i]*0.3
 		tt_private_bus[i] = tt_car_ivt[i]
 		tt_drive1[i] = tt_car_ivt[i] + 1.0/6
 		tt_share2[i] = tt_car_ivt[i] + 1.0/6
@@ -168,6 +196,7 @@ local function computeUtilities(params,dbparams)
 		tt_motor[i] = tt_car_ivt[i] + 1.0/6
 		tt_walk[i] = (d1[i]+d2[i])/5
 		tt_taxi[i] = tt_car_ivt[i] + 1.0/6
+		tt_SMS[i] = tt_car_ivt[i] 
 
 		employment[i] = dbparams:employment(i)
 		population[i] = dbparams:population(i)
@@ -192,6 +221,7 @@ local function computeUtilities(params,dbparams)
 		utility[V_counter] = beta_cons_mrt + cost_mrt[i] * beta_cost_bus_mrt_1 + tt_mrt[i] * beta_tt_bus_mrt + beta_central_bus_mrt * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_bus_mrt + beta_female_mrt * female_dummy + beta_mode_work_bus * mode_work_mrt
 	end
 
+	
 	--utility function for private bus 1-1169
 	for i=1,1169 do
 		V_counter = V_counter +1
@@ -233,6 +263,19 @@ local function computeUtilities(params,dbparams)
 		V_counter = V_counter +1
 		utility[V_counter] = beta_cons_taxi + cost_taxi[i] * beta_cost_drive1_1 + tt_taxi[i] * beta_tt_taxi + beta_central_taxi * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_taxi + beta_female_taxi * female_dummy
 	end
+	
+	--utility function for SMS 1-1169
+	for i=1,1169 do
+		V_counter = V_counter +1
+		utility[V_counter] = beta_cons_SMS + cost_SMS[i] * beta_cost_drive1_1 + tt_SMS[i] * beta_tt_SMS + beta_central_SMS * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_SMS + beta_female_SMS * female_dummy
+	end
+	
+	--utility function for rail_SMS 1-1169
+	for i=1,1169 do
+		V_counter = V_counter +1
+		utility[V_counter] = beta_cons_rail_SMS + cost_rail_SMS[i] * beta_cost_rail_SMS_1 + tt_rail_SMS[i] * beta_tt_rail_SMS + beta_central_rail_SMS * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_rail_SMS + beta_female_rail_SMS * female_dummy + beta_mode_work_bus * mode_work_rail_SMS
+	end
+	
 end
 
 
@@ -240,7 +283,7 @@ end
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params,dbparams)
-	for i = 1, 1169*9 do 
+	for i = 1, 1169*11 do 
 		availability[i] = dbparams:availability(i)
 	end
 end

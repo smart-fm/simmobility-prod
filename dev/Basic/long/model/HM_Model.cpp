@@ -4,6 +4,7 @@
  * File:   HM_Model.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
+ * 		   Gishara Premarathne <gishara@smart.mit.edu>
  * 
  * Created on October 21, 2013, 3:08 PM
  */
@@ -15,6 +16,7 @@
 #include "database/DB_Connection.hpp"
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/UnitDao.hpp"
+#include "database/dao/UnitTypeDao.hpp"
 #include "database/dao/IndividualDao.hpp"
 #include "database/dao/AwakeningDao.hpp"
 #include "database/dao/PostcodeDao.hpp"
@@ -54,6 +56,7 @@
 #include "database/dao/HouseholdUnitDao.hpp"
 #include "database/dao/IndvidualEmpSecDao.hpp"
 #include "database/dao/TravelTimeDao.hpp"
+#include "database/dao/IndLogsumJobAssignmentDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -74,6 +77,7 @@
 #include "SOCI_ConvertersLong.hpp"
 #include <DatabaseHelper.hpp>
 #include "model/VehicleOwnershipModel.hpp"
+#include "model/JobAssignmentModel.hpp"
 
 
 #include <boost/archive/text_oarchive.hpp>
@@ -212,7 +216,8 @@ double HM_Model::TazStats::getAvgHHSize() const
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
 											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
-											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false),numPrimarySchoolAssignIndividuals(0),numPreSchoolAssignIndividuals(0){}
+											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false),jobAssignIndCount(0), isConnected(false),
+											numPrimarySchoolAssignIndividuals(0),numPreSchoolAssignIndividuals(0){}
 
 HM_Model::~HM_Model()
 {
@@ -457,6 +462,18 @@ Unit* HM_Model::getUnitById(BigSerial id) const
 	{
 		return (*itr).second;
 	}
+	return nullptr;
+}
+
+
+UnitType* HM_Model::getUnitTypeById(BigSerial id) const
+{
+	UnitTypeMap::const_iterator itr = unitTypesById.find(id);
+	if (itr != unitTypesById.end())
+	{
+		return (*itr).second;
+	}
+
 	return nullptr;
 }
 
@@ -1430,10 +1447,14 @@ void HM_Model::setTaxiAccess2012(const Household *household)
 }
 
 
+std::vector<HouseholdAgent*> HM_Model::getFreelanceAgents()
+{
+	return freelanceAgents;
+}
+
+
 void HM_Model::startImpl()
 {
-	PredayLT_LogsumManager::getInstance();
-
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	MetadataEntry entry;
@@ -1444,26 +1465,40 @@ void HM_Model::startImpl()
 	// Connect to database and load data for this model.
 	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
 	conn.connect();
+	resume = config.ltParams.resume;
 	conn.setSchema(config.schemas.main_schema);
+	if(config.ltParams.outputHouseholdLogsums.enabled)
+	{
+		PredayLT_LogsumManager::getInstance();
+	}
 
 	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
 	conn_calibration.connect();
 	conn_calibration.setSchema(config.schemas.calibration_schema);
 
-	resume = config.ltParams.resume;
+
 	std::string  outputSchema = config.ltParams.currentOutputSchema;
 	BigSerial simYear = config.ltParams.year;
 	std::tm currentSimYear = getDateBySimDay(simYear,1);
 	initialLoading = config.ltParams.initialLoading;
 
-	if (conn.isConnected())
+	if (conn.isConnected() && conn_calibration.isConnected())
 	{
 		loadLTVersion(conn);
+		loadStudyAreas(conn);
+
 		if(config.ltParams.schoolAssignmentModel.enabled)
 		{
 		loadPrimarySchools(conn);
 		loadPreSchools(conn);
 		loadTravelTime(conn_calibration);
+		}
+
+		if(config.ltParams.jobAssignmentModel.enabled)
+		{
+			loadJobsByTazAndIndustryType(conn);
+			loadJobAssignments(conn);
+			loadJobsByTazAndIndustryType(conn);
 		}
 
 		{
@@ -1538,12 +1573,13 @@ void HM_Model::startImpl()
 		loadData<ScreeningModelCoefficientsDao>( conn_calibration, screeningModelCoefficientsList, screeningModelCoefficicientsMap, &ScreeningModelCoefficients::getId );
 		PrintOutV("Number of screening Model Coefficients: " << screeningModelCoefficientsList.size() << std::endl );
 
+		//if initial loading load data from database. otherwise load data from binary files saved in the disk from the initial run.
 		if(initialLoading)
 		{
 
 			//Load households
 			loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-			PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
+			PrintOutV("Number of households: " << households.size() << " Households used: " << households.size()  << std::endl);
 
 			//load individuals
 			loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
@@ -1568,6 +1604,11 @@ void HM_Model::startImpl()
 		//Load units
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
 		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
+
+
+		//Load unit types
+		loadData<UnitTypeDao>(conn, unitTypes, unitTypesById, &UnitType::getId);
+		PrintOutV("Number of unit types: " << unitTypes.size() << std::endl);
 
 		IndividualDao indDao(conn);
 		primarySchoolIndList = indDao.getPrimarySchoolIndividual(currentSimYear);
@@ -1663,51 +1704,9 @@ void HM_Model::startImpl()
 	    loadData<SchoolAssignmentCoefficientsDao>( conn_calibration, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
 	    PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
 
-		//::TODO::uncomment after Diem finalized job and emp sec tables. gishara
-		//loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
-		//PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
+		loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
+		PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
 
-		if(resume)
-		{
-			SimulationStoppedPointDao simStoppedPointDao(conn);
-			const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema+ "."+"simulation_stopped_point;";
-			simStoppedPointDao.getByQuery(getAllSimStoppedPointParams,simStoppedPointList);
-			if(!simStoppedPointList.empty())
-			{
-				bidId = simStoppedPointList[simStoppedPointList.size()-1]->getBidId();
-				unitSaleId = simStoppedPointList[simStoppedPointList.size()-1]->getUnitSaleId();
-			}
-			BidDao bidDao(conn);
-			db::Parameters params;
-		    params.push_back(lastStoppedDay-1);
-			const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + outputSchema+ "."+"bids" + " WHERE simulation_day = :v1;";
-			bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
-
-			const std::string getAllResumptionHouseholds = "SELECT * FROM " + outputSchema+ "."+"household;";
-
-			HouseholdDao hhDao(conn);
-			hhDao.getByQuery(getAllResumptionHouseholds,resumptionHouseholds);
-			//Index all resumed households.
-			for (HouseholdList::iterator it = resumptionHouseholds.begin(); it != resumptionHouseholds.end(); ++it) {
-				resumptionHHById.insert(std::make_pair((*it)->getId(), *it));
-			}
-
-			const std::string getAllVehicleOwnershipChanges = "SELECT * FROM " + outputSchema+ "."+"vehicle_ownership_changes;";
-			VehicleOwnershipChangesDao vehicleOwnershipChangesDao(conn);
-			vehicleOwnershipChangesDao.getByQuery(getAllVehicleOwnershipChanges,vehOwnershipChangesList);
-			for (VehicleOwnershipChangesList::iterator it = vehOwnershipChangesList.begin(); it != vehOwnershipChangesList.end(); ++it) {
-				vehicleOwnershipChangesById.insert(std::make_pair((*it)->getHouseholdId(), *it));
-			}
-
-			const std::string getHHUnits = "SELECT DISTINCT ON(household_id) * FROM " + outputSchema + ".household_unit ORDER  BY household_id,move_in_date DESC;";
-			HouseholdUnitDao hhUnitDao(conn);
-			hhUnitDao.getByQuery(getHHUnits,householdUnits);
-
-			//Index all household units.
-			for (HouseholdUnitList::iterator it = householdUnits.begin(); it != householdUnits.end(); ++it) {
-				householdUnitByHHId.insert(std::make_pair((*it)->getHouseHoldId(), *it));
-			}
-		}
 	}
 
 
@@ -1719,7 +1718,19 @@ void HM_Model::startImpl()
 	}
 
 
-	unitsFiltering();
+	if(!resume)
+	{
+		unitsFiltering();
+	}
+	else
+	{
+		BidDao bidDao(conn);
+		db::Parameters params;
+		params.push_back(lastStoppedDay-1);
+		const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + config.schemas.main_schema+ "bids" + " WHERE simulation_day = :v1;";
+		bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
+		PrintOutV("Total number of bids resumed from previous run: " << resumptionBids.size()<<std::endl);
+	}
 
 	workGroup.assignAWorker(&market);
 	int numWorkers = workGroup.size();
@@ -1727,7 +1738,6 @@ void HM_Model::startImpl()
 	//
 	//Create freelance seller agents to sell vacant units.
 	//
-	std::vector<HouseholdAgent*> freelanceAgents;
 	for (int i = 0; i < numWorkers ; i++)
 	{
 		HouseholdAgent* freelanceAgent = new HouseholdAgent((FAKE_IDS_START + i),this, nullptr, &market, true, startDay, config.ltParams.housingModel.householdBiddingWindow);
@@ -1754,63 +1764,56 @@ void HM_Model::startImpl()
 	}
 
 	int homelessHousehold = 0;
-	//
 	// 1. Create Household Agents.
 	// 2. Assign households to the units.
-	//
+	int resumeHouseholdCount = 0;
+	int waitingToMoveInHouseholdCount = 0;
 	if(initialLoading)
 	{
 	for (HouseholdList::iterator it = households.begin();	it != households.end(); it++)
 	{
 		Household* household = *it;
-		Household *resumptionHH = getResumptionHouseholdById(household->getId());
 		BigSerial unitIdToBeOwned = INVALID_ID;
-		if(resume)
-		{
-			if (resumptionHH != nullptr)
-			{
-				if(resumptionHH->getUnitPending())//household has done an advanced purchase
-				{
-					HouseholdUnit *hhUnit = getHouseholdUnitByHHId(resumptionHH->getId());
-					unitIdToBeOwned = hhUnit->getUnitId();
-					household->setTimeOnMarket(resumptionHH->getTimeOnMarket());
-				}
-
-				household->setUnitId(getResumptionHouseholdById(household->getId())->getUnitId());//update the unit id of the households moved to new units.
-			}
-
-			if(getVehicleOwnershipChangesByHHId(household->getId()) != nullptr) //update the vehicle ownership option of the households that change vehicles.
-			{
-				household->setVehicleOwnershipOptionId(getVehicleOwnershipChangesByHHId(household->getId())->getNewVehicleOwnershipOptionId());
-			}
-		}
 
 
 		//These households with tenure_status 3 are considered to be occupied by foreign workers
 		const int FROZEN_HH = 3;
-
-		//if you want to run job assignment model or school assignment model with foreign workers population, please comment this line.
+		//note::if you want to run job assignment model or school assignment model with foreign workers population, please comment this line.
 		if( household->getTenureStatus() == FROZEN_HH )
 			continue;
 
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
 
-		if (resumptionHH != nullptr)
+		//if this is a resume update params based on the last run.
+		if (resume)
 		{
-			if(resumptionHH->getIsBidder())
+			//awaken the household if the household was on the market at the time simulation stopped in previous run.
+			if(household->getLastBidStatus() == 0 && household->getIsBidder())
 			{
+				resumeHouseholdCount++;
 				hhAgent->getBidder()->setActive(true);
-				if(resumptionHH->getUnitPending())
-				{
-					hhAgent->getBidder()->setMoveInWaitingTimeInDays(resumptionHH->getMoveInDate().tm_mday - startDay);
-					hhAgent->getBidder()->setUnitIdToBeOwned(unitIdToBeOwned);
-				}
+				hhAgent->setHouseholdBiddingWindow(household->getTimeOnMarket());
+				hhAgent->setAwakeningDay(household->getAwaknedDay());
+
 			}
-			else if(resumptionHH->getIsSeller())
+
+			//household has done a successful bid and was waiting to move in when the simulation stopped.
+			if(household->getIsBidder() && household->getLastBidStatus() == 1 && household->getUnitPending())
+			{
+				waitingToMoveInHouseholdCount++;
+				boost::gregorian::date simulationDate = getBoostGregorianDateBySimDay(HITS_SURVEY_YEAR, startDay);
+				boost::gregorian::date pendingFromDate = boost::gregorian::date_from_tm(household->getPendingFromDate());
+				int moveInWaitingTimeInDays = (pendingFromDate - simulationDate).days();
+				hhAgent->getBidder()->setMoveInWaitingTimeInDays(moveInWaitingTimeInDays);
+				hhAgent->getBidder()->setUnitIdToBeOwned(household->getUnitId());
+
+			}
+			else if(household->getIsSeller())
 			{
 				hhAgent->getSeller()->setActive(true);
 			}
 		}
+
 		const Unit* unit = getUnitById(household->getUnitId());
 
 		if (unit)
@@ -1846,17 +1849,24 @@ void HM_Model::startImpl()
 		workGroup.assignAWorker(hhAgent);
 	}
 
+	if(resume)
+	{
+		PrintOutV("total number of household resumed from previous run: "<<resumeHouseholdCount<<std::endl);
+		PrintOutV("total number of households waiting to move to a new unit from resume: "<<waitingToMoveInHouseholdCount<<std::endl);
+	}
+
 	for (size_t n = 0; n < individuals.size(); n++)
-			{
-				BigSerial householdId = individuals[n]->getHouseholdId();
+	{
+		BigSerial householdId = individuals[n]->getHouseholdId();
 
-				Household *tempHH = getHouseholdById(householdId);
+		Household *tempHH = getHouseholdById(householdId);
 
-				if (tempHH != nullptr)
-				{
-					tempHH->setIndividual(individuals[n]->getId());
-				}
-			}
+		if (tempHH != nullptr)
+		{
+			tempHH->setIndividual(individuals[n]->getId());
+		}
+	}
+
 }
 
 
@@ -1907,145 +1917,197 @@ void HM_Model::startImpl()
 	int onMarket  = 0;
 	int offMarket = 0;
 	//assign empty units to freelance housing agents
-
-	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
-	{
-		boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
-		boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
-		int unitStartDay = startDay;
-
-		if( saleDate > simulationDate )
+	//if(!resume)
+	//{
+		for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 		{
-			unitStartDay = (saleDate - simulationDate).days();
-		}
+			boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
+			boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
+			int unitStartDay = startDay;
 
-		(*it)->setbiddingMarketEntryDay( unitStartDay );
-		(*it)->setTimeOnMarket(  1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
-		(*it)->setTimeOffMarket( 1 + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOffMarket);
+			(*it)->setBto(false);
 
-		//this unit is a vacancy
-		if( assignedUnits.find((*it)->getId()) == assignedUnits.end())
-		{
-			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->isBto() == false )
+			if( saleDate > simulationDate )
 			{
-				float awakeningProbability = (float)rand() / RAND_MAX;
+				unitStartDay = (saleDate - simulationDate).days();
 
-				if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
+				if( (*it)->getUnitType() < 6 )
+					(*it)->setBto(true);
+			}
+
+
+			int timeOnMarket = 0;
+			int timeOffMarket = 0;
+
+
+			if(!resume)
+			{
+				std::random_device genTimeOn;
+				std::mt19937 genRdTimeOn(genTimeOn());
+				std::uniform_int_distribution<int> disRdTimeOn(1,  config.ltParams.housingModel.timeOnMarket);
+				timeOnMarket = disRdTimeOn(genTimeOn);
+
+				std::random_device genTimeOff;
+				std::mt19937 genRdTimeOff(genTimeOff());
+				std::uniform_int_distribution<int> disRdTimeOff(1,  config.ltParams.housingModel.timeOffMarket);
+				timeOffMarket = disRdTimeOff(genTimeOff);
+
+				(*it)->setTimeOnMarket(timeOnMarket );
+				(*it)->setTimeOffMarket(timeOffMarket );
+				(*it)->setbiddingMarketEntryDay(999999);
+				(*it)->setRemainingTimeOnMarket(timeOnMarket);
+				(*it)->setRemainingTimeOffMarket(timeOffMarket);
+
+				writeUnitTimesToFile((*it)->getId(),(*it)->getTimeOnMarket(), (*it)->getTimeOffMarket(), (*it)->getbiddingMarketEntryDay());
+			}
+
+			//this unit is a vacancy
+			if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() != 3)
+			{
+				if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->isBto() == false )
 				{
-					(*it)->setbiddingMarketEntryDay( unitStartDay );
-					onMarket++;
+					if(!resume)
+					{
+					float awakeningProbability = (float)rand() / RAND_MAX;
+
+					if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
+					{
+						/*if awakened, time on the market was set to randomized number above,
+						and subsequent time off the market is fixed via setTimeOffMarket.
+						 */
+						(*it)->setbiddingMarketEntryDay( unitStartDay );
+						(*it)->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
+						(*it)->setRemainingTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
+						onMarket++;
+					}
+					else
+					{
+						/*If not awakened, time off the market was set to randomized number above,
+						and subsequent time on market is fixed via setTimeOnMarket.
+						 */
+						(*it)->setbiddingMarketEntryDay( 1+ (*it)->getTimeOffMarket() );
+						(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+						(*it)->setRemainingTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
+						offMarket++;
+					}
+
+
+					}
+					else
+					{
+						if ( (*it)->getTimeOnMarket() > 0 && lastStoppedDay >= (*it)->getbiddingMarketEntryDay())
+						{
+							onMarket++;
+						}
+						//unit is off the market if it has already completed the time on the market or if it has not yet entered the market.
+						else if((*it)->getTimeOnMarket() == 0 || lastStoppedDay < (*it)->getbiddingMarketEntryDay())
+						{
+							offMarket++;
+						}
+
+					}
+
+					freelanceAgents[vacancies % numWorkers]->addUnitId((*it)->getId());
+					vacancies++;
+				}
+			}
+
+
+
+			{
+				Unit *thisUnit = (*it);
+
+				int tazId = this->getUnitTazId((*it)->getId());
+				int mtzId = -1;
+				int subzoneId = -1;
+				int planningAreaId = -1;
+
+				Taz *curTaz = this->getTazById(tazId);
+				string planningAreaName = curTaz->getPlanningAreaName();
+
+				for(int n = 0; n < mtzTaz.size();n++)
+				{
+					if(tazId == mtzTaz[n]->getTazId() )
+					{
+						mtzId = mtzTaz[n]->getMtzId();
+						break;
+					}
+				}
+
+				for(int n = 0; n < mtz.size(); n++)
+				{
+					if( mtzId == mtz[n]->getId())
+					{
+						subzoneId = mtz[n]->getPlanningSubzoneId();
+						break;
+					}
+				}
+
+				for( int n = 0; n < planningSubzone.size(); n++ )
+				{
+					if( subzoneId == planningSubzone[n]->getId() )
+					{
+						planningAreaId = planningSubzone[n]->getPlanningAreaId();
+						break;
+					}
+				}
+
+				if( thisUnit->getUnitType()  == 1 || thisUnit->getUnitType() == 2)
+				{
+					thisUnit->setDwellingType(100);
 				}
 				else
+					if( thisUnit->getUnitType() == 3)
+					{
+						thisUnit->setDwellingType(300);
+					}
+					else
+						if( thisUnit->getUnitType() == 4)
+						{
+							thisUnit->setDwellingType(400);
+						}
+						else
+							if( thisUnit->getUnitType() == 5)
+							{
+								thisUnit->setDwellingType(500);
+							}
+							else
+								if(( thisUnit->getUnitType() >=7 && thisUnit->getUnitType() <=16 ) || ( thisUnit->getUnitType() >= 32 && thisUnit->getUnitType() <= 36 ) )
+								{
+									thisUnit->setDwellingType(600);
+								}
+								else
+									if( thisUnit->getUnitType() >= 17 && thisUnit->getUnitType() <= 31 )
+									{
+										thisUnit->setDwellingType(700);
+									}
+									else
+									{
+										thisUnit->setDwellingType(800);
+									}
+
+				for( int n = 0; n < alternative.size(); n++)
 				{
-					(*it)->setbiddingMarketEntryDay( unitStartDay + (float)rand() / RAND_MAX * config.ltParams.housingModel.timeOnMarket);
-					offMarket++;
+					if( alternative[n]->getDwellingTypeId() == thisUnit->getDwellingType() &&
+							alternative[n]->getPlanAreaId() 	== planningAreaId )
+						//alternative[n]->getPlanAreaName() == planningAreaName)
+					{
+						thisUnit->setZoneHousingType(alternative[n]->getMapId());
+
+						//PrintOutV(" " << thisUnit->getId() << " " << alternative[n]->getPlanAreaId() << std::endl );
+						unitsByZoneHousingType.insert( std::pair<BigSerial,Unit*>( alternative[n]->getId(), thisUnit ) );
+						break;
+					}
 				}
 
-				freelanceAgents[vacancies % numWorkers]->addUnitId((*it)->getId());
-				vacancies++;
-			}
-			else
-			{
-				(*it)->setbiddingMarketEntryDay( 999999 );
+				if(thisUnit->getZoneHousingType() == 0)
+				{
+					//PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
+				}
 			}
 		}
 
-
-
-		{
-			Unit *thisUnit = (*it);
-
-			int tazId = this->getUnitTazId((*it)->getId());
-			int mtzId = -1;
-			int subzoneId = -1;
-			int planningAreaId = -1;
-
-			Taz *curTaz = this->getTazById(tazId);
-			string planningAreaName = curTaz->getPlanningAreaName();
-
-			for(int n = 0; n < mtzTaz.size();n++)
-			{
-				if(tazId == mtzTaz[n]->getTazId() )
-				{
-					mtzId = mtzTaz[n]->getMtzId();
-					break;
-				}
-			}
-
-			for(int n = 0; n < mtz.size(); n++)
-			{
-				if( mtzId == mtz[n]->getId())
-				{
-					subzoneId = mtz[n]->getPlanningSubzoneId();
-					break;
-				}
-			}
-
-			for( int n = 0; n < planningSubzone.size(); n++ )
-			{
-				if( subzoneId == planningSubzone[n]->getId() )
-				{
-					planningAreaId = planningSubzone[n]->getPlanningAreaId();
-					break;
-				}
-			}
-
-			if( thisUnit->getUnitType()  == 1 || thisUnit->getUnitType() == 2)
-			{
-				thisUnit->setDwellingType(100);
-			}
-			else
-			if( thisUnit->getUnitType() == 3)
-			{
-				thisUnit->setDwellingType(300);
-			}
-			else
-			if( thisUnit->getUnitType() == 4)
-			{
-				thisUnit->setDwellingType(400);
-			}
-			else
-			if( thisUnit->getUnitType() == 5)
-			{
-				thisUnit->setDwellingType(500);
-			}
-			else
-			if(( thisUnit->getUnitType() >=7 && thisUnit->getUnitType() <=16 ) || ( thisUnit->getUnitType() >= 32 && thisUnit->getUnitType() <= 36 ) )
-			{
-				thisUnit->setDwellingType(600);
-			}
-			else
-			if( thisUnit->getUnitType() >= 17 && thisUnit->getUnitType() <= 31 )
-			{
-				thisUnit->setDwellingType(700);
-			}
-			else
-			{
-				thisUnit->setDwellingType(800);
-			}
-
-			for( int n = 0; n < alternative.size(); n++)
-			{
-				if( alternative[n]->getDwellingTypeId() == thisUnit->getDwellingType() &&
-					alternative[n]->getPlanAreaId() 	== planningAreaId )
-					//alternative[n]->getPlanAreaName() == planningAreaName)
-				{
-					thisUnit->setZoneHousingType(alternative[n]->getMapId());
-
-					//PrintOutV(" " << thisUnit->getId() << " " << alternative[n]->getPlanAreaId() << std::endl );
-					unitsByZoneHousingType.insert( std::pair<BigSerial,Unit*>( alternative[n]->getId(), thisUnit ) );
-					break;
-				}
-			}
-
-			if(thisUnit->getZoneHousingType() == 0)
-			{
-				//PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
-			}
-		}
-	}
-
-
+	//}
 
 	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
 
@@ -2070,6 +2132,8 @@ void HM_Model::startImpl()
 				setTaxiAccess2012(households[n]);
 			}
 		}
+
+
 
 		if(initialLoading && config.ltParams.vehicleOwnershipModel.enabled)
 		{
@@ -2879,18 +2943,38 @@ void HM_Model::update(int day)
 
 	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-		//this unit is a vacancy
-		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
+		//this unit is a vacancy and unit is on the market or to be entered to the market.
+		if (assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getbiddingMarketEntryDay() != 999999 )
 		{
-			//If a unit is off the market and unoccupied, we should put it back on the market after its timeOffMarket value is exceeded.
-			if( day > (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket()  )
+			//update unit's time on and off market values.
+			//unit is on the market if it is on or passed the bidding market entry day.
+			if ( (*it)->getRemainingTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay() )
 			{
-				//PrintOutV("A unit is being re-awakened" << std::endl);
-				(*it)->setbiddingMarketEntryDay(day + 1);
-				(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
+
+				//(*it)->setbiddingMarketEntryDay(day + 1);
+				//(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
+				(*it)->updateRemainingTimeOnMarket();
 			}
+			//unit is off the market if it has already completed the time on the market or if it has not yet entered the market.
+			else if((*it)->getRemainingTimeOnMarket() == 0 || day < (*it)->getbiddingMarketEntryDay() )
+			{
+				//unit is off the market and has completed the waiting time.
+//				if((*it)->getRemainingTimeOffMarket() <= 0)
+//				{
+//					//when a unit is re-awakened it will have the full amount of time on and off market.
+//					(*it)->setbiddingMarketEntryDay(day+1);
+//					(*it)->setRemainingTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+//					(*it)->setRemainingTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
+//				}
+				if((*it)->getRemainingTimeOffMarket() > 0) // unit is off the market.
+				{
+					(*it)->updateRemainingTimeOffMarket();
+				}
+			}
+
 		}
 	}
+
 }
 
 
@@ -2916,7 +3000,7 @@ void HM_Model::hdbEligibilityTest(int index)
 
 
 		boost::gregorian::date date2(HITS_SURVEY_YEAR, 1, 1);
-		boost::gregorian::date_duration simulationDay(0); //we only check HDB eligibility on day 0 of simulation.
+		boost::gregorian::date_duration simulationDay(startDay); //we only check HDB eligibility on day 0 of simulation.
 		date2 = date2 + simulationDay;
 
 		int years = (date2 - date1).days() / YEAR;
@@ -3125,6 +3209,11 @@ std::vector<boost::shared_ptr<HouseholdUnit> > HM_Model::getNewHouseholdUnits()
 	return this->newHouseholdUnits;
 }
 
+HM_Model::UnitList HM_Model::getUnits()
+{
+	return this->units;
+
+}
 std::vector<boost::shared_ptr<Unit> > HM_Model::getUpdatedUnits()
 {
 	return this->updatedUnits;
@@ -3418,6 +3507,98 @@ IndvidualEmpSec* HM_Model::getIndvidualEmpSecByIndId(BigSerial indId) const
 	return nullptr;
 }
 
+
+HM_Model::StudyAreaList& HM_Model::getStudyAreas()
+{
+	return studyAreas;
+}
+
+HM_Model::StudyAreaMultiMap& HM_Model::getStudyAreaByScenarioName()
+{
+	return studyAreaByScenario;
+}
+
+void  HM_Model::loadStudyAreas(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "study_area";
+
+	//SQL statement
+	soci::rowset<StudyArea> studyAreaObjs = (sql.prepare << "select * from configuration2012."  + tableName);
+
+	for (soci::rowset<StudyArea>::const_iterator itStudyArea = studyAreaObjs.begin(); itStudyArea != studyAreaObjs.end(); ++itStudyArea)
+	{
+		StudyArea* stdArea = new StudyArea(*itStudyArea);
+		studyAreas.push_back(stdArea);
+		studyAreaByScenario.insert(std::pair<string, StudyArea*>( stdArea->getStudyCode(), stdArea ));
+	}
+
+	PrintOutV("Number of Study Area rows: " << studyAreas.size() << std::endl );
+}
+
+void HM_Model::loadJobAssignments(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "job_assignment_coefficients";
+
+	//SQL statement
+	soci::rowset<JobAssignmentCoeffs> jobAssignmentCoeffsObj = (sql.prepare << "select * from calibration2012."  + tableName);
+
+	for (soci::rowset<JobAssignmentCoeffs>::const_iterator itJobAssignmentCoeffs = jobAssignmentCoeffsObj.begin(); itJobAssignmentCoeffs != jobAssignmentCoeffsObj.end(); ++itJobAssignmentCoeffs)
+	{
+		JobAssignmentCoeffs* jobAssignCoeff = new JobAssignmentCoeffs(*itJobAssignmentCoeffs);
+		jobAssignmentCoeffs.push_back(jobAssignCoeff);
+	}
+
+	PrintOutV("Number of Job Assignment Coeffs rows: " << jobAssignmentCoeffs.size() << std::endl );
+}
+
+HM_Model::JobAssignmentCoeffsList& HM_Model::getJobAssignmentCoeffs()
+{
+	return jobAssignmentCoeffs;
+}
+
+void HM_Model::loadJobsByIndustryTypeByTaz(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+	std::string tableName = "jobs_by_industry_type_by_taz";
+	//SQL statement
+	soci::rowset<JobsByIndustryTypeByTaz> jobsBySectorByTazObj = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
+
+	for (soci::rowset<JobsByIndustryTypeByTaz>::const_iterator itJobsBySecByTaz = jobsBySectorByTazObj.begin(); itJobsBySecByTaz != jobsBySectorByTazObj.end(); ++itJobsBySecByTaz)
+	{
+		JobsByIndustryTypeByTaz* jobsBySectorByTaz = new JobsByIndustryTypeByTaz(*itJobsBySecByTaz);
+		jobsByIndustryTypeByTazsList.push_back(jobsBySectorByTaz);
+		jobsByIndustryTypeByTazMap.insert(std::make_pair(jobsBySectorByTaz->getTazId(), jobsBySectorByTaz));
+	}
+
+	PrintOutV("Number of Jobs by Sector by Taz rows: " << jobsByIndustryTypeByTazsList.size() << std::endl );
+
+}
+
+HM_Model::JobsByIndustryTypeByTazList& HM_Model::getJobsBySectorByTazs()
+{
+	return jobsByIndustryTypeByTazsList;
+}
+
+JobsByIndustryTypeByTaz* HM_Model::getJobsBySectorByTazId(BigSerial tazId) const
+{
+	JobsByIndusrtyTypeByTazMap::const_iterator itr = jobsByIndustryTypeByTazMap.find(tazId);
+
+		if (itr != jobsByIndustryTypeByTazMap.end())
+		{
+			return (*itr).second;
+		}
+
+		return nullptr;
+
+}
+
 HM_Model::TazList&  HM_Model::getTazList()
 {
 	return tazs;
@@ -3456,11 +3637,168 @@ void HM_Model::addStudentToPrimarySchool(BigSerial individualId, int schoolId, B
 	}
 }
 
+void HM_Model::loadIndLogsumJobAssignments(BigSerial individuaId)
+{
+	{
+		boost::mutex::scoped_lock lock( mtx );
+		DB_Config dbConfig(LT_DB_CONFIG_FILE);
+		dbConfig.load();
+		DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
+		if(!isConnected)
+		{
+			conn_calibration.connect();
+			isConnected = true;
+		}
+
+		if(conn_calibration.isConnected())
+		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			conn_calibration.setSchema(config.schemas.calibration_schema);
+			IndLogsumJobAssignmentDao logsumDao(conn_calibration);
+			clear_delete_vector(indLogsumJobAssignmentList);
+			indLogsumJobAssignmentList = logsumDao.loadLogsumByIndividualId(individuaId);
+			indLogsumJobAssignmentByTaz.clear();
+
+			for (IndLogsumJobAssignmentList::iterator it = indLogsumJobAssignmentList.begin(); it != indLogsumJobAssignmentList.end(); it++)
+			{
+				//CompositeKey indTazIdPair = make_pair((*it)->getIndividualId(), (*it)->getTazId());
+				//indLogsumJobAssignmentByTaz.insert(make_pair(indTazIdPair, *it));
+				indLogsumJobAssignmentByTaz.insert(std::make_pair((*it)->getTazId(), *it));
+			}
+		}
+
+	}
+}
+
+HM_Model::IndLogsumJobAssignmentList& HM_Model::getIndLogsumJobAssignment()
+{
+	return indLogsumJobAssignmentList;
+}
+
+IndLogsumJobAssignment* HM_Model::getIndLogsumJobAssignmentByTaz(BigSerial tazId)
+{
+	{
+		boost::mutex::scoped_lock lock( mtx3 );
+		string tazIdStr = 'X' + std::to_string(tazId);
+		//CompositeKey indTazIdKey = make_pair(individualId, tazIdStr);
+
+		IndLogsumJobAssignmentByTaz::const_iterator itr = indLogsumJobAssignmentByTaz.find(tazIdStr);
+		if (itr != indLogsumJobAssignmentByTaz.end())
+		{
+			return (*itr).second;
+		}
+
+		return nullptr;
+	}
+
+}
+
+void HM_Model::loadJobsByTazAndIndustryType(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+	std::string storedProc;
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	if(config.ltParams.jobAssignmentModel.foreignWorkers)
+	{
+		storedProc = conn.getSchema() + "getJobsForForiegnersWithIndustryTypeAndTazId()";
+	}
+	else
+	{
+		storedProc = conn.getSchema() + "getJobsWithIndustryTypeAndTazId()";
+	}
+	//SQL statement
+	soci::rowset<JobsWithIndustryTypeAndTazId> jobsWithIndTypeAndTazObj = (sql.prepare << "select * from " + storedProc);
+	for (soci::rowset<JobsWithIndustryTypeAndTazId>::const_iterator itJobs = jobsWithIndTypeAndTazObj.begin(); itJobs != jobsWithIndTypeAndTazObj.end(); ++itJobs)
+	{
+		JobsWithIndustryTypeAndTazId* job = new JobsWithIndustryTypeAndTazId(*itJobs);
+		TazAndIndustryTypeKey tazIdIndTypePair = make_pair(job->getTazId(), job->getIndustryTypeId());
+		jobsWithTazAndIndustryType.insert(make_pair(tazIdIndTypePair, job));
+	}
+
+	PrintOutV("Number of Jobs with Taz Id and Industry Type: " << jobsWithTazAndIndustryType.size() << std::endl );
+}
+
+HM_Model::JobsWithTazAndIndustryTypeMap& HM_Model::getJobsWithTazAndIndustryTypeMap()
+{
+	return this->jobsWithTazAndIndustryType;
+
+}
+
+bool HM_Model::checkJobsInTazAndIndustry(BigSerial tazId, BigSerial industryId)
+{
+	{
+		boost::unique_lock<boost::shared_mutex> lock(sharedMtx);
+		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(tazId, industryId);
+		auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
+		size_t sz = distance(range.first, range.second);
+		if(sz > 0)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+}
+
+bool HM_Model::assignIndividualJob(BigSerial individualId, BigSerial selectedTazId, BigSerial industryId)
+{
+	{
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx);
+	HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
+	auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
+	size_t sz = distance(range.first, range.second);
+	if(sz==0)
+	{
+		//this part should not be reached with proper data. If you get this message please check whether you have enough jobs for individuals in each industry id.
+		PrintOutV("Individual id" <<  individualId << "has job id as 0" << std::endl);
+		return false;
+	}
+	else
+	{
+	std::random_device rdInGen;
+	std::mt19937 genRdInd(rdInGen());
+	std::uniform_int_distribution<int> disRdInd(0, (sz-1));
+	const unsigned int random_index = disRdInd(genRdInd);
+	std::advance(range.first, random_index);
+
+	int jobId = range.first->second->getJobId();
+	writeIndividualJobAssignmentsToFile(individualId,range.first->second->getJobId());
+
+	HM_Model::JobsWithTazAndIndustryTypeMap::iterator iter;
+	for(iter=range.first;iter != range.second;++iter)
+	{
+		if((iter->second->getJobId()) == jobId) {
+			jobsWithTazAndIndustryType.erase(iter);
+			break;
+		}
+	}
+	return true;
+	}
+	}
+
+}
+
+int HM_Model::getJobAssignIndividualCount()
+{
+	return this->jobAssignIndCount;
+}
+
+void HM_Model::incrementJobAssignIndividualCount()
+{
+	++jobAssignIndCount;
+}
+
 void HM_Model::stopImpl()
 {
 	deleteAll(stats);
 	clear_delete_vector(households);
 	clear_delete_vector(units);
+	clear_delete_vector(resumptionHouseholds);
 	householdsById.clear();
 	unitsById.clear();
+	resumptionHHById.clear();
 }

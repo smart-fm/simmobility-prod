@@ -70,7 +70,7 @@ void ProjectDao::insertProject(Project& project,std::string schema)
 
 std::vector<Project*> ProjectDao::loadOngoingProjects(std::string schema)
 {
-	const std::string queryStr = "SELECT * FROM " + schema + ".fm_project";
+	const std::string queryStr = "SELECT * FROM " + schema + "fm_project  where project_status =  'Active'";
 	std::vector<Project*> ongoingProjectsList;
 	getByQuery(queryStr,ongoingProjectsList);
 	return ongoingProjectsList;

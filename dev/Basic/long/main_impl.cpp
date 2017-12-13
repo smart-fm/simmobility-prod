@@ -124,7 +124,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	bool resume = config.ltParams.resume;
 	unsigned int year = config.ltParams.year;
-	std::string scenario = config.ltParams.simulationScenario;
+	std::string scenario = config.ltParams.scenario.scenarioName;
 	std::string mainSchemaVersion = config.ltParams.mainSchemaVersion;
 	std::string cfgSchemaVersion = config.ltParams.configSchemaVersion;
 	std::string calibrationSchemaVersion = config.ltParams.calibrationSchemaVersion;
@@ -151,7 +151,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 
 		std::vector<boost::shared_ptr<Parcel> > parcels = developerModel.getProfitableParcelsVec();
 		std::vector<boost::shared_ptr<Parcel> >::iterator parcelsItr;
-		ParcelDao parcelDao(conn);
+		ParcelDao parcelDao(conn,"fm_parcel");
 		for(parcelsItr = parcels.begin(); parcelsItr != parcels.end(); ++parcelsItr)
 		{
 			parcelDao.insertParcel(*(*parcelsItr),currentOutputSchema);
@@ -206,21 +206,13 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			vehOwnChangeDao.insertVehicleOwnershipChanges(*(*vehOwnChangeItr),currentOutputSchema);
 		}
 
-		std::vector<boost::shared_ptr<Household> > householdsWithBids = housingMarketModel.getHouseholdsWithBids();
-		std::vector<boost::shared_ptr<Household> >::iterator hhItr;
 		HouseholdDao hhDao(conn);
-		for(hhItr = householdsWithBids.begin(); hhItr != householdsWithBids.end(); ++hhItr)
-		{
-			hhDao.insertHousehold(*(*hhItr),currentOutputSchema);
-		}
 
 		HM_Model::HouseholdList *households = housingMarketModel.getHouseholdList();
 		HM_Model::HouseholdList::iterator houseHoldItr;
 		for(houseHoldItr = households->begin(); houseHoldItr != households->end(); ++houseHoldItr)
 		{
 
-			if(housingMarketModel.getHouseholdWithBidsById((*houseHoldItr)->getId()) == nullptr)
-			{
 				if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
 				{
 					if(housingMarketModel.getResumptionHouseholdById((*houseHoldItr)->getId()) != nullptr)
@@ -229,8 +221,6 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 					}
 					hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
 				}
-
-			}
 		}
 
 		std::vector<boost::shared_ptr<HouseholdUnit> > hhUnits = housingMarketModel.getNewHouseholdUnits();
@@ -240,12 +230,14 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			hhUnitDao.insertHouseholdUnit(*hhUnit,currentOutputSchema);
 		}
 
-//		std::vector<boost::shared_ptr<Unit> > updatedUnits = housingMarketModel.getUpdatedUnits();
-//		std::vector<boost::shared_ptr<Unit> >::iterator updatedUnitsItr;
-//		for(updatedUnitsItr = units.begin(); updatedUnitsItr != updatedUnits.end(); ++updatedUnitsItr)
-//		{
-//			unitDao.insertUnit(*(*updatedUnitsItr),currentOutputSchema);
-//		}
+		HM_Model::UnitList updatedUnits = housingMarketModel.getUnits();
+		HM_Model::UnitList::iterator updatedUnitsItr;
+		for(updatedUnitsItr = updatedUnits.begin(); updatedUnitsItr != updatedUnits.end(); ++updatedUnitsItr)
+		{
+			(*updatedUnitsItr)->setTimeOnMarket((*updatedUnitsItr)->getRemainingTimeOnMarket());
+			(*updatedUnitsItr)->setTimeOffMarket((*updatedUnitsItr)->getRemainingTimeOffMarket());
+			unitDao.insertUnit(*(*updatedUnitsItr),currentOutputSchema);
+		}
 
 		SimulationStoppedPointDao simStoppedPointDao(conn);
 		simStoppedPointDao.insertSimulationStoppedPoints(*(developerModel.getSimStoppedPointObj(simVersionId)).get(),currentOutputSchema);
@@ -306,7 +298,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     std::string currentOutputSchema;
 
     unsigned int year = config.ltParams.year;
-    std::string scenario = config.ltParams.simulationScenario;
+    std::string scenario = config.ltParams.scenario.scenarioName;
     std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
     time_t rawtime;
     struct tm * timeinfo;
@@ -316,10 +308,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
     if(resume)
     {
-    	currentOutputSchema = config.ltParams.currentOutputSchema;
     	if(conn.isConnected())
     	{
-    		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(currentOutputSchema);
+    		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(config.schemas.main_schema);
     		if(!simulationStartPointList.empty())
     		{
     			simVersionId = simulationStartPointList[simulationStartPointList.size()-1]->getId() + 1;
@@ -407,7 +398,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config configSchemaVersion  " << config.ltParams.configSchemaVersion << endl);
        	PrintOutV("XML Config currentOutputSchema " << config.ltParams.currentOutputSchema << endl);
        	PrintOutV("XML Config days " << config.ltParams.days << endl);
-        PrintOutV("XML Config DeveloperModel " << config.ltParams.developerModel.enabled << endl);
+    	PrintOutV("XML Config launch BTO " << config.ltParams.launchBTO << endl);
+
+       	PrintOutV("XML Config DeveloperModel " << config.ltParams.developerModel.enabled << endl);
         PrintOutV("XML Config DeveloperModel initialBuildingId " << config.ltParams.developerModel.initialBuildingId << endl);
         PrintOutV("XML Config DeveloperModel initialPostcode " << config.ltParams.developerModel.initialPostcode << endl);
         PrintOutV("XML Config DeveloperModel initialProjectId " << config.ltParams.developerModel.initialProjectId << endl);
@@ -423,6 +416,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelRandom " << config.ltParams.housingModel.awakeningModel.awakenModelRandom << endl);
         PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelShan " << config.ltParams.housingModel.awakeningModel.awakenModelShan << endl);
         PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelJingsi " << config.ltParams.housingModel.awakeningModel.awakenModelJingsi << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel awakeningOffMarketSuccessfulBid " << config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel awakeningOffMarketUnsuccessfulBid " << config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid << endl);
 
         PrintOutV("XML Config HousingModel enabled " << config.ltParams.housingModel.enabled << endl);
         PrintOutV("XML Config HousingModel householdBiddingWindow " << config.ltParams.housingModel.householdBiddingWindow << endl);
@@ -445,12 +440,17 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config Simulation resumption " << config.ltParams.resume << endl);
         PrintOutV("XML Config schoolAssignmentModel enabled " << config.ltParams.schoolAssignmentModel.enabled << endl);
         PrintOutV("XML Config schoolAssignmentModel schoolChangeWaitingTimeInDays " << config.ltParams.schoolAssignmentModel.schoolChangeWaitingTimeInDays << endl);
-        PrintOutV("XML Config simulationScenario " << config.ltParams.simulationScenario << endl);
+        PrintOutV("XML Config simulationScenario " << config.ltParams.scenario.scenarioName << endl);
+        PrintOutV("XML Config simulationScenario parcels table " << config.ltParams.scenario.parcelsTable << endl);
         PrintOutV("XML Config tickStep " << config.ltParams.tickStep << endl);
         PrintOutV("XML Config vehicleOwnershipModel " << config.ltParams.vehicleOwnershipModel.enabled << endl);
         PrintOutV("XML Config vehicleOwnershipModel vehicleBuyingWaitingTimeInDays " << config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays << endl);
         PrintOutV("XML Config workers " << config.ltParams.workers << endl);
         PrintOutV("XML Config year " << config.ltParams.year << endl);
+
+
+        PrintOutV("XML bid value a" << config.ltParams.housingModel.hedonicPriceModel.a << endl);
+        PrintOutV("XML bid value b" << config.ltParams.housingModel.hedonicPriceModel.b << endl);
 
 
         //Start work groups and all threads.
@@ -515,7 +515,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             }
 
             PrintOutV(" Day " << currTick
-            	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
+            	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize(currTick)
 				   << " BTO_Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize())
 				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders()
 				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers()

@@ -312,6 +312,8 @@ namespace sim_mob {
 
             const LagPrivate_TByUnitType* getLagPrivateTByUnitTypeId(BigSerial unitTypeId);
 
+            const std::string &getScenario();
+
 
         protected:
             /**

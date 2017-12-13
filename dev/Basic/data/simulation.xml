@@ -9,7 +9,7 @@
             <database id="fm_remote" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
-                <dbname value="simmobility_virtualcity"/>
+                <dbname value="simmobcity"/>
             </database>
 
             <database id="fm_hpchead" dbtype="postgres">
@@ -103,6 +103,10 @@
     </constructs>
 
     <simulation>
+
+        <!-- Preday Seed Value. Currently only the preday is repeatable.  -->
+        <seedValue value = "1331"/>
+
         <!-- Reasonable values for ShortTerm -->
         <!-- <base_granularity   value="100"   units="ms"/> -->
         <!-- <total_runtime      value="14"      units="minutes" /> -->
@@ -113,6 +117,10 @@
 
         <total_warmup       value="10"     units="seconds" />
         <start_time         value="00:00:00"/>
+
+
+        <!--Operational cost per km for car. Default value = 0.147-->
+        <operational_cost value="0.147"/>
 
 
         <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->

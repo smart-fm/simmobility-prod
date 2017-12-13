@@ -23,6 +23,7 @@
 #include <boost/regex.hpp>
 #include "util/LangHelpers.hpp"
 #include "logging/Log.hpp"
+#include "conf/ConfigManager.hpp"
 
 using namespace sim_mob;
 
@@ -33,7 +34,10 @@ boost::thread_specific_ptr<boost::mt19937> intProvider;
 inline void initRandomProvider(boost::thread_specific_ptr<boost::mt19937>& provider) {
     // The first time called by the current thread then just create one.
     if (!provider.get()) {
-        provider.reset(new boost::mt19937(static_cast<unsigned> (std::time(0))));
+
+        ConfigManager& cfg = ConfigManager::GetInstanceRW();
+		unsigned int seedValue = cfg.FullConfig().simulation.seedValue;
+        provider.reset(new boost::mt19937(seedValue));
     }
 }
 

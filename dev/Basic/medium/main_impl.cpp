@@ -7,6 +7,9 @@
 #include <set>
 #include <cstdlib>
 
+// added to access the lua function: to set the seed before the start of the preday run
+#include "behavioral/lua/PredayLuaProvider.hpp"
+
 //TODO: Replace with <chrono> or something similar.
 #include <sys/time.h>
 
@@ -314,7 +317,14 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	const MT_Config& mtConfig = MT_Config::getInstance();
 
 	PeriodicPersonLoader* periodicPersonLoader = new MT_PersonLoader(Agent::all_agents, Agent::pending_agents);
-	const ScreenLineCounter* screenLnCtr = ScreenLineCounter::getInstance(); //This line is necessary. It creates the singleton ScreenlineCounter object before any workers are created.
+
+	//ScreenLineCounter initialization before Worker creation
+	ScreenLineCounter* screenLnCtr = nullptr;
+	if(mtConfig.screenLineParams.outputEnabled)
+	{
+		screenLnCtr = ScreenLineCounter::getInstance(); //This line is necessary. It creates the singleton ScreenlineCounter object before any workers are created.
+	}
+
 	WithindayModelsHelper::loadZones(); //load zone information from db
 
 	{ //Begin scope: WorkGroups
@@ -370,6 +380,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//before starting the groups, initialize the time interval for one of the pathset manager's helpers
 	PathSetManager::initTimeInterval();
 
+	Print() << "\nDay activity schedule source (store procedure): "
+	        << config.getDatabaseProcMappings().procedureMappings["day_activity_schedule"] << std::endl;
 	Print() << "\nSimulating...\n";
 
 	//Start work groups and all threads.
@@ -589,7 +601,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}  //End scope: WorkGroups.
 
     //Save screen line counts
-    if(mtConfig.screenLineParams.outputEnabled)
+    if(screenLnCtr)
     {
         screenLnCtr->exportScreenLineCount();
     }
@@ -621,17 +633,32 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
  */
 bool performMainDemand()
 {
-	const MT_Config& mtConfig = MT_Config::getInstance();
+
+
 	PredayManager predayManager;
 	predayManager.loadZones();
 	predayManager.loadCosts();
 	predayManager.loadPersonIds();
 	predayManager.loadUnavailableODs();
+
+	/// The seed for RNG's in lua is set before any choice is made for any of the preday models
+	ConfigManager& cfg = ConfigManager::GetInstanceRW();
+	unsigned int seedValue = cfg.FullConfig().simulation.seedValue;
+
+	// Getting the lua path from MT_Config file
+	const MT_Config& mtConfig = MT_Config::getInstance();
+
+	//PredayLuaProvider::getPredayModel().fixPredaySeedInLua(predaySeedValue);
+	std::string pathToLuaFile =  mtConfig.modelScriptsMap.getPath() + string("logit.lua") ;
+	std::string systemCommandToUpdateSeedInLuaFile = string("sed -i 's/local A1=.*/local A1=") + std::to_string(seedValue)+ string("/g' ")  + pathToLuaFile ;
+	int resultOfSysCall = system(systemCommandToUpdateSeedInLuaFile.c_str());
+	std::cout<<systemCommandToUpdateSeedInLuaFile;
+
 	if(mtConfig.runningPredaySimulation() && mtConfig.isFileOutputEnabled())
 	{
 		predayManager.loadZoneNodes();
 		predayManager.loadPostcodeNodeMapping();
-		predayManager.removeInvalidAddresses();
+		PersonParams::removeInvalidAddress();
 	}
 
 	if(mtConfig.runningPredayCalibration())
@@ -643,15 +670,6 @@ bool performMainDemand()
 	{
 		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
 		predayManager.dispatchLT_Persons();
-//		const db::BackendType populationSource = mtConfig.getPopulationSource();
-//		if(populationSource == db::POSTGRES)
-//		{
-//			predayManager.dispatchLT_Persons();
-//		}
-//		else
-//		{
-//			predayManager.dispatchMongodbPersons();
-//		}
 	}
 	return true;
 }
@@ -709,7 +727,9 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 	}
     else if (MT_Config::getInstance().RunningMidDemand())
 	{
-		Print() << "Mid-term run mode: preday\n" << endl;
+		Print() << "Mid-term run mode: preday" << endl;
+		Print() << "Number of threads: " << MT_Config::getInstance().getNumPredayThreads()
+		        << std::endl << std::endl;
 		return performMainDemand();
 	}
 	else

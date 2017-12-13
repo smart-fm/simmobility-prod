@@ -283,10 +283,6 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 			ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(
 					node, "year"), "value"), (unsigned int) 0);
 
-	cfg.ltParams.simulationScenario =
-			ParseString(GetNamedAttributeValue(GetSingleElementByName(
-					node, "simulationScenario"), "value"), "");
-
 	cfg.ltParams.resume =
 			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
 					node, "resume"), "value"), false);
@@ -319,6 +315,10 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
 					node, "initialLoading"), "value"), false);
 
+	cfg.ltParams.launchBTO =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+						node, "launchBTO"), "value"), false);
+
 	processDeveloperModelNode(GetSingleElementByName(node, "developerModel"));
 	processHousingModelNode(GetSingleElementByName(node, "housingModel"));
 	processHouseHoldLogsumsNode(GetSingleElementByName(node, "outputHouseholdLogsums"));
@@ -332,28 +332,29 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 	cfg.ltParams.taxiAccessModel = taxiAccessModel;
 
 	processSchoolAssignmentModelNode(GetSingleElementByName(node, "schoolAssignmentModel"));
+	processJobAssignmentModelNode(GetSingleElementByName(node, "jobAssignmentModel"));
 	processScenarioNode(GetSingleElementByName(node, "scenario"));
 	processOutputFilesNode(GetSingleElementByName(node, "outputFiles"));
 
-	LongTermParams::ToaPayohScenario toaPayohScenario;
-	DOMElement *tpScenarioNode = GetSingleElementByName(node, "toaPayohScenario");
+	LongTermParams::Scenario scenario;
+	DOMElement *scenarioNode = GetSingleElementByName(node, "scenario");
 
-	toaPayohScenario.enabled =
-			ParseBoolean(GetNamedAttributeValue(tpScenarioNode, "enabled"), false);
+	scenario.enabled =
+			ParseBoolean(GetNamedAttributeValue(scenarioNode, "enabled"), false);
 
-	toaPayohScenario.workInToaPayoh =
-			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
-					tpScenarioNode, "workInToaPayoh"), "value"), false);
+	scenario.scenarioName =
+				ParseString(GetNamedAttributeValue(GetSingleElementByName(
+						scenarioNode, "name"), "value"), "");
 
-	toaPayohScenario.liveInToaPayoh =
-			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
-					tpScenarioNode, "liveInToaPayoh"), "value"), false);
+	scenario.parcelsTable =
+			ParseString(GetNamedAttributeValue(GetSingleElementByName(
+					scenarioNode, "parcelsTable"), "value"), "");
 
-	toaPayohScenario.moveToToaPayoh =
-			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
-					tpScenarioNode, "moveToToaPayoh"), "value"), false);
+	scenario.scenarioSchema =
+				ParseString(GetNamedAttributeValue(GetSingleElementByName(
+						scenarioNode, "scenarioSchema"), "value"), "");
 
-	cfg.ltParams.toaPayohScenario = toaPayohScenario;
+	cfg.ltParams.scenario = scenario;
 }
 
 void ParseConfigFile::processOutputFilesNode(xercesc::DOMElement *output)
@@ -493,6 +494,22 @@ void ParseConfigFile::processSchoolAssignmentModelNode(xercesc::DOMElement *scho
 	cfg.ltParams.schoolAssignmentModel = schoolAssignmentModel;
 }
 
+void ParseConfigFile::processJobAssignmentModelNode(xercesc::DOMElement *jobAssignModel)
+{
+	LongTermParams::JobAssignmentModel jobAssignmentModel;
+
+	jobAssignmentModel.enabled =
+			ParseBoolean(GetNamedAttributeValue(jobAssignModel, "enabled"), false);
+
+	jobAssignmentModel.foreignWorkers =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+						jobAssignModel, "foreignWorkers"), "value"),false);
+
+
+	cfg.ltParams.jobAssignmentModel = jobAssignmentModel;
+
+}
+
 void ParseConfigFile::processVehicleOwnershipModelNode(xercesc::DOMElement *vehOwnModel)
 {
 	LongTermParams::VehicleOwnershipModel vehicleOwnershipModel;
@@ -548,6 +565,10 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 			ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(
 					houseModel, "timeOffMarket"), "value"), (unsigned int) 0);
 
+	housingModel.wtpOffsetEnabled =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+						houseModel, "wtpOffsetEnabled"), "value"), false);
+
 	housingModel.vacantUnitActivationProbability =
 			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(
 					houseModel, "vacantUnitActivationProbability"), "value"), (float) 0.0);
@@ -575,6 +596,10 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 	housingModel.householdBiddingWindow =
 			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
 					houseModel, "householdBiddingWindow"), "value"), (int) 0);
+
+	housingModel.householdBTOBiddingWindow =
+			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
+					houseModel, "householdBTOBiddingWindow"), "value"), (int) 0);
 
 	housingModel.householdAwakeningPercentageByBTO =
 			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(
@@ -611,6 +636,14 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 	housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid =
 			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
 					houseModel, "awakeningModel"), "awakeningOffMarketUnsuccessfulBid"), "value"), (int) 0);
+
+	housingModel.hedonicPriceModel.a =
+			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
+					houseModel, "hedonicPriceModel"), "a"), "value"), (float) 0);
+
+	housingModel.hedonicPriceModel.b =
+			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
+					houseModel, "hedonicPriceModel"), "b"), "value"), (float) 0);
 
 	cfg.ltParams.housingModel = housingModel;
 }
@@ -656,6 +689,8 @@ void ParseConfigFile::processSimulationNode(xercesc::DOMElement *node)
 	cfg.simulation.totalRuntimeMS = processTimeGranUnits(GetSingleElementByName(node, "total_runtime", true));
 	cfg.simulation.totalWarmupMS = processTimeGranUnits(GetSingleElementByName(node, "total_warmup"));
 
+	cfg.simulation.seedValue = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "seedValue"), "value"), (unsigned int)101 );
+
 	cfg.simulation.baseGranSecond = cfg.simulation.baseGranMS / MILLISECONDS_IN_SECOND;
 
 	if(cfg.simMobRunMode == RawConfigParams::SimMobRunMode::MID_TERM && ! (unsigned) cfg.simulation.baseGranSecond)
@@ -671,6 +706,7 @@ void ParseConfigFile::processSimulationNode(xercesc::DOMElement *node)
 			processInSimulationTTUsage(GetSingleElementByName(node, "in_simulation_travel_time_usage", true));
 
 	processWorkgroupAssignmentNode(GetSingleElementByName(node, "workgroup_assignment"));
+	processOperationalCostNode(GetSingleElementByName(node, "operational_cost")) ;
 	processMutexEnforcementNode(GetSingleElementByName(node, "mutex_enforcement"));
 	processClosedLoopPropertiesNode(GetSingleElementByName(node, "closed_loop"));
 
@@ -730,6 +766,24 @@ void ParseConfigFile::processWorkgroupAssignmentNode(xercesc::DOMElement *node)
 	cfg.simulation.workGroupAssigmentStrategy = ParseWrkGrpAssignEnum(GetNamedAttributeValue(node, "value"),
 	                                                                  WorkGroup::ASSIGN_SMALLEST);
 }
+
+void ParseConfigFile::processOperationalCostNode(xercesc::DOMElement *node)
+{
+	// default value for operational cost: 0.147 dollars/km taken from Siyu's thesis
+	float operational_cost = ParseFloat(GetNamedAttributeValue(node, "value", true), (float) 0.147);
+
+	if (operational_cost < 0)
+	{
+		stringstream msg;
+		msg << "Invalid value for Operational Cost. Fuel cost cannot be negative";
+		throw runtime_error(msg.str());
+	}
+
+	cfg.simulation.operationalCost = operational_cost;
+
+
+}
+
 
 void ParseConfigFile::processClosedLoopPropertiesNode(xercesc::DOMElement *node)
 {

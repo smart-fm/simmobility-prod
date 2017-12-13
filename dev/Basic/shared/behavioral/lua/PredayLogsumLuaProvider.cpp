@@ -36,15 +36,12 @@ void ensureContext()
 		{
 			const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMap;
 			const std::string& scriptsPath = extScripts.getPath();
+			const std::map<std::string, std::string>& predayScriptsName = extScripts.getScriptsFileNameMap();
 			ModelContext* modelCtx = new ModelContext();
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpb"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpt"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dps"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmw"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdw"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmds"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdo"));
+			for (const auto& item : predayScriptsName)
+			{
+				modelCtx->predayModel.loadFile(scriptsPath + item.second);
+			}
 			modelCtx->predayModel.initialize();
 			threadContext.reset(modelCtx);
 		} 

@@ -127,6 +127,20 @@ namespace sim_mob
             }
         }
 
+        /*Load data from given datasouce from given connection using the
+         * given list and template DAO.
+         *
+         */
+        template <typename T, typename K>
+        inline void loadData(db::DB_Connection& conn, const std::string &tableName, K& list)
+        {
+        	if (conn.isConnected())
+        	{
+        		T dao(conn,tableName);
+        		dao.getAll(list);
+        	}
+        }
+
         /**
          * Load data from datasouce from given connection using the 
          * given list and template DAO.
@@ -150,6 +164,20 @@ namespace sim_mob
 			{
                 map.insert(std::make_pair(((*it)->*getter)(), *it));
             }
+        }
+
+        /*
+         * load data with a given table name.
+         */
+        template <typename T, typename K, typename M, typename F>
+        inline void loadData(db::DB_Connection& conn, const std::string &tableName,K& list, M& map, F getter)
+        {
+        	loadData<T>(conn, tableName, list);
+        	//Index all buildings.
+        	for (typename K::iterator it = list.begin(); it != list.end(); it++)
+        	{
+        		map.insert(std::make_pair(((*it)->*getter)(), *it));
+        	}
         }
 
         template <typename K, typename M, typename F>

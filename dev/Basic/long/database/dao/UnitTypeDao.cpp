@@ -25,6 +25,7 @@ void UnitTypeDao::fromRow(Row& result, UnitType& outObj)
     outObj.minLosize = result.get<double>("min_lot_size", 0);
     outObj.dwellingType = result.get<int>("dwelling_type", 0);
     outObj.wtpOffset = result.get<double>("wtp_offset", 0);
+    outObj.aggregatedUnitType = result.get<int>("aggregated_unit_type", 0);
 }
 
 void UnitTypeDao::toRow(UnitType& data, Parameters& outParams, bool update) {}

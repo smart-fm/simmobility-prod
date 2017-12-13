@@ -40,7 +40,10 @@ cur = conn.cursor()
 generated_link_TT_file = sys.argv[1]
 
 # change delimiter to commas
-os.system('sed -i \'s/;/,/g\' ' + generated_link_TT_file)
+res = os.system('sed -i \'s/;/,/g\' ' + generated_link_TT_file)
+if res != 0 :
+    print 'Cannot find the link travel time file named :', generated_link_TT_file
+    sys.exit(0)
 
 # read old values from the DB
 retrieve_Old_Values = " \

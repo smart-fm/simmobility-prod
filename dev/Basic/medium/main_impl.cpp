@@ -641,7 +641,15 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		std::string linkTTupdateCmd = "python scripts/python/upsert_link_travel_time.py " +
 				             pathTolinkTTfile + " " + historicalTTtableName + " " + std::to_string(alpha);
 		int res = std::system(linkTTupdateCmd.c_str());
-		Print() << "Update historical travel time: Completed\n";
+
+		if (res == 0 )
+		{
+			Print() << "Update historical travel time: Completed\n";
+		}
+		else
+		{
+			throw std::runtime_error("Error in updating link travel time \n ");
+		}
 	}
 
 	//Delete our profile pointer (if it exists)
@@ -748,7 +756,14 @@ bool performMidFullLoop(const std::string& configFileName, std::list<std::string
 		std::string stFeedbackCmd = "python scripts/python/TravelTimeAggregator.py " + ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput;
 		std::cout <<"The python command " <<stFeedbackCmd<<"\n";
 		int res = std::system(stFeedbackCmd.c_str());
-		Print() << "Subtrip metrics feedback: Completed\n";
+		if (res == 0 )
+		{
+			Print() << "Subtrip metrics feedback: Completed\n";
+		}
+		else
+		{
+			throw std::runtime_error("Error in subtrip metrics feedback\n ");
+		}
 	}
 
 	return true;

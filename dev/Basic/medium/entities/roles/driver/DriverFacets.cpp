@@ -1185,10 +1185,13 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 
 			if(queueLength == 0)
 			{
-				//If lane has 0 queue length, we select it
-				minLength = totalLength;
-				minQueueLength = queueLength;
-				minLane = lane;
+				if(minLength > totalLength)
+				{
+					//Choose lane with lower number of vehicles on it
+					minLength = totalLength;
+					minQueueLength = queueLength;
+					minLane = lane;
+				}
 			}
 			else
 			{

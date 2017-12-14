@@ -149,8 +149,7 @@ void BusDriverMovement::frame_init()
 		//Retrieve the bus stops for the bus
 		busStops = busTrip->getBusRouteInfo().getBusStops();
 		
-		//Track the bus stops. Ignore the starting bus stop as the bus enters the simulation from this stop
-		//and doesn't have to stop here separately
+		//Track the bus stops.
 		busStopTracker = busStops.begin();
 
 		//Set initial speed of bus to 0

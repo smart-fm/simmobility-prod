@@ -26,6 +26,9 @@ private:
 	/**Indicates whether the driver is to be removed from the taxi stand*/
 	bool toBeRemovedFromTaxiStand;
 
+	/**Indicates whether the driver is exiting the taxi stand*/
+	bool isExitingTaxiStand;
+
 protected:
 	/**Pointer to the on hail driver's movement facet object*/
 	OnHailDriverMovement *movement;

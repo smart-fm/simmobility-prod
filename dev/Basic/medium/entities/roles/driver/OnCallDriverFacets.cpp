@@ -2,10 +2,10 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include <entities/ParkingAgent.hpp>
 #include "OnCallDriverFacets.hpp"
 
 #include "entities/controllers/MobilityServiceControllerManager.hpp"
+#include "entities/ParkingAgent.hpp"
 #include "exceptions/Exceptions.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "OnCallDriver.hpp"
@@ -100,10 +100,13 @@ void OnCallDriverMovement::frame_tick()
 	}
 	}
 
-	if(onCallDriver->getDriverStatus() != PARKED)
+	if(onCallDriver->getDriverStatus() != PARKED && !onCallDriver->isExitingParking)
 	{
 		DriverMovement::frame_tick();
 	}
+
+	//The job of this flag is done (we need it to skip only one call to DriverMovement::frame_tick), so reset it
+	onCallDriver->isExitingParking = false;
 }
 
 std::string OnCallDriverMovement::frame_tick_output()
@@ -533,8 +536,10 @@ void OnCallDriverMovement::resetDriverLaneAndSegment()
 	parent->setCurrSegStats(currSegStats);
 	parent->setCurrLane(currLane);
 
-	//The job of this flag is done, so reset it
-	onCallDriver->isExitingParking = false;
+	//Skip the multiple calls to frame_tick() from the conflux
+	DriverUpdateParams &params = onCallDriver->getParams();
+	params.elapsedSeconds = params.secondsInTick;
+	onCallDriver->getParent()->setRemainingTimeThisTick(0.0);
 }
 
 const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) const

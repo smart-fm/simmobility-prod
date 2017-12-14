@@ -28,6 +28,12 @@ void OnHailDriverMovement::resetDriverLaneAndSegment()
 	currLane = currSegStats->laneInfinity;
 	parent->setCurrSegStats(currSegStats);
 	parent->setCurrLane(currLane);
+
+	onHailDriver->setToBeRemovedFromTaxiStand(true);
+	onHailDriver->isExitingTaxiStand = true;
+
+	auto vehicle = onHailDriver->getResource();
+	vehicle->setMoving(true);
 }
 
 void OnHailDriverMovement::frame_init()
@@ -106,7 +112,6 @@ void OnHailDriverMovement::frame_tick()
 
 			//Driver must start from lane infinity at this point
 			resetDriverLaneAndSegment();
-			onHailDriver->setToBeRemovedFromTaxiStand(true);
 		}
 
 		//Skip the multiple calls to frame_tick() from the conflux
@@ -122,10 +127,13 @@ void OnHailDriverMovement::frame_tick()
 	}
 	}
 
-	if(onHailDriver->getDriverStatus() != QUEUING_AT_TAXISTAND)
+	if(onHailDriver->getDriverStatus() != QUEUING_AT_TAXISTAND && !onHailDriver->isExitingTaxiStand)
 	{
 		DriverMovement::frame_tick();
 	}
+
+	//The job of this flag is done (we need it to skip only one call to DriverMovement::frame_tick), so reset it
+	onHailDriver->isExitingTaxiStand = false;
 }
 
 string OnHailDriverMovement::frame_tick_output()
@@ -434,7 +442,6 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 
 	//Set vehicle to moving
 	onHailDriver->getResource()->setMoving(true);
-	onHailDriver->setToBeRemovedFromTaxiStand(true);
 }
 
 void OnHailDriverMovement::beginQueuingAtTaxiStand(DriverUpdateParams &params)

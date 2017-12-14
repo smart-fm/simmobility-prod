@@ -14,7 +14,7 @@ using namespace std;
 OnHailDriver::OnHailDriver(Person_MT *parent, const MutexStrategy &mtx, OnHailDriverBehaviour *behaviour,
                            OnHailDriverMovement *movement, string roleName, Type roleType) :
 		Driver(parent, behaviour, movement, roleName, roleType), passenger(nullptr), movement(movement),
-		behaviour(behaviour), toBeRemovedFromTaxiStand(false)
+		behaviour(behaviour), toBeRemovedFromTaxiStand(false), isExitingTaxiStand(false)
 {
 }
 

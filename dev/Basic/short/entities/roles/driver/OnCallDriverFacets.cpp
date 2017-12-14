@@ -170,9 +170,8 @@ const Node* OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) co
 {
     const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
     auto downstreamLinks = rdNetwork->getDownstreamLinks(fromNode->getNodeId());
-    const DriverPathMover &pathMover = onCallDriver->movement->getPathMover();
-    const Lane *currLane = onCallDriver->movement->getCurrentLane();
-
+    const DriverPathMover &pathMover = onCallDriver->movement->fwdDriverMovement;
+    const Lane *currLane = pathMover.getCurrLane();
     vector<const Node *> reachableNodes;
 
     //If we are continuing from an existing path, we need to check for connectivity

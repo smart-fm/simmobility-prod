@@ -478,10 +478,6 @@ void OnHailDriverMovement::beginQueuingAtTaxiStand(DriverUpdateParams &params)
 	//Update the value of current node as we return after this method
 	currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getFromNode();
 
-	//We leave the taxi stand from the next segment as the taxi stand is at the end of the
-	//segment
-	pathMover.advanceInPath();
-
 	ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
 	                << onHailDriver->getParent()->getDatabaseId() << ": Begin queueing at taxi stand at segment "
 	                << chosenTaxiStand->getRoadSegmentId() << endl;

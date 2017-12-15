@@ -122,6 +122,11 @@ public:
 	 */
 	virtual void alightPassenger();
 
+	/**
+	 * Forces a passenger out of the car and effectively ends the passengers simulation
+	 */
+	void evictPassenger();
+
 	const OnHailDriverBehaviour* getBehaviour() const
 	{
 		return behaviour;

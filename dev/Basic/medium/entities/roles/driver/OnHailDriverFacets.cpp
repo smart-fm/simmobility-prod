@@ -77,6 +77,7 @@ void OnHailDriverMovement::frame_tick()
 	case QUEUING_AT_TAXISTAND:
 	{
 		Person_MT *person = onHailDriver->tryTaxiStandPickUp();
+		bool isLeavingWithoutPax = false;
 
 		if(!person && !onHailDriver->behaviour->isQueuingStintComplete())
 		{
@@ -96,14 +97,23 @@ void OnHailDriverMovement::frame_tick()
 			}
 			catch (no_path_error &ex)
 			{
-				Warn() << ex.what();
+				Warn() << ex.what() << endl;
+
 				//What can be done in this case?
+				//Remove the passenger from the vehicle (not drop off, because we would be alighting it at
+				//the pickup node and telling it that it has arrived at the destination)
+				onHailDriver->evictPassenger();
+				isLeavingWithoutPax = true;
 			}
 		}
 		else
 		{
 			//No person was picked up, but driver cannot queue any longer
+			isLeavingWithoutPax = true;
+		}
 
+		if(isLeavingWithoutPax)
+		{
 			//Make the behaviour decision
 			BehaviourDecision decision = onHailDriver->behaviour->makeBehaviourDecision();
 
@@ -176,6 +186,18 @@ bool OnHailDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 				{
 					Warn() << ex.what();
 					//What can be done in this case?
+					//Remove the passenger from the vehicle (not drop off, because we would be alighting it at
+					//the pickup node and telling it that it has arrived at the destination)
+					onHailDriver->evictPassenger();
+
+					//Make the behaviour decision
+					BehaviourDecision decision = onHailDriver->behaviour->makeBehaviourDecision();
+
+					//Perform the actions required based on the decision
+					performDecisionActions(decision);
+
+					//Driver must start from lane infinity at this point
+					resetDriverLaneAndSegment();
 				}
 			}
 		}
@@ -300,7 +322,6 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 	auto route = PrivateTrafficRouteChoice::getInstance()->getPathToLink(subTrip, false, currLink, nullptr,
 	                                                                     taxiStandLink, useInSimulationTT);
 
-#ifndef NDEBUG
 	if(route.empty())
 	{
 		stringstream msg;
@@ -310,7 +331,6 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 		msg << (currLink ? currLink->getLinkId() : 0);
 		throw no_path_error(msg.str());
 	}
-#endif
 
 	std::vector<const SegmentStats *> routeSegStats;
 	pathMover.buildSegStatsPath(route, routeSegStats);
@@ -344,7 +364,6 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 	//Get route to the node
 	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
-#ifndef NDEBUG
 	if(route.empty())
 	{
 		stringstream msg;
@@ -354,7 +373,6 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 		msg << (currLink ? currLink->getLinkId() : 0);
 		throw no_path_error(msg.str());
 	}
-#endif
 
 	std::vector<const SegmentStats *> routeSegStats;
 	pathMover.buildSegStatsPath(route, routeSegStats);
@@ -390,7 +408,6 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 		//Get route to the node
 		auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
-#ifndef NDEBUG
 		if(route.empty())
 		{
 			stringstream msg;
@@ -400,7 +417,6 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 			msg << (currLink ? currLink->getLinkId() : 0);
 			throw no_path_error(msg.str());
 		}
-#endif
 
 		std::vector<const SegmentStats *> routeSegStats;
 		pathMover.buildSegStatsPath(route, routeSegStats);

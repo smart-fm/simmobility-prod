@@ -372,29 +372,13 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 {
 	auto currSubTrip = person->currSubTrip;
 	const Node *destination = (*currSubTrip).destination.node;
-	const Link *currLink = nullptr;
+	const Link *currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
 
-	bool canDropPaxImmediately = false;
-
-	if(pathMover.isDrivingPathSet())
-	{
-		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
-
-		//If the drop-off node is at the end of the current link, we do not need to go anywhere
-		//We can drop the passenger off at this point
-		if(currLink->getToNode() == destination)
-		{
-			canDropPaxImmediately = true;
-		}
-	}
-	else if(onHailDriver->getDriverStatus() == QUEUING_AT_TAXISTAND && currNode == destination)
-	{
-		//The passenger's destination is the same as the current node (which is the node at the end
-		// of the taxi stand link)
-		canDropPaxImmediately = true;
-	}
-
-	if(!canDropPaxImmediately)
+	//We call this method when at the end of a link or when at a taxi stand. In either case,
+	//we should have a current link and we'd be crossing into the next link soon.
+	//If the 'toNode' for the link is the destination for the person,
+	//we can simply alight it, as we're about to move into the next link
+	if(currLink->getToNode() != destination)
 	{
 		//Create a sub-trip for the route choice
 		SubTrip subTrip;
@@ -453,8 +437,11 @@ void OnHailDriverMovement::beginQueuingAtTaxiStand(DriverUpdateParams &params)
 		removeFromQueue();
 	}
 
-	//Finalise the link travel time, as we will not be calling the DriverMovement::frame_tick()
-	//where this normally happens
+	//Finalise the link travel time. This is normally done by DriverMovement::frame_tick() when we end
+	//a link, but since we will be entering the segment again and calling setOrigin when we exit the
+	//stand, we will attempt to start travel time again and run into errors. So, to simplify things,
+	//we just end this travel time here, and start a new one later (Although both will not be accurate, neither will
+	//the one that includes the queuing time)
 	const SegmentStats *currSegStat = pathMover.getCurrSegStats();
 	const Link *currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
 	const Link *nextLink = RoadNetwork::getInstance()->getDownstreamLinks(currLink->getToNodeId()).front();
@@ -473,14 +460,14 @@ void OnHailDriverMovement::beginQueuingAtTaxiStand(DriverUpdateParams &params)
 	onHailDriver->setToBeRemovedFromTaxiStand(false);
 
 	//Update the value of current node as we return after this method
-	currNode = currLink->getToNode();
+	currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getFromNode();
 
-	//Clear the previous path. We will begin from the node
-	pathMover.eraseFullPath();
-	currLane = nullptr;
+	//We leave the taxi stand from the next segment as the taxi stand is at the end of the
+	//segment
+	pathMover.advanceInPath();
 
-	ControllerLog() << parent->currTick.ms() << "ms: OnHailDriver "
-	                << parent->getDatabaseId() << ": Begin queueing at taxi stand at segment "
+	ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
+	                << onHailDriver->getParent()->getDatabaseId() << ": Begin queueing at taxi stand at segment "
 	                << chosenTaxiStand->getRoadSegmentId() << endl;
 }
 
@@ -488,8 +475,9 @@ BehaviourDecision OnHailDriverBehaviour::makeBehaviourDecision() const
 {
 	if(!hasDriverShiftEnded())
 	{
-		return (BehaviourDecision) Utils::generateInt((int) BehaviourDecision::CRUISE,
-		                                              (int) BehaviourDecision::DRIVE_TO_TAXISTAND);
+		return BehaviourDecision::DRIVE_TO_TAXISTAND;
+		/*return (BehaviourDecision) Utils::generateInt((int) BehaviourDecision::CRUISE,
+		                                              (int) BehaviourDecision::DRIVE_TO_TAXISTAND);*/
 	}
 	else
 	{

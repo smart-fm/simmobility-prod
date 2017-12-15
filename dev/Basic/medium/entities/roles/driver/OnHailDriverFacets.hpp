@@ -35,6 +35,11 @@ std::ostream& operator<<(std::ostream &strm, BehaviourDecision &decision)
 
 	case BehaviourDecision ::END_SHIFT:
 		return strm << "END_SHIFT";
+
+	default:
+	std::stringstream msg;
+		msg << "Unknown enum value for BehaviourDecision " << (int)decision;
+		throw std::runtime_error(msg.str());
 	}
 }
 

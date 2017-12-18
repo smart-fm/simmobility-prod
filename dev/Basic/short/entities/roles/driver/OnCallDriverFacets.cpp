@@ -7,9 +7,10 @@
 #include "path/PathSetManager.hpp"
 #include "util/Utils.hpp"
 #include "entities/vehicle/Vehicle.hpp"
-
+#include "message/ST_Message.hpp"
 using namespace sim_mob;
 using namespace std;
+using namespace messaging;
 
 OnCallDriverMovement::OnCallDriverMovement() : currNode(nullptr)
 {
@@ -85,13 +86,17 @@ void OnCallDriverMovement::frame_tick()
             break;
         }
     }
-
    if(onCallDriver->getDriverStatus() != PARKED)
-    {
-       // onCallDriver->getParent()->movePerson(onCallDriver->getParent()->currFrame,onCallDriver->getParent());
-        DriverMovement::frame_tick();
+   {
+       DriverMovement::frame_tick();
+       DriverUpdateParams &params = onCallDriver->getParams();
+       switch (params.stopPointState)
+       {
+           case DriverUpdateParams::ARRIVED_AT_STOP_POINT:
 
-    }
+               break;
+       }
+   }
 
 }
 std::string OnCallDriverMovement::frame_tick_output()
@@ -99,37 +104,6 @@ std::string OnCallDriverMovement::frame_tick_output()
 
     return DriverMovement::frame_tick_output();
 }
-
-bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
-{
-    //Update the value of current node
-    const Link *currLink = fwdDriverMovement.getCurrLink();
-    currNode = currLink->getFromNode();
-
-    if(fwdDriverMovement.isEndOfPath())
-    {
-        switch (onCallDriver->getDriverStatus())
-        {
-            case CRUISING:
-            {
-                continueCruising(currLink->getToNode());
-                performScheduleItem();
-                break;
-            }
-        }
-
-    }
-
-    bool retVal = false;
-
-    if(onCallDriver->getDriverStatus() != PARKED)
-    {
-        retVal = moveToNextSegment(params);
-    }
-
-    return retVal;
-}
-
 
 void OnCallDriverMovement::performScheduleItem()
 {
@@ -155,6 +129,14 @@ void OnCallDriverMovement::performScheduleItem()
                 }
                 break;
             }
+
+            case PICKUP:
+            {
+                //Drive to pick up point
+                beginDriveToPickUpPoint(itScheduleItem->tripRequest.startNode);
+                break;
+            }
+
         }
     }
     catch(no_path_error &ex)
@@ -170,8 +152,9 @@ const Node* OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) co
 {
     const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
     auto downstreamLinks = rdNetwork->getDownstreamLinks(fromNode->getNodeId());
-    const DriverPathMover &pathMover = onCallDriver->movement->fwdDriverMovement;
+    DriverPathMover &pathMover = onCallDriver->movement->fwdDriverMovement;
     const Lane *currLane = pathMover.getCurrLane();
+
     vector<const Node *> reachableNodes;
 
     //If we are continuing from an existing path, we need to check for connectivity
@@ -293,4 +276,93 @@ Vehicle* OnCallDriverMovement::initialisePath(bool createVehicle)
     }
 
     return vehicle;
+}
+void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
+{
+    //Create a sub-trip for the route choice
+    SubTrip subTrip;
+    subTrip.origin = WayPoint(currNode);
+    subTrip.destination = WayPoint(pickupNode);
+
+    const Link *currLink = nullptr;
+    bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
+
+    //If the driving path has already been set, we must find path to the node from
+    //the current segment
+    if(fwdDriverMovement.isDrivingPathSet())
+    {
+        auto currWayPt = fwdDriverMovement.getCurrWayPoint();
+
+        if(currWayPt.type == WayPoint::ROAD_SEGMENT)
+        {
+            currLink = currWayPt.roadSegment->getParentLink();
+        }
+        else
+        {
+            currLink = fwdDriverMovement.getCurrTurning()->getToLane()->getParentSegment()->getParentLink();
+        }
+
+        //If the pickup node is at the end of the current link, we do not need to go anywhere
+        //We can pick the passenger up at this point
+
+        if(currLink->getToNode() == pickupNode)
+        {
+           // onCallDriver->pickupPassenger();
+            performScheduleItem();
+            return;
+        }
+    }
+
+    //Get route to the node
+    auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+
+#ifndef NDEBUG
+    if(route.empty())
+    {
+        stringstream msg;
+        msg << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
+            << " could not find a path to the pickup node " << pickupNode->getNodeId()
+            << " from the current node " << currNode->getNodeId() << " and link ";
+        msg << (currLink ? currLink->getLinkId() : 0);
+        throw no_path_error(msg.str());
+    }
+#endif
+    const vector<WayPoint> path =route;
+    rerouteWithPath(path);
+    StopPoint stopPoint;
+    auto lastSeg = fwdDriverMovement.getDrivingPath().back().roadSegment;
+    double lastroadsegmentlength = lastSeg->getLength();
+    stopPoint.distance=lastroadsegmentlength/3.0;
+    stopPoint.dwellTime = 5;
+    stopPoint.segmentId = lastSeg->getRoadSegmentId();
+    insertStopPoint(stopPoint);
+    onCallDriver->getParams().currentStopPoint = stopPoint;
+
+    onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_ON_CALL);
+    onCallDriver->sendScheduleAckMessage(true);
+
+    ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+                    << onCallDriver->getParent()->getDatabaseId() << ": Begin driving from node "
+                    << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+                    << " to pickup node " << pickupNode->getNodeId() << "Stop Point "<< stopPoint.segmentId <<endl;
+
+    //Set vehicle to moving
+    onCallDriver->getResource()->setMoving(true);
+
+
+ //   currNode=pickupNode;
+}
+void OnCallDriverMovement::insertStopPoint(StopPoint stopPt)
+{
+    std::map<unsigned int, std::vector<StopPoint> >::iterator it = onCallDriver->getParams().stopPointPool.find(stopPt.segmentId);
+    if (it !=  onCallDriver->getParams().stopPointPool.end())
+    {
+        it->second.push_back(stopPt);
+    }
+    else
+    {
+        std::vector<StopPoint> v;
+        v.push_back(stopPt);
+        onCallDriver->getParams().stopPointPool.insert(std::make_pair(stopPt.segmentId, v));
+    }
 }

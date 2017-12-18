@@ -789,9 +789,9 @@ void DriverMovement::applyDrivingModels(DriverUpdateParams &params)
 
 	//Currently on AMOD and Buses have stop points, so at the moment calls to check for stop point
 	//for private cars and taxis will be a burden.
-	if (parentDriver->getParent()->amodId != "-1" || parentDriver->IsBusDriver())
+	if (parentDriver->getParent()->amodId != "-1" || parentDriver->IsBusDriver() || parentDriver->getParent()->getRole()->getRoleName()=="OnCallDriver")
 	{
-		checkForStops(params);
+        this->checkForStops(params);
 	}
 
 	if(!fwdDriverMovement.isInIntersection())

@@ -58,13 +58,6 @@ public:
 	virtual std::string frame_tick_output();
 
 	/**
-	 * Handles the movement into the next segment
-	 * @param params the driver update parameters
-	 * @return true if successfully moved to next segment, false otherwise
-	 */
-	virtual bool moveToNextSegment(DriverUpdateParams &params);
-
-	/**
 	 * This method allows us to perform the task in the assigned schedule
 	 */
 	virtual void performScheduleItem();
@@ -86,6 +79,15 @@ public:
 	}
 
         Vehicle* initialisePath(bool createVehicle);
+
+    void beginDriveToPickUpPoint(const Node *pickupNode);
+    /**
+ * Stores the stopping points for the driver
+ * Key = segment id, value= vector of stopping points (one segment may have more than one stop point)
+ */
+    std::map<unsigned int, std::vector<StopPoint> > stopPointPool;
+
+    void insertStopPoint(StopPoint stopPt);
 };
 
 class OnCallDriverBehaviour : public DriverBehavior

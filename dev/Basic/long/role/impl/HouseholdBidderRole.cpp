@@ -342,7 +342,7 @@ void HouseholdBidderRole::update(timeslice now)
 
 		moveInWaitingTimeInDays--;
 
-		return;
+		//return;
 	}
 
 	//wait x days after move in to a new unit to reconsider the vehicle ownership option.
@@ -354,7 +354,7 @@ void HouseholdBidderRole::update(timeslice now)
 			TimeCheck vehicleOwnershipTiming;
 
 			VehicleOwnershipModel vehOwnershipModel(getParent()->getModel());
-			vehOwnershipModel.reconsiderVehicleOwnershipOption2(*getParent()->getHousehold(),getParent(), day,false);
+			vehOwnershipModel.reconsiderVehicleOwnershipOption2(*getParent()->getHousehold(),getParent(), day,false,false);
 
 			double vehicleOwnershipTime = vehicleOwnershipTiming.getClockTime();
 
@@ -364,7 +364,7 @@ void HouseholdBidderRole::update(timeslice now)
 		}
 			vehicleBuyingWaitingTimeInDays--;
 
-		return;
+		//return;
 	}
 
     //can bid another house if it is not waiting for any 

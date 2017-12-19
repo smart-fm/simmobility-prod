@@ -248,7 +248,7 @@ double VehicleOwnershipModel::getExp(int unitTypeId,double vehicleOwnershipLogsu
 	return expVal;
 }
 
-void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &household,HouseholdAgent *hhAgent, int day,bool initLoading)
+void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &household,HouseholdAgent *hhAgent, int day,bool initLoading, bool initialRun)
 {
  	int unitTypeId = 0;
 	if(household.getUnitId() != INVALID_ID)
@@ -264,24 +264,39 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 	BigSerial individualIdWihMaxIncome = 0;
 	double logsumCar = 0;
 	double vehicleOwnershipLogsum = 0;
-	IndvidualVehicleOwnershipLogsum *logsum = model->getIndvidualVehicleOwnershipLogsumsByHHId(household.getId());
+
 
 	map<BigSerial,double> expValMap;
 	double totalExp = 0;
 	HM_Model::VehicleOwnershipCoeffList coeffsList = model->getVehicleOwnershipCoeffs();
 
-	double logsum0 = logsum->getLogsum0();
-	double logsum1 = logsum->getLogsum1();
-	double logsum2 = logsum->getLogsum2();
-	double logsum3 = logsum->getLogsum3();
-	double logsum4 = logsum->getLogsum4();
-	double logsum5 = logsum->getLogsum5();
-	logsumVec.push_back(logsum0);
-	logsumVec.push_back(logsum1);
-	logsumVec.push_back(logsum2);
-	logsumVec.push_back(logsum3);
-	logsumVec.push_back(logsum4);
-	logsumVec.push_back(logsum5);
+	double logsum0 = 0;
+	double logsum1 = 0;
+	double logsum2 = 0;
+	double logsum3 = 0;
+	double logsum4 = 0;
+	double logsum5 = 0;
+
+	if(initialRun)
+	{
+		IndvidualVehicleOwnershipLogsum *logsum = model->getIndvidualVehicleOwnershipLogsumsByHHId(household.getId());
+		double logsum0 = logsum->getLogsum0();
+		double logsum1 = logsum->getLogsum1();
+		double logsum2 = logsum->getLogsum2();
+		double logsum3 = logsum->getLogsum3();
+		double logsum4 = logsum->getLogsum4();
+		double logsum5 = logsum->getLogsum5();
+		logsumVec.push_back(logsum0);
+		logsumVec.push_back(logsum1);
+		logsumVec.push_back(logsum2);
+		logsumVec.push_back(logsum3);
+		logsumVec.push_back(logsum4);
+		logsumVec.push_back(logsum5);
+	}
+	else
+	{
+		model->getLogsumOfHouseholdVOForVO_Model(household.getId(),logsumVec);
+	}
 
 	if(logsum1<logsum0)
 	{
@@ -385,8 +400,8 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 
 	for(VehicleOwnershipCoefficients *coeffsObj : coeffsList)
 	{
-		if(logsum != nullptr)
-		{
+		//if(logsum != nullptr)
+		//{
 			if(coeffsObj->getVehicleOwnershipOptionId() == 0)
 			{
 				if(toaPayohScenario)
@@ -439,7 +454,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 				expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
 				totalExp = totalExp + expVal;
 			}
-		}
+		//}
 	}
 
 

@@ -666,5 +666,13 @@ namespace sim_mob
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % unitId % timeOnMarket % timeOffMarket % biddingMarketEntryDay;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_DAILY_HOUSING_MARKET_UNIT_TIMES,fmtr.str());
 	    }
+
+	    inline void writeUnitHedonicPriceToFile( BigSerial unitId, double hedonicPrice)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	    	boost::format fmtr = boost::format("%1%, %2%") % unitId % hedonicPrice;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_UNIT_HEDONIC_PRICE,fmtr.str());
+	    }
 	}
 }

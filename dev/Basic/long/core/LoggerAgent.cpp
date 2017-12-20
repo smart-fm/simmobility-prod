@@ -349,6 +349,11 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 	 streams.insert(std::make_pair(LOG_DAILY_HOUSING_MARKET_UNIT_TIMES, unitTimesFile));
 	 *unitTimesFile << "unitId, timeOnMarket, timeOffMarket, biddingMarketEntryDay" << std::endl;
 
+	 //unit hedonic price values
+	std::ofstream* unitHedonicPriceFile = new std::ofstream("unitHedonicPrices.csv");
+	streams.insert(std::make_pair(LOG_UNIT_HEDONIC_PRICE, unitHedonicPriceFile));
+	 *unitHedonicPriceFile << "unitId, hedonicPrice" << std::endl;
+
 
 }
 

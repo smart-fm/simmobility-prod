@@ -191,7 +191,59 @@ void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector
 	expectations = CalculateUnitExpectations(unit, numExpectations, logsum, lagCoefficient, building, postcode, amenities);
 }
 
+void HedonicPrice_SubModel::computeInitialHedonicPrice(BigSerial unitIdFromModel)
+{
+	static bool wasExecuted = false;
+	if (!wasExecuted)
+	{
+		wasExecuted = true;
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
+		DB_Config dbConfig(LT_DB_CONFIG_FILE);
+		dbConfig.load();
+
+		// Connect to database and load data for this model.
+		DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+		conn.setSchema(config.schemas.main_schema);
+		conn.connect();
+
+		DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
+		conn_calibration.setSchema(config.schemas.calibration_schema);
+		conn_calibration.connect();
+
+		devModel->loadTAO(conn_calibration);
+		devModel->loadHedonicCoeffs(conn);
+		devModel->loadPrivateLagT(conn);
+		devModel->loadPrivateLagTByUT(conn);
+		devModel->loadTaoByUnitType(conn);
+	}
+	Unit *unitFromModel = hmModel->getUnitById(unitIdFromModel);
+	BigSerial tazId = hmModel->getUnitTazId( unitIdFromModel );
+	double logsum = hmModel->ComputeHedonicPriceLogsumFromDatabase( tazId );
+
+	double lagCoeff = ComputeLagCoefficient();
+
+	if( logsum < 0.0000001)
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "LOGSUM FOR UNIT %1% is 0.") %  unitIdFromModel).str());
+
+	const Building *building = DataManagerSingleton::getInstance().getBuildingById(unit->getBuildingId());
+
+	BigSerial addressId = hmModel->getUnitSlaAddressId( unit->getId() );
+
+	const Postcode *postcode = DataManagerSingleton::getInstance().getPostcodeById(addressId);
+
+	const PostcodeAmenities *amenities = DataManagerSingleton::getInstance().getAmenitiesById(addressId);
+
+	double  hedonicPrice = CalculateHedonicPrice(unitFromModel, building, postcode, amenities, logsum, lagCoeff);
+
+
+	hedonicPrice = exp( hedonicPrice ) / 1000000.0;
+
+	if (hedonicPrice > 0)
+	{
+		writeUnitHedonicPriceToFile(unitIdFromModel,hedonicPrice);
+	}
+}
 
 double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities, double logsum, double lagCoefficient)
 {
@@ -379,7 +431,10 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 	//-----------------------------
 	//-----------------------------
 	if( (unit->getUnitType() >= 12 && unit->getUnitType()  <= 16 ) ||
-		(unit->getUnitType() >= 37 && unit->getUnitType()  <= 51 ))		//condo
+		(unit->getUnitType() >= 37 && unit->getUnitType()  <= 51 ) ||
+		(unit->getUnitType() >= 32 && unit->getUnitType()  <= 36 )
+		)
+				//condo
 		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(1));
 	else
 	if( (unit->getUnitType() >= 7 && unit->getUnitType()  <= 11) || unit->getUnitType() == 64) //then --"Apartment"
@@ -393,7 +448,7 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 	else
 	if ( unit->getUnitType() >= 27 && unit->getUnitType()  <= 31 ) ///then --"Detached House"
 		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(5));
-	else if(unit->getUnitType() >= 32 && unit->getUnitType()  <= 36 )// EC
+	else // EC
 		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(6));
 
 	hedonicPrice =  coeffs->getIntercept() 	+

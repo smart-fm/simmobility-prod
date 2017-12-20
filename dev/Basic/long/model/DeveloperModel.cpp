@@ -151,8 +151,9 @@ void DeveloperModel::startImpl() {
 		//commented as this is not used in 2012 now.
 		//loadData<LogsumForDevModelDao>(conn,accessibilityList,accessibilityByTazId,&LogsumForDevModel::gettAZ2012Id);
 
-		loadData<TAO_Dao>(conn_calibration,taoList,taoByQuarterStr,&TAO::getQuarter);
-		PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
+		//loadData<TAO_Dao>(conn_calibration,taoList,taoByQuarterStr,&TAO::getQuarter);
+		//PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
+		loadTAO(conn_calibration);
 
 		loadData<UnitPriceSumDao>(conn,unitPriceSumList,unitPriceSumByParcelId,&UnitPriceSum::getFmParcelId);
 		PrintOutV("unit price sums loaded " << unitPriceSumList.size() << std::endl);
@@ -1154,6 +1155,13 @@ void DeveloperModel::loadPrivateLagTByUT(DB_Connection &conn)
 		ptivateLagsByUnitTypeId.insert(std::make_pair(lagPvtByUT->getUnitTypeId(), lagPvtByUT));
 
 	}
+}
+
+void DeveloperModel::loadTAO(DB_Connection &conn)
+{
+	loadData<TAO_Dao>(conn,taoList,taoByQuarterStr,&TAO::getQuarter);
+	PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
+
 }
 
 const LagPrivate_TByUnitType* DeveloperModel::getLagPrivateTByUnitTypeId(BigSerial unitTypeId)

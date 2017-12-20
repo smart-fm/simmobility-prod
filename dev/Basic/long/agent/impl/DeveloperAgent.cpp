@@ -201,7 +201,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 		if(isEmptyParcel)
 		{
-			misAge = 1.0;
+			unitAge = 0;
 		}
 		else
 		{
@@ -328,8 +328,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 			}
 
-			const UnitType *unitType = model->getUnitTypeById((*unitsItr).getUnitTypeId());
-			hedonicCoeffObj = model->getHedonicCoeffsByUnitTypeId(unitType->getAggregatedUnitType());
+			hedonicCoeffObj = model->getHedonicCoeffsByUnitTypeId((*unitsItr).getUnitTypeId());
 		    privateLagTObj = model->getLagPrivateTByUnitTypeId((*unitsItr).getUnitTypeId());
 
 		    HPI = privateLagTObj->getIntercept() + ( privateLagTObj->getT4() * taoValueQ4) + ( privateLagTObj->getT5() * taoValueQ5) + ( privateLagTObj->getT6() * taoValueQ6) + ( privateLagTObj->getT7() * taoValueQ7)
@@ -395,10 +394,9 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			if(hedonicCoeffObj!=nullptr)
 			{
 				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * freehold) +
-					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * isDistanceToPMS30) + (hedonicCoeffObj->getDistanceMallKm() * distanceToMall) +
-					(hedonicCoeffObj->getMrt200m()* isMRT_200m) + (hedonicCoeffObj->getMrt2400m() *isMRT_2_400m) + (hedonicCoeffObj->getExpress200m() * isExpress_200m) +
-				    (hedonicCoeffObj->getBus2400m() * isBus_2_400m) + (hedonicCoeffObj->getBusGt400m() * isBusGt_400m) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getAgeSquared() * (ageCapped*ageCapped))
-					+ (hedonicCoeffObj->getMisage() * misAge) ;//TODO::add storey and storey squared to the calculation. - gishara.
+	  					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * isDistanceToPMS30) + (hedonicCoeffObj->getDistanceMallKm() * distanceToMall) +
+	  					(hedonicCoeffObj->getMrt200m()* isMRT_200m) + (hedonicCoeffObj->getMrt2400m() *isMRT_2_400m) + (hedonicCoeffObj->getExpress200m() * isExpress_200m) +
+	 -				    (hedonicCoeffObj->getBusGt400m() * isBus_2_400m) + (hedonicCoeffObj->getBusGt400m() * isBusGt_400m) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getAgeSquared() * (ageCapped*ageCapped));
 			}
 
 			double revenuePerUnit = exp(revenue+HPI);
@@ -683,8 +681,6 @@ bool DeveloperAgent::onFrameInit(timeslice now) {
 
 Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
 
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
     if (devModel && isActive())
     {
     	currentTick = now.ms();
@@ -733,7 +729,7 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     		}
     	}
     	}
-    	else if(config.ltParams.launchBTO && hasBTO)
+    	else if(hasBTO)
     	{
     		launchBTOUnits(currentDate);
     	}

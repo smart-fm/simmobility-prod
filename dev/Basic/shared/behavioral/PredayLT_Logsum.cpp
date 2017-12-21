@@ -12,6 +12,7 @@
 #include "behavioral/params/LogsumTourModeDestinationParams.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "conf/ParseConfigFile.hpp"
 #include "database/DB_Config.hpp"
 #include "database/DB_Connection.hpp"
 #include "database/predaydao/DatabaseHelper.hpp"
@@ -26,7 +27,10 @@ namespace
 {
 
 const std::string LT_DB_CONFIG_FILE = "private/lt-db.ini";
-
+const std::string configFileName = "data/simulation.xml";
+//Parse the config file (this *does not* create anything, it just reads it.).
+bool longTerm = false;
+ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig(), longTerm );
 
 /**
  * wrapper struct for thread local storage
@@ -208,6 +212,7 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 {
 	ensureContext();
 	PersonParams personParams;
+
 
     const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
 

@@ -2663,6 +2663,9 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, vector<d
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
+
+		if(thisIndividual->getHouseholdHead())
+		{
 		vector<double> travelProbability;
 		vector<double> tripsExpected;
 
@@ -2783,6 +2786,7 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, vector<d
 		//										 << travelProbability[0] << ", " << travelProbability[1] << ", "  << travelProbability[2] << ", " << travelProbability[3] << ", "  << travelProbability[4] << ", " << travelProbability[5] <<std::endl );
 
 	}
+}
 
 }
 

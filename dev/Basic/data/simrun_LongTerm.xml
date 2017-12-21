@@ -156,7 +156,7 @@
 		<b value = "1.15"/>
 	    </hedonicPriceModel>
         </housingModel>
-	<vehicleOwnershipModel enabled='false'>
+	<vehicleOwnershipModel enabled='true'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>
 	</vehicleOwnershipModel>
         <taxiAccessModel enabled='false'>
@@ -205,7 +205,7 @@
         </outputFiles>
     </longTermParams>
 
-    <model_scripts path="scripts/lua/mid/behavior_sg12_20161206/" format="lua">
+    <model_scripts path="scripts/lua/mid/behavior-models-gen-preday-9modes-4-activ/" format="lua">
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

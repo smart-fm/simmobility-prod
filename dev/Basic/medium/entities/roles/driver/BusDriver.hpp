@@ -82,6 +82,11 @@ public:
 		return waitingTimeAtbusStop;
 	}
 
+	void collectTravelTime()
+	{
+		//Do Nothing function to avoid calling Driver's class virtual function for Bus Drivers
+	}
+
 	const std::string getBusLineID() const;
 
 	void updatePassengers();

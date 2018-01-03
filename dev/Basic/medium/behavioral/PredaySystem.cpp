@@ -464,7 +464,7 @@ TimeWindowAvailability PredaySystem::predictSubTourTimeOfDay(Tour& subTour, SubT
 	int timeWndw;
 	if(!subTour.isSubTour()) { throw std::runtime_error("predictSubTourTimeOfDay() is only for sub-tours"); };
 	timeWndw = PredayLuaProvider::getPredayModel().predictSubTourTimeOfDay(personParams, subTourParams);
-	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
+	return TimeWindowsLookup::getTimeWindowAt(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
 }
 
 TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
@@ -693,7 +693,7 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
 	{
 		return TimeWindowAvailability();
 	}
-	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
+	return TimeWindowsLookup::getTimeWindowAt(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
 }
 
 void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours, double prevTourEndTime)
@@ -1479,7 +1479,7 @@ void PredaySystem::planDay()
 	// set the Operational Cost before it is used anywhere
 	OPERATIONAL_COST = ConfigManager::GetInstance().FullConfig().simulation.operationalCost;
 
-	personParams.initTimeWindows();
+	personParams.setAllTimeWindowsAvailable();
 
 	//Predict day pattern
 	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation();

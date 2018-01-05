@@ -61,12 +61,14 @@ void ExpandMidTermConfigFile::processConfig()
         RestrictedRegion::getInstance().populate();
     }
 
-    if (cfg.isPublicTransitEnabled())
+ /*   if (cfg.isPublicTransitEnabled())
     {
         loadPublicTransitNetworkFromDatabase();
     }
+*/
+	loadPublicTransitNetworkFromDatabase();
 
-    cfg.sealNetwork();
+	cfg.sealNetwork();
 
     //Initialize the street directory.
     StreetDirectory::Instance().Init(*(RoadNetwork::getInstance()));

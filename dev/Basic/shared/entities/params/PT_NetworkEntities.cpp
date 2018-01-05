@@ -18,14 +18,18 @@ map<PT_Network::NetworkType, PT_Network *> PT_NetworkCreater::mapOfInstances;
 void PT_NetworkCreater::createNetwork(const string &storedProcForVertex, const string &storeProceForEdges,
                                       PT_Network::NetworkType type)
 {
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	//Check if an instance of the given type has been created before
 	auto itInstance = mapOfInstances.find(type);
 
 	if (mapOfInstances.empty() || itInstance == mapOfInstances.end())
 	{
 		PT_Network *network = new PT_Network();
-		network->initialise(storedProcForVertex, storeProceForEdges);
-		mapOfInstances[type] = network;
+		if (config.isPublicTransitEnabled())
+		{
+			network->initialise(storedProcForVertex, storeProceForEdges);
+		}
+		mapOfInstances[type] = network;  //even if public Transit is not enabled a blank PT_Network instance should be insert in mapOfInstances map.
 	}
 	else
 	{

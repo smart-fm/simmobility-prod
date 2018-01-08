@@ -387,6 +387,8 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 	double ZZ_bus_gt400m = 0;
 
 	double age = ( HITS_SURVEY_YEAR - 1900 ) - unit->getOccupancyFromYear();
+	double storey = unit->getStorey();
+	double storeySquared = (storey * storey);
 
 	if( age > 50 )
 	    age = 50;
@@ -417,13 +419,16 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 		ZZ_express_200m = 1;
 
 
-	if( amenities->getDistanceToBus() < 0.200 )
+	if(  (amenities->getDistanceToBus() < 0.200 ) &&  ( amenities->getDistanceToBus() < 0.400 ))
+	{
 		ZZ_bus_200m = 1;
+	}
+	//if
+	//	ZZ_bus_400m = 1;
 	else
-	if( amenities->getDistanceToBus() < 0.400 )
-		ZZ_bus_400m = 1;
-	else
+	{
 		ZZ_bus_gt400m = 1;
+	}
 
 
 	HedonicCoeffs *coeffs = nullptr;
@@ -431,8 +436,7 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 	//-----------------------------
 	//-----------------------------
 	if( (unit->getUnitType() >= 12 && unit->getUnitType()  <= 16 ) ||
-		(unit->getUnitType() >= 37 && unit->getUnitType()  <= 51 ) ||
-		(unit->getUnitType() >= 32 && unit->getUnitType()  <= 36 )
+		(unit->getUnitType() >= 37 && unit->getUnitType()  <= 51 )
 		)
 				//condo
 		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(1));
@@ -448,7 +452,7 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 	else
 	if ( unit->getUnitType() >= 27 && unit->getUnitType()  <= 31 ) ///then --"Detached House"
 		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(5));
-	else // EC
+	else if (unit->getUnitType() >= 32 && unit->getUnitType()  <= 36 )// EC
 		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(6));
 
 	hedonicPrice =  coeffs->getIntercept() 	+
@@ -460,14 +464,11 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 					coeffs->getMrt200m() 		*	ZZ_mrt_200m 	+
 					coeffs->getMrt_2_400m() 	*	ZZ_mrt_400m 	+
 					coeffs->getExpress200m() 	* 	ZZ_express_200m	+
-					coeffs->getBus400m() 		*	ZZ_bus_400m 	+
+					coeffs->getBus400m()        *   ZZ_bus_400m     +
+					coeffs->getBusGt400m() 		*	ZZ_bus_gt400m 	+
 					coeffs->getAge() 			*	age 			+
 					coeffs->getLogAgeSquared() 	*	ageSquared		+
-					coeffs->getMisage()			*	misage;
-
-
-	//------------------------------------------
-	//------------------------------------------
+					coeffs->getMisage()			*	misage ;
 
 	hedonicPrice = hedonicPrice + lagCoefficient;
 

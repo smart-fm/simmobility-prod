@@ -41,6 +41,7 @@ namespace sim_mob
 			double CalculateSpeculation(ExpectationEntry entry, double unitBids);
 
 			vector<ExpectationEntry> CalculateUnitExpectations (Unit *unit, double timeOnMarket, double logsum, double lagCoefficient, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities);
+			void computeInitialHedonicPrice(BigSerial unitIdFromModel);
 
 			double CalculateHDB_HedonicPrice(Unit *unit, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities, double logsum, double lagCoefficient);
 			double CalculatePrivate_HedonicPrice( Unit *unit,const  Building *building, const Postcode *postcode, const PostcodeAmenities *amenities, double logsum, double lagCoefficient);

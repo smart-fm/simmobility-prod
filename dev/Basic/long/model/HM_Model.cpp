@@ -78,7 +78,7 @@
 #include <DatabaseHelper.hpp>
 #include "model/VehicleOwnershipModel.hpp"
 #include "model/JobAssignmentModel.hpp"
-
+#include "model/HedonicPriceSubModel.hpp"
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -1922,6 +1922,9 @@ void HM_Model::startImpl()
 	//{
 		for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 		{
+			//HedonicPrice_SubModel hpSubmodel(0, this, (*it));
+			//hpSubmodel.computeInitialHedonicPrice((*it)->getId());
+
 			boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
 			boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
 			int unitStartDay = startDay;

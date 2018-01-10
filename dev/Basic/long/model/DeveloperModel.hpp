@@ -314,6 +314,8 @@ namespace sim_mob {
 
             const std::string &getScenario();
 
+            void loadTAO(DB_Connection &conn);
+
 
         protected:
             /**

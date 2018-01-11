@@ -2428,10 +2428,22 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 	Household *currentHousehold = getHouseholdById( householdId );
 
 	std::vector<BigSerial> householdIndividualIds = currentHousehold->getIndividuals();
+	float income = this->getIndividualById(householdIndividualIds[0])->getIncome();
+		BigSerial maxIncomeInd =  householdIndividualIds[0];
+		for( int n = 1; n < householdIndividualIds.size(); n++ )
+		{
+			if(this->getIndividualById(householdIndividualIds[n])->getIncome() > income)
+			{
+				maxIncomeInd = householdIndividualIds[n];
+			}
+
+		}
 
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
+		if(thisIndividual->getId() == maxIncomeInd)
+		{
 
 		vector<double> logsum;
 		vector<double> travelProbability;
@@ -2654,6 +2666,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 //										 << travelProbability[0] << ", " << travelProbability[1] << ", "  << travelProbability[2] << ", " << travelProbability[3] << ", "  << travelProbability[4] << ", " << travelProbability[5] <<std::endl );
 
 	}
+	}
 }
 
 void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, vector<double>&logsum)
@@ -2662,12 +2675,22 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, vector<d
 	Household *currentHousehold = getHouseholdById( householdId );
 
 	std::vector<BigSerial> householdIndividualIds = currentHousehold->getIndividuals();
+	float income = this->getIndividualById(householdIndividualIds[0])->getIncome();
+	BigSerial maxIncomeInd =  householdIndividualIds[0];
+	for( int n = 1; n < householdIndividualIds.size(); n++ )
+	{
+		if(this->getIndividualById(householdIndividualIds[n])->getIncome() > income)
+		{
+			maxIncomeInd = householdIndividualIds[n];
+		}
+
+	}
 
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
 
-		if(thisIndividual->getHouseholdHead())
+		if(thisIndividual->getId() == maxIncomeInd)
 		{
 		vector<double> travelProbability;
 		vector<double> tripsExpected;

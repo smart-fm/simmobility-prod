@@ -87,7 +87,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption(const Household *ho
 
 			boost::shared_ptr <VehicleOwnershipChanges> vehcileOwnershipOptChange(new VehicleOwnershipChanges());
 			vehcileOwnershipOptChange->setHouseholdId(household->getId());
-			vehcileOwnershipOptChange->setOldVehicleOwnershipOptionId(household->getVehicleCategoryId());
+			vehcileOwnershipOptChange->setOldVehicleOwnershipOptionId(household->getVehicleOwnershipOptionId());
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			int year = config.ltParams.year;
 			vehcileOwnershipOptChange->setStartDate(getDateBySimDay(year,day));
@@ -489,7 +489,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 
 		boost::shared_ptr <VehicleOwnershipChanges> vehcileOwnershipOptChange(new VehicleOwnershipChanges());
 		vehcileOwnershipOptChange->setHouseholdId(household.getId());
-		vehcileOwnershipOptChange->setOldVehicleOwnershipOptionId(household.getVehicleCategoryId());
+		vehcileOwnershipOptChange->setOldVehicleOwnershipOptionId(household.getVehicleOwnershipOptionId());
 		vehcileOwnershipOptChange->setLiveInTp(liveInToaPayoh);
 		vehcileOwnershipOptChange->setWorkInTp(workInToaPayoh);
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -502,11 +502,16 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 			{
 				selectedVehicleOwnershipOtionId = probVal.first;
 				vehcileOwnershipOptChange->setNewVehicleOwnershipOptionId(selectedVehicleOwnershipOtionId);
-				writeVehicleOwnershipToFile(household.getId(),selectedVehicleOwnershipOtionId, workInToaPayoh,liveInToaPayoh);
-				if(day==0)
+				if(initialRun)
 				{
-					household.setVehicleOwnershipOptionId(selectedVehicleOwnershipOtionId);
+					writeVehicleOwnershipToFile(household.getId(),selectedVehicleOwnershipOtionId, workInToaPayoh,liveInToaPayoh);
 				}
+				else
+				{
+					writeVehicleOwnershipToFile2(household.getId(),selectedVehicleOwnershipOtionId, workInToaPayoh,liveInToaPayoh);
+				}
+				household.setVehicleOwnershipOptionId(selectedVehicleOwnershipOtionId);
+
 				break;
 				if(hhAgent != nullptr)
 				{

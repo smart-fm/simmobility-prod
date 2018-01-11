@@ -354,7 +354,7 @@ void HouseholdBidderRole::update(timeslice now)
 			TimeCheck vehicleOwnershipTiming;
 
 			VehicleOwnershipModel vehOwnershipModel(getParent()->getModel());
-			vehOwnershipModel.reconsiderVehicleOwnershipOption2(*getParent()->getHousehold(),getParent(), day,false,false);
+			vehOwnershipModel.reconsiderVehicleOwnershipOption2(*getParent()->getHousehold(),getParent(), day,true,false);
 
 			double vehicleOwnershipTime = vehicleOwnershipTiming.getClockTime();
 

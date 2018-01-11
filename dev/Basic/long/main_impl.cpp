@@ -231,6 +231,7 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 		}
 
 		HM_Model::UnitList updatedUnits = housingMarketModel.getUnits();
+		updatedUnits.resize(100);
 		HM_Model::UnitList::iterator updatedUnitsItr;
 		for(updatedUnitsItr = updatedUnits.begin(); updatedUnitsItr != updatedUnits.end(); ++updatedUnitsItr)
 		{

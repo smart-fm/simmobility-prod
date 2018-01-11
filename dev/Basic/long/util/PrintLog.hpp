@@ -421,6 +421,17 @@ namespace sim_mob
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % hhId % VehiclOwnershiOptionId % workInTopayo % liveInTopayo;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,fmtr.str());
 	    }
+
+	    inline void writeVehicleOwnershipToFile2(BigSerial hhId,int VehiclOwnershiOptionId, bool workInTopayo, bool liveInTopayo)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	    	if(!config.ltParams.outputFiles.log_vehicle_ownership)
+	    		return;
+
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % hhId % VehiclOwnershiOptionId % workInTopayo % liveInTopayo;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP2,fmtr.str());
+	    }
+
 	    									//day, householdId, unitId, willingnessToPay, AskingPrice, Affordability, BidAmount, Surplus, currentPostcode, unitPostcode
 	    inline void printHouseholdBiddingList(  int day, BigSerial householdId, BigSerial unitId, std::string postcodeCurrent, std::string postcodeNew,
 	    										double wp, double askingPrice, double affordability, double currentBid, double currentSurplus)

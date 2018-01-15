@@ -180,6 +180,13 @@ void OnCallDriver::scheduleItemCompleted()
 {
 	driverSchedule.itemCompleted();
 
+	if(behaviour->hasDriverShiftEnded() && driverSchedule.isScheduleCompleted())
+	{
+		//If the shift has ended, we no longer need to send the status message
+		//and the available message. We simply wait for the shift end confirmation
+		return;
+	}
+
 	sendStatusMessage();
 
 	if(driverSchedule.isScheduleCompleted())

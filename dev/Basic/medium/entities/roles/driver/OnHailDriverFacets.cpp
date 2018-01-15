@@ -310,17 +310,23 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 
 	const Link *currLink = nullptr;
 	bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
+	vector<WayPoint> route;
 
 	//If the driving path has already been set, we must find path to the taxi stand from
 	//the current segment
 	if(pathMover.isDrivingPathSet())
 	{
 		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+		route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Link>(*currLink, *taxiStandLink);
+	}
+	else
+	{
+		route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Link>(*currNode, *taxiStandLink);
 	}
 
 	//Get route to the taxi stand
-	auto route = PrivateTrafficRouteChoice::getInstance()->getPathToLink(subTrip, false, currLink, nullptr,
-	                                                                     taxiStandLink, useInSimulationTT);
+	//auto route = PrivateTrafficRouteChoice::getInstance()->getPathToLink(subTrip, false, currLink, nullptr,
+	//                                                                     taxiStandLink, useInSimulationTT);
 
 	if(route.empty())
 	{
@@ -353,16 +359,22 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 
 	const Link *currLink = nullptr;
 	bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
+	vector<WayPoint> route;
 
 	//If the driving path has already been set, we must find path to the node from
 	//the current segment
 	if(pathMover.isDrivingPathSet())
 	{
 		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+		route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
+	}
+	else
+	{
+		route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
 	}
 
 	//Get route to the node
-	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+	//auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
 	if(route.empty())
 	{
@@ -406,7 +418,8 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 		bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
 
 		//Get route to the node
-		auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+		//auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+		auto route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *destination);
 
 		if(route.empty())
 		{

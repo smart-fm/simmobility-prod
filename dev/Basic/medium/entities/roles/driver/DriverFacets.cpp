@@ -100,7 +100,8 @@ Driver* DriverBehavior::getParentDriver()
 }
 
 DriverMovement::DriverMovement() :
-MovementFacet(), parentDriver(nullptr), currLane(nullptr), isQueuing(false), laneConnectorOverride(false)
+MovementFacet(), parentDriver(nullptr), currLane(nullptr), isQueuing(false), laneConnectorOverride(false),
+isRouteChangedInVQ(false)
 {
 	rerouter.reset(new MesoReroute(*this));
 }
@@ -220,7 +221,7 @@ void DriverMovement::frame_tick()
 	}
 	//if driver is still in lane infinity (currLane is null),
 	//he shouldn't be advanced
-	if (currLane && parentDriver->parent->canMoveToNextSegment == Person_MT::NONE)
+	if (currLane && parentDriver->parent->canMoveToNextSegment == Person_MT::NONE && !isRouteChangedInVQ)
 	{
 		advance(params);
 		setParentData(params);
@@ -705,7 +706,8 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 			 */
 			parentDriver->parent->requestedNextSegStats = pathMover.getNextSegStats(false);
 			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
-			currLane = nullptr;
+			parentDriver->parent->setCurrLane(currLane);
+			isRouteChangedInVQ = true;
 			return;
 		}
 		params.elapsedSeconds = params.secondsInTick;

@@ -194,7 +194,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 		}
 
-		if(model->getScenario().compare("ToaPayohScenario") == 0)
+		if(model->getScenario().compare("ToaPayohScenario") == 0 && model->isToaPayohTaz(tazId))
 		{
 			logsum += hedonicLogsumStdDevForTpScenario;
 		}
@@ -355,7 +355,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			double distanceToBus = amenities->getDistanceToBus();
 			double distanceToMRT = amenities->getDistanceToMRT();
 
-			if(model->getScenario().compare("ToaPayohScenario") == 0)
+			if(model->getScenario().compare("ToaPayohScenario") == 0 && model->isToaPayohTaz(tazId))
 			{
 				distanceToMall = distanceToMall/2.0;
 				distanceToPMS30 = distanceToPMS30/2.0;

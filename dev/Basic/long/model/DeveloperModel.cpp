@@ -1179,3 +1179,22 @@ const std::string &DeveloperModel::getScenario()
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	return config.ltParams.scenario.scenarioName;
 }
+
+bool DeveloperModel::isToaPayohTaz(BigSerial tazId)
+{
+	std::multimap<string, StudyArea*> scenario = housingMarketModel->getStudyAreaByScenarioName();
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	auto itr_range = scenario.equal_range( config.ltParams.scenario.scenarioName );
+
+	bool isToaPayohTaz = false;
+
+	int dist = distance(itr_range.first, itr_range.second);
+
+	for(auto itr = itr_range.first; itr != itr_range.second; itr++)
+	{
+		if( itr->second->getFmTazId()  == tazId )
+			isToaPayohTaz = true;
+	}
+	return isToaPayohTaz;
+
+}

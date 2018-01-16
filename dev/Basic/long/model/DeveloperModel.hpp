@@ -316,6 +316,8 @@ namespace sim_mob {
 
             void loadTAO(DB_Connection &conn);
 
+            bool isToaPayohTaz(BigSerial tazId);
+
 
         protected:
             /**

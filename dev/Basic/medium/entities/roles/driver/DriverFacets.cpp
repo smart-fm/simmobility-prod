@@ -1187,9 +1187,21 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 
 			if(queueLength == 0)
 			{
-				if(minLength > totalLength)
+				if (minQueueLength == 0)
 				{
-					//Choose lane with lower number of vehicles on it
+					if (minLength > totalLength)
+					{
+						//Choose lane with lower number of vehicles on it as both temp chosen lane
+						// current lane have no queue
+						minLength = totalLength;
+						minQueueLength = queueLength;
+						minLane = lane;
+					}
+				}
+				else
+				{
+					// as the temp chosen lane has queue and the current lane does not
+					// we choose current one
 					minLength = totalLength;
 					minQueueLength = queueLength;
 					minLane = lane;
@@ -1197,6 +1209,7 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 			}
 			else
 			{
+				// current lane has a queue
 				if(minQueueLength > queueLength)
 				{
 					//Choose lane with lower queue length

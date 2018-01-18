@@ -706,6 +706,12 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 			 */
 			parentDriver->parent->requestedNextSegStats = pathMover.getNextSegStats(false);
 			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
+
+			//Choose the current lane for the new next segment
+			nextSegStats = pathMover.getNextSegStats(false);
+			nextToNextSegStats = pathMover.getSecondSegStatsAhead();
+			currLane = getBestTargetLane(nextSegStats, nextToNextSegStats);
+
 			parentDriver->parent->setCurrLane(currLane);
 			isRouteChangedInVQ = true;
 			return;

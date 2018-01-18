@@ -308,11 +308,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const MT_Config& mtConfig = MT_Config::getInstance();
 
-	//aa{ I just run this to retrieve the TAZes. Unfortunately, at the moment only preday reads them
-	PredayManager predayManager;
-	predayManager.loadZoneNodes();
-	//aa}
-
 	PeriodicPersonLoader* periodicPersonLoader = new MT_PersonLoader(Agent::all_agents, Agent::pending_agents);
 	const ScreenLineCounter* screenLnCtr = ScreenLineCounter::getInstance(); //This line is necessary. It creates the singleton ScreenlineCounter object before any workers are created.
 	WithindayModelsHelper::loadZones(); //load zone information from db

@@ -136,25 +136,23 @@ public:
 class TripRequestMessage : public messaging::Message
 {
 public:
-	TripRequestMessage() : timeOfRequest(timeslice(0, 0)), userId("no-id"), startNode(0),
+	TripRequestMessage() : timeOfRequest(timeslice(0, 0)),person(nullptr), userId("no-id"), startNode(0),
 	                       destinationNode(0), extraTripTimeThreshold(0), requestType(RequestType::TRIP_REQUEST_DEFAULT)
 	{};
 
 	TripRequestMessage(const TripRequestMessage &r) :
-			timeOfRequest(r.timeOfRequest), userId(r.userId), startNode(r.startNode),
+			timeOfRequest(r.timeOfRequest),person(r.person), userId(r.userId), startNode(r.startNode),
 			destinationNode(r.destinationNode), extraTripTimeThreshold(r.extraTripTimeThreshold),
 			requestType(r.requestType)
 	{
 	};
 
-
-	TripRequestMessage(const timeslice &ct, const std::string &p, const Node *sn, const Node *dn,
-	                   const unsigned int &threshold, const RequestType reqType = RequestType::TRIP_REQUEST_DEFAULT) :
-			timeOfRequest(ct), userId(p), startNode(sn), destinationNode(dn), extraTripTimeThreshold(threshold),
-			requestType(reqType)
-	{
-	};
-
+    TripRequestMessage(const timeslice &ct,Person *person, const std::string &p, const Node *sn, const Node *dn,
+                       const unsigned int &threshold, const RequestType reqType = RequestType::TRIP_REQUEST_DEFAULT) :
+            timeOfRequest(ct),person(person), userId(p), startNode(sn), destinationNode(dn), extraTripTimeThreshold(threshold),
+            requestType(reqType)
+    {
+    };
 
 	~TripRequestMessage()
 	{
@@ -173,6 +171,7 @@ public:
 	const Node *startNode;
 	const Node *destinationNode;
 	RequestType requestType;
+    Person *person;
 
 	/**
 	 * The time the passenger can tolerate to spend more w.r.t. the fastest option in which

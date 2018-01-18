@@ -23,11 +23,9 @@ const messaging::Message::MessageType MSG_ATTEMPT_BOARD_BUS = 1000004;
 const messaging::Message::MessageType MSG_BOARD_BUS_SUCCESS = 1000005;
 const messaging::Message::MessageType MSG_BOARD_BUS_FAIL = 1000006;
 const messaging::Message::MessageType MSG_ALIGHT_BUS = 1000007;
-enum OnCallDriverMessage
-{
-    MSG_WAKEUP_SHIFT_END = 1000008,
-    MSG_ATTEMPT_BOARD_Taxi
-};
+const messaging::Message::MessageType MSG_WAKEUP_SHIFT_END = 1000008;
+const messaging::Message::MessageType MSG_WAKEUP_TAXI_PAX = 1000009;
+const messaging::Message::MessageType MSG_ATTEMPT_BOARD_Taxi = 1000010;
 
 /**
  * Message to wrap a Person
@@ -102,4 +100,21 @@ public:
 	{
 	}
 } ;
+/**
+ * Message holding a pointer to OnCallDriver
+ */
+    class OnCallDriverMessage: public messaging::Message
+    {
+    public:
+        const OnCallDriver *onCallDriver;
+
+        OnCallDriverMessage(const OnCallDriver *onCallDriver) :
+                onCallDriver(onCallDriver)
+        {
+        }
+
+        virtual ~OnCallDriverMessage()
+        {
+        }
+    } ;
 }

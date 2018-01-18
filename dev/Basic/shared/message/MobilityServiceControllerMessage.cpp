@@ -19,6 +19,7 @@ const Schedule &SchedulePropositionMessage::getSchedule() const
 bool TripRequestMessage::operator==(const TripRequestMessage &other) const
 {
 	return timeOfRequest == other.timeOfRequest &&
+           person == other.person &&
 	       userId == other.userId &&
 	       startNode == other.startNode &&
 	       destinationNode == other.destinationNode &&
@@ -255,7 +256,7 @@ short Schedule::getPassengerCount() const
 
 std::ostream &operator<<(std::ostream &strm, const sim_mob::TripRequestMessage &request)
 {
-	return strm << "request issued by " << request.userId << " at " << request.timeOfRequest <<
+	return strm << "request issued by " << request.userId<< " person = "<<request.person << " at " << request.timeOfRequest <<
 	            " to go from node " << request.startNode->getNodeId() <<
 	            ", to node " << request.destinationNode->getNodeId();
 }

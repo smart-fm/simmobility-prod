@@ -756,16 +756,16 @@ void DriverMovement::checkForStops(DriverUpdateParams &params)
 		}
 		
 		//Change state to stopping point is close
-		if (distance >= 10 && distance <= 50)
+		if (distance >= 5 && distance <= 50)
 		{ 
-			// 10m-50m
+			// 5m-50m
 			params.stopPointState = DriverUpdateParams::ARRIVING_AT_STOP_POINT;
 		}
 		
 		//Change state to arrived at stop point
-		if (params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT && abs(distance) < 10)
+		if (params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT && abs(distance) < 5)
 		{ 
-			// 0m-10m
+			// 0m-5m
 			params.stopPointState = DriverUpdateParams::ARRIVED_AT_STOP_POINT;
 		}
 

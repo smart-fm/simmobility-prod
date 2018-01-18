@@ -19,6 +19,8 @@ private:
 
 	/**Indicates the current node of the vehicle.*/
 	const Node *currNode;
+    bool pickedUpPasssenger = false;
+    bool droppedOffPassenger = false;
 
 
 protected:
@@ -82,12 +84,11 @@ public:
 
     void beginDriveToPickUpPoint(const Node *pickupNode);
     /**
- * Stores the stopping points for the driver
- * Key = segment id, value= vector of stopping points (one segment may have more than one stop point)
- */
-    std::map<unsigned int, std::vector<StopPoint> > stopPointPool;
-
-    void insertStopPoint(StopPoint stopPt);
+     * This method looks up the path for driving to the drop off node from the current
+     * position and begins the drive towards it
+     * @param dropOffNode the node at which the passenger is to be dropped off
+     */
+    void beginDriveToDropOffPoint(const Node *dropOffNode);
 };
 
 class OnCallDriverBehaviour : public DriverBehavior

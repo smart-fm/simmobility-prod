@@ -37,6 +37,11 @@ private:
 
     /**record service info*/
     std::string service;
+    /**To get Passenger Travel distance in Taxi, Here it is Driver offset distance . Taxi Passenger Travel Distance
+     * Taxi Passenger Travel Distance = finalPointDriverDistance - startPointDriverDistance
+     */
+    double startPointDriverDistance =0.0;
+    double finalPointDriverDistance=0.0;
 
 public:
 	explicit Passenger(Person_ST *parent, PassengerBehavior *behavior = nullptr, PassengerMovement *movement = nullptr,
@@ -105,8 +110,30 @@ public:
 	{
 		this->startPoint = startPoint;
 	}
+    void setDriver(const Driver* driver)
+    {
+        this->driver = driver;
+    }
+    double getStartPointDriverDistance() const
+    {
+        return startPointDriverDistance;
+    }
 
-	friend class PassengerBehavior;
+    void setStartPointDriverDistance(double DriverDistance)
+    {
+        startPointDriverDistance = DriverDistance;
+    }
+    double getFinalPointDriverDistance() const
+    {
+        return finalPointDriverDistance;
+    }
+
+    void setFinalPointDriverDistance(double DriverDistance)
+    {
+        finalPointDriverDistance = DriverDistance;
+    }
+
+    friend class PassengerBehavior;
 	friend class PassengerMovement;
 };
 

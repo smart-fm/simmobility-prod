@@ -69,6 +69,8 @@ void PassengerMovement::frame_init()
 		MessageBus::PostMessage(parent, MSG_WAKEUP_MRT_PAX, MessageBus::MessagePtr(new PersonMessage(parent)), false,
 				totalTimeToComplete / tick);
 	}
+
+    parent->setStartTime(parent->currTick.ms());
 }
 
 void PassengerMovement::frame_tick() 

@@ -212,19 +212,14 @@ public:
 	/**
 	 * Drops off the passenger
 	 */
-	//void dropoffPassenger();
+	void dropoffPassenger();
 
 	/**
 	 * Performs the tasks required to end the driver shift
 	 */
 	void endShift();
 
-    Entity::UpdateStatus switchTripChainItem(Person_ST* person);
-   // void dropOffTraveller(Person_ST *person);
-
     void collectTravelTime(Person_ST* person);
-
-    bool callMovementFrameInit(timeslice now, Person_ST* person);
 
     friend class OnCallDriverMovement;
 	friend class OnCallDriverBehaviour;

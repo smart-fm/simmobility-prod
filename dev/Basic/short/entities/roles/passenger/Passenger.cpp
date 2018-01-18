@@ -40,7 +40,7 @@ Role<Person_ST>* Passenger::clone(Person_ST *parent) const
 	{
 		personRoleType = Role<Person_ST>::RL_PRIVATEBUSPASSENGER;
 	}
-    else if (parent->currSubTrip->getMode() == "Taxi" || parent->currSubTrip->getMode() == "SMS" || parent->currSubTrip->getMode() == "AMOD")
+    else if (parent->currSubTrip->getMode() == "Taxi" || parent->currSubTrip->getMode() == "SMS" || parent->currSubTrip->getMode() == "AMOD" || parent->currSubTrip->getMode() == "SMS_Taxi" )
     {
         personRoleType = Role<Person_ST>::RL_TAXIPASSENGER;
     }

@@ -252,8 +252,7 @@ void OnCallDriver::sendWakeUpShiftEndMsg()
 {
     unsigned int timeToShiftEnd = (parent->getServiceVehicle().endTime * 1000) - parent->currTick.ms();
     unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
-    auto tripRequest = driverSchedule.getCurrScheduleItem()->tripRequest;
-    MessageBus::PostMessage(tripRequest.GetSender(), MSG_WAKEUP_SHIFT_END, MessageBus::MessagePtr(new PersonMessage(parent)),
+    MessageBus::PostMessage(OnCallDriver::getParent(), MSG_WAKEUP_SHIFT_END, MessageBus::MessagePtr(new PersonMessage(parent)),
                             false, timeToShiftEnd / tick);
 }
 void OnCallDriver::collectTravelTime(Person_ST* person)
@@ -262,4 +261,136 @@ void OnCallDriver::collectTravelTime(Person_ST* person)
     {
         person->getRole()->collectTravelTime();
     }
+}
+void OnCallDriver::pickupPassenger()
+{
+//Indicates whether we need to pick up another person at this point
+   /* bool pickupAnotherPerson = false;
+
+    do
+    {*/
+        //Get the passenger name from the schedule
+        auto currItem = driverSchedule.getCurrScheduleItem();
+        const string &passengerId = currItem->tripRequest.userId;
+
+        Person_ST *personPickedUp = dynamic_cast<Person_ST*>(getAssignedSchedule().back().tripRequest.person);
+
+        if(personPickedUp)
+        {
+            personPickedUp->currSubTrip->endLocationId = boost::lexical_cast<std::string>(this->getCurrLane()->getParentSegment()->getParentLink()->getToNodeId());
+            personPickedUp->currSubTrip->endLocationType = "NODE";
+            personPickedUp->getRole()->collectTravelTime();
+            Entity::UpdateStatus status = personPickedUp->checkTripChain();
+            if (status.status == Entity::UpdateStatus::RS_DONE)
+            {
+                personPickedUp = nullptr;
+            }
+
+            personPickedUp->currSubTrip->startLocationId = boost::lexical_cast<std::string>(this->getCurrLane()->getParentSegment()->getParentLink()->getFromNodeId());
+            personPickedUp->currSubTrip->startLocationType = "NODE";
+            personPickedUp->getRole()->setArrivalTime(personPickedUp->currFrame.ms()+ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
+
+        }
+
+#ifndef NDEBUG
+        if (!personPickedUp)
+        {
+            stringstream msg;
+            msg << "Pickup failed for " << personPickedUp << " at time " << parent->currTick
+                << ", and driverId " << parent->getDatabaseId() << ". personToPickUp is NULL" << std::endl;
+            throw runtime_error(msg.str());
+        }
+#endif
+        Role<Person_ST> *currRole = personPickedUp->getRole();
+        Passenger *passenger = dynamic_cast<Passenger *>(currRole);
+
+#ifndef NDEBUG
+        if (!passenger)
+        {
+            stringstream msg;
+            msg << "Pickup failed for " << passengerId << " at time " << parent->currTick
+                << ", and driverId " << parent->getDatabaseId() << ". personToPickUp is not a passenger"
+                << std::endl;
+            throw runtime_error(msg.str());
+        }
+#endif
+        //Add the passenger
+        passengers[passengerId] = passenger;
+        passenger->setDriver(this);
+        passenger->setStartPoint(personPickedUp->currSubTrip->origin);
+        passenger->setStartPointDriverDistance(movement->getTravelMetric().distance);
+        passenger->setEndPoint(personPickedUp->currSubTrip->destination);
+        passenger->Movement()->startTravelTimeMetric();
+
+        ControllerLog() << "Pickup succeeded for " << passengerId << " at time " << parent->currTick
+                        << " with startNodeId " << personPickedUp->currSubTrip->origin.node->getNodeId() << ", destinationNodeId "
+                        << personPickedUp->currSubTrip->destination.node->getNodeId()
+                        << ", and driverId " << parent->getDatabaseId() << std::endl;
+
+        //Mark schedule item as completed
+        scheduleItemCompleted();
+/*
+        //Check if the next schedule item is also a pickup and at the same node
+        //Note: This can happen when a controller that assigns shared requests is being used
+
+        //Note: We have marked the previous schedule item as completed, so the current schedule item
+        //iterator has been updated
+        auto nxtItem = driverSchedule.getCurrScheduleItem();
+
+        pickupAnotherPerson = nxtItem->scheduleItemType == PICKUP
+                             && currItem->tripRequest.startNode == nxtItem->tripRequest.startNode;
+    }while(pickupAnotherPerson);*/
+}
+void OnCallDriver::dropoffPassenger()
+{
+    //Indicates whether we need to drop off another person at this point
+   /* bool dropOffAnotherPerson = false;
+
+    do
+    {*/
+        //Get the passenger to be dropped off
+        auto currItem = driverSchedule.getCurrScheduleItem();
+        const string &passengerId = currItem->tripRequest.userId;
+        auto itPassengers = passengers.find(passengerId);
+
+#ifndef NDEBUG
+        if (itPassengers == passengers.end())
+        {
+            stringstream msg;
+            msg << "Dropoff failed for " << passengerId << " at time " << parent->currTick
+                << ", and driverId " << parent->getDatabaseId() << ". Passenger not present in vehicle"
+                << std::endl;
+            throw runtime_error(msg.str());
+        }
+#endif
+
+        Passenger *passengerToBeDroppedOff = itPassengers->second;
+        Person_ST *person = passengerToBeDroppedOff->getParent();
+
+        passengerToBeDroppedOff->setFinalPointDriverDistance(movement->getTravelMetric().distance);
+        //Remove passenger from vehicle
+        passengers.erase(itPassengers);
+        ControllerLog() << "Drop-off of user ";
+        ControllerLog() << person->getDatabaseId() << " at time "<< person->currTick << ", and driverId " << getParent()->getDatabaseId() << std::endl;
+/*
+        //Mark schedule item as completed
+        scheduleItemCompleted();
+
+        //Check if the next schedule item is also a drop-off and at the same node
+        //Note: This can happen when a controller that assigns shared requests is being used
+        if(!driverSchedule.isScheduleCompleted())
+        {
+            //Note: We have marked the previous schedule item as completed, so the current schedule item
+            //iterator has been updated
+            auto nxtItem = driverSchedule.getCurrScheduleItem();
+
+            dropOffAnotherPerson = nxtItem->scheduleItemType == DROPOFF
+                                   && currItem->tripRequest.destinationNode == nxtItem->tripRequest.destinationNode;
+        }
+        else
+        {
+            dropOffAnotherPerson = false;
+        }
+
+    }while(dropOffAnotherPerson);*/
 }

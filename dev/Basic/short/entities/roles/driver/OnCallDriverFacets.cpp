@@ -106,7 +106,10 @@ void OnCallDriverMovement::frame_tick()
                     }
                     case DriverUpdateParams::LEAVING_STOP_POINT:
                     {
-                        performScheduleItem();
+                        if(pickedUpPasssenger)
+                        {
+                            performScheduleItem();
+                        }
                         break;
                     }
                 }
@@ -158,6 +161,10 @@ void OnCallDriverMovement::frame_tick()
        DriverMovement::frame_tick();
 
    }
+    if(fwdDriverMovement.getCurrWayPoint().type == WayPoint::ROAD_SEGMENT)
+    {
+        currNode = fwdDriverMovement.getCurrWayPoint().roadSegment->getParentLink()->getFromNode();
+    }
 
  }
 
@@ -313,14 +320,13 @@ void OnCallDriverMovement::frame_tick()
 
      ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
                      << onCallDriver->getParent()->getDatabaseId() << ": Begin cruising from node "
-                     << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+                     << currNode->getNodeId()<< " and link " << (currLink ? currLink->getLinkId() : 0)
                      << " to node " << node->getNodeId() << endl;
 
 
  #endif
 	const vector<WayPoint> path =route;
 	 rerouteWithPath(path);
-     currNode = node;
 	 onCallDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
  }
  Vehicle* OnCallDriverMovement::initialisePath(bool createVehicle)
@@ -420,7 +426,6 @@ void OnCallDriverMovement::frame_tick()
 
 	 //Set vehicle to moving
 	 onCallDriver->getResource()->setMoving(true);
-     currNode = pickupNode;
  }
 
 void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
@@ -492,5 +497,4 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 
 	//Set vehicle to moving
 	onCallDriver->getResource()->setMoving(true);
-	currNode = dropOffNode;
 }

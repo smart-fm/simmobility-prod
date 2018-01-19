@@ -202,6 +202,7 @@ namespace sim_mob
 			 * last bid status = 0 : household is on the market.
 			 * last bid status = 1 : household has done a successful bid
 			 * last bid status = 2 : household has done an unsuccessful bid
+			 * last bid status = 4 : household has done a successful bid on a BTO unit
 			*/
 			void setLastBidStatus(int lastBidStatus);
 

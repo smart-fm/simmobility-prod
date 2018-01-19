@@ -149,9 +149,8 @@ void BusDriverMovement::frame_init()
 		//Retrieve the bus stops for the bus
 		busStops = busTrip->getBusRouteInfo().getBusStops();
 		
-		//Track the bus stops. Ignore the starting bus stop as the bus enters the simulation from this stop
-		//and doesn't have to stop here separately
-		busStopTracker = busStops.begin() + 1;
+		//Track the bus stops.
+		busStopTracker = busStops.begin();
 
 		//Set initial speed of bus to 0
 		parentBusDriver->getParams().initialSpeed = 0;
@@ -316,14 +315,14 @@ void BusDriverMovement::checkForStops(DriverUpdateParams& params)
 			}
 
 			//Change state to stopping point is close
-			if (distance >= 10 && distance <= 50)
+			if (distance >= 5 && distance <= 50)
 			{
 				// 10m-50m
 				params.stopPointState = DriverUpdateParams::ARRIVING_AT_STOP_POINT;
 			}
 
 			//Change state to arrived at stop point
-			if (params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT && abs(distance) < 10)
+			if (params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT && abs(distance) < 5)
 			{
 				// 0m-10m
 				params.stopPointState = DriverUpdateParams::ARRIVED_AT_STOP_POINT;
@@ -363,8 +362,12 @@ double BusDriverMovement::getDistanceToStopLocation(double perceptionDistance)
 		distance = (*busStopTracker)->getOffset() - fwdDriverMovement.getDistCoveredOnCurrWayPt();
 		isStopFound = true;
 	}
-	
+
 	scannedDist = fwdDriverMovement.getDistToEndOfCurrWayPt();
+
+	//We have already considered the length (whatever is remaining) of the current way-point,
+	//now we need to start from the next one
+	++wayPtIt;
 
 	//Iterate through the path till the perception distance or the end (whichever is before)
 	while (!isStopFound && wayPtIt != endOfPath && scannedDist < perceptionDistance)

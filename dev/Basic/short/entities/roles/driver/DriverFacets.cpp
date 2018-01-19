@@ -1504,9 +1504,10 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 		else
 		{
 			stringstream msg;
-			msg << __func__ << ": Bus driver on incorrect lane " << ex.fromLane->getLaneId() << " trying to go to segment "
-				<< ex.toSegment->getRoadSegmentId()
-				<< " Frame: [" << params.now.frame() << "]";
+			const BusDriver *busDriver = dynamic_cast<const BusDriver*>(parentDriver);
+			msg << __func__ << ": Bus driver driving bus line " << busDriver->getBusLineId() << " on incorrect lane "
+				<< ex.fromLane->getLaneId() << " trying to go to segment " << ex.toSegment->getRoadSegmentId()
+				<< " Frame: [" << params.now.frame()  << "]";
 			throw runtime_error(msg.str());
 		}
 	}

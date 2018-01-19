@@ -39,6 +39,7 @@ TimeWindowsLookup::TimeWindows TimeWindowsLookup::timeWindows = [&]{
 		{
 			TimeWindow tw = {start, end};
 			out[idx] = tw;
+			idx++;
 		}
 	}
 	return out;

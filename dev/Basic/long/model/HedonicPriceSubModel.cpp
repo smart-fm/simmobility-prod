@@ -562,7 +562,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
     const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
 
-	if( config.ltParams.scenario.enabled )
+	if( config.ltParams.scenario.enabled && config.ltParams.scenario.hedonicModel)
 	{
 		std::multimap<string, StudyArea*> scenario = hmModel->getStudyAreaByScenarioName();
 		auto itr_range = scenario.equal_range( config.ltParams.scenario.scenarioName );

@@ -349,7 +349,7 @@ namespace sim_mob
 			const double halfStandDeviationLogsum = 0.07808;
 			const double quarterStandDeviationLogsum = 0.03904;
 
-			if( config.ltParams.scenario.enabled )
+			if( config.ltParams.scenario.enabled && config.ltParams.scenario.willingnessToPayModel)
 			{
 				std::multimap<string, StudyArea*> scenario = model->getStudyAreaByScenarioName();
 				//We will search for every instance of our scenario name in the scenario multimap

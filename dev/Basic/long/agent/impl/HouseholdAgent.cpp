@@ -203,7 +203,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	//the waiting time to move in is less than offsetBetweenUnitBuyingAndSellingAdvancedPurchase
 
 	//has 7 days elapsed since the bidder was activted OR the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
-	if(buySellInterval == 0 || (acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
+	if(buySellInterval == 0 && (bidder->getParent()->getHousehold()->getLastBidStatus() != 4))
 	{
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{

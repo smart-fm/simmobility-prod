@@ -438,7 +438,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
-                	if(newUnit->isBTO())
+                	if(newUnit->isBto())
                 	{
                 		getParent()->getHousehold()->setLastBidStatus(4);
                 	}

@@ -65,7 +65,7 @@ sim_mob::LongTermParams::OutputFiles::OutputFiles(): bids(false),
 													 enabled(false){}
 
 
-sim_mob::LongTermParams::Scenario::Scenario():  enabled(false),scenarioName(""),parcelsTable(""),scenarioSchema(""){}
+sim_mob::LongTermParams::Scenario::Scenario():  enabled(false),scenarioName(""),parcelsTable(""),scenarioSchema(""),hedonicModel(false),willingnessToPayModel(false){}
 
 
 sim_mob::Schemas::Schemas():	enabled(false),

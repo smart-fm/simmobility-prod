@@ -177,7 +177,8 @@ struct LongTermParams
 		std::string scenarioName;
 		std::string parcelsTable;
 		std::string scenarioSchema;
-
+		bool hedonicModel;
+		bool willingnessToPayModel;
 	} scenario;
 
 };

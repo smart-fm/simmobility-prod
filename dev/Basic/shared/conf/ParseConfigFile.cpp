@@ -337,26 +337,6 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 	processJobAssignmentModelNode(GetSingleElementByName(node, "jobAssignmentModel"));
 	processScenarioNode(GetSingleElementByName(node, "scenario"));
 	processOutputFilesNode(GetSingleElementByName(node, "outputFiles"));
-
-	LongTermParams::Scenario scenario;
-	DOMElement *scenarioNode = GetSingleElementByName(node, "scenario");
-
-	scenario.enabled =
-			ParseBoolean(GetNamedAttributeValue(scenarioNode, "enabled"), false);
-
-	scenario.scenarioName =
-				ParseString(GetNamedAttributeValue(GetSingleElementByName(
-						scenarioNode, "name"), "value"), "");
-
-	scenario.parcelsTable =
-			ParseString(GetNamedAttributeValue(GetSingleElementByName(
-					scenarioNode, "parcelsTable"), "value"), "");
-
-	scenario.scenarioSchema =
-				ParseString(GetNamedAttributeValue(GetSingleElementByName(
-						scenarioNode, "scenarioSchema"), "value"), "");
-
-	cfg.ltParams.scenario = scenario;
 }
 
 void ParseConfigFile::processOutputFilesNode(xercesc::DOMElement *output)
@@ -479,7 +459,36 @@ void ParseConfigFile::processScenarioNode(xercesc::DOMElement *scenarioNode)
 	scenario.scenarioName =
 			ParseString(GetNamedAttributeValue(GetSingleElementByName(scenarioNode, "name"), "value"), "");
 
-	cfg.ltParams.scenario = scenario;
+//	cfg.ltParams.scenario = scenario;
+//
+//
+//	LongTermParams::Scenario scenario;
+//		DOMElement *scenarioNode = GetSingleElementByName(node, "scenario");
+//
+//		scenario.enabled =
+//				ParseBoolean(GetNamedAttributeValue(scenarioNode, "enabled"), false);
+//
+//		scenario.scenarioName =
+//					ParseString(GetNamedAttributeValue(GetSingleElementByName(
+//							scenarioNode, "name"), "value"), "");
+
+		scenario.parcelsTable =
+				ParseString(GetNamedAttributeValue(GetSingleElementByName(
+						scenarioNode, "parcelsTable"), "value"), "");
+
+		scenario.scenarioSchema =
+					ParseString(GetNamedAttributeValue(GetSingleElementByName(
+							scenarioNode, "scenarioSchema"), "value"), "");
+
+		scenario.hedonicModel =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+								scenarioNode, "hedonicModel"), "value"), "");
+
+		scenario.willingnessToPayModel =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+									scenarioNode, "willingness_to_pay_model"), "value"), "");
+
+		cfg.ltParams.scenario = scenario;
 }
 
 void ParseConfigFile::processSchoolAssignmentModelNode(xercesc::DOMElement *schoolAssignModel)

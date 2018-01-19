@@ -112,7 +112,7 @@
 	<currentOutputSchema value = "baseline_2012_20170811023744"/> <!--if resume is true give the current op schema name-->
         <opSchemaloadingInterval value = "367"/>
         <initialLoading value = "true" />
-        <launchBTO value = "false"/>
+        <launchBTO value = "true"/>
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>
@@ -156,7 +156,7 @@
 		<b value = "1.15"/>
 	    </hedonicPriceModel>
         </housingModel>
-	<vehicleOwnershipModel enabled='true'>
+	<vehicleOwnershipModel enabled='false'>
 		<vehicleBuyingWaitingTimeInDays value= "1"/>
 	</vehicleOwnershipModel>
         <taxiAccessModel enabled='false'>
@@ -174,6 +174,8 @@
                 <scenarioSchema value = 'synpop12.' />
 		<parcelsTable value = "fm_parcel" /> 
 		<!-- <parcelsTable value = "fm_parcel_study_area" /> --> <!-- in tp scenario : fm_parcel_scenario_toapayoh -->
+                <hedonicModel value = "true" />
+                <willingness_to_pay_model value = "true" />
 	</scenario>
 
 	<outputFiles enabled= 'false'>

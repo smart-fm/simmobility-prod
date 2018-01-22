@@ -438,14 +438,14 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
-                	if(newUnit->isBto())
-                	{
-                		getParent()->getHousehold()->setLastBidStatus(4);
-                	}
-                	else
-                	{
-                		getParent()->getHousehold()->setLastBidStatus(1);
-                	}
+                	//if(newUnit->isBto())
+                	//{
+                	//	getParent()->getHousehold()->setLastBidStatus(4);
+                	//}
+                	//else
+                	//{
+                	getParent()->getHousehold()->setLastBidStatus(1);
+                	//}
 
                 	getParent()->getHousehold()->setTimeOffMarket(moveInWaitingTimeInDays + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid);
             		getParent()->setAcceptedBid(true);

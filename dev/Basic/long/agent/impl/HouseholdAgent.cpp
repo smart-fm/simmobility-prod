@@ -164,6 +164,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
 	day = now.frame();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	//bool buySellIntervalCompleted = false;
 
 	if( bidder && bidder->isActive() && seller->isActive() == false )
 	{
@@ -207,6 +208,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	{
 		if(bidder->getParent()->getHousehold()->getLastBidStatus() != 4)
 	{
+			//buySellIntervalCompleted = true;
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
 			BigSerial unitId = *itr;

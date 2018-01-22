@@ -348,6 +348,9 @@ namespace sim_mob
 				if( (household->getLastBidStatus() == 1 ||  household->getLastBidStatus() == 2) && household->getTimeOffMarket() > 0)
 					continue;
 
+				if(household->getUnitPending() == 1)
+					continue;
+
                 double futureTransitionRate = 0;
 				double futureTransitionRandomDraw = 0;
 

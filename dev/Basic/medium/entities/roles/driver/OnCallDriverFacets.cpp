@@ -641,7 +641,15 @@ const Node* OnCallDriverBehaviour::chooseRandomNode() const
 	auto itRandomNode = nodeMap.begin();
 	advance(itRandomNode, Utils::generateInt(0, nodeMap.size() - 1));
 
-	return itRandomNode->second;
+	const Node *result = itRandomNode->second;
+
+	//Ensure chosen node is not a source/sink node
+	if(result->getNodeType() == SOURCE_OR_SINK_NODE)
+	{
+		result = chooseRandomNode();
+	}
+
+	return result;
 }
 
 bool OnCallDriverBehaviour::hasDriverShiftEnded() const

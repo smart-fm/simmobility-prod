@@ -540,9 +540,11 @@ const Node* OnHailDriverBehaviour::chooseNode() const
 	result = itRandomNode->second;
 
 	//Ensure chosen node is not our immediate downstream node
+	////Ensure chosen node is not a source/sink node
 	const MesoPathMover &pathMover = onHailDriver->movement->getMesoPathMover();
-	if(pathMover.isDrivingPathSet() &&
-			result == pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode())
+	if ((result->getNodeType() == SOURCE_OR_SINK_NODE) ||
+	    (pathMover.isDrivingPathSet() &&
+	     result == pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode()))
 	{
 		result = chooseNode();
 	}

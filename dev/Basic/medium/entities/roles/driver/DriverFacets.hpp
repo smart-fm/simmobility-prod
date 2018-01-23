@@ -153,6 +153,7 @@ protected:
 	const Lane* currLane;
 	bool isQueuing;
 	bool laneConnectorOverride;
+	bool isRouteChangedInVQ;
 	/**Iterator pointing to the next surveillance station on the segment*/
 	std::vector<SurveillanceStation *>::const_iterator nextSurveillanceStn;
 

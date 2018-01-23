@@ -85,6 +85,7 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	driverSchedules.erase(driver);
 
 	availableDrivers.erase(driver);
+	partiallyAvailableDrivers.erase(driver);
 
 #ifndef NDEBUG
 	consistencyChecks("unsubscribeDriver: end");
@@ -181,7 +182,14 @@ Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
 		}
 		isComputingSchedules = true;
 #endif
+
+		ControllerLog() << "Computing schedule: " << requestQueue.size() << " requests are in the queue, available drivers "
+		                << availableDrivers.size() <<", partiallyAvailableDrivers.size()="<< partiallyAvailableDrivers.size()
+						<< std::endl;
 		computeSchedules();
+		ControllerLog() << "Computation schedule done: now " << requestQueue.size() << " requests are in the queue, available drivers "
+		                << availableDrivers.size() <<", partiallyAvailableDrivers.size()="<< partiallyAvailableDrivers.size()
+						<< std::endl;
 
 #ifndef NDEBUG
 		isComputingSchedules = false;
@@ -376,15 +384,8 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	Schedule controllersCopy = schedule;
 	controllersCopy.erase(controllersCopy.begin());
 
-#ifndef NDEBUG
-	ControllerLog() << "assignSchedule(): driverSchedules.size() = " << driverSchedules.size() << endl;
-#endif
 
 	driverSchedules[driver] = controllersCopy;
-
-#ifndef NDEBUG
-	ControllerLog() << "assignSchedule(): driverSchedules.size() = " << driverSchedules.size() << endl;
-#endif
 
 	// The driver is not available anymore
 	availableDrivers.erase(driver);

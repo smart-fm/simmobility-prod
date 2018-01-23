@@ -100,7 +100,8 @@ Driver* DriverBehavior::getParentDriver()
 }
 
 DriverMovement::DriverMovement() :
-MovementFacet(), parentDriver(nullptr), currLane(nullptr), isQueuing(false), laneConnectorOverride(false)
+MovementFacet(), parentDriver(nullptr), currLane(nullptr), isQueuing(false), laneConnectorOverride(false),
+isRouteChangedInVQ(false)
 {
 	rerouter.reset(new MesoReroute(*this));
 }
@@ -220,7 +221,7 @@ void DriverMovement::frame_tick()
 	}
 	//if driver is still in lane infinity (currLane is null),
 	//he shouldn't be advanced
-	if (currLane && parentDriver->parent->canMoveToNextSegment == Person_MT::NONE)
+	if (currLane && parentDriver->parent->canMoveToNextSegment == Person_MT::NONE && !isRouteChangedInVQ)
 	{
 		advance(params);
 		setParentData(params);
@@ -697,17 +698,23 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 		}
 		else
 		{
-			DebugStream << "Driver " << parentDriver->parent->getId()
-					<< "was neither in virtual queue nor in previous segment!"
-					<< "\ndriver| segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
-					<< "|id: " << pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
-					<< "|lane: " << currLane->getLaneId()
-					<< "\nPerson| segment: " << parentDriver->parent->getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
-					<< "|id: " << parentDriver->parent->getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
-					<< "|lane: " << (parentDriver->parent->getCurrLane() ? parentDriver->parent->getCurrLane()->getLaneId() : 0)
-					<< std::endl;
+			/**
+			 * Person is in the virtual queue, but the path changed while there. As a result the
+			 * next seg stats from the path mover no longer matches the current seg stats stored
+			 * in the person object (the one we have permission to move to)
+			 * We must now, get permission for the the new next segment
+			 */
+			parentDriver->parent->requestedNextSegStats = pathMover.getNextSegStats(false);
+			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 
-			throw::std::runtime_error(DebugStream.str());
+			//Choose the current lane for the new next segment
+			nextSegStats = pathMover.getNextSegStats(false);
+			nextToNextSegStats = pathMover.getSecondSegStatsAhead();
+			currLane = getBestTargetLane(nextSegStats, nextToNextSegStats);
+
+			parentDriver->parent->setCurrLane(currLane);
+			isRouteChangedInVQ = true;
+			return;
 		}
 		params.elapsedSeconds = params.secondsInTick;
 		parentDriver->parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
@@ -1081,7 +1088,15 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		}
 		currLane = laneInNextSegment;
 		double actualT = params.elapsedSeconds + (convertToSeconds(params.now.ms()));
-		parentDriver->parent->currLinkTravelStats.start(currSegStats->getRoadSegment()->getParentLink(), actualT);
+		try
+		{
+			parentDriver->parent->currLinkTravelStats.start(currSegStats->getRoadSegment()->getParentLink(), actualT);
+		}
+		catch (const std::runtime_error &e)
+		{
+			throw std::runtime_error(
+					"Error in the movement of driver " + parentDriver->parent->getDatabaseId() + ":" + e.what());
+		}
 		nextSurveillanceStn = currLane->getParentSegment()->getSurveillanceStations().begin();
 
 		setLastAccept(currLane, actualT, currSegStats);
@@ -1098,7 +1113,6 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 	}
 	else
 	{
-		currLane = nullptr;
 		params.elapsedSeconds = params.secondsInTick;
 		parentDriver->parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
 	}
@@ -1179,13 +1193,29 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 
 			if(queueLength == 0)
 			{
-				//If lane has 0 queue length, we select it
-				minLength = totalLength;
-				minQueueLength = queueLength;
-				minLane = lane;
+				if (minQueueLength == 0)
+				{
+					if (minLength > totalLength)
+					{
+						//Choose lane with lower number of vehicles on it as both temp chosen lane
+						// current lane have no queue
+						minLength = totalLength;
+						minQueueLength = queueLength;
+						minLane = lane;
+					}
+				}
+				else
+				{
+					// as the temp chosen lane has queue and the current lane does not
+					// we choose current one
+					minLength = totalLength;
+					minQueueLength = queueLength;
+					minLane = lane;
+				}
 			}
 			else
 			{
+				// current lane has a queue
 				if(minQueueLength > queueLength)
 				{
 					//Choose lane with lower queue length

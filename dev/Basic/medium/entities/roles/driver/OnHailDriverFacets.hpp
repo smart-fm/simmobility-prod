@@ -59,6 +59,13 @@ private:
 	/**The taxi stand most recently chosen by the driver*/
 	const TaxiStand *chosenTaxiStand;
 
+protected:
+	/**
+	 * Sets the current lane to lane infinity of the current segment. This method must be called when
+	 * the driver is exiting a taxi stand
+	 */
+	void resetDriverLaneAndSegment();
+
 public:
 	OnHailDriverMovement();
 	virtual ~OnHailDriverMovement();

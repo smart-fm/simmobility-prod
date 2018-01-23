@@ -143,7 +143,7 @@ struct LinkTravelStats
 	{
 		if (started)
 		{
-			throw std::runtime_error("Starting a travel time which was started before");
+			throw std::runtime_error("Starting a travel time which was started before, on a link "+ (lnk? std::to_string(lnk->getLinkId()):"NULL") );
 		}
 		link = lnk;
 		entryTime = lnkEntryTime;

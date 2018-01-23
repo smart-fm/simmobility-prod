@@ -58,6 +58,7 @@
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if output is disabled.
 #include <entities/FleetController_MT.hpp>
+#include <entities/ParkingAgent.hpp>
 
 using std::cout;
 using std::endl;
@@ -293,14 +294,19 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			TaxiStandAgent::registerTaxiStandAgent(taxiStandAgent);
 		}
 	}
+
+	//Create and register the sms vehicle parking agents
+	const RoadNetwork *network = RoadNetwork::getInstance();
+	auto SMSParking = network->getMapOfIdvsSMSVehicleParking();
+	for(auto it = SMSParking.begin(); it != SMSParking.end(); ++it)
+	{
+		ParkingAgent *pkAgent = new ParkingAgent(mtx, -1, it->second);
+		ParkingAgent::registerParkingAgent(pkAgent);
+	}
+
 	//Save handles to definition of configurations.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const MT_Config& mtConfig = MT_Config::getInstance();
-
-	//aa{ I just run this to retrieve the TAZes. Unfortunately, at the moment only preday reads them
-	PredayManager predayManager;
-	predayManager.loadZoneNodes();
-	//aa}
 
 	PeriodicPersonLoader* periodicPersonLoader = new MT_PersonLoader(Agent::all_agents, Agent::pending_agents);
 	const ScreenLineCounter* screenLnCtr = ScreenLineCounter::getInstance(); //This line is necessary. It creates the singleton ScreenlineCounter object before any workers are created.

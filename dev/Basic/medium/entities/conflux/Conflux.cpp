@@ -469,12 +469,14 @@ void Conflux::processAgents(timeslice frameNumber)
 	orderedPersons.insert(orderedPersons.end(), activityPerformers.begin(), activityPerformers.end()); // append activity performers
 	orderedPersons.insert(orderedPersons.end(), travelingPersons.begin(), travelingPersons.end());
 	orderedPersons.insert(orderedPersons.end(), brokenPersons.begin(), brokenPersons.end());
+
 	for (PersonList::iterator personIt = orderedPersons.begin(); personIt != orderedPersons.end(); personIt++) //iterate and update all persons
 	{
 		(*personIt)->currTick = currFrame;
 		updateAgent(*personIt);
 		(*personIt)->latestUpdatedFrameTick = currFrame.frame();
 	}
+
 	updateBusStopAgents(); //finally update bus stop agents in this conflux
 
 	for(std::vector<Agent*>::iterator it=stationAgents.begin(); it!=stationAgents.end(); it++)
@@ -483,6 +485,9 @@ void Conflux::processAgents(timeslice frameNumber)
 		(*it)->currTick = currFrame;
 		(*it)->update(currFrame);
 	}
+
+	//Update the parking agents
+	updateParkingAgents();
 }
 
 void  Conflux::processStartingAgents()
@@ -507,8 +512,15 @@ void  Conflux::processStartingAgents()
 	}
 }
 
-void Conflux::updateQueuingTaxiDriverAgent(Person_MT* person)
+void Conflux::updateQueuingTaxiDriverAgent(Person_MT *&person, timeslice now)
 {
+	person->currTick = now;
+	updateAgent(person);
+}
+
+void Conflux::updateParkedServiceDriver(Person_MT *&person, timeslice now)
+{
+	person->currTick = now;
 	updateAgent(person);
 }
 
@@ -958,37 +970,13 @@ unsigned int Conflux::resetOutputBounds()
 	boost::unique_lock<boost::recursive_mutex> lock(mutexOfVirtualQueue);
 	unsigned int vqCount = 0;
 	vqBounds.clear();
-	Conflux *confluxThis = this;
-	const Node*confluxNode = confluxThis->getConfluxNode();
+	const Link* lnk = nullptr;
 	SegmentStats* segStats = nullptr;
 	int outputEstimate = 0;
 	for (VirtualQueueMap::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++)
 	{
-		const Link* lnk = i->first;
-		if(lnk->getLinkId()==7983)
-		{
-			int debug =1;
-		}
-
-		if (upstreamSegStatsMap.find(lnk) == upstreamSegStatsMap.end())
-		{
-			//std::cout << "Bam!!\n";
-			for (auto item : upstreamSegStatsMap)
-			{
-				if (item.first->getLinkId() == lnk->getLinkId())
-				{
-					if(item.first == lnk)
-					{
-						std::cout << "Are you serious?\n";
-						const SegmentStatsList sec=item.second;
-						int stop =9;
-					}
-				}
-			}
-		}
-
-		const SegmentStatsList &temp = upstreamSegStatsMap.at(lnk);
-		segStats = temp.front();
+		lnk = i->first;
+		segStats = upstreamSegStatsMap.at(lnk).front();
 
 		outputEstimate = segStats->computeExpectedOutputPerTick();
 
@@ -1325,6 +1313,7 @@ bool Conflux::callMovementFrameInit(timeslice now, Person_MT* person)
 		}
 	}
 	//Failsafe: no Role at all?
+	//aa!!: We should crash in debug mode only
 	if (!person->getRole())
 	{
 		std::stringstream debugMsgs;
@@ -1743,6 +1732,14 @@ void Conflux::updateBusStopAgents()
 		{
 			(*segStatsIt)->updateBusStopAgents(currFrame);
 		}
+	}
+}
+
+void Conflux::updateParkingAgents()
+{
+	for(auto agent : parkingAgents)
+	{
+		agent->update(currFrame);
 	}
 }
 
@@ -2520,6 +2517,18 @@ void Conflux::addStationAgent(Agent* stationAgent)
 	stationAgent->currWorkerProvider = currWorkerProvider;
 	stationAgents.push_back(stationAgent);
 }
+
+void Conflux::addParkingAgent(Agent *parkingAgent)
+{
+	if(!parkingAgent)
+	{
+		return;
+	}
+
+	parkingAgent->currWorkerProvider = currWorkerProvider;
+	parkingAgents.push_back(parkingAgent);
+}
+
 void Conflux::driverStatistics(timeslice now)
 {
 	std::map<int, int> statSegs;

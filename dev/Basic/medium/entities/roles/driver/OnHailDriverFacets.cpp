@@ -2,6 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#include "entities/roles/passenger/Passenger.hpp"
 #include "exceptions/Exceptions.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "logging/ControllerLog.hpp"
@@ -18,6 +19,21 @@ OnHailDriverMovement::OnHailDriverMovement() : currNode(nullptr), chosenTaxiStan
 
 OnHailDriverMovement::~OnHailDriverMovement()
 {
+}
+
+void OnHailDriverMovement::resetDriverLaneAndSegment()
+{
+	auto currSegStats = pathMover.getCurrSegStats();
+	auto parent = onHailDriver->getParent();
+	currLane = currSegStats->laneInfinity;
+	parent->setCurrSegStats(currSegStats);
+	parent->setCurrLane(currLane);
+
+	onHailDriver->setToBeRemovedFromTaxiStand(true);
+	onHailDriver->isExitingTaxiStand = true;
+
+	auto vehicle = onHailDriver->getResource();
+	vehicle->setMoving(true);
 }
 
 void OnHailDriverMovement::frame_init()
@@ -61,6 +77,7 @@ void OnHailDriverMovement::frame_tick()
 	case QUEUING_AT_TAXISTAND:
 	{
 		Person_MT *person = onHailDriver->tryTaxiStandPickUp();
+		bool isLeavingWithoutPax = false;
 
 		if(!person && !onHailDriver->behaviour->isQueuingStintComplete())
 		{
@@ -74,24 +91,37 @@ void OnHailDriverMovement::frame_tick()
 				//Person was picked up
 				onHailDriver->addPassenger(person);
 				beginDriveWithPassenger(person);
+
+				//Driver must start from lane infinity at this point
+				resetDriverLaneAndSegment();
 			}
 			catch (no_path_error &ex)
 			{
-				Warn() << ex.what();
+				Warn() << ex.what() << endl;
+
 				//What can be done in this case?
+				//Remove the passenger from the vehicle (not drop off, because we would be alighting it at
+				//the pickup node and telling it that it has arrived at the destination)
+				onHailDriver->evictPassenger();
+				isLeavingWithoutPax = true;
 			}
 		}
 		else
 		{
 			//No person was picked up, but driver cannot queue any longer
+			isLeavingWithoutPax = true;
+		}
 
+		if(isLeavingWithoutPax)
+		{
 			//Make the behaviour decision
 			BehaviourDecision decision = onHailDriver->behaviour->makeBehaviourDecision();
 
 			//Perform the actions required based on the decision
 			performDecisionActions(decision);
 
-			onHailDriver->setToBeRemovedFromTaxiStand(true);
+			//Driver must start from lane infinity at this point
+			resetDriverLaneAndSegment();
 		}
 
 		//Skip the multiple calls to frame_tick() from the conflux
@@ -100,12 +130,20 @@ void OnHailDriverMovement::frame_tick()
 		onHailDriver->getParent()->setRemainingTimeThisTick(0.0);
 		break;
 	}
+	case DRIVE_WITH_PASSENGER:
+	{
+		onHailDriver->passenger->Movement()->frame_tick();
+		break;
+	}
 	}
 
-	if(onHailDriver->getDriverStatus() != QUEUING_AT_TAXISTAND)
+	if(onHailDriver->getDriverStatus() != QUEUING_AT_TAXISTAND && !onHailDriver->isExitingTaxiStand)
 	{
 		DriverMovement::frame_tick();
 	}
+
+	//The job of this flag is done (we need it to skip only one call to DriverMovement::frame_tick), so reset it
+	onHailDriver->isExitingTaxiStand = false;
 }
 
 string OnHailDriverMovement::frame_tick_output()
@@ -148,6 +186,18 @@ bool OnHailDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 				{
 					Warn() << ex.what();
 					//What can be done in this case?
+					//Remove the passenger from the vehicle (not drop off, because we would be alighting it at
+					//the pickup node and telling it that it has arrived at the destination)
+					onHailDriver->evictPassenger();
+
+					//Make the behaviour decision
+					BehaviourDecision decision = onHailDriver->behaviour->makeBehaviourDecision();
+
+					//Perform the actions required based on the decision
+					performDecisionActions(decision);
+
+					//Driver must start from lane infinity at this point
+					resetDriverLaneAndSegment();
 				}
 			}
 		}
@@ -260,19 +310,24 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 
 	const Link *currLink = nullptr;
 	bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
+	vector<WayPoint> route;
 
 	//If the driving path has already been set, we must find path to the taxi stand from
 	//the current segment
 	if(pathMover.isDrivingPathSet())
 	{
 		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+		route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Link>(*currLink, *taxiStandLink);
+	}
+	else
+	{
+		route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Link>(*currNode, *taxiStandLink);
 	}
 
 	//Get route to the taxi stand
-	auto route = PrivateTrafficRouteChoice::getInstance()->getPathToLink(subTrip, false, currLink, nullptr,
-	                                                                     taxiStandLink, useInSimulationTT);
+	//auto route = PrivateTrafficRouteChoice::getInstance()->getPathToLink(subTrip, false, currLink, nullptr,
+	//                                                                     taxiStandLink, useInSimulationTT);
 
-#ifndef NDEBUG
 	if(route.empty())
 	{
 		stringstream msg;
@@ -282,7 +337,6 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 		msg << (currLink ? currLink->getLinkId() : 0);
 		throw no_path_error(msg.str());
 	}
-#endif
 
 	std::vector<const SegmentStats *> routeSegStats;
 	pathMover.buildSegStatsPath(route, routeSegStats);
@@ -305,18 +359,23 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 
 	const Link *currLink = nullptr;
 	bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
+	vector<WayPoint> route;
 
 	//If the driving path has already been set, we must find path to the node from
 	//the current segment
 	if(pathMover.isDrivingPathSet())
 	{
 		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+		route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
+	}
+	else
+	{
+		route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
 	}
 
 	//Get route to the node
-	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+	//auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
-#ifndef NDEBUG
 	if(route.empty())
 	{
 		stringstream msg;
@@ -326,7 +385,6 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 		msg << (currLink ? currLink->getLinkId() : 0);
 		throw no_path_error(msg.str());
 	}
-#endif
 
 	std::vector<const SegmentStats *> routeSegStats;
 	pathMover.buildSegStatsPath(route, routeSegStats);
@@ -360,9 +418,9 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 		bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
 
 		//Get route to the node
-		auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+		//auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+		auto route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *destination);
 
-#ifndef NDEBUG
 		if(route.empty())
 		{
 			stringstream msg;
@@ -372,7 +430,6 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 			msg << (currLink ? currLink->getLinkId() : 0);
 			throw no_path_error(msg.str());
 		}
-#endif
 
 		std::vector<const SegmentStats *> routeSegStats;
 		pathMover.buildSegStatsPath(route, routeSegStats);
@@ -398,7 +455,6 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 
 	//Set vehicle to moving
 	onHailDriver->getResource()->setMoving(true);
-	onHailDriver->setToBeRemovedFromTaxiStand(true);
 }
 
 void OnHailDriverMovement::beginQueuingAtTaxiStand(DriverUpdateParams &params)
@@ -410,9 +466,25 @@ void OnHailDriverMovement::beginQueuingAtTaxiStand(DriverUpdateParams &params)
 		removeFromQueue();
 	}
 
+	//Finalise the link travel time. This is normally done by DriverMovement::frame_tick() when we end
+	//a link, but since we will be entering the segment again and calling setOrigin when we exit the
+	//stand, we will attempt to start travel time again and run into errors. So, to simplify things,
+	//we just end this travel time here, and start a new one later (Although both will not be accurate, neither will
+	//the one that includes the queuing time)
+	const SegmentStats *currSegStat = pathMover.getCurrSegStats();
+	const Link *currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+	const Link *nextLink = RoadNetwork::getInstance()->getDownstreamLinks(currLink->getToNodeId()).front();
+	auto parent = onHailDriver->getParent();
+
+	double actualT = params.elapsedSeconds + params.now.ms() / 1000;
+	parent->currLinkTravelStats.finalize(currLink, actualT, nextLink);
+	TravelTimeManager::getInstance()->addTravelTime(parent->currLinkTravelStats); //in seconds
+	currSegStat->getParentConflux()->setLinkTravelTimes(actualT, currLink);
+	parent->currLinkTravelStats.reset();
+
 	vehicle->setMoving(false);
 	params.elapsedSeconds = params.secondsInTick;
-	onHailDriver->getParent()->setRemainingTimeThisTick(0.0);
+	parent->setRemainingTimeThisTick(0.0);
 	onHailDriver->setDriverStatus(QUEUING_AT_TAXISTAND);
 	onHailDriver->setToBeRemovedFromTaxiStand(false);
 
@@ -428,8 +500,9 @@ BehaviourDecision OnHailDriverBehaviour::makeBehaviourDecision() const
 {
 	if(!hasDriverShiftEnded())
 	{
-		return (BehaviourDecision) Utils::generateInt((int) BehaviourDecision::CRUISE,
-		                                              (int) BehaviourDecision::DRIVE_TO_TAXISTAND);
+		return BehaviourDecision::DRIVE_TO_TAXISTAND;
+		/*return (BehaviourDecision) Utils::generateInt((int) BehaviourDecision::CRUISE,
+		                                              (int) BehaviourDecision::DRIVE_TO_TAXISTAND);*/
 	}
 	else
 	{
@@ -467,9 +540,11 @@ const Node* OnHailDriverBehaviour::chooseNode() const
 	result = itRandomNode->second;
 
 	//Ensure chosen node is not our immediate downstream node
+	////Ensure chosen node is not a source/sink node
 	const MesoPathMover &pathMover = onHailDriver->movement->getMesoPathMover();
-	if(pathMover.isDrivingPathSet() &&
-			result == pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode())
+	if ((result->getNodeType() == SOURCE_OR_SINK_NODE) ||
+	    (pathMover.isDrivingPathSet() &&
+	     result == pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode()))
 	{
 		result = chooseNode();
 	}

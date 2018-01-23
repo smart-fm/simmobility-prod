@@ -191,6 +191,9 @@ static std::map<const Node *,Conflux *> nodeConfluxMap;
 	/**station agents*/
 	std::vector<Agent*> stationAgents;
 
+	/**Parking agents*/
+	std::vector<Agent*> parkingAgents;
+
 	/**
 	 * number of times update function was called for this conflux in current tick
 	 */
@@ -244,6 +247,11 @@ static std::map<const Node *,Conflux *> nodeConfluxMap;
 	 * calls frame_tick() for bus stop agent
 	 */
 	void updateBusStopAgents();
+
+	/**
+	 * Calls frame_tick() for parking agents
+	 */
+	void updateParkingAgents();
 
 	/**
 	 * assign a waiting person to bus stop agent
@@ -693,7 +701,9 @@ public:
 	 */
 	static void CreateLaneGroups();
 
-	void updateQueuingTaxiDriverAgent(Person_MT* person);
+	void updateQueuingTaxiDriverAgent(Person_MT *&person, timeslice now);
+
+	void updateParkedServiceDriver(Person_MT *&person, timeslice now);
 
 	/**
 	 * exposes the Log() function for printing in output files
@@ -705,6 +715,12 @@ public:
 	 * @param stationAgent is station agent;
 	 */
 	void addStationAgent(Agent* stationAgent);
+
+	/**
+	 * Adds a parking agent to the conflux
+	 * @param parkingAgent
+	 */
+	void addParkingAgent(Agent *parkingAgent);
 
 	void log(std::string line) const;
 

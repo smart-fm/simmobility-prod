@@ -25,6 +25,13 @@ private:
 	/**Stores the controllers that the driver is subscribed to*/
 	std::vector<MobilityServiceController *> subscribedControllers;
 
+	/**Indicates whether the driver is to be removed from the parking*/
+	bool toBeRemovedFromParking;
+
+	/**Indicates that the driver is exiting a parking node to go to a pickup node
+	 * (or a drop off node if the parking and pick up nodes were the same)*/
+	bool isExitingParking;
+
 protected:
 	/**Pointer to the on call driver's movement facet object*/
 	OnCallDriverMovement *movement;
@@ -35,6 +42,9 @@ protected:
 	/**Indicates whether the driver is waiting for an acknowledgement from the controller
 	 * regarding successful unsubscription*/
 	bool isWaitingForUnsubscribeAck;
+
+	/**Indicates that the schedule has been set or updated by the controller*/
+	bool isScheduleUpdated;
 
 	/**Wrapper for the schedule that has been given by the controller. */
 	struct DriverSchedule
@@ -127,11 +137,6 @@ protected:
 	 */
 	void sendWakeUpShiftEndMsg();
 
-	/**
-	 * Reloads the driver on to the network from the parking
-	 */
-	void reload();
-
 public:
 	OnCallDriver(Person_MT *parent, const MutexStrategy &mtx,
 	             OnCallDriverBehaviour *behaviour, OnCallDriverMovement *movement,
@@ -208,6 +213,16 @@ public:
 	 * Performs the tasks required to end the driver shift
 	 */
 	void endShift();
+
+	const bool isToBeRemovedFromParking() const
+	{
+		return toBeRemovedFromParking;
+	}
+
+	void setToBeRemovedFromParking(bool value)
+	{
+		toBeRemovedFromParking = value;
+	}
 
 	friend class OnCallDriverMovement;
 	friend class OnCallDriverBehaviour;

@@ -35,6 +35,7 @@
 #include "partitions/ParitionDebugOutput.hpp"
 #include "entities/Person_MT.hpp"
 #include "entities/PT_Statistics.hpp"
+#include "entities/roles/activityRole/ActivityFacets.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -121,6 +122,24 @@ void sim_mob::medium::Driver::collectTravelTime()
 {
 	PersonTravelTime personTravelTime;
 	personTravelTime.personId = parent->getDatabaseId();
+	if(parent->getPrevRole() && parent->getPrevRole()->roleType==Role<Person_MT>::RL_ACTIVITY)
+	{
+		ActivityPerformer<Person_MT>* activity = dynamic_cast<ActivityPerformer<Person_MT>* >(parent->getPrevRole());
+		std::string activityLocNodeIdStr = boost::lexical_cast<std::string>(activity->getLocation()->getNodeId());
+		personTravelTime.tripStartPoint = activityLocNodeIdStr;
+		personTravelTime.tripEndPoint = activityLocNodeIdStr;
+		personTravelTime.subStartPoint = activityLocNodeIdStr;
+		personTravelTime.subEndPoint = activityLocNodeIdStr;
+		personTravelTime.subStartType = "N";
+		personTravelTime.subEndType = "N";
+		personTravelTime.mode = "ACTIVITY";
+		personTravelTime.service = parent->currSubTrip->ptLineId;
+		personTravelTime.travelTime = ((double) activity->getTravelTime())/1000.0;
+		personTravelTime.arrivalTime = DailyTime(activity->getArrivalTime()).getStrRepr();
+		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
+										   STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
+	}
+
 	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
 	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
 	personTravelTime.subStartPoint = personTravelTime.tripStartPoint;

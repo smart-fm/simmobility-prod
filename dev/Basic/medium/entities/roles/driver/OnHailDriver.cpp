@@ -14,7 +14,7 @@ using namespace std;
 OnHailDriver::OnHailDriver(Person_MT *parent, const MutexStrategy &mtx, OnHailDriverBehaviour *behaviour,
                            OnHailDriverMovement *movement, string roleName, Type roleType) :
 		Driver(parent, behaviour, movement, roleName, roleType), passenger(nullptr), movement(movement),
-		behaviour(behaviour), toBeRemovedFromTaxiStand(false)
+		behaviour(behaviour), toBeRemovedFromTaxiStand(false), isExitingTaxiStand(false)
 {
 }
 
@@ -198,4 +198,12 @@ void OnHailDriver::alightPassenger()
 	                << person->getDatabaseId() << " at node "
 	                << currSegStats->getRoadSegment()->getParentLink()->getToNode()->getNodeId() << endl;
 #endif
+}
+
+void OnHailDriver::evictPassenger()
+{
+	//Remove the passenger, but do not assign it a conflux as that would mean it is being processed.
+	//This essentially means we are ending the simulation for this person, as its frame_tick would
+	//not be called by anyone and its role would also never change.
+	passenger = nullptr;
 }

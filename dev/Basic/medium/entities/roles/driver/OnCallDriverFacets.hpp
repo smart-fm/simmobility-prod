@@ -24,6 +24,11 @@ private:
 
 protected:
 	/**
+	 * This method allows us to perform the task in the assigned schedule
+	 */
+	virtual void performScheduleItem();
+
+	/**
 	 * This method looks up the path for driving to the node from the current
 	 * position and begins the drive towards it
 	 * @param node the chosen node to cruise to
@@ -64,6 +69,12 @@ protected:
 	 */
 	void parkVehicle(DriverUpdateParams &params);
 
+	/**
+	 * Sets the current lane to lane infinity of the current segment. This method must be called when
+	 * the driver is exiting a parking
+	 */
+	void resetDriverLaneAndSegment();
+
 public:
 	OnCallDriverMovement();
 	virtual ~OnCallDriverMovement();
@@ -92,11 +103,6 @@ public:
 	 * @return true if successfully moved to next segment, false otherwise
 	 */
 	virtual bool moveToNextSegment(DriverUpdateParams &params);
-
-	/**
-	 * This method allows us to perform the task in the assigned schedule
-	 */
-	virtual void performScheduleItem();
 
 	void setOnCallDriver(OnCallDriver *driver)
 	{
@@ -132,6 +138,12 @@ public:
 	 * @return the chosen Node
 	 */
 	const Node *chooseDownstreamNode(const Node *fromNode) const;
+
+	/**
+	 * This method chooses a random node
+	 * @return
+	 */
+	const Node *chooseRandomNode() const;
 
 	/**
 	 * Checks if the driver's shift has ended

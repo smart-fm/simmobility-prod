@@ -86,6 +86,7 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	//http://en.cppreference.com/w/cpp/algorithm/remove
 	availableDrivers.erase(std::remove(availableDrivers.begin(),
 	                                   availableDrivers.end(), driver), availableDrivers.end());
+	partiallyAvailableDrivers.erase(driver);
 
 #ifndef NDEBUG
 	consistencyChecks("unsubscribeDriver: end");

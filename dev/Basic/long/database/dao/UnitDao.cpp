@@ -153,7 +153,7 @@ std::vector<Unit*> UnitDao::getUnitsByBuildingId(const long long buildingId,std:
 
 std::vector<Unit*> UnitDao::getBTOUnits(std::tm currentSimYear)
 {
-	const std::string DB_GETALL_BTO_UNITS = "SELECT * FROM " + connection.getSchema() + "fm_unit_res" + " WHERE  sale_from_date > :v1 and unit_type in (1,6)";
+	const std::string DB_GETALL_BTO_UNITS = "SELECT * FROM " + connection.getSchema() + "fm_unit_res" + " WHERE  sale_from_date > :v1 and unit_type >=1 and unit_type <=6";
 	db::Parameters params;
 	params.push_back(currentSimYear);
 	std::vector<Unit*> BTOUnitList;

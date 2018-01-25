@@ -698,11 +698,13 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     		{
     			std::vector<PotentialUnit>::iterator unitsItr;
     			std::vector<PotentialUnit>& potentialUnits = project.getUnits();
+    			int constructionStartDay = config.ltParams.developerModel.constructionStartDay;
+    			int launchDay = config.ltParams.developerModel.saleFromDay;
+
     			for (unitsItr = potentialUnits.begin(); unitsItr != potentialUnits.end(); ++unitsItr)
     			{
-    				std::tm constructionStartDate = getDateBySimDay(simYear,(now.ms()+60));
-    				//TODO:: construction start date and launch date is temporary. gishara
-    				std::tm launchDate = getDateBySimDay(simYear,(now.ms()+180));
+    				std::tm constructionStartDate = getDateBySimDay(simYear,(now.ms()+constructionStartDay));
+    				std::tm launchDate = getDateBySimDay(simYear,(now.ms()+launchDay));
     				boost::shared_ptr <DevelopmentPlan> devPlan(new DevelopmentPlan(this->parcel->getId(),project.getDevTemplate()->getTemplateId(),(*unitsItr).getUnitTypeId(),
     						(*unitsItr).getNumUnits(),currentDate,constructionStartDate,launchDate));
     				devModel->addDevelopmentPlans(devPlan);
@@ -842,6 +844,10 @@ void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectI
 
 }
 
+/*
+ * refer the below github issue for a detailed explanation of status changes.
+ * https://github.com/smart-fm/lt-data/issues/50
+ */
 void DeveloperAgent::processExistingProjects()
 {
 	int projectDuration = this->fmProject->getCurrTick();

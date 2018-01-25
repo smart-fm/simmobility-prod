@@ -63,6 +63,10 @@ struct LongTermParams
 		int initialBuildingId;
 		int initialProjectId;
 		double minLotSize;
+		int constructionStartDay;
+		int saleFromDay;
+		int occupancyFromDay;
+		int constructionCompletedDay;
 	} developerModel;
 
 	struct HousingModel{

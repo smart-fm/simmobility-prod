@@ -690,6 +690,22 @@ void ParseConfigFile::processDeveloperModelNode(xercesc::DOMElement *devModel)
 			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(
 					devModel, "minLotSize"), "value"), (float) 0.0);
 
+	developerModel.constructionStartDay =
+				ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
+						devModel, "constructionStartDay"), "value"), (int) 0);
+
+	developerModel.saleFromDay =
+			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
+					devModel, "saleFromDay"), "value"), (int) 0);
+
+	developerModel.occupancyFromDay =
+				ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
+						devModel, "occupancyFromDay"), "value"), (int) 0);
+
+	developerModel.constructionCompletedDay =
+					ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
+							devModel, "constructionCompletedDay"), "value"), (int) 0);
+
 	cfg.ltParams.developerModel = developerModel;
 }
 

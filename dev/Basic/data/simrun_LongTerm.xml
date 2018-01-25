@@ -120,6 +120,10 @@
 		<initialUnitId value = "2000000" />
 		<initialProjectId value = "200000" />
 		<minLotSize value = "100.00" />
+		<constructionStartDay value = "60"/>
+                <saleFromDay value = "180"/>
+		<occupancyFromDay value = "365"/>
+		<constructionCompletedDay value = "365"/>
     	</developerModel>
 	<outputHouseholdLogsums enabled="false">
 	    <vehicleOwnershipLogsum value ="false"/>

@@ -150,7 +150,8 @@ public:
 		}
 		if (mode == "BusTravel" || mode == "MRT" || mode == "Sharing" || mode == "PrivateBus" ||
 				mode == "TaxiTravel" || mode == "SMS_Taxi" || mode == "SMS_Pool_Taxi" || mode == "AMOD_Taxi" ||
-				mode == "AMOD_Pool_Taxi" || mode == "RAIL_SMS_Taxi")
+				mode == "AMOD_Pool_Taxi" || mode == "Rail_SMS_Taxi" || mode == "Rail_SMS_Pool_Taxi" ||
+				mode == "Rail_AMOD_Taxi" || mode == "Rail_AMOD_Pool_Taxi")
 		{
 			return "passenger";
 		}

@@ -612,7 +612,8 @@ void Person_ST::convertPublicTransitODsToTrips()
 						
 						if (ret)
 						{
-							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips, PT_NetworkCreater::getInstance());
+							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips,
+							                     PT_NetworkCreater::getInstance(), itSubTrip->getMode());
 						}
 
 						if (!ret)

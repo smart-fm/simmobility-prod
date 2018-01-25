@@ -225,7 +225,8 @@ void Person_MT::convertToSmartMobilityTrips(PT_Network &ptNetwork, const std::st
 						subTrip.travelMode = itSubTrip->getMode() + "_Taxi";
 						smartMobilityTrips.push_back(subTrip);
 					}
-					else if(itSubTrip->getMode() == "Rail_SMS")
+					else if(itSubTrip->getMode() == "Rail_SMS" || itSubTrip->getMode() == "Rail_SMS_Pool" ||
+							itSubTrip->getMode() == "Rail_AMOD" || itSubTrip->getMode() == "Rail_AMOD_Pool")
 					{
 						std::vector<OD_Trip> odTrips;
 						std::string personDbId = this->getDatabaseId();
@@ -241,7 +242,7 @@ void Person_MT::convertToSmartMobilityTrips(PT_Network &ptNetwork, const std::st
 
 						if (ret)
 						{
-							ret = makeODsToTrips(&(*itSubTrip), smartMobilityTrips, odTrips, ptNetwork);
+							ret = makeODsToTrips(&(*itSubTrip), smartMobilityTrips, odTrips, ptNetwork, itSubTrip->getMode());
 							processRAIL_SMSTrips(smartMobilityTrips);
 						}
 
@@ -299,7 +300,9 @@ void Person_MT::processRAIL_SMSTrips(std::vector<SubTrip> &subTrips)
 
 	for(auto itSubTrip = subTrips.begin(); itSubTrip != subTrips.end(); ++itSubTrip)
 	{
-		if((*itSubTrip).travelMode == "RAIL_SMS" && (*itSubTrip).originType == TripChainItem::LT_NODE)
+		if (((*itSubTrip).travelMode == "Rail_SMS" || (*itSubTrip).travelMode == "Rail_SMS_Pool" ||
+		     (*itSubTrip).travelMode == "Rail_AMOD" || (*itSubTrip).travelMode == "Rail_AMOD_Pool") &&
+		    (*itSubTrip).originType == TripChainItem::LT_NODE)
 		{
 			//Ride to node near the train station
 			const Node *nodeNearStation =
@@ -324,7 +327,7 @@ void Person_MT::processRAIL_SMSTrips(std::vector<SubTrip> &subTrips)
 				subTrip.isPT_Walk = false;
 				modifiedSubTrips.push_back(subTrip);
 
-				Warn() << "Replaced Rail_SMS trip from node " << (*itSubTrip).origin.node->getNodeId()
+				Warn() << "Replaced " << (*itSubTrip).travelMode << " trip from node " << (*itSubTrip).origin.node->getNodeId()
 				       << " to node near station " << itSubTrip->destination.trainStop->getStopName()
 				       << " with Walk trip\n";
 			}
@@ -343,7 +346,7 @@ void Person_MT::processRAIL_SMSTrips(std::vector<SubTrip> &subTrips)
 				subTrip.startLocationType = "NODE";
 				subTrip.endLocationId = boost::lexical_cast<string>(nodeNearStation->getNodeId());
 				subTrip.endLocationType = "NODE";
-				subTrip.travelMode = "RAIL_SMS_Taxi";
+				subTrip.travelMode = (*itSubTrip).travelMode + "_Taxi";
 				modifiedSubTrips.push_back(subTrip);
 			}
 
@@ -361,7 +364,7 @@ void Person_MT::processRAIL_SMSTrips(std::vector<SubTrip> &subTrips)
 			subTrip.walkTime = 60;
 			modifiedSubTrips.push_back(subTrip);
 		}
-		else if((*itSubTrip).travelMode == "RAIL_SMS" && (*itSubTrip).originType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
+		else if((*itSubTrip).travelMode == "Rail_SMS" && (*itSubTrip).originType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
 		{
 			//Travel mode is RAIL_SMS for egress, so split this sub-trip (train station-node) into following sub-trips
 			//walk (train station-node), walk(node-node), wait(node-node), passenger(node-node)
@@ -412,7 +415,7 @@ void Person_MT::processRAIL_SMSTrips(std::vector<SubTrip> &subTrips)
 					modifiedSubTrips.push_back(subTrip);
 
 					//Ride to destination
-					subTrip.travelMode = "RAIL_SMS_Taxi";
+					subTrip.travelMode = (*itSubTrip).travelMode + "_Taxi";
 					modifiedSubTrips.push_back(subTrip);
 				}
 				else
@@ -429,7 +432,7 @@ void Person_MT::processRAIL_SMSTrips(std::vector<SubTrip> &subTrips)
 					subTrip.isTT_Walk = false;
 					modifiedSubTrips.push_back(subTrip);
 
-					Warn() << "Replaced Rail_SMS trip from node near station "
+					Warn() << "Replaced " << (*itSubTrip).travelMode << " trip from node near station "
 					       << itSubTrip->origin.trainStop->getStopName() << " to node " << subTrip.destination.node->getNodeId()
 					       << " with Walk trip\n";
 				}
@@ -707,7 +710,7 @@ void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::
 
 						if (ret)
 						{
-							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips, ptNetwork);
+							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips, ptNetwork, itSubTrip->getMode());
 						}
 						if (!ret)
 						{

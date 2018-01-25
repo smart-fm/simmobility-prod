@@ -123,7 +123,9 @@ std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 }
 
 
-bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips, const std::vector<sim_mob::OD_Trip>& matchedTrips,  PT_Network& ptNetwork)
+bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
+                                     const std::vector<sim_mob::OD_Trip>& matchedTrips, PT_Network& ptNetwork,
+                                     const std::string &mode)
 {
 	bool ret = true;
 	bool invalidFlag = false;
@@ -291,7 +293,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				}
 				else if((*it).tType == sim_mob::SMS_EDGE)
 				{
-					subTrip.travelMode = "RAIL_SMS";
+					subTrip.travelMode = mode;
 				}
 				subTrip.ptLineId = it->serviceLines;
 				newSubTrips.push_back(subTrip);

@@ -224,7 +224,8 @@ public:
      * 
 	 * @return true, if successful
      */
-	bool makeODsToTrips(SubTrip *curSubTrip, std::vector<SubTrip> &newSubTrips, const std::vector<OD_Trip> &matchedTrips, PT_Network& ptNetwork);
+	bool makeODsToTrips(SubTrip *curSubTrip, std::vector<SubTrip> &newSubTrips,
+	                    const std::vector<OD_Trip> &matchedTrips, PT_Network& ptNetwork, const std::string &mode);
 
 	/**
 	 * Updates the next trip chain, used only for NextRole

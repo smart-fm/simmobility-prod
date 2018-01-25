@@ -205,7 +205,8 @@ void Person_MT::convertToSmartMobilityTrips(PT_Network &ptNetwork, const std::st
 			{
 				if (itSubTrip->origin.type == WayPoint::NODE && itSubTrip->destination.type == WayPoint::NODE)
 				{
-					if(itSubTrip->getMode() == "SMS")
+					if(itSubTrip->getMode() == "SMS" || itSubTrip->getMode() == "SMS_Pool" ||
+							itSubTrip->getMode() == "AMOD" || itSubTrip->getMode() == "AMOD_Pool")
 					{
 						addWalkAndWaitLegs(smartMobilityTrips, itSubTrip, (*itSubTrip).destination.node);
 
@@ -221,7 +222,7 @@ void Person_MT::convertToSmartMobilityTrips(PT_Network &ptNetwork, const std::st
 						subTrip.endLocationId = boost::lexical_cast<string>(
 								itSubTrip->destination.node->getNodeId());
 						subTrip.endLocationType = "NODE";
-						subTrip.travelMode = "SMS_Taxi";
+						subTrip.travelMode = itSubTrip->getMode() + "_Taxi";
 						smartMobilityTrips.push_back(subTrip);
 					}
 					else if(itSubTrip->getMode() == "Rail_SMS")

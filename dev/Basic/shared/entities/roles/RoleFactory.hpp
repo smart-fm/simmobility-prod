@@ -149,7 +149,8 @@ public:
 			return "busdriver";
 		}
 		if (mode == "BusTravel" || mode == "MRT" || mode == "Sharing" || mode == "PrivateBus" ||
-				mode == "TaxiTravel" || mode == "SMS_Taxi" || mode == "RAIL_SMS_Taxi")
+				mode == "TaxiTravel" || mode == "SMS_Taxi" || mode == "SMS_Pool_Taxi" || mode == "AMOD_Taxi" ||
+				mode == "AMOD_Pool_Taxi" || mode == "RAIL_SMS_Taxi")
 		{
 			return "passenger";
 		}

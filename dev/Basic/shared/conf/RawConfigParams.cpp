@@ -30,7 +30,7 @@ sim_mob::LongTermParams::HousingModel::AwakeningModel::AwakeningModel(): initial
 
 sim_mob::LongTermParams::HousingModel::HedonicPriceModel::HedonicPriceModel(): a(0), b(0){}
 
-sim_mob::LongTermParams::OutputHouseholdLogsums::OutputHouseholdLogsums():enabled(false), fixedHomeVariableWork(false), fixedWorkVariableHome(false), vehicleOwnership(false){}
+sim_mob::LongTermParams::OutputHouseholdLogsums::OutputHouseholdLogsums():enabled(false), fixedHomeVariableWork(false), fixedWorkVariableHome(false), vehicleOwnership(false), hitsRun(false){}
 
 sim_mob::LongTermParams::VehicleOwnershipModel::VehicleOwnershipModel():enabled(false), vehicleBuyingWaitingTimeInDays(0){}
 sim_mob::LongTermParams::TaxiAccessModel::TaxiAccessModel():enabled(false){}

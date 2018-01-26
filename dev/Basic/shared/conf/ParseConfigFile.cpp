@@ -554,6 +554,10 @@ void ParseConfigFile::processHouseHoldLogsumsNode(xercesc::DOMElement *outHHLogs
 			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
 					outHHLogsums, "vehicleOwnershipLogsum"), "value"), false);
 
+	outputHouseholdLogsums.hitsRun =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+						outHHLogsums, "hitsRun"), "value"), false);
+
 	cfg.ltParams.outputHouseholdLogsums = outputHouseholdLogsums;
 }
 

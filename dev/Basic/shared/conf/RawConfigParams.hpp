@@ -116,6 +116,7 @@ struct LongTermParams
 		bool vehicleOwnership;
 		bool fixedHomeVariableWork;
 		bool fixedWorkVariableHome;
+		bool hitsRun;
 	} outputHouseholdLogsums;
 
 	struct VehicleOwnershipModel{

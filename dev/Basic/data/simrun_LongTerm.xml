@@ -129,6 +129,7 @@
 	    <vehicleOwnershipLogsum value ="false"/>
 	    <fixedHomeVariableWork value ="false"/>
 	    <fixedWorkVariableHome value ="false"/>
+            <hitsRun value = "false" />
 	</outputHouseholdLogsums>
     	<housingModel enabled="true"> 	    
             <timeOnMarket value="72"/>

@@ -2410,21 +2410,6 @@ void HM_Model::getLogsumOfIndividuals(BigSerial id)
 
 void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 {
-	HouseHoldHitsSample *hitsSample = nullptr;
-	{
-		boost::mutex::scoped_lock lock( mtx3 );
-
-		hitsSample = this->getHouseHoldHitsById( householdId );
-
-		//if( !hitsSample )
-		//	return;
-
-		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
-			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
-		else
-			return;
-	}
-
 	Household *currentHousehold = getHouseholdById( householdId );
 
 	std::vector<BigSerial> householdIndividualIds = currentHousehold->getIndividuals();
@@ -2435,23 +2420,6 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 		vector<double> logsum;
 		vector<double> travelProbability;
 		vector<double> tripsExpected;
-
-		int workTazId = -1;
-		int homeTazId = -1;
-		int paxId  = -1;
-
-		int p = 0;
-		for(p = 0; p < hitsIndividualLogsum.size(); p++ )
-		{
-			if (  hitsIndividualLogsum[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
-			{
-				workTazId = hitsIndividualLogsum[p]->getWorkTaz();
-				homeTazId = hitsIndividualLogsum[p]->getHomeTaz();
-				paxId  = hitsIndividualLogsum[p]->getPaxId();
-				break;
-			}
-		}
-
 
 
 		BigSerial tazW = 0;
@@ -2465,61 +2433,22 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
 
 
-			//int work_taz_id = this->getEstablishmentTazId( establishment->getId() );
-			//Postcode *workPostcodeObj = this->getPostcodeById( workTazId);
-			//Taz *tazObjW = getTazById( work_taz_id );
+			int workTazId = this->getEstablishmentTazId( establishment->getId() );
+			Postcode *workPostcodeObj = this->getPostcodeById( workTazId);
+			Taz *tazObjW = getTazById( workTazId );
+			std::string tazStrW;
+			if( tazObjW != NULL )
+				tazStrW = tazObjW->getName();
+			tazW = std::atoi( tazStrW.c_str() );
 
-//			Taz *tazObjW = getTazById(workTazId );
-//			std::string tazStrW;
-//			if( tazObjW != NULL )
-//				tazStrW = tazObjW->getName();
-//			tazW = std::atoi( tazStrW.c_str() );
-
-			//Postcode *postcode = this->getPostcodeById( this->getUnitSlaAddressId(unit->getId()));
-			Taz *tazObjH = getTazById( homeTazId );
-			//Taz *tazObjH = getTazById( postcode->getTazId() );
-
-//			std::string tazStrH;
-//			if( tazObjH != NULL )
-//				tazStrH = tazObjH->getName();
-//			tazH = std::atoi( tazStrH.c_str() );
-
-			//BigSerial tazWork = 0;
-			{
-				std::string tazStrWork;
-				Taz *tazObjWork = getTazById( workTazId );
-				if( tazObjWork != NULL )
-					tazStrWork = tazObjWork->getName();
-
-				tazW = std::atoi( tazStrWork.c_str() );
-			}
-
-			//BigSerial tazHome = 0;
-			{
-				std::string tazStrHome;
-				Taz *tazObjHome = getTazById( homeTazId );
-				if( tazObjHome != NULL )
-					tazStrHome = tazObjHome->getName();
-
-				tazH = std::atoi( tazStrHome.c_str() );
-			}
-
-			if( tazH <= 0 )
-			{
-				//PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty home taz" << std::endl);
-				printError( (boost::format( "individualId %1% has an empty home taz.") % householdIndividualIds[n]).str());
-			}
-
-			if( tazW <= 0 )
-			{
-				//PrintOutV( " individualId " << householdIndividualIds[n] << " has an empty work taz" << std::endl);
-				printError( (boost::format( "individualId %1% has an empty work taz.") % householdIndividualIds[n]).str());
-			}
-
+			Postcode *postcode = this->getPostcodeById( this->getUnitSlaAddressId(unit->getId()));
+			Taz *tazObjH = getTazById( postcode->getTazId() );
+			std::string tazStrH;
+			if( tazObjH != NULL )
+				tazStrH = tazObjH->getName();
+			tazH = std::atoi( tazStrH.c_str() );
 
 			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getId());
-
-
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
 			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());
 			personParams.setGenderId(thisIndividual->getGenderId());
@@ -2538,10 +2467,10 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 			personParams.setHasFixedWorkTiming(fixedHours);
 
-			bool fixedWorkplace = true;
+			bool fixedWorkplace = false;
 
-			//if( thisIndividual->getFixed_workplace() == 1 )
-			//	fixedWorkplace = true;
+			if( thisIndividual->getFixed_workplace() == 1 )
+				fixedWorkplace = true;
 
 			personParams.setHasWorkplace( fixedWorkplace );
 
@@ -2682,8 +2611,8 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 		simulationStopCounter++;
 
-		printHouseholdHitsLogsumFVO( "", paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
-		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << currentHousehold->getId() << ", " << thisIndividual->getMemberId()
+		printHouseholdHitsLogsumFVO( "", -1, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
+		PrintOutV( simulationStopCounter << ". " << "" << ", " << -1 << ", " << "" << ", " << currentHousehold->getId() << ", " << thisIndividual->getMemberId()
 										 << ", " << householdIndividualIds[n] << ", " << tazH << ", " << tazW << ", "
 										 << std::setprecision(5)
 										 << logsum[0]  << ", " << logsum[1] << ", " << logsum[2] << ", " << logsum[3] << ", "<< logsum[4]  << ", " << logsum[5] << ", "
@@ -2838,6 +2767,158 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, vector<d
 
 	}
 }
+
+}
+
+void HM_Model::getLogsumOfHitsHouseholdVO(BigSerial householdId)
+{
+	HouseHoldHitsSample *hitsSample = nullptr;
+	{
+		boost::mutex::scoped_lock lock( mtx3 );
+
+		hitsSample = this->getHouseHoldHitsById( householdId );
+
+		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
+			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
+		else
+			return;
+	}
+
+	Household *currentHousehold = getHouseholdById( householdId );
+
+	std::vector<BigSerial> householdIndividualIds = currentHousehold->getIndividuals();
+	for( int n = 0; n < householdIndividualIds.size(); n++ )
+	{
+		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
+
+		vector<double> logsum;
+		vector<double> travelProbability;
+		vector<double> tripsExpected;
+
+		int workTazId = -1;
+		int homeTazId = -1;
+		int paxId  = -1;
+
+		int p = 0;
+		for(p = 0; p < hitsIndividualLogsum.size(); p++ )
+		{
+			if (  hitsIndividualLogsum[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
+			{
+				workTazId = hitsIndividualLogsum[p]->getWorkTaz();
+				homeTazId = hitsIndividualLogsum[p]->getHomeTaz();
+				paxId  = hitsIndividualLogsum[p]->getPaxId();
+				break;
+			}
+		}
+
+
+
+		BigSerial tazW = 0;
+		BigSerial tazH = 0;
+
+		{
+			PersonParams personParams;
+			Taz *tazObjH = getTazById( homeTazId );
+			std::string tazStrWork;
+			Taz *tazObjWork = getTazById( workTazId );
+			if( tazObjWork != NULL )
+			{
+				tazStrWork = tazObjWork->getName();
+			}
+			tazW = std::atoi( tazStrWork.c_str() );
+
+			std::string tazStrHome;
+			Taz *tazObjHome = getTazById( homeTazId );
+			if( tazObjHome != NULL )
+			{
+				tazStrHome = tazObjHome->getName();
+			}
+			tazH = std::atoi( tazStrHome.c_str() );
+
+			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
+			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());
+			personParams.setGenderId(thisIndividual->getGenderId());
+			personParams.setStudentTypeId(thisIndividual->getEducationId());
+			personParams.setVehicleOwnershipCategory(currentHousehold->getVehicleOwnershipOptionId());
+			personParams.setAgeId(thisIndividual->getAgeCategoryId());
+			personParams.setIncomeIdFromIncome(thisIndividual->getIncome());
+			personParams.setWorksAtHome(thisIndividual->getWorkAtHome());
+			personParams.setCarLicense(thisIndividual->getCarLicense());
+			personParams.setMotorLicense(thisIndividual->getMotorLicense());
+			personParams.setVanbusLicense(thisIndividual->getVanBusLicense());
+
+			bool fixedHours = false;
+			if( thisIndividual->getFixed_hours() == 1)
+				fixedHours = true;
+
+			personParams.setHasFixedWorkTiming(fixedHours);
+
+			bool fixedWorkplace = true;
+			personParams.setHasWorkplace( fixedWorkplace );
+
+			bool isStudent = false;
+			if( thisIndividual->getStudentId() > 0)
+				isStudent = true;
+
+			personParams.setIsStudent(isStudent);
+
+			personParams.setActivityAddressId( tazW );
+
+			//household related
+			personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
+			personParams.setHomeAddressId( tazH );
+			personParams.setHH_Size( currentHousehold->getSize() );
+			personParams.setHH_NumUnder4( currentHousehold->getChildUnder4());
+			personParams.setHH_NumUnder15( currentHousehold->getChildUnder15());
+			personParams.setHH_NumAdults( currentHousehold->getAdult());
+			personParams.setHH_NumWorkers( currentHousehold->getWorkers());
+
+			//infer params
+			personParams.fixUpParamsForLtPerson();
+
+			PersonParams personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams );
+			PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams );
+			PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams );
+			PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams );
+			PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams );
+			PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams );
+
+			logsum.push_back( personParams0.getDpbLogsum());
+			travelProbability.push_back(personParams0.getTravelProbability());
+			tripsExpected.push_back(personParams0.getTripsExpected());
+
+			logsum.push_back( personParams1.getDpbLogsum());
+			travelProbability.push_back(personParams1.getTravelProbability());
+			tripsExpected.push_back(personParams1.getTripsExpected());
+
+			logsum.push_back( personParams2.getDpbLogsum());
+			travelProbability.push_back(personParams2.getTravelProbability());
+			tripsExpected.push_back(personParams2.getTripsExpected());
+
+			logsum.push_back( personParams3.getDpbLogsum());
+			travelProbability.push_back(personParams3.getTravelProbability());
+			tripsExpected.push_back(personParams3.getTripsExpected());
+
+			logsum.push_back( personParams4.getDpbLogsum());
+			travelProbability.push_back(personParams4.getTravelProbability());
+			tripsExpected.push_back(personParams4.getTripsExpected());
+
+			logsum.push_back( personParams5.getDpbLogsum());
+			travelProbability.push_back(personParams5.getTravelProbability());
+			tripsExpected.push_back(personParams5.getTripsExpected());
+		}
+
+		simulationStopCounter++;
+
+		printHouseholdHitsLogsumFVO( hitsIndividualLogsum[p]->getHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
+//		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << currentHousehold->getId() << ", " << thisIndividual->getMemberId()
+//				<< ", " << householdIndividualIds[n] << ", " << tazH << ", " << tazW << ", "
+//				<< std::setprecision(5)
+//		<< logsum[0]  << ", " << logsum[1] << ", " << logsum[2] << ", " << logsum[3] << ", "<< logsum[4]  << ", " << logsum[5] << ", "
+//		<< tripsExpected[0] << ", " << tripsExpected[1] << ", " << tripsExpected[2] << ", " << tripsExpected[3] << ", "<< tripsExpected[4] << ", " << tripsExpected[5] << ", "
+//		<< travelProbability[0] << ", " << travelProbability[1] << ", "  << travelProbability[2] << ", " << travelProbability[3] << ", "  << travelProbability[4] << ", " << travelProbability[5] <<std::endl );
+
+	}
 
 }
 

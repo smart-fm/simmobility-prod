@@ -341,6 +341,7 @@ namespace sim_mob
             void getLogsumOfVaryingHomeOrWork(BigSerial id);
             void getLogsumOfHouseholdVO(BigSerial householdId);
             void getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, vector<double>&logsum);
+            void getLogsumOfHitsHouseholdVO(BigSerial householdId);
 
             HousingMarket* getMarket();
 

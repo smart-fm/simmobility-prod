@@ -437,9 +437,21 @@ void HouseholdAgent::onWorkerEnter()
 		if( hh != NULL )
 		{
 			if( config.ltParams.outputHouseholdLogsums.vehicleOwnership == true )
-				model->getLogsumOfHouseholdVO(hh->getId());
+			{
+				if(config.ltParams.outputHouseholdLogsums.hitsRun == true)
+				{
+					model->getLogsumOfHitsHouseholdVO(hh->getId());
+				}
+				else
+				{
+					model->getLogsumOfHouseholdVO(hh->getId());
+				}
+
+			}
 			else
+			{
 				model->getLogsumOfVaryingHomeOrWork(hh->getId());
+			}
 		}
 	}
 

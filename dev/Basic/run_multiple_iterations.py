@@ -12,7 +12,7 @@ for i in range(numberOfIterationsOfPreday):
         systemCommandToUpdateAlphaValue = "sed -i 's/ALPHA.*=.*/ALPHA ="+ str(alpha) + "/g' "  + "scripts/python/TravelTimeAggregator.py" ;        
         os.system(systemCommandToUpdateAlphaValue)
 
-        # update the config file to specify whether to run "full" mode
+        # update the config file to specify to run "full" mode
         systemCommandToChangeRunMode = "sed -i 's/<mid_term_run_mode value.*/<mid_term_run_mode value = \"full\"\/>/g' data/simrun_MidTerm.xml"
         os.system(systemCommandToChangeRunMode)
 
@@ -24,7 +24,7 @@ for i in range(numberOfIterationsOfPreday):
                 sys.exit(0)
 
         for j in range(ratio):
-                # update the config file to specify whether to run "full" mode
+                # update the config file to specify to run "supply" mode
                 systemCommandToChangeRunMode = "sed -i 's/<mid_term_run_mode value.*/<mid_term_run_mode value = \"supply\"\/>/g' data/simrun_MidTerm.xml"
                 os.system(systemCommandToChangeRunMode)
 

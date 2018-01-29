@@ -114,7 +114,8 @@ bool MobilityServiceControllerManager::addMobilityServiceController(MobilityServ
 		return false;
 	}
 	}
-	controllers.insert(std::make_pair(controllerId, controller));
+
+	controllers.insert(controller);
 
 #ifndef NDEBUG
 	controller->consistencyChecks();
@@ -158,19 +159,11 @@ void MobilityServiceControllerManager::consistencyChecks() const
 	const MobilityServiceController *controller;
 	try
 	{
-		for (const std::pair<unsigned int , const MobilityServiceController *> p : controllers)
+		for (auto it = controllers.get<ctrlrId>().begin(); it != controllers.get<ctrlrId>().end(); ++it)
 		{
-			controller = p.second;
+			controller = *it;
 			controller->consistencyChecks();
-			const MobilityServiceControllerType typeKey = p.second->getServiceType();
-			sim_mob::consistencyChecks(typeKey);
-			const MobilityServiceControllerType ownedType = controller->getServiceType();
-			if (ownedType != typeKey)
-			{
-				std::stringstream msg;
-				msg << "A controller of type " << ownedType << " is associated to type " << typeKey;
-				throw std::runtime_error(msg.str());
-			}
+			sim_mob::consistencyChecks(controller->getServiceType());
 		}
 	}
 	catch (const std::runtime_error &e)
@@ -180,8 +173,7 @@ void MobilityServiceControllerManager::consistencyChecks() const
 		    controller;
 		msg << ". Search warn.log for this pointer to check if the controller has been removed. The error is "
 		    << e.what();
-		msg << " . The registered controllers are currently: " <<
-		    getControllersStr();
+		msg << " . The registered controllers are currently: " << getControllersStr();
 		throw std::runtime_error(msg.str());
 	}
 }
@@ -199,10 +191,9 @@ bool MobilityServiceControllerManager::isNonspatial()
 const std::string MobilityServiceControllerManager::getControllersStr() const
 {
 	std::stringstream msg;
-	for (const std::pair<unsigned int, const MobilityServiceController *> &p: controllers)
+	for (auto it = controllers.get<ctrlrId>().begin(); it != controllers.get<ctrlrId>().end(); ++it)
 	{
-		msg << "pointer:" << p.second << ":" << p.second->toString() << ", ";
+		msg << "Pointer:" << *it << ":" << (*it)->toString() << ", ";
 	}
-	return msg.
-			str();
+	return msg.str();
 }

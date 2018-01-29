@@ -22,14 +22,14 @@ namespace sim_mob
 
 enum MobilityServiceControllerType : unsigned int
 {
-	SERVICE_CONTROLLER_UNKNOWN = 0b0000,
-	SERVICE_CONTROLLER_GREEDY = 0b0001,
-	SERVICE_CONTROLLER_SHARED = 0b0010,
-	SERVICE_CONTROLLER_ON_HAIL = 0b0100,
-	SERVICE_CONTROLLER_FRAZZOLI = 0b1000,
-	SERVICE_CONTROLLER_INCREMENTAL = 0b10000,
-	SERVICE_CONTROLLER_PROXIMITY = 0b100000,
-	SERVICE_CONTROLLER_AMOD = 0b1000000
+	SERVICE_CONTROLLER_UNKNOWN = 0,
+	SERVICE_CONTROLLER_ON_HAIL = 1,
+	SERVICE_CONTROLLER_GREEDY = 2,
+	SERVICE_CONTROLLER_SHARED = 3,
+	SERVICE_CONTROLLER_FRAZZOLI = 4,
+	SERVICE_CONTROLLER_INCREMENTAL = 5,
+	SERVICE_CONTROLLER_PROXIMITY = 6,
+	SERVICE_CONTROLLER_AMOD = 7
 };
 
 const std::string toString(const MobilityServiceControllerType type);
@@ -75,12 +75,12 @@ protected:
 	 */
 	virtual void unsubscribeDriver(Person *person);
 
+public:
+	virtual ~MobilityServiceController();
+
 	const MobilityServiceControllerType controllerServiceType;
 
 	const unsigned controllerId;
-
-public:
-	virtual ~MobilityServiceController();
 
 	static const unsigned toleratedExtraTime; //seconds
 

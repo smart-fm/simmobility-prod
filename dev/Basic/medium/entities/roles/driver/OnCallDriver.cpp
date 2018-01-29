@@ -143,37 +143,34 @@ const MobilityServiceDriver* OnCallDriver::exportServiceDriver() const
 	return this;
 }
 
-void OnCallDriver::subscribeToOrIgnoreController(const SvcControllerMap& controllers, unsigned int controllerId)
+void OnCallDriver::subscribeToController()
 {
-	if (parent->getServiceVehicle().controllerSubscription & controllerId)
+	auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+	const unsigned int subscribedCtrlr = parent->getServiceVehicle().controllerSubscription;
+
+	//Look for the driver's subscribed controller in the multi-index
+	SvcControllerMap::index<ctrlrId>::type::iterator it = controllers.get<ctrlrId>().find(subscribedCtrlr);
+
+#ifndef NDEBUG
+	if (it == controllers.get<ctrlrId>().end())
 	{
-		auto range = controllers.find(controllerId);
-
-#ifndef NDEBUG
-		if (range == controllers.end())
-		{
-			std::stringstream msg;
-			msg << "OnCallDriver " << parent->getDatabaseId() << " wants to subscribe to id "
-			    << controllerId << ", but no controller of that id is registered";
-			throw std::runtime_error(msg.str());
-		}
-#endif
-
-		auto itController = range;
-		{
-			MessageBus::PostMessage(itController->second, MSG_DRIVER_SUBSCRIBE,
-			                        MessageBus::MessagePtr(new DriverSubscribeMessage(parent)));
-
-#ifndef NDEBUG
-			ControllerLog() << "OnCallDriver " << parent->getDatabaseId()
-			                << " sent a subscription to the controller "
-			                << itController->second->toString() << " at time " << parent->currTick;
-			ControllerLog() << ". parentDriver pointer " << parent << endl;
-#endif
-
-			subscribedControllers.push_back(itController->second);
-		}
+		std::stringstream msg;
+		msg << "OnCallDriver " << parent->getDatabaseId() << " wants to subscribe to id "
+		    << subscribedCtrlr << ", but no controller of that id is registered";
+		throw std::runtime_error(msg.str());
 	}
+#endif
+
+	MessageBus::PostMessage(*it, MSG_DRIVER_SUBSCRIBE, MessageBus::MessagePtr(new DriverSubscribeMessage(parent)));
+
+#ifndef NDEBUG
+	ControllerLog() << "OnCallDriver " << parent->getDatabaseId()
+	                << " sent a subscription to the controller "
+	                << (*it)->toString() << " at time " << parent->currTick;
+	ControllerLog() << ". parentDriver pointer " << parent << endl;
+#endif
+
+	subscribedControllers.push_back(*it);
 }
 
 void OnCallDriver::scheduleItemCompleted()

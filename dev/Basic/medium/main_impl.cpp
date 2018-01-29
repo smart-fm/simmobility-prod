@@ -358,9 +358,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		personWorkers->assignAWorker(FleetController_MT::getInstance());
 		auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 
-		for (auto it = controllers.begin(); it != controllers.end(); it++)
+		for (auto it = controllers.get<ctrlrId>().begin(); it != controllers.get<ctrlrId>().end(); ++it)
 		{
-			personWorkers->assignAWorker(it->second);
+			personWorkers->assignAWorker(*it);
 		}
 	}
 	//incident

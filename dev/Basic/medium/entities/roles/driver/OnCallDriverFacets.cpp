@@ -41,12 +41,7 @@ void OnCallDriverMovement::frame_init()
 	currNode = (*(onCallDriver->getParent()->currTripChainItem))->origin.node;
 
 	//Register with the controller to which the driver is subscribed
-	auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-
-	for(auto &ctrlr : controllers)
-	{
-		onCallDriver->subscribeToOrIgnoreController(controllers, ctrlr.second->getControllerId());
-	}
+	onCallDriver->subscribeToController();
 
 	//In the beginning there is nothing to do, yet we require a path to begin moving.
 	//So cruise to a random node, by creating a default schedule

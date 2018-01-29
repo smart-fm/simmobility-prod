@@ -192,12 +192,9 @@ public:
 	virtual const MobilityServiceDriver *exportServiceDriver() const;
 
 	/**
-	 * Checks if the driver is supposed to subscribe to the given controller type. If so, it subscribes it to all
-	 * controllers of that it, else does nothing.
-	 * @param controllers map of controllers
-	 * @param type the type of controller to be subscribed
+	 * Sends a subscription message to the controller the driver subscribes to
 	 */
-	void subscribeToOrIgnoreController(const SvcControllerMap& controllers, unsigned int controllerId);
+	void subscribeToController();
 
 	/**
 	 * Picks up the passenger

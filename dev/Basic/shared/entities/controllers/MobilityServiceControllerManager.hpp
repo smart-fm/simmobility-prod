@@ -8,17 +8,31 @@
 #pragma once
 
 #include <boost/shared_ptr.hpp>
-#include <map>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
 
 #include "entities/Agent.hpp"
 #include "message/Message.hpp"
 #include "OnCallController.hpp"
 #include "FrazzoliController.hpp"
 
+using boost::multi_index_container;
+using namespace boost::multi_index;
+
 namespace sim_mob
 {
 
-typedef std::unordered_map<unsigned int , MobilityServiceController*> SvcControllerMap;
+struct ctrlrId{};
+struct ctrlrType{};
+
+typedef multi_index_container<MobilityServiceController *, indexed_by<
+		ordered_unique<
+				tag<ctrlrId>, BOOST_MULTI_INDEX_MEMBER(MobilityServiceController, const unsigned, controllerId)>,
+		ordered_non_unique<
+		        tag<ctrlrType>, BOOST_MULTI_INDEX_MEMBER(MobilityServiceController, const MobilityServiceControllerType, controllerServiceType)> >
+> SvcControllerMap;
+
 
 class MobilityServiceControllerManager : public Agent
 {
@@ -74,7 +88,7 @@ public:
 protected:
 	//This constructor is protected beacause we want to allow its construction only through the GetInstance(..) function
 	MobilityServiceControllerManager(const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered):
-	Agent(mtxStrat, -1),controllers(std::unordered_map<unsigned int, MobilityServiceController*>())
+	Agent(mtxStrat, -1)
 	{
 #ifndef NDEBUG
 		consistencyChecks();
@@ -98,8 +112,8 @@ protected:
 	void frame_output(timeslice now);
 
 private:
-	/** Stores the various controllers with the type as key*/
-	std::unordered_map<unsigned int, MobilityServiceController*> controllers;
+	/** This is a boost multi-index. Stores the various controllers with the id and type as keys.*/
+	SvcControllerMap controllers;
 
 	/** Store self instance */
 	static MobilityServiceControllerManager* instance;

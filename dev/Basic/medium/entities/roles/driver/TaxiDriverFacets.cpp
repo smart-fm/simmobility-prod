@@ -52,7 +52,7 @@ void TaxiDriverMovement::frame_init()
 
 	serviceVehicle = parentTaxiDriver->getParent()->getServiceVehicle();
 
-	const std::unordered_map<unsigned int , MobilityServiceController*>& controllers =
+	/*const std::unordered_map<unsigned int , MobilityServiceController*>& controllers =
 			MobilityServiceControllerManager::GetInstance()->getControllers();
 
 	for (auto &p: controllers)
@@ -60,7 +60,7 @@ void TaxiDriverMovement::frame_init()
 		unsigned int controllerId = p.first;
 		subscribeToOrIgnoreController(controllers, controllerId);
 	}
-
+	*/
 	(isSubscribedToOnHail() && cruiseOrDriveToTaxiStand())?driveToTaxiStand():selectNextLinkWhileCruising();  // for 1 : drive_to_taxiStand or cruise
 }
 

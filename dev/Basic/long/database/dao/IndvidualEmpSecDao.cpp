@@ -12,7 +12,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 IndvidualEmpSecDao::IndvidualEmpSecDao(DB_Connection& connection)
-: SqlAbstractDao<IndvidualEmpSec>(connection, EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR, "SELECT * FROM " + connection.getSchema()+"getIndividualEmpSecIds()", EMPTY_STR)
+: SqlAbstractDao<IndvidualEmpSec>(connection, EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR, "SELECT * FROM " + connection.getSchema()+"getIndividualIndustryTypeIds()", EMPTY_STR)
 {}
 
 IndvidualEmpSecDao::~IndvidualEmpSecDao() {
@@ -21,7 +21,7 @@ IndvidualEmpSecDao::~IndvidualEmpSecDao() {
 void IndvidualEmpSecDao::fromRow(Row& result, IndvidualEmpSec& outObj)
 {
     outObj.indvidualId = result.get<BigSerial>("id", INVALID_ID);
-    outObj.empSecId = result.get<BigSerial>("sector_id",INVALID_ID);
+    outObj.empSecId = result.get<int>("sector_id",INVALID_ID);
 }
 
 void IndvidualEmpSecDao::toRow(IndvidualEmpSec& data, Parameters& outParams, bool update) {}

@@ -20,7 +20,7 @@ namespace sim_mob
         {
         public:
         	Taz( BigSerial id = INVALID_ID,  const std::string& name = EMPTY_STR, float area = -1.0, int surcharge = -1, int status_0812 = 0, std::string mtzName = "",
-        		 std::string subzoneName = "", std::string planningAreaName = "");
+        		 std::string subzoneName = "", std::string planningAreaName = "", std::string hdbTownType = "");
 
             virtual ~Taz();
 
@@ -35,10 +35,12 @@ namespace sim_mob
             std::string getMtzName() const;
             std::string getSubzoneName() const;
             std::string getPlanningAreaName() const;
+            std::string getHdbTownType() const;
 
             void setName(const std::string& name);
             void  setArea(float area);
             void setSurchage( int surcharge);
+            void setHdbTownType(std::string hdbTownType);
 
             /**
              * Operator to print the Template data.
@@ -56,6 +58,7 @@ namespace sim_mob
             std::string mtzName;
 			std::string subzoneName;
 			std::string planningAreaName;
+			std::string hdbTownType;
         };
     }
 }

@@ -16,6 +16,7 @@
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MT_Message.hpp"
+#include "config/MT_Config.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -113,7 +114,7 @@ void BusDriverMovement::frame_tick()
 			}
 		}
 		else
-		{	//how can it can be denied when serving bus stop??
+		{
 			params.elapsedSeconds = params.secondsInTick;
 			pathMover.setPositionInSegment(0);
 			setParentData(params);
@@ -400,6 +401,7 @@ void BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 	//This function gets called for 2 cases.
 	//1. Driver is added to virtual queue
 	//2. Driver is in previous segment trying to add to the next
+	MT_Config& mtConfig = MT_Config::getInstance();
 	const SegmentStats* nextSegStats = pathMover.getNextSegStats(false);
 	const SegmentStats* nextToNextSegStats = pathMover.getSecondSegStatsAhead();
 	const Lane* laneInNextSegment = getBestTargetLane(nextSegStats, nextToNextSegStats);
@@ -451,7 +453,11 @@ void BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 			updateLinkStats(prevSegStats);
 
 			// update road segment screenline counts
-			updateScreenlineCounts(prevSegStats, linkExitTimeSec);
+			if(mtConfig.screenLineParams.outputEnabled)
+			{
+				updateScreenlineCounts(prevSegStats, linkExitTimeSec);
+			}
+
 		}
 		setLastAccept(currLane, linkExitTimeSec, nextSegStats);
 
@@ -514,6 +520,7 @@ void BusDriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 
 bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 {
+	MT_Config& mtConfig = MT_Config::getInstance();
 	const SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const BusStop* nextStop = routeTracker.getNextStop();
 	if (nextStop && currSegStat->hasBusStop(nextStop))
@@ -633,6 +640,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 
 		if (!nxtSegStat)
 		{
+			const SegmentStats* lastSeg = currSegStat ;
 			//vehicle is done
 			pathMover.advanceInPath();
 			if (pathMover.isPathCompleted())
@@ -647,6 +655,8 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
 				currLane = nullptr;
 				parentBusDriver->parent->setToBeRemoved();
+				// linkExitTime and segmentExitTime are equal for the last segment in the path.
+				updateScreenlineCounts(lastSeg, linkExitTime);
 			}
 			params.elapsedSeconds = params.secondsInTick;
 			return true;
@@ -693,7 +703,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			setLastAccept(currLane, segExitTimeSec, nxtSegStat);
 
 			const SegmentStats* prevSegStats = pathMover.getPrevSegStats(true); //previous segment is in the same link
-			if (prevSegStats
+			if ((mtConfig.screenLineParams.outputEnabled) && prevSegStats
 					&& prevSegStats->getRoadSegment() != pathMover.getCurrSegStats()->getRoadSegment())
 			{
 				// update road segment travel times

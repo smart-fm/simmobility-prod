@@ -29,6 +29,7 @@ void TazDao::fromRow(Row& result, Taz& outObj)
     outObj.mtzName = result.get<std::string>("mtz_name", "");
     outObj.subzoneName = result.get<std::string>("subzone_name", "");
     outObj.planningAreaName = result.get<std::string>("planning_area_name", "");
+    outObj.hdbTownType = result.get<std::string>("hdb_town_type", "");
 }
 
 void TazDao::toRow(Taz& data, Parameters& outParams, bool update) {}

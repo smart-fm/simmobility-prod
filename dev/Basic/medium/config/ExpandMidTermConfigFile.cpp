@@ -320,6 +320,11 @@ void ExpandMidTermConfigFile::printSettings()
     std::cout << "  Person Granularity: " << mtCfg.granPersonTicks << " " << "ticks" << "\n";
     std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 
+	//Multi-threading
+	std::cout << "\nNumber of threads:\n"
+	          << "  For loading agents: " << mtCfg.getThreadsNumInPersonLoader() << std::endl
+	          << "  For processing agents: " << mtCfg.personWorkGroupSize() << std::endl;
+
     //Print the network (this will go to a different output file...)
 	std::cout << "------------------\n";
 	NetworkPrinter nwPrinter(cfg, cfg.outNetworkFileName);

@@ -18,7 +18,7 @@ namespace sim_mob {
         public:
         	HedonicCoeffsByUnitType(BigSerial unitTypeId = INVALID_ID,double intercept = 0, double logSqrtArea = 0,double freehold = 0, double logsumWeighted = 0,
         				  double pms_1km = 0, double distanceMallKm = 0,double mrt_200m = 0,double mrt_2_400m = 0,double express_200m = 0,double bus2_400m = 0, double busGt400m = 0,  double age = 0,
-						  double ageSquared = 0, double misage = 0);
+						  double ageSquared = 0, double misage = 0, double nonMature = 0, double otherMature =0, double storey =0, double storeySquared = 0);
 
             virtual ~HedonicCoeffsByUnitType();
 
@@ -33,13 +33,17 @@ namespace sim_mob {
 			double getFreehold() const;
 			double getIntercept() const;
 			double getAgeSquared() const;
-			double getLogSqrtArea() const;
+			double getLogArea() const;
 			double getLogsumWeighted() const;
 			double getMisage() const;
 			double  getMrt200m() const;
 			double getMrt2400m() const;
 			double getPms1km() const;
 			BigSerial getUnitTypeId() const;
+			double getNonMature() const;
+			double getOtherMature() const;
+			double getStorey() const;
+			double getStoreySquared() const;
 
 			void setAge(double age);
 			void setBus2400m(double bus2400m);
@@ -49,19 +53,23 @@ namespace sim_mob {
 			void setFreehold(double freehold) ;
 			void setIntercept(double intercept);
 			void setAgeSquared(double ageSquared);
-			void setLogSqrtArea(double logSqrtArea);
+			void setLogArea(double logSqrtArea);
 			void setLogsumWeighted(double logsumWeighted);
 			void setMisage(double misage);
 			void setMrt200m(double mrt200m);
 			void setMrt2400m(double mrt2400m);
 			void setPms1km(double pms1km);
 			void setUnitTypeId(BigSerial unitTypeId);
+			void setNonMature(double nonMature);
+			void setOtherMature(double otherMature);
+			void setStorey(double storey);
+			void setStoreySquared(double storeySquared);
 
         private:
 
             BigSerial unitTypeId;
             double intercept;
-            double logSqrtArea;
+            double logArea;
             double freehold;
             double logsumWeighted;
             double pms_1km;
@@ -74,6 +82,10 @@ namespace sim_mob {
             double age;
             double ageSquared;
             double misage;
+            double nonMature;
+            double otherMature;
+            double storey;
+            double storeySquared;
         };
     }
 }

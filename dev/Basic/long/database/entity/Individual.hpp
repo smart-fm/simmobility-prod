@@ -21,7 +21,7 @@ namespace sim_mob
 {
 	namespace long_term
 	{
-		class PrimarySchool;
+		class School;
 		class Individual
 		{
 		public:
@@ -64,7 +64,7 @@ namespace sim_mob
 			int		  getFixed_hours() const;
 
 			void	  setDateOfBirth(std::tm);
-			void addprimarySchoolIdWithin5km(BigSerial schoolId,PrimarySchool *primarySchool);
+			void addprimarySchoolIdWithin5km(BigSerial schoolId,School *primarySchool);
 
 			Individual& operator=(const Individual& source);
 
@@ -99,7 +99,7 @@ namespace sim_mob
 			bool	  motorLicense;
 			bool	  vanbusLicense;
 			std::tm	  dateOfBirth;
-			boost::unordered_map<BigSerial,PrimarySchool*> primarySchoolsWithin5KmById;
+			boost::unordered_map<BigSerial,School*> primarySchoolsWithin5KmById;
 
 			BigSerial studentId;
 			BigSerial industryId;

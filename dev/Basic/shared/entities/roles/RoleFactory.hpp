@@ -181,9 +181,15 @@ public:
 		{
 			return "activityRole";
 		}
-		if (!mode.empty())
+		if (mode == "Car" || mode == "Taxi")
 		{
 			return "driver";
+		}
+		if (!mode.empty())
+		{
+			std::stringstream msg;
+			msg << __func__ << ": Invalid mode \'" << mode << "\'  present in activity_schedule ";
+			throw std::runtime_error(msg.str());
 		}
 
 std::stringstream msg;

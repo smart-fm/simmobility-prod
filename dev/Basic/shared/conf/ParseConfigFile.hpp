@@ -105,6 +105,12 @@ private:
 	void processSchoolAssignmentModelNode(DOMElement *schoolAssignModel);
 
 	/**
+	 * Processes the jobAssignmentModel element in the config file
+	 * @param node node corresponding to the jobAssignmentModel element in the xml file
+	 */
+	void processJobAssignmentModelNode(DOMElement *jobAssignModel);
+
+	/**
 	 * Processes the scenario element in the config file
 	 * @param node node corresponding to the scenario element in the xml file
 	 */
@@ -140,6 +146,14 @@ private:
 	 * @param node node correspoding to the workgroup_assignment element in the xml file
 	 */
 	void processWorkgroupAssignmentNode(xercesc::DOMElement *node);
+
+	/**
+	 * Processes the operational cost in the config file
+	 *
+	 * @param node node correspoding to the operational cost element in the simulation.xml file
+	 */
+	void processOperationalCostNode(xercesc::DOMElement *node);
+
 
 	/**
 	 * Processes the closed_loop element in the config file

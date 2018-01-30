@@ -247,10 +247,24 @@ private:
 	void processPathSetFileName(xercesc::DOMElement* node);
 
 	/**
-	 * Process the trip chain output node in simrun_MidTerm.xml
-	 * @param node is the node corresponding to the trip_chain_output element inside simrun_Midterm.xml file
-	 */
+  * Process the trip chain output node in simrun_MidTerm.xml
+  * @param node is the node corresponding to the trip_chain_output element inside simrun_Midterm.xml file
+  */
 	void processTripChainOutputNode(xercesc::DOMElement* node);
+
+    /**
+     * Processes the travel modes element in config xml
+     *
+     * @param node node corresponding to the travel modes element inside xml file
+     */
+    void processTravelModesNode(xercesc::DOMElement* node);
+
+    /**
+     * Processes the activity types element in config xml
+     *
+     * @param node node corresponding to the activity types element inside xml file
+     */
+    void processActivityTypesNode(xercesc::DOMElement* node);
 
 	/// The config we are currently loading
 	MT_Config& mtCfg;

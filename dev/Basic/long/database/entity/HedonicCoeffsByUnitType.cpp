@@ -10,10 +10,10 @@ using namespace sim_mob::long_term;
 
 HedonicCoeffsByUnitType::HedonicCoeffsByUnitType( BigSerial unitTypeId, double intercept, double logSqrtArea ,double freehold, double logsumWeighted,double pms_1km,
 							  double distanceMallKm,double mrt_200m,double mrt_2_400m,double express_200m,double bus2_400m, double busGt400m,  double age,
-							  double ageSquared, double misage) :
-							  unitTypeId(unitTypeId),intercept(intercept),logSqrtArea(logSqrtArea),freehold(freehold),logsumWeighted(logsumWeighted),
+							  double ageSquared, double misage,double nonMature, double otherMature, double storey, double storeySquared) :
+							  unitTypeId(unitTypeId),intercept(intercept),logArea(logSqrtArea),freehold(freehold),logsumWeighted(logsumWeighted),
 							  pms_1km(pms_1km),distanceMallKm(distanceMallKm),mrt_200m(mrt_200m),mrt_2_400m(mrt_2_400m),express_200m(express_200m),bus2_400m(bus2_400m),
-							  busGt400m(busGt400m),age(age),ageSquared(ageSquared),misage(misage){}
+							  busGt400m(busGt400m),age(age),ageSquared(ageSquared),misage(misage),nonMature(nonMature), otherMature(otherMature), storey(storey), storeySquared(storeySquared){}
 
 HedonicCoeffsByUnitType::~HedonicCoeffsByUnitType() {}
 
@@ -97,14 +97,14 @@ void  HedonicCoeffsByUnitType::setAgeSquared(double ageSquared)
 	this->ageSquared = ageSquared;
 }
 
-double  HedonicCoeffsByUnitType::getLogSqrtArea() const
+double  HedonicCoeffsByUnitType::getLogArea() const
 {
-	return logSqrtArea;
+	return logArea;
 }
 
-void  HedonicCoeffsByUnitType::setLogSqrtArea(double logSqrtArea)
+void  HedonicCoeffsByUnitType::setLogArea(double logSqrtArea)
 {
-	this->logSqrtArea = logSqrtArea;
+	this->logArea = logSqrtArea;
 }
 
 double  HedonicCoeffsByUnitType::getLogsumWeighted() const
@@ -165,4 +165,44 @@ BigSerial HedonicCoeffsByUnitType::getUnitTypeId() const
 void HedonicCoeffsByUnitType::setUnitTypeId(BigSerial unitTypeId)
 {
 	this->unitTypeId = unitTypeId;
+}
+
+double HedonicCoeffsByUnitType::getNonMature() const
+{
+	return nonMature;
+}
+
+void HedonicCoeffsByUnitType::setNonMature(double nonMature)
+{
+	this->nonMature = nonMature;
+}
+
+double HedonicCoeffsByUnitType::getOtherMature() const
+{
+	return otherMature;
+}
+
+void HedonicCoeffsByUnitType::setOtherMature(double otherMature)
+{
+	this->otherMature = otherMature;
+}
+
+double HedonicCoeffsByUnitType::getStorey() const
+{
+	return storey;
+}
+
+void HedonicCoeffsByUnitType::setStorey(double storey)
+{
+	this->storey = storey;
+}
+
+double HedonicCoeffsByUnitType::getStoreySquared() const
+{
+	return storeySquared;
+}
+
+void HedonicCoeffsByUnitType::setStoreySquared(double storeySquared)
+{
+	this->storeySquared = storeySquared;
 }

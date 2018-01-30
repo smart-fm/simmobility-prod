@@ -22,6 +22,7 @@ void HouseholdPlanningAreaDao::fromRow(Row& result, HouseholdPlanningArea& outOb
 {
     outObj.houseHoldId = result.get<BigSerial>("id", INVALID_ID);
     outObj.tazId = result.get<BigSerial>("taz_id",INVALID_ID);
+    outObj.tazName = result.get<BigSerial>("taz_name",INVALID_ID);
     outObj.planningArea = result.get<std::string>("planning_area_name",EMPTY_STR);
 }
 

@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <vector>
 #include <map>
 #include <string>
 
+#include "behavioral/StopType.hpp"
 #include "buffering/Shared.hpp"
 #include "conf/CMakeConfigParams.hpp"
 #include "conf/Constructs.hpp"
@@ -42,7 +44,6 @@ struct LongTermParams
 	unsigned int tickStep;
 	unsigned int maxIterations;
 	unsigned int year;
-	std::string simulationScenario;
 	bool resume;
 	std::string currentOutputSchema;
 	std::string mainSchemaVersion;
@@ -51,6 +52,7 @@ struct LongTermParams
 	std::string geometrySchemaVersion;
 	unsigned int opSchemaloadingInterval;
 	bool initialLoading;
+	bool launchBTO;
 
 	struct DeveloperModel{
 		DeveloperModel();
@@ -69,6 +71,7 @@ struct LongTermParams
 		unsigned int timeInterval; //time interval before a unit drops its asking price by a certain percentage.
 		unsigned int timeOnMarket; //for units on the housing market
 		unsigned int timeOffMarket;//for units on the housing market
+		bool wtpOffsetEnabled;
 		float vacantUnitActivationProbability;
 		float housingMarketSearchPercentage;
 		float housingMoveInDaysInterval;
@@ -76,6 +79,7 @@ struct LongTermParams
 		int bidderUnitsChoiceSet;
 		int bidderBTOUnitsChoiceSet;
 		int householdBiddingWindow;
+		int householdBTOBiddingWindow;
 		float householdAwakeningPercentageByBTO;
 		int offsetBetweenUnitBuyingAndSellingAdvancedPurchase;
 
@@ -90,6 +94,15 @@ struct LongTermParams
 			int awakeningOffMarketSuccessfulBid;
 			int awakeningOffMarketUnsuccessfulBid;
 		} awakeningModel;
+
+
+		struct HedonicPriceModel
+		{
+			HedonicPriceModel();
+			float a;
+			float b;
+		}hedonicPriceModel;
+
 	} housingModel;
 
 	struct OutputHouseholdLogsums
@@ -117,6 +130,12 @@ struct LongTermParams
 		bool enabled;
 		unsigned int schoolChangeWaitingTimeInDays;
 	}schoolAssignmentModel;
+
+	struct JobAssignmentModel{
+		JobAssignmentModel();
+		bool enabled;
+		bool foreignWorkers;
+		}jobAssignmentModel;
 
 
 	struct OutputFiles{
@@ -151,21 +170,13 @@ struct LongTermParams
 
 	}outputFiles;
 
-
-	struct ToaPayohScenario{
-		ToaPayohScenario();
-		bool enabled;
-		bool workInToaPayoh;
-		bool liveInToaPayoh;
-		bool moveToToaPayoh;
-	}toaPayohScenario;
-
-
 	struct Scenario
 	{
 		Scenario();
 		bool   enabled;
 		std::string scenarioName;
+		std::string parcelsTable;
+		std::string scenarioSchema;
 
 	} scenario;
 
@@ -303,6 +314,12 @@ public:
     /// Total time (in milliseconds) considered "warmup".
     unsigned int totalWarmupMS;
 
+    /// Seed value for RNG's
+    unsigned int seedValue ;
+
+    /// Operational cost in Dollars/km
+    float operationalCost;
+
     /// When the simulation begins(based on configuration)
     DailyTime simStartTime;
 	
@@ -394,6 +411,11 @@ public:
 	void addScriptFileName(const std::string& key, const std::string& value)
 	{
 		this->scriptFileNameMap[key] = value;
+	}
+
+	const std::map<std::string, std::string>& getScriptsFileNameMap() const
+	{
+		return this->scriptFileNameMap;
 	}
 
 private:
@@ -618,6 +640,26 @@ struct TravelTimeConfig {
 	TravelTimeConfig() : intervalMS(0), fileName(""), enabled(false) {}
 };
 
+
+struct ActivityTypeConfig
+{
+    std::string name;
+    std::string withinDayModeChoiceModel;
+    std::string numToursModel;
+    std::string tourModeModel;
+    std::string tourModeDestModel;
+    std::string tourTimeOfDayModel;
+    std::string logsumTableColumn;
+    int type;
+};
+
+struct TravelModeConfig
+{
+    std::string name;
+    int type;
+    int numSharing;
+};
+
 struct MobilityServiceControllerConfig
 {
 	MobilityServiceControllerType type;
@@ -741,7 +783,18 @@ public:
 	PersonCharacteristicsParams personCharacteristicsParams;
 
     /// container for lua scripts
-	ModelScriptsMap luaScriptsMap;
+    ModelScriptsMap luaScriptsMap;
+
+	ModelScriptsMap predayLuaScriptsMap;
+
+    /// key:value (travel mode id : travel mode string) map
+    std::unordered_map<int, TravelModeConfig> travelModeMap;
+
+    /// key:value (activity type id : activity type config) map
+    std::unordered_map<StopType, ActivityTypeConfig> activityTypeIdConfigMap;
+
+    /// key:value (activity name : activity type id) map
+    std::unordered_map<std::string, StopType> activityTypeNameIdMap;
 };
 
 

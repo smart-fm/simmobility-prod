@@ -793,9 +793,10 @@ void LaneStats::updateOutputFlowRate(double newFlowRate)
 
 void LaneStats::updateOutputCounter()
 {
-	double tick_size = ConfigManager::GetInstance().FullConfig().baseGranSecond();
-	int tmp = int(laneParams->outputFlowRate * tick_size);
-	laneParams->fraction += laneParams->outputFlowRate * tick_size - tmp;
+	double updateInterval = MT_Config::getInstance().getSupplyUpdateInterval() *
+			ConfigManager::GetInstance().FullConfig().baseGranSecond();
+	int tmp = int(laneParams->outputFlowRate * updateInterval);
+	laneParams->fraction += laneParams->outputFlowRate * updateInterval - tmp;
 	if (laneParams->fraction >= 1.0)
 	{
 		laneParams->fraction -= 1.0;
@@ -1226,23 +1227,6 @@ void LaneStats::printAgents() const
 		{
 			debugMsgs<< "(" << "queuing" << ")";
 		}
-		if ( (*i)->getRole())
-		{
-			MovementFacet *movFacet = (*i)->getRole()->Movement();
-			OnHailDriverMovement *mov = dynamic_cast<OnHailDriverMovement *>(movFacet);
-			if(mov)
-			{
-				const MesoPathMover pathMover = mov->getMesoPathMover();
-				const std::vector<const SegmentStats*>& path = pathMover.getPath();
-				debugMsgs << "(pathStats:";
-				for(auto i = path.begin(); i!=path.end(); i++)
-				{
-					debugMsgs << (*i)->getRoadSegment()->getRoadSegmentId()<<"-"<<(*i)->getStatsNumberInSegment()<<"|";
-				}
-				debugMsgs << ")(currStats:"<<pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId()<<")";
-				debugMsgs<< "(" << "posSeg:" << pathMover.getPositionInSegment() << " )" ;
-			}
-		}
 		if((*i)->getPrevRole()){
 			debugMsgs << "(" << (*i)->getPrevRole()->getRoleName() << ")";
 		}
@@ -1252,7 +1236,6 @@ void LaneStats::printAgents() const
 		if((*i)->getNextRole()){
 			debugMsgs << "(" << (*i)->getNextRole()->getRoleName() << ")";
 		}
-
 	}
 	debugMsgs << std::endl;
 	Print() << debugMsgs.str();
@@ -1317,11 +1300,11 @@ Person_MT* SegmentStats::dequeue(const Person_MT* person, const Lane* lane, bool
 Person_MT* LaneStats::dequeue(const Person_MT* person, bool isQueuingBfrUpdate, double vehicleLength)
 {
 	if (laneAgents.size() == 0)
-		{
-			std::stringstream debugMsgs;
-			debugMsgs << "Trying to dequeue Person " << person->getDatabaseId() << " from empty lane." << std::endl;
-			Print() << debugMsgs.str();
-			return nullptr;
+	{
+		std::stringstream debugMsgs;
+		debugMsgs << "Trying to dequeue Person " << person->getDatabaseId() << " from empty lane." << std::endl;
+		Print() << debugMsgs.str();
+		return nullptr;
 	}
 	Person_MT* dequeuedPerson = nullptr;
 	if (laneInfinity)
@@ -1411,6 +1394,3 @@ bool SegmentStats::isShortSegment() const
 {
 	return (length < SHORT_SEGMENT_LENGTH_LIMIT);
 }
-
-
-

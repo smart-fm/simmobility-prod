@@ -37,6 +37,12 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
     outObj.totalPrice = result.get<double>("total_price", .0);
     outObj.valueDate = result.get<std::tm>("value_date", std::tm());
     outObj.tenureStatus = result.get<int>("tenure_status", 0);
+    outObj.isBTO = false;
+    outObj.btoPrice = result.get<double>("bto_price", 0);
+    outObj.timeOnMarket = result.get<int>("time_on_market", 0);
+    outObj.timeOffMarket = result.get<int>("time_off_market", 0);
+    outObj.biddingMarketEntryDay = result.get<int>("bidding_market_entry_day", 0);
+    outObj.askingPrice = result.get<double>("asking_price", 0);
 }
 
 void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)
@@ -55,9 +61,13 @@ void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)
 	outParams.push_back(data.getOccupancyStatus());
 	outParams.push_back(data.getLastChangedDate());
 	outParams.push_back(data.getTotalPrice());
+	outParams.push_back(data.getBTOPrice());
 	outParams.push_back(data.getValueDate());
 	outParams.push_back(data.getTenureStatus());
-
+	outParams.push_back(data.getTimeOnMarket());
+	outParams.push_back(data.getTimeOffMarket());
+	outParams.push_back(data.getbiddingMarketEntryDay());
+	outParams.push_back(data.getAskingPrice());
 }
 
 void UnitDao::insertUnit(Unit& unit,std::string schema)
@@ -80,28 +90,37 @@ void UnitDao::insertUnit(Unit& unit,std::string schema)
 		outParams.push_back(unit.getOccupancyStatus());
 		outParams.push_back(unit.getLastChangedDate());
 		outParams.push_back(unit.getTotalPrice());
+		outParams.push_back(unit.getBTOPrice());
 		outParams.push_back(unit.getValueDate());
 		outParams.push_back(unit.getTenureStatus());
+		outParams.push_back(unit.getTimeOnMarket());
+		outParams.push_back(unit.getTimeOffMarket());
+		outParams.push_back(unit.getbiddingMarketEntryDay());
+		outParams.push_back(unit.getAskingPrice());
 
 		const std::string DB_UPDATE_UNIT = "UPDATE " + schema + "fm_unit_res" + " SET "
 				+ "fm_building_id" + "= :v1, "
-				+ "sla_address_id" + "= :v2, "
-				+ "unit_type"  + "= :v3, "
-				+ "storey_range" + "= :v4, "
-				+ "construction_status" + "= :v5, "
-				+ "floor_area" + "= :v6, "
-				+ "storey" + "= :v7, "
-				+ "monthly_rent" + "= :v8, "
-				+ "sale_from_date" + "= :v9, "
-				+ "occupancy_from_date" + "= :v10, "
-				+ "sale_status" + "= :v11, "
-				+ "occupancy_status" + "= :v12, "
-				+ "last_changed_date" + "= :v13, "
-				+ "total_price" + "= :v14, "
+				+ "unit_type"  + "= :v2, "
+				+ "storey_range" + "= :v3, "
+				+ "construction_status" + "= :v45, "
+				+ "floor_area" + "= :v5, "
+				+ "storey" + "= :v6, "
+				+ "monthly_rent" + "= :v7, "
+				+ "sale_from_date" + "= :v8, "
+				+ "occupancy_from_date" + "= :v9, "
+				+ "sale_status" + "= :v10, "
+				+ "occupancy_status" + "= :v11, "
+				+ "last_changed_date" + "= :v12, "
+				+ "total_price" + "= :v13, "
+				+ "bto_price" + "= :v14, "
 				+ "value_date" + "= :v15, "
-				+ "tenure_status"
-				+ "= :v16 WHERE "
-				+ "fm_unit_id" + "=:v17";
+				+ "tenure_status" + "= :v16, "
+				+ "time_on_market" + "= :v17, "
+				+ "time_off_market" + "= :v18, "
+				+ "bidding_market_entry_day" + "= :v19, "
+				+ "asking_price"
+				+ "= :v20 WHERE "
+				+ "fm_unit_id" + "=:v21";
 		executeQueryWithParams(unit,DB_UPDATE_UNIT,outParams);
 	}
 
@@ -110,11 +129,12 @@ void UnitDao::insertUnit(Unit& unit,std::string schema)
 
 		const std::string DB_INSERT_UNIT_OP = "INSERT INTO "  + schema + ".fm_unit_res"
                 				+ " (" + "fm_unit_id" + ", " + "fm_building_id"
-								+ ", " + "unit_type" + ", " + "storey_range" + ", "
+								+ ", " + "unit_type" + ", "+ "storey_range" + ", "
 								+ "construction_status" + ", " + "floor_area"  + ", "+ "storey" + ", " + "monthly_rent" + ", "
 								+ "sale_from_date" + ", " + "occupancy_from_date"  + ", " + "sale_status"
-								+ ", "+ "occupancy_status"  + ", " + "last_changed_date" + ", " + "total_price"+ ", " + "value_date" + ", " + "tenure_status"
-								+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16)";
+								+ ", "+ "occupancy_status"  + ", "  + "last_changed_date" + ", " + "total_price"+ ", " + "bto_price"+ ", " + "value_date" + ", " + "tenure_status"
+								 + ", " + "time_on_market"  + ", " + "time_off_market"  + ", " + "bidding_market_entry_day"  + ", " + "asking_price"
+								+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21)";
 		insertViaQuery(unit,DB_INSERT_UNIT_OP);
 		}
 

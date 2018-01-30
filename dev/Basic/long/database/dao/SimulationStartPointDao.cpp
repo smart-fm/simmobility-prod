@@ -25,7 +25,7 @@ void SimulationStartPointDao::fromRow(Row& result, SimulationStartPoint& outObj)
 	outObj.configSchemaVersion = result.get<std::string>(  "configuration_schema_version", EMPTY_STR	);
 	outObj.calibrationSchemaVersion = result.get<std::string>(  "calibration_schema_version", EMPTY_STR	);
 	outObj.geometrySchemaVersion = result.get<std::string>(  "geometry_schema_version", EMPTY_STR	);
-	outObj.simStoppedTick = result.get<int>("simulation_stopped_day",0);
+	outObj.simStoppedTick = result.get<int>("simulation_stopped_tick",0);
 
 }
 
@@ -53,7 +53,7 @@ void SimulationStartPointDao::insertSimulationStartPoint(SimulationStartPoint& o
 
 std::vector<SimulationStartPoint*> SimulationStartPointDao::getAllSimulationStartPoints(std::string schema)
 {
-	const std::string queryStr = "SELECT * FROM " + schema + ".simulation_start_point" ;
+	const std::string queryStr = "SELECT * FROM " + schema + "simulation_start_point" ;
 	std::vector<SimulationStartPoint*> simulationStartPointsList;
 	getByQuery(queryStr,simulationStartPointsList);
 	return simulationStartPointsList;

@@ -18,20 +18,20 @@ namespace sim_mob
 		class IndvidualEmpSec
 		{
 		public:
-			IndvidualEmpSec (BigSerial indvidualId = INVALID_ID, BigSerial empSecId = INVALID_ID);
+			IndvidualEmpSec (BigSerial indvidualId = INVALID_ID, int empSecId = 0);
 			virtual ~IndvidualEmpSec();
 
 			BigSerial getIndvidualId() const;
-			BigSerial getEmpSecId() const;
+			int getEmpSecId() const;
 
 			void setIndividualId(BigSerial id);
-			void setEmpSecId(BigSerial empSecId);
+			void setEmpSecId(int empSecId);
 
         private:
             friend class IndvidualEmpSecDao;
 
 			BigSerial indvidualId;
-			BigSerial empSecId;
+			int empSecId;
 		};
 	}
 }

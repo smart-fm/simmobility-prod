@@ -530,11 +530,6 @@ public:
 	void incrementSegmentFlow(const RoadSegment* rdSeg, uint16_t statsNum);
 
 	/**
-	 * resets flow counter in segstats to 0
-	 */
-	void resetSegmentFlows();
-
-	/**
 	 * updates lane params for all lanes within the conflux
 	 * @param frameNumber current time slice
 	 */

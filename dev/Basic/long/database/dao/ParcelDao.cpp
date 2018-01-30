@@ -16,8 +16,8 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-ParcelDao::ParcelDao(DB_Connection& connection)
-: SqlAbstractDao<Parcel>(connection, "","", "", "","SELECT * FROM " + connection.getSchema()+"fm_parcel", "") {}
+ParcelDao::ParcelDao(DB_Connection& connection, const std::string& tableName)
+: SqlAbstractDao<Parcel>(connection, tableName,"", "", "","SELECT * FROM " + connection.getSchema()+ tableName, "") {}
 
 ParcelDao::~ParcelDao() {}
 
@@ -91,7 +91,7 @@ std::vector<Parcel*>  ParcelDao::getEmptyParcels()
 
 std::vector<Parcel*> ParcelDao::getParcelsWithOngoingProjects(std::string schema)
 {
-	const std::string queryStr = "SELECT * FROM " + connection.getSchema() + schema + ".fm_parcel";
+	const std::string queryStr = "SELECT * FROM " + schema + "fm_parcel where  development_status = 1 and development_allowed = 3";
 	std::vector<Parcel*> parcelsWithOngoingProjectsList;
 	getByQuery(queryStr,parcelsWithOngoingProjectsList);
 	return parcelsWithOngoingProjectsList;

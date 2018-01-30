@@ -9,17 +9,17 @@
 
 using namespace sim_mob::long_term;
 
-IndvidualEmpSec::IndvidualEmpSec(BigSerial indvidualId, BigSerial empSecId): indvidualId(indvidualId), empSecId(empSecId){}
+IndvidualEmpSec::IndvidualEmpSec(BigSerial indvidualId, int empSecId): indvidualId(indvidualId), empSecId(empSecId){}
 
 IndvidualEmpSec::~IndvidualEmpSec() {
 }
 
-BigSerial IndvidualEmpSec::getEmpSecId() const
+int IndvidualEmpSec::getEmpSecId() const
 {
 	return empSecId;
 }
 
-void IndvidualEmpSec::setEmpSecId(BigSerial empSecId)
+void IndvidualEmpSec::setEmpSecId(int empSecId)
 {
 	this->empSecId = empSecId;
 }

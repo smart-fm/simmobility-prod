@@ -280,12 +280,12 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 	if(initialRun)
 	{
 		IndvidualVehicleOwnershipLogsum *logsum = model->getIndvidualVehicleOwnershipLogsumsByHHId(household.getId());
-		double logsum0 = logsum->getLogsum0();
-		double logsum1 = logsum->getLogsum1();
-		double logsum2 = logsum->getLogsum2();
-		double logsum3 = logsum->getLogsum3();
-		double logsum4 = logsum->getLogsum4();
-		double logsum5 = logsum->getLogsum5();
+		logsum0 = logsum->getLogsum0();
+		logsum1 = logsum->getLogsum1();
+		logsum2 = logsum->getLogsum2();
+		logsum3 = logsum->getLogsum3();
+		logsum4 = logsum->getLogsum4();
+		logsum5 = logsum->getLogsum5();
 		logsumVec.push_back(logsum0);
 		logsumVec.push_back(logsum1);
 		logsumVec.push_back(logsum2);
@@ -597,6 +597,10 @@ double VehicleOwnershipModel::getExp2(int unitTypeId,double vehicleOwnershipLogs
 		value = value + coeffsObj->getHhChild1();
 	}
 	else if ( (household.getChildUnder15()>1) || (household.getChildUnder4()> 1))
+	{
+		value = value + coeffsObj->getHhChild2Plus();
+	}
+	else if ( (household.getChildUnder15()==1) && (household.getChildUnder4()== 1) )
 	{
 		value = value + coeffsObj->getHhChild2Plus();
 	}

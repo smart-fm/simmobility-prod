@@ -59,20 +59,20 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     futureTransitionOwn = false;
 
 
-    //The code below sets the household income to be the sum of all individual incomes
-    //That is because the database household income is inconsistent with the sum of the individual incomes
-    if( household )
-    {
-		double householdIncome = 0;
-		vector<BigSerial> individuals = household->getIndividuals();
-		for(int n = 0; n < individuals.size(); n++)
-		{
-			const Individual *individual = getModel()->getIndividualById(individuals[n]);
-			householdIncome += individual->getIncome();
-		}
-
-		household->setIncome(householdIncome);
-    }
+//    //The code below sets the household income to be the sum of all individual incomes
+//    //That is because the database household income is inconsistent with the sum of the individual incomes
+//    if( household )
+//    {
+//		double householdIncome = 0;
+//		vector<BigSerial> individuals = household->getIndividuals();
+//		for(int n = 0; n < individuals.size(); n++)
+//		{
+//			const Individual *individual = getModel()->getIndividualById(individuals[n]);
+//			householdIncome += individual->getIncome();
+//		}
+//
+//		household->setIncome(householdIncome);
+//    }
 
 }
 
@@ -361,6 +361,37 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
 
         }
 
+        case LTEID_HM_PRIVATE_PRESALE_UNIT_ADDED:
+        {
+        	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+        	//generate a unifromly distributed random number
+        	std::random_device rd;
+        	std::mt19937 gen(rd());
+        	std::uniform_real_distribution<> dis(0.0, 1.0);
+        	const double montecarlo = dis(gen);
+
+        	if( montecarlo < config.ltParams.housingModel.householdAwakeningPercentageByBTO )
+        	{
+        		if (bidder)
+        		{
+        			getModel()->incrementNumberOfBTOAwakenings();
+
+        			awakeningDay = day;
+        			household->setAwakenedDay(day);
+        			bidder->setActive(true);
+
+        			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+        			householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow;
+        			bidder->setMoveInWaitingTimeInDays(-1);
+        			buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
+        		}
+        	}
+        	break;
+
+        }
+
 
         default:break;
     };
@@ -417,9 +448,12 @@ void HouseholdAgent::onWorkerEnter()
 {
 	TimeCheck awakeningTiming;
 
-	AwakeningSubModel awakenings;
-	awakenings.InitialAwakenings( model, household, this, day );
-	futureTransitionOwn = awakenings.getFutureTransitionOwn();
+	//if(this->getHousehold()->!= nullptr && getPendingStatusId() != 1)
+	//{
+		AwakeningSubModel awakenings;
+		awakenings.InitialAwakenings( model, household, this, day );
+		futureTransitionOwn = awakenings.getFutureTransitionOwn();
+	//}
 
 	double awakeningTime =  awakeningTiming.getClockTime();
 
@@ -485,11 +519,14 @@ void HouseholdAgent::onWorkerEnter()
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
 
+
         const Household *hh = this->getHousehold();
         if( hh->getTwoRoomHdbEligibility() || hh->getThreeRoomHdbEligibility() || hh->getFourRoomHdbEligibility() )
         {
         	MessageBus::SubscribeEvent(LTEID_HM_BTO_UNIT_ADDED, this);
         }
+
+        MessageBus::SubscribeEvent(LTEID_HM_PRIVATE_PRESALE_UNIT_ADDED, this);
     }
 
     if(config.ltParams.schoolAssignmentModel.enabled)
@@ -535,6 +572,7 @@ void HouseholdAgent::onWorkerExit()
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
 
         MessageBus::UnSubscribeEvent(LTEID_HM_BTO_UNIT_ADDED, this);
+        MessageBus::UnSubscribeEvent(LTEID_HM_PRIVATE_PRESALE_UNIT_ADDED, this);
     }
 }
 

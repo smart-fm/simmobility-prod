@@ -447,13 +447,9 @@ void HouseholdAgent::setAcceptedBid(bool isAccepted)
 void HouseholdAgent::onWorkerEnter()
 {
 	TimeCheck awakeningTiming;
-
-	//if(this->getHousehold()->!= nullptr && getPendingStatusId() != 1)
-	//{
-		AwakeningSubModel awakenings;
-		awakenings.InitialAwakenings( model, household, this, day );
-		futureTransitionOwn = awakenings.getFutureTransitionOwn();
-	//}
+	AwakeningSubModel awakenings;
+	awakenings.InitialAwakenings( model, household, this, day );
+	futureTransitionOwn = awakenings.getFutureTransitionOwn();
 
 	double awakeningTime =  awakeningTiming.getClockTime();
 

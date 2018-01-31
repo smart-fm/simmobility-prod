@@ -1579,7 +1579,6 @@ void HM_Model::startImpl()
 
 			//Load households
 			loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-			//households.resize(1000);
 			PrintOutV("Number of households: " << households.size() << " Households used: " << households.size()  << std::endl);
 
 			//load individuals
@@ -1605,6 +1604,11 @@ void HM_Model::startImpl()
 		//Load units
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
 		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
+
+		HouseholdDao hhDao(conn);
+		std::tm currentSimYear = getDateBySimDay(simYear,0);
+		std::tm lastDayOfCurrentSimYear = getDateBySimDay(simYear,364);
+		pendingHouseholds = hhDao.getPendingHouseholds(currentSimYear,lastDayOfCurrentSimYear);
 
 
 		//Load unit types
@@ -4060,6 +4064,11 @@ int HM_Model::getJobAssignIndividualCount()
 void HM_Model::incrementJobAssignIndividualCount()
 {
 	++jobAssignIndCount;
+}
+
+HM_Model::HouseholdList HM_Model::getPendingHouseholds()
+{
+	return pendingHouseholds;
 }
 
 void HM_Model::stopImpl()

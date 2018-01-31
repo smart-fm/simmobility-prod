@@ -521,6 +521,7 @@ namespace sim_mob
             void incrementPreSchoolAssignIndividualCount();
             int getPreSchoolAssignIndividualCount();
             void addStudentToPrimarySchool(BigSerial individualId, int schoolId, BigSerial householdId);
+            HouseholdList getPendingHouseholds();
 
 
         protected:
@@ -540,6 +541,7 @@ namespace sim_mob
             HousingMarket market;
 
             HouseholdList households;
+            HouseholdList pendingHouseholds;
             HouseholdMap householdsById;
             HouseholdMap householdWithBidsById;
 

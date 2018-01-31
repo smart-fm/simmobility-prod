@@ -161,6 +161,16 @@ std::vector<Unit*> UnitDao::getBTOUnits(std::tm currentSimYear)
 	return BTOUnitList;
 }
 
+std::vector<Unit*> UnitDao::getPrivatePresaleUnits(std::tm currentSimYear)
+{
+	const std::string DB_GETALL_PRIVATE_PRESALE_UNITS = "SELECT * FROM " + connection.getSchema() + "fm_unit_res" + " WHERE  sale_from_date > :v1 and unit_type >=7";
+	db::Parameters params;
+	params.push_back(currentSimYear);
+	std::vector<Unit*> preesaleUnitList;
+	getByQueryId(DB_GETALL_PRIVATE_PRESALE_UNITS,params,preesaleUnitList);
+	return preesaleUnitList;
+}
+
 std::vector<Unit*> UnitDao::getOngoingBTOUnits(std::tm currentSimYear)
 {
 	const std::string DB_GETALL_ONGOING_BTO_UNITS = "SELECT * FROM " + connection.getSchema() + "fm_unit_res" + " WHERE  sale_from_date < :v1  and occupancy_from_date > :v2;";

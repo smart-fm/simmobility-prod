@@ -114,6 +114,11 @@ namespace sim_mob {
              */
             void createBTODeveloperAgents();
 
+            /*
+             * create devloper agents to launch private presale units
+             */
+            void createPrivatePresaleDeveloperAgents();
+
             void wakeUpDeveloperAgents(DeveloperList devAgentList);
 
             /*
@@ -286,6 +291,8 @@ namespace sim_mob {
 
             std::vector<BigSerial> getBTOUnits(std::tm currentDate);
 
+            std::vector<BigSerial> getPrivatePresaleUnits(std::tm currentDate);
+
             void loadHedonicCoeffs(DB_Connection &conn);
 
             const HedonicCoeffs* getHedonicCoeffsByPropertyTypeId(BigSerial propertyId) const;
@@ -409,6 +416,7 @@ namespace sim_mob {
             ROILimitsMap roiLimitsByDevTypeId;
             UnitList btoUnits;
             UnitList ongoingBtoUnits;
+            UnitList privatePresaleUnits;
             HedonicCoeffsList hedonicCoefficientsList;
             HedonicCoeffsByUnitTypeList hedonicCoefficientsByUnitTypeList;
             HedonicCoeffsMap hedonicCoefficientsByPropertyTypeId;

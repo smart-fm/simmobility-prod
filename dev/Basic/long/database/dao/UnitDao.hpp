@@ -55,6 +55,8 @@ namespace sim_mob {
              */
             std::vector<Unit*> getBTOUnits(std::tm currentSimYear);
 
+            std::vector<Unit*> getPrivatePresaleUnits(std::tm currentSimYear);
+
             /*
              * Get ongoing BTO units
              */

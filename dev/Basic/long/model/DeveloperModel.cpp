@@ -169,6 +169,7 @@ void DeveloperModel::startImpl() {
 		std::tm currentSimYear = getDateBySimDay(simYear,0);
 		UnitDao unitDao(conn);
 		btoUnits = unitDao.getBTOUnits(currentSimYear);
+		privatePresaleUnits = unitDao.getPrivatePresaleUnits(currentSimYear);
 		//ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
 
 		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
@@ -246,6 +247,7 @@ void DeveloperModel::startImpl() {
 	createDeveloperAgents(parcelsWithDay0Projects,false,true);
 	PrintOutV("Created dev agents"<<std::endl);
 	createBTODeveloperAgents();
+	createPrivatePresaleDeveloperAgents();
 	wakeUpDeveloperAgents(getDeveloperAgents());
 	PrintOutV("Wokeup dev agents"<<std::endl);
 
@@ -257,6 +259,7 @@ void DeveloperModel::startImpl() {
 	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
 	PrintOutV("Parcel Amenities " << parcelsWithHDB.size() << std::endl);
 	PrintOutV("BTO units " << btoUnits.size() << std::endl);
+	PrintOutV("Private presale units " << privatePresaleUnits.size() << std::endl);
 	PrintOutV("Parcels with units to launch on Day 0 " << parcelsWithDay0Projects.size() << std::endl);
 
 	addMetadata("Time Interval", timeInterval);
@@ -501,6 +504,22 @@ void DeveloperModel::createBTODeveloperAgents()
 	agents.push_back(devAgent);
 	developers.push_back(devAgent);
 	workGroup.assignAWorker(devAgent);
+}
+
+void DeveloperModel::createPrivatePresaleDeveloperAgents()
+{
+	DeveloperAgent* devAgent = new DeveloperAgent(nullptr, this);
+	AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
+	RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
+	devAgent->setRealEstateAgent(realEstateAgent);
+	devAgent->setHousingMarketModel(housingMarketModel);
+	devAgent->setSimYear(simYear);
+	devAgent->setHasPrivatePresale(true);
+	devAgent->setActive(true);
+	agents.push_back(devAgent);
+	developers.push_back(devAgent);
+	workGroup.assignAWorker(devAgent);
+
 }
 
 void DeveloperModel::wakeUpDeveloperAgents(DeveloperList devAgentList)
@@ -972,6 +991,19 @@ std::vector<BigSerial> DeveloperModel::getBTOUnits(std::tm currentDate)
 			}
 	}
 	return btoUnitsForSale;
+}
+
+std::vector<BigSerial>  DeveloperModel::getPrivatePresaleUnits(std::tm currentDate)
+{
+	std::vector<BigSerial> privatePresaleUnitsToLaunch;
+	for(Unit *unit : privatePresaleUnits)
+	{
+		if(compareTMDates(unit->getSaleFromDate(),currentDate))
+		{
+			privatePresaleUnitsToLaunch.push_back(unit->getId());
+		}
+	}
+	return privatePresaleUnitsToLaunch;
 }
 
 void DeveloperModel::loadHedonicCoeffs(DB_Connection &conn)

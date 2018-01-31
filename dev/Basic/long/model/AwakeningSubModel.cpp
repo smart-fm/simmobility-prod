@@ -341,14 +341,13 @@ namespace sim_mob
 
 		    	int awakenDay = household->getLastAwakenedDay();
 
-
 		    	if( household->getLastBidStatus() == 0 && day < awakenDay + household->getTimeOnMarket() )
 		    		continue;
 
 				if( (household->getLastBidStatus() == 1 ||  household->getLastBidStatus() == 2) && household->getTimeOffMarket() > 0)
 					continue;
 
-				if(household->getUnitPending() == 1)
+				if(household->getPendingStatusId() == 1)
 					continue;
 
                 double futureTransitionRate = 0;

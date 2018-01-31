@@ -156,11 +156,15 @@ namespace sim_mob {
 
             void setHasBto(bool hasBto);
 
+            void setHasPrivatePresale(bool privatePresale);
+
             bool isIsDay0Project() const;
 
             void setIsDay0Project(bool isDay0Project);
 
             void launchOnGoingUnitsOnDay0();
+
+            void launchPrivatePresaleUnits(std::tm currentDate);
 
         private:
             DeveloperModel* devModel;
@@ -181,6 +185,7 @@ namespace sim_mob {
             bool parcelDBStatus;
             bool hasBTO;
             bool onGoingProjectOnDay0;
+            bool hasPrivatePresale;
 
         };
     }

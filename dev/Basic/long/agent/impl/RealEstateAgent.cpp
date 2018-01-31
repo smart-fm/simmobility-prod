@@ -242,7 +242,6 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	            		(itr->second)->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket );
 	            		(itr->second)->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket );
 	            		(itr->second)->setbiddingMarketEntryDay(day);
- 				(itr->second)->setBto(true);
 	            	}
 	            changeUnitSaleStatus(hmMessage.getUnitId(),UNIT_LAUNCHED_BUT_UNSOLD);
 	            break;
@@ -258,7 +257,6 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	        		(itr->second)->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket );
 	        		(itr->second)->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket );
 	        		(itr->second)->setbiddingMarketEntryDay(day);
-	        		(itr->second)->setBto(true);
 	        	}
 	        	changeUnitSaleStatus(hmMessage.getUnitId(),UNIT_LAUNCHED_BUT_UNSOLD);
 	        	break;
@@ -326,6 +324,27 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 
 
 				MessageBus::PublishEvent(LTEID_HM_BTO_UNIT_ADDED,MessageBus::EventArgsPtr(new EventArgs()));
+				break;
+			}
+			case LT_DEV_PRIVATE_PRESALE_UNIT_ADDED:
+			{
+				const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+				std::vector<BigSerial> btoUnitIdVec  = hmMessage.getBtoUnitIdVec();
+				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+				for(BigSerial unitId : btoUnitIdVec)
+				{
+					Unit *unit = houseingMarketModel->getUnitById(unitId);
+
+					unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket );
+					unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket );
+					unit->setbiddingMarketEntryDay(day);
+
+					units.push_back(unit);
+					unitsById.insert(std::make_pair((unit)->getId(), unit));
+					unitIds.push_back(unitId);
+				}
+				MessageBus::PublishEvent(LTEID_HM_PRIVATE_PRESALE_UNIT_ADDED,MessageBus::EventArgsPtr(new EventArgs()));
 				break;
 			}
 	        default:break;

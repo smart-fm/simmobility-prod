@@ -687,7 +687,7 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     	currentTick = now.ms();
     	std::tm currentDate = getDateBySimDay(simYear,now.ms());
 
-    	if(!hasBTO)
+    	if(!hasBTO && !hasPrivatePresale)
     	{
     	if(this->parcel->getStatus()== 0)
     	{
@@ -735,6 +735,10 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     	else if(config.ltParams.launchBTO && hasBTO)
     	{
     		launchBTOUnits(currentDate);
+    	}
+    	else if(hasPrivatePresale)
+    	{
+    		launchPrivatePresaleUnits(currentDate);
     	}
 
     }
@@ -908,13 +912,13 @@ void DeveloperAgent::processExistingProjects()
 				#endif
 
 				//comment this to disable private unit launches by developer model, when running BTO.
-				for(unitsItr = unitsToSale.begin(); unitsItr != unitsToSale.end(); unitsItr++)
-				{
-					(*unitsItr)->setSaleStatus(UNIT_LAUNCHED_BUT_UNSOLD);
-					(*unitsItr)->setOccupancyStatus(UNIT_READY_FOR_OCCUPANCY_AND_VACANT);
-					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_NEW_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
-					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
-				}
+//				for(unitsItr = unitsToSale.begin(); unitsItr != unitsToSale.end(); unitsItr++)
+//				{
+//					(*unitsItr)->setSaleStatus(UNIT_LAUNCHED_BUT_UNSOLD);
+//					(*unitsItr)->setOccupancyStatus(UNIT_READY_FOR_OCCUPANCY_AND_VACANT);
+//					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_NEW_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
+//					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
+//				}
 
 			}
 		break;
@@ -969,6 +973,11 @@ bool DeveloperAgent::isHasBto() const
 void DeveloperAgent::setHasBto(bool hasBto)
 {
 		hasBTO = hasBto;
+}
+
+void DeveloperAgent::setHasPrivatePresale(bool privatePresale)
+{
+	hasPrivatePresale = privatePresale;
 }
 
 void DeveloperAgent::onFrameOutput(timeslice now) {
@@ -1160,4 +1169,14 @@ void DeveloperAgent::launchOnGoingUnitsOnDay0()
 			MessageBus::PostMessage(this, LT_STATUS_ID_DEV_ONGOING_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg(unit->getId())), true);
 		}
 	}
+}
+
+void DeveloperAgent::launchPrivatePresaleUnits(std::tm currentDate)
+{
+	std::vector<BigSerial>  presaleUnits = devModel->getPrivatePresaleUnits(currentDate);
+		if(presaleUnits.size()>0)
+		{
+			MessageBus::PostMessage(realEstateAgent, LT_DEV_PRIVATE_PRESALE_UNIT_ADDED, MessageBus::MessagePtr(new HM_ActionMessage((presaleUnits))), true);
+		}
+
 }

@@ -388,6 +388,20 @@ namespace sim_mob
 		    	events.push_back(extEv);
 		    }
 
+		    int simYear = config.ltParams.year;
+		    std::tm currentDate = getDateBySimDay(simYear,day);
+		    HM_Model::HouseholdList pendingHouseholds = model->getPendingHouseholds();
+		    for(Household *household : pendingHouseholds)
+		    {
+		    	if(compareTMDates(household->getPendingFromDate(),currentDate))
+		    	{
+		    		//set the last bid status to 1 as this house has already done a successful bid and waiting to move in.
+		    		household->setLastBidStatus(1);
+		    		household->setAwakenedDay(day);
+		    		household->setLastAwakenedDay(day);
+		    	}
+		    }
+
 		    return events;
 		}
 	}

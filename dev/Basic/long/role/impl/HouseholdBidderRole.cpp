@@ -420,8 +420,6 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
             {
                 case ACCEPTED:// Bid accepted 
                 {
-
-
                 	unitIdToBeOwned = msg.getBid().getNewUnitId();
                 	const Unit *newUnit = getParent()->getModel()->getUnitById(unitIdToBeOwned);
                 	boost::gregorian::date moveInDate = boost::gregorian::date_from_tm(newUnit->getOccupancyFromDate());
@@ -438,14 +436,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
-                	//if(newUnit->isBto())
-                	//{
-                	//	getParent()->getHousehold()->setLastBidStatus(4);
-                	//}
-                	//else
-                	//{
                 	getParent()->getHousehold()->setLastBidStatus(1);
-                	//}
 
                 	getParent()->getHousehold()->setTimeOffMarket(moveInWaitingTimeInDays + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid);
             		getParent()->setAcceptedBid(true);

@@ -58,22 +58,6 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
 
     futureTransitionOwn = false;
 
-
-//    //The code below sets the household income to be the sum of all individual incomes
-//    //That is because the database household income is inconsistent with the sum of the individual incomes
-//    if( household )
-//    {
-//		double householdIncome = 0;
-//		vector<BigSerial> individuals = household->getIndividuals();
-//		for(int n = 0; n < individuals.size(); n++)
-//		{
-//			const Individual *individual = getModel()->getIndividualById(individuals[n]);
-//			householdIncome += individual->getIncome();
-//		}
-//
-//		household->setIncome(householdIncome);
-//    }
-
 }
 
 HouseholdAgent::~HouseholdAgent()

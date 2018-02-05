@@ -1139,8 +1139,8 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 	double totalLength = 0.0;
 
 	const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
-	const std::vector<Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
-	for (vector<Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
+	const std::vector<const Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
+	for (vector<const Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 	{
 		const Lane* lane = *lnIt;
 		if (!lane->isPedestrianLane())

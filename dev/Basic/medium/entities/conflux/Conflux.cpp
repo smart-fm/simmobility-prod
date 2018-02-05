@@ -2229,8 +2229,8 @@ void sim_mob::medium::Conflux::writeOutputs()
 
 void Conflux::insertIncident(SegmentStats* segStats, double newFlowRate)
 {
-	const std::vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
-	for (std::vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++)
+	const std::vector<const Lane*>& lanes = segStats->getRoadSegment()->getLanes();
+	for (std::vector<const Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++)
 	{
 		segStats->updateLaneParams((*it), newFlowRate);
 	}
@@ -2238,8 +2238,8 @@ void Conflux::insertIncident(SegmentStats* segStats, double newFlowRate)
 
 void Conflux::removeIncident(SegmentStats* segStats)
 {
-	const std::vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
-	for (std::vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++)
+	const std::vector<const Lane*>& lanes = segStats->getRoadSegment()->getLanes();
+	for (std::vector<const Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++)
 	{
 		segStats->restoreLaneParams(*it);
 	}
@@ -2758,11 +2758,11 @@ void Conflux::CreateLaneGroups()
 			{
 				SegmentStats* currSegStats = (*upSegsRevIt);
 				const RoadSegment* currSeg = currSegStats->getRoadSegment();
-				const std::vector<Lane*>& currLanes = currSeg->getLanes();
+				const std::vector<const Lane*>& currLanes = currSeg->getLanes();
 				if (currSeg == downstreamSegStats->getRoadSegment())
 				{	//currSegStats and downstreamSegStats have the same parent segment
 					//lanes of the two segstats are same
-					for (std::vector<Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
+					for (std::vector<const Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
 					{
 						const Lane* ln = (*lnIt);
 						if (ln->isPedestrianLane())
@@ -2776,7 +2776,7 @@ void Conflux::CreateLaneGroups()
 				}
 				else
 				{
-					for (std::vector<Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
+					for (std::vector<const Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
 					{
 						const Lane* ln = (*lnIt);
 						if (ln->isPedestrianLane())

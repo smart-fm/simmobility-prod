@@ -37,7 +37,7 @@ private:
 	double capacity;
 
 	/**The lanes that make up th road segment*/
-	std::vector<Lane *> lanes;
+	std::vector<const Lane *> lanes;
 
 	/**The id of the link to which the segment belongs*/
 	unsigned int linkId;
@@ -80,7 +80,7 @@ public:
 	 */
 	void setCapacity(unsigned int capacityVph);
 
-	const std::vector<Lane *>& getLanes() const;
+	const std::vector<const Lane *>& getLanes() const;
 	const Lane* getLane(int index) const;
 
 	unsigned int getLinkId() const;
@@ -116,7 +116,7 @@ public:
 	 * Adds a lane to the vector of lanes that make up the segment
 	 * @param lane - lane to be added
 	 */
-	void addLane(Lane *lane);
+	void addLane(const Lane *lane);
 
 	/**
 	 * Adds an obstacle in the road segment. It can be a bus stop, a crossing or an incident

@@ -310,8 +310,8 @@ const Lane* BusDriverMovement::getBestTargetLane(const SegmentStats* nextSegStat
 		double total = 0.0;
 
 		const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
-		const std::vector<Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
-		for (vector<Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
+		const std::vector<const Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
+		for (vector<const Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
 		{
 			const Lane* lane = *lnIt;
 			if (!lane->isPedestrianLane())
@@ -349,7 +349,7 @@ const Lane* BusDriverMovement::getBestTargetLane(const SegmentStats* nextSegStat
 			//TODO: if minLane is null, there is probably no lane connection from any lane in next segment stats to
 			// the lanes in the nextToNextSegmentStats. The code in this block is a hack to avoid errors due to this reason.
 			//This code must be removed and an error must be thrown here in future.
-			for (vector<Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
+			for (vector<const Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
 			{
 				if (!((*lnIt)->isPedestrianLane()))
 				{

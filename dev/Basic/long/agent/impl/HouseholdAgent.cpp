@@ -38,9 +38,9 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay, bool acceptedBid)
+HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay, bool acceptedBid, int buySellInterval)
 							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
-							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay),acceptedBid(acceptedBid), buySellInterval(buySellInterval)
+							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay),acceptedBid(acceptedBid), buySellInterval(-1)
 							{
 
 	//Freelance agents are active by default.
@@ -187,12 +187,9 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	//There is a final contraint on BTOs. If the bidder successfully bid on a BTO, it will not sell its unit until
 	//the waiting time to move in is less than offsetBetweenUnitBuyingAndSellingAdvancedPurchase
 
-	//has 7 days elapsed since the bidder was activted OR the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
-	if(buySellInterval == 0 || (acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
+	//has 7 days elapsed since the bidder was activted AND the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
+	if(( bidder && bidder->isActive() && buySellInterval == 0) && (acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
 	{
-	//	if(bidder->getParent()->getHousehold()->getLastBidStatus() != 4)
-	//{
-			//buySellIntervalCompleted = true;
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
 			BigSerial unitId = *itr;
@@ -207,7 +204,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 					entry->setBuySellIntervalCompleted(true);
 			}
 		}
-	//}
 }
 
     if (seller && seller->isActive())
@@ -216,13 +212,18 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     }
 
 
-    //
     if (bidder && bidder->isActive() && householdBiddingWindow > 0 && awakeningDay < day)
     {
         bidder->update(now);
         householdBiddingWindow--;
-       	buySellInterval--;
+       //	buySellInterval--;
        	household->updateTimeOnMarket();
+    }
+
+    //decrement the buy sell interval only after a successful bid
+    if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 && bidder->getParent()->getHousehold()->getLastBidStatus() == 1)
+    {
+    	buySellInterval--;
     }
 
 	//If 1) the bidder is active and 2) it is not waiting to move into a unit and 3) it has exceeded it's bidding time frame,

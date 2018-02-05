@@ -448,6 +448,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 		getParent()->getHousehold()->setUnitPending(1);
                 		moveInWaitingTimeInDays = (moveInWaitingTimeInDays + day) - simulationEndDay;
                 		getParent()->getHousehold()->setPendingFromDate(getDateBySimDay(year,moveInWaitingTimeInDays));
+                		getParent()->setBuySellInterval(config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling);
                 	}
 
                     break;

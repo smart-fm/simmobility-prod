@@ -204,37 +204,33 @@ void OnCallDriver::reload()
                    << ": Reloaded"  << endl;
 }
 
-void OnCallDriver::subscribeToOrIgnoreController(const SvcControllerMap& controllers, unsigned int controllerId)
+void OnCallDriver::subscribeToController()
 {
-    if (parent->getServiceVehicle().controllerSubscription & controllerId)
+    auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+    const unsigned int subscribedCtrlr = parent->getServiceVehicle().controllerSubscription;
+    //Look for the driver's subscribed controller in the multi-index
+    SvcControllerMap::index<ctrlrId>::type::iterator it = controllers.get<ctrlrId>().find(subscribedCtrlr);
+
+#ifndef NDEBUG
+    if (it == controllers.get<ctrlrId>().end())
     {
-        auto range = controllers.find(controllerId);
-
-#ifndef NDEBUG
-        if (range == controllers.end())
-        {
-            std::stringstream msg;
-            msg << "OnCallDriver " << parent->getDatabaseId() << " wants to subscribe to id "
-                << controllerId << ", but no controller of that id is registered";
-            throw std::runtime_error(msg.str());
-        }
-#endif
-
-        auto itController = range;
-        {
-            MessageBus::PostMessage(itController->second, MSG_DRIVER_SUBSCRIBE,
-                                    MessageBus::MessagePtr(new DriverSubscribeMessage(parent)));
-
-#ifndef NDEBUG
-            ControllerLog() << "OnCallDriver " << parent->getDatabaseId()
-                            << " sent a subscription to the controller "
-                            << itController->second->toString() << " at time " << parent->currTick;
-            ControllerLog() << ". parentDriver pointer " << parent << endl;
-#endif
-
-            subscribedControllers.push_back(itController->second);
-        }
+        std::stringstream msg;
+        msg << "OnCallDriver " << parent->getDatabaseId() << " wants to subscribe to id "
+        << subscribedCtrlr << ", but no controller of that id is registered";
+        throw std::runtime_error(msg.str());
     }
+#endif
+
+    MessageBus::PostMessage(*it, MSG_DRIVER_SUBSCRIBE, MessageBus::MessagePtr(new DriverSubscribeMessage(parent)));
+
+#ifndef NDEBUG
+        ControllerLog() << "OnCallDriver " << parent->getDatabaseId()
+         << " sent a subscription to the controller "
+                << (*it)->toString() << " at time " << parent->currTick;
+
+    ControllerLog() << ". parentDriver pointer " << parent << endl;
+#endif
+    	subscribedControllers.push_back(*it);
 }
 
 void OnCallDriver::sendScheduleAckMessage(bool success)
@@ -281,16 +277,11 @@ void OnCallDriver::collectTravelTime(Person_ST* person)
 }
 void OnCallDriver::pickupPassenger()
 {
-//Indicates whether we need to pick up another person at this point
-   /* bool pickupAnotherPerson = false;
-
-    do
-    {*/
         //Get the passenger name from the schedule
         auto currItem = driverSchedule.getCurrScheduleItem();
         const string &passengerId = currItem->tripRequest.userId;
 
-        Person_ST *personPickedUp = dynamic_cast<Person_ST*>(getAssignedSchedule().back().tripRequest.person);
+        Person_ST *personPickedUp =dynamic_cast<Person_ST*>(getAssignedSchedule().back().tripRequest.person); //dynamic_cast<Person_ST*>(currItem->tripRequest.person);
 
         if(personPickedUp)
         {
@@ -344,27 +335,19 @@ void OnCallDriver::pickupPassenger()
                         << personPickedUp->currSubTrip->destination.node->getNodeId()
                         << ", and driverId " << parent->getDatabaseId() << std::endl;
 
+     /*   cout<< "Pickup succeeded for " << passengerId << " at time " << parent->currTick
+            << " with startNodeId " << personPickedUp->currSubTrip->origin.node->getNodeId() << ", destinationNodeId "
+            << personPickedUp->currSubTrip->destination.node->getNodeId()
+            << ", and driverId " << parent->getDatabaseId() << std::endl;
+
+*/
+
+
         //Mark schedule item as completed
         scheduleItemCompleted();
-/*
-        //Check if the next schedule item is also a pickup and at the same node
-        //Note: This can happen when a controller that assigns shared requests is being used
-
-        //Note: We have marked the previous schedule item as completed, so the current schedule item
-        //iterator has been updated
-        auto nxtItem = driverSchedule.getCurrScheduleItem();
-
-        pickupAnotherPerson = nxtItem->scheduleItemType == PICKUP
-                             && currItem->tripRequest.startNode == nxtItem->tripRequest.startNode;
-    }while(pickupAnotherPerson);*/
 }
 void OnCallDriver::dropoffPassenger()
 {
-    //Indicates whether we need to drop off another person at this point
-   /* bool dropOffAnotherPerson = false;
-
-    do
-    {*/
         //Get the passenger to be dropped off
         auto currItem = driverSchedule.getCurrScheduleItem();
         const string &passengerId = currItem->tripRequest.userId;
@@ -385,29 +368,16 @@ void OnCallDriver::dropoffPassenger()
         Person_ST *person = passengerToBeDroppedOff->getParent();
 
         passengerToBeDroppedOff->setFinalPointDriverDistance(movement->getTravelMetric().distance);
-        //Remove passenger from vehicle
-        passengers.erase(itPassengers);
-        ControllerLog() << "Drop-off of user ";
-        ControllerLog() << person->getDatabaseId() << " at time "<< person->currTick << ", and driverId " << getParent()->getDatabaseId() << std::endl;
-/*
-        //Mark schedule item as completed
-        scheduleItemCompleted();
 
-        //Check if the next schedule item is also a drop-off and at the same node
-        //Note: This can happen when a controller that assigns shared requests is being used
-        if(!driverSchedule.isScheduleCompleted())
-        {
-            //Note: We have marked the previous schedule item as completed, so the current schedule item
-            //iterator has been updated
-            auto nxtItem = driverSchedule.getCurrScheduleItem();
+    //Remove passenger from vehicle
+    passengers.erase(itPassengers);
+    ControllerLog() << "Drop-off of user " << passengerId<<" at destination node: "<< getCurrLane()->getParentSegment()->getParentLink()->getToNode()->getNodeId()
+                    << " at time " << parent->currTick
+                    << "  and driverId " << getParent()->getDatabaseId() <<std::endl;
+   /* cout << "Drop-off of user " << passengerId<<" at destination node: "<< getCurrLane()->getParentSegment()->getParentLink()->getToNode()->getNodeId()
+         << " at time " << parent->currTick
+         << "  and driverId " << getParent()->getDatabaseId() <<std::endl;
+         */
 
-            dropOffAnotherPerson = nxtItem->scheduleItemType == DROPOFF
-                                   && currItem->tripRequest.destinationNode == nxtItem->tripRequest.destinationNode;
-        }
-        else
-        {
-            dropOffAnotherPerson = false;
-        }
 
-    }while(dropOffAnotherPerson);*/
 }

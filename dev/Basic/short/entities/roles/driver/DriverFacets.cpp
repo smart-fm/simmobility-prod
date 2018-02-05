@@ -553,7 +553,6 @@ bool DriverMovement::updateMovement()
 
 	//Store the current link to check if the link has changed after the movement
 	const Link *prevLink = fwdDriverMovement.getCurrLink();
-	
 	std::vector<const RoadSegment*> segmentsPassed;
 	const WayPoint &startWayPoint = fwdDriverMovement.getCurrWayPoint();
 
@@ -962,7 +961,7 @@ std::vector<WayPoint> DriverMovement::buildPath(std::vector<WayPoint> &wayPoints
 		//Create a way point for every segment and insert it into the path
 		for (vector<RoadSegment *>::const_iterator itSegments = segments.begin(); itSegments != segments.end(); ++itSegments)
 		{
-			path.push_back(WayPoint(*itSegments));			
+                path.push_back(WayPoint(*itSegments));
 		}
 
 		if((itWayPts + 1) != pathOfLinks.end())
@@ -1338,7 +1337,9 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 
 		if (createVehicle)
 		{
+            double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
 			fwdDriverMovement.setPath(buildPath(path), parentDriver->getParent()->startLaneIndex, parentDriver->getParent()->startSegmentId);
+            fwdDriverMovement.advance(distCovered);
 			vehicle = new Vehicle(VehicleBase::CAR, length, width, vehName);
 		}
 	}
@@ -1391,13 +1392,15 @@ void DriverMovement::rerouteWithPath(const std::vector<WayPoint> &path, bool isP
 			//Reset the path and advance the driver to current location
 			builtPath.insert(builtPath.begin(), currWayPt);
 
-			fwdDriverMovement.setPathStartingWithTurningGroup(path, fwdDriverMovement.getCurrTurning()->getFromLane());
+			fwdDriverMovement.setPathStartingWithTurningGroup(builtPath, fwdDriverMovement.getCurrTurning()->getFromLane());
 			fwdDriverMovement.advance(distCovered);
 		}
 	}
 	else
 	{
+        double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
 		fwdDriverMovement.setPath(builtPath);
+        fwdDriverMovement.advance(distCovered);
 	}
 }
 
@@ -1419,12 +1422,12 @@ void DriverMovement::rerouteWithBlacklist(const std::vector<const Link *> &black
 		const Link *link = currWayPt.roadSegment->getParentLink();
 		path = stdir.SearchShortestDrivingPath<Link, Node>(*link, *(parentDriver->destination), blacklisted);
 
-		//Reset the path and advance the driver to current location
-		double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
+        //Reset the path and advance the driver to current location
+        double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
 		unsigned int currLaneIdx = fwdDriverMovement.getCurrLane()->getLaneIndex();		
 		
 		fwdDriverMovement.setPath(buildPath(path), currLaneIdx, currWayPt.roadSegment->getRoadSegmentId());
-		fwdDriverMovement.advance(distCovered);
+        fwdDriverMovement.advance(distCovered);
 	}
 	else
 	{
@@ -1572,7 +1575,7 @@ void DriverMovement::reRouteToDestination(DriverUpdateParams &params, const Lane
 	bool isPathFound = false;
 
 	//Get the link that we are connected to from the current lane
-	const Node *currNode = currLane->getParentSegment()->getParentLink()->getToNode();
+	const Node *currNode = currLane->getParentSegment()->getParentLink()->getFromNode();
 	const TurningGroup *tGroupToEnter = nullptr;
 	const Link *nextLink = nullptr;
 	const std::map<unsigned int, TurningGroup *> &tGroups = currNode->getTurningGroups(currLane->getParentSegment()->getLinkId());
@@ -1592,7 +1595,7 @@ void DriverMovement::reRouteToDestination(DriverUpdateParams &params, const Lane
 			SubTrip subtrip;
 
 			subtrip.origin = WayPoint(currNode);
-			subtrip.destination = parentDriver->parent->destNode;
+			subtrip.destination = parentDriver->getParent()->destNode;
 			subtrip.startTime = startTime;
 
 			//Get the path from the path-set manager if we're using route-choice, else find the shortest path
@@ -1623,8 +1626,11 @@ void DriverMovement::reRouteToDestination(DriverUpdateParams &params, const Lane
 			//Prepend the path with the next turning group
 			path.insert(path.begin(), WayPoint(tGroupToEnter));
 
+            //Reset the path and advance the driver to current location
+            double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
 			//Set the updated path
 			fwdDriverMovement.setPathStartingWithTurningGroup(path, currLane);
+            fwdDriverMovement.advance(distCovered);
 
 			updatePosition(params);
 

@@ -108,34 +108,57 @@ void PedestrianMovement::frame_init()
                 std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
                 const Node *taxiEndNode = (*taxiTripItr).destination.node;
 
-
+            //choose the controller based on the mode
                 auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-                unsigned int randomController = Utils::generateInt(0, controllers.size() - 1);
-                auto itControllers = controllers.begin();
-                advance(itControllers, randomController);
-                MobilityServiceControllerType type = itControllers->second->getServiceType();
-                unsigned int controllerId = itControllers->first;
-                const MobilityServiceController* controller = itControllers->second;
+                MobilityServiceController *controller = nullptr;
+                if((*taxiTripItr).travelMode.find("AMOD") != std::string::npos)
+                {
+                    //If the person is taking an AMOD service, get the AMOD controller
+                    auto itCtrlr = controllers.get<ctrlrType>().find(SERVICE_CONTROLLER_AMOD);
+                    if (itCtrlr == controllers.get<ctrlrType>().end())
+                    {
+                        std::stringstream msg;
+                        msg << "Controller of type " << toString(SERVICE_CONTROLLER_AMOD)
+                            << " has not been added, but "
+                            << "the demand contains persons taking AMOD service";
+                            throw std::runtime_error(msg.str());
+                    }
+                    controller = *itCtrlr;
+                }
+                else
+                {
+                    //Choose randomly from available controllers
+                    const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
+                    auto enabledCtrlrs = cfg.mobilityServiceController.enabledControllers;
+                    auto it = enabledCtrlrs.begin();
+                    auto randomNum = Utils::generateInt(0, enabledCtrlrs.size() - 1);
+                    std::advance(it, randomNum);
+                    //Here we have to search by id, as the enabled controllers map has id as the key
+                    auto itCtrlr = controllers.get<ctrlrId>().find(it->first);
+                    controller = *itCtrlr;
+                }
 
 #ifndef NDEBUG
-                consistencyChecks(type);
+                consistencyChecks(controller->getServiceType());
                 controller->consistencyChecks();
-                if (type != controller->getServiceType() )
-                {
-                    std::stringstream msg; msg<<"Controller of type "<< toString(controller->getServiceType() )<<"("<<controller->getServiceType()<<
-                                              ") is registered under the type " << toString(type)<<"("<<type<<")";
-                    throw std::runtime_error(msg.str() );
-                }
-#endif
 
+#endif
+                //If the the request is a pool request, set type as shared. Else it is a single request
+                RequestType reqType = RequestType::TRIP_REQUEST_SINGLE;
+                if((*taxiTripItr).travelMode.find("Pool") != std::string::npos)
+                {
+
+                    reqType = RequestType::TRIP_REQUEST_SHARED;
+
+                }
                 TripRequestMessage* request = new TripRequestMessage(person->currTick,person,
                                                                      person->getDatabaseId(),
-                                                                     taxiStartNode, taxiEndNode, MobilityServiceController::toleratedExtraTime);
+                                                                     taxiStartNode, taxiEndNode, MobilityServiceController::toleratedExtraTime,reqType);
 
-                MessageBus::PostMessage(itControllers->second, MSG_TRIP_REQUEST, MessageBus::MessagePtr(request));
+                MessageBus::PostMessage(controller, MSG_TRIP_REQUEST, MessageBus::MessagePtr(request));
 
 
-                ControllerLog() << "Request sent to controller of type "<< toString(type) << ": ID : "<< controllerId<<": "<< *request << std::endl;
+                ControllerLog() << "Request sent to controller of type "<< toString(controller->getServiceType()) << ": ID : "<< controller->getControllerId()<<": "<< *request << std::endl;
             }
         }
     }

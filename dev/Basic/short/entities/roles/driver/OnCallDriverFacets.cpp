@@ -45,12 +45,9 @@ void OnCallDriverMovement::frame_init()
 	onCallDriver->getParams().initialSpeed = 0;
 
 	//Register with the controller to which the driver is subscribed
-	auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 
-	for(auto &ctrlr : controllers)
-	{
-		onCallDriver->subscribeToOrIgnoreController(controllers, ctrlr.second->getControllerId());
-	}
+		onCallDriver->subscribeToController();
+
 //In the beginning there is nothing to do, yet we require a path to begin moving.
 	//So cruise to a random node, by
 	// creating a default schedule
@@ -88,26 +85,43 @@ void OnCallDriverMovement::frame_tick()
 			//the next item
                 DriverUpdateParams &params = onCallDriver->getParams();
                 Person * person_waiting = onCallDriver->getAssignedSchedule().back().tripRequest.person;
-
                 switch (params.stopPointState)
                 {
                     case DriverUpdateParams::ARRIVED_AT_STOP_POINT:
                     case DriverUpdateParams::WAITING_AT_STOP_POINT:
                     {
-                        if (!pickedUpPasssenger) {
+                        if (!pickedUpPasssenger)// && !pickedUpAnotherPasssenger)
+                        {
                             messaging::MessageBus::PostMessage(person_waiting, MSG_WAKEUP_TAXI_PAX,
                                                                messaging::MessageBus::MessagePtr(
                                                                        new OnCallDriverMessage(onCallDriver)));
-
                             onCallDriver->pickupPassenger();
                             pickedUpPasssenger = true;
                         }
+
+                           // passengerWaitingtobeDroppedOff = true;
+
+                    /*    else if(pickedUpPasssenger && !pickedUpAnotherPasssenger)
+                        {
+                            if(!passengerWaitingtobeDroppedOff)
+                            {
+                                messaging::MessageBus::PostMessage(person_waiting, MSG_WAKEUP_TAXI_PAX,
+                                                                   messaging::MessageBus::MessagePtr(
+                                                                           new OnCallDriverMessage(onCallDriver)));
+
+                                onCallDriver->pickupPassenger();
+                                pickedUpAnotherPasssenger = true;
+                                passengerWaitingtobeDroppedOff = true;
+                            }
+                        }*/
                         break;
                     }
                     case DriverUpdateParams::LEAVING_STOP_POINT:
                     {
-                        if(pickedUpPasssenger)
+                        if((pickedUpPasssenger))// || pickedUpAnotherPasssenger) && passengerWaitingtobeDroppedOff)
                         {
+                         //   passengerWaitingtobeDroppedOff = false;
+                            params.stopPointPool.clear();
                             performScheduleItem();
                         }
                         break;
@@ -123,6 +137,7 @@ void OnCallDriverMovement::frame_tick()
 			//Note: OnCallDriver::pickupPassenger marks the schedule item complete and moves to
 			//the next item
                 DriverUpdateParams &params = onCallDriver->getParams();
+
                 /* if driver arrived at stop point then message the travelling person about his arrival*/
                 switch (params.stopPointState)
                 {
@@ -131,17 +146,33 @@ void OnCallDriverMovement::frame_tick()
                     {
                         if (pickedUpPasssenger)
                         {
-                            onCallDriver->dropoffPassenger();
-                            droppedOffPassenger = true;
-                            pickedUpPasssenger = false;
+
+                                onCallDriver->dropoffPassenger();
+                                droppedOffPassenger = true;
+                                pickedUpPasssenger = false;
+                           // passengerWaitingtobeDroppedOff = true;
                         }
+                     /*   else if (pickedUpAnotherPasssenger && !passengerWaitingtobeDroppedOff)
+                        {
+                            cout<<"picking second passenger"<<endl;
+                            onCallDriver->dropoffPassenger();
+                            droppedOffAnotherPassenger = true;
+                            pickedUpAnotherPasssenger = false;
+                        }*/
                         break;
                     }
                     case DriverUpdateParams::LEAVING_STOP_POINT:
                     {
-                        if(droppedOffPassenger) {
-                            droppedOffPassenger = false;
+
+                        if(droppedOffPassenger)// || droppedOffAnotherPassenger) {
+                        {
+                                droppedOffPassenger= false;
+                           /* else if(droppedOffAnotherPassenger)
+                                droppedOffAnotherPassenger= false;
+
+                            passengerWaitingtobeDroppedOff = false;*/
                             onCallDriver->scheduleItemCompleted();
+                            params.stopPointPool.clear();
                             performScheduleItem();
                         }
                         break;
@@ -161,9 +192,16 @@ void OnCallDriverMovement::frame_tick()
        DriverMovement::frame_tick();
 
    }
-    if(fwdDriverMovement.getCurrWayPoint().type == WayPoint::ROAD_SEGMENT)
+   if(fwdDriverMovement.isDoneWithEntireRoute())
     {
-        currNode = fwdDriverMovement.getCurrWayPoint().roadSegment->getParentLink()->getFromNode();
+        DriverMovement::frame_tick();
+    }
+    else
+    {
+        if (fwdDriverMovement.getCurrWayPoint().type == WayPoint::ROAD_SEGMENT)
+        {
+            currNode = fwdDriverMovement.getCurrWayPoint().roadSegment->getParentLink()->getFromNode();
+        }
     }
 
  }
@@ -327,7 +365,8 @@ void OnCallDriverMovement::frame_tick()
  #endif
 	const vector<WayPoint> path =route;
 	 rerouteWithPath(path);
-	 onCallDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
+     onCallDriver->getParent()->destNode = WayPoint(node);
+     onCallDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
  }
  Vehicle* OnCallDriverMovement::initialisePath(bool createVehicle)
  {
@@ -374,21 +413,56 @@ void OnCallDriverMovement::frame_tick()
 		 if(currWayPt.type == WayPoint::ROAD_SEGMENT)
 		 {
 			 currLink = currWayPt.roadSegment->getParentLink();
-		 }
-		 else
-		 {
-			 currLink = fwdDriverMovement.getCurrTurning()->getToLane()->getParentSegment()->getParentLink();
-		 }
+             subTrip.origin = WayPoint(currLink->getFromNode());
 
-		 //If the pickup node is at the end of the current link, we do not need to go anywhere
-		 //We can pick the passenger up at this point
+             if(currLink->getToNode() == pickupNode)
+             {
+                 StopPoint stopPoint;
+                 auto lastSeg = fwdDriverMovement.getDrivingPath().back().roadSegment;
+                 double lastroadsegmentlength = lastSeg->getLength();
+                 stopPoint.distance=2*(lastroadsegmentlength/3.0);
+                 stopPoint.dwellTime = 5;
+                 stopPoint.segmentId = lastSeg->getRoadSegmentId();
+                 onCallDriver->getParams().insertStopPoint(stopPoint);
+                 onCallDriver->getParams().currentStopPoint = stopPoint;
+                 if(fwdDriverMovement.getDistCoveredOnCurrWayPt()< stopPoint.distance)
+                 {
+                     onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_ON_CALL);
+                     onCallDriver->sendScheduleAckMessage(true);
 
-		 if(currLink->getToNode() == pickupNode)
-		 {
-			 onCallDriver->pickupPassenger();
-			 performScheduleItem();
-			 return;
+                     ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+                                     << onCallDriver->getParent()->getDatabaseId() << ": Begin driving to pickup point" <<endl;
+                     //Set vehicle to moving
+                     onCallDriver->getResource()->setMoving(true);
+                     return;
+                 }
+             }
 		 }
+		 else {
+             currLink = fwdDriverMovement.getCurrTurning()->getToLane()->getParentSegment()->getParentLink();
+             subTrip.origin = WayPoint(currLink->getFromNode());
+             if (currLink->getToNode() == pickupNode) {
+                 StopPoint stopPoint;
+                 auto lastSeg = fwdDriverMovement.getDrivingPath().back().roadSegment;
+                 double lastroadsegmentlength = lastSeg->getLength();
+                 stopPoint.distance = 2 * (lastroadsegmentlength / 3.0);
+                 stopPoint.dwellTime = 5;
+                 stopPoint.segmentId = lastSeg->getRoadSegmentId();
+                 onCallDriver->getParams().insertStopPoint(stopPoint);
+                 onCallDriver->getParams().currentStopPoint = stopPoint;
+                 if (fwdDriverMovement.getDistCoveredOnCurrWayPt() < stopPoint.distance) {
+                     onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_ON_CALL);
+                     onCallDriver->sendScheduleAckMessage(true);
+
+                     ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+                                     << onCallDriver->getParent()->getDatabaseId() << ": Begin driving to pickup point"
+                                     << endl;
+                     //Set vehicle to moving
+                     onCallDriver->getResource()->setMoving(true);
+                     return;
+                 }
+             }
+         }
 	 }
 
 	 //Get route to the node
@@ -407,7 +481,7 @@ void OnCallDriverMovement::frame_tick()
  #endif
 	 const vector<WayPoint> path =route;
 	 rerouteWithPath(path);
-	 StopPoint stopPoint;
+     StopPoint stopPoint;
 	 auto lastSeg = fwdDriverMovement.getDrivingPath().back().roadSegment;
 	 double lastroadsegmentlength = lastSeg->getLength();
 	 stopPoint.distance=2*(lastroadsegmentlength/3.0);
@@ -423,6 +497,7 @@ void OnCallDriverMovement::frame_tick()
 					 << onCallDriver->getParent()->getDatabaseId() << ": Begin driving from node "
 					 << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
 					 << " to pickup node " << pickupNode->getNodeId() << " Stop Point Segment Id "<< stopPoint.segmentId <<endl;
+     onCallDriver->getParent()->destNode = WayPoint(pickupNode);
 
 	 //Set vehicle to moving
 	 onCallDriver->getResource()->setMoving(true);
@@ -447,19 +522,58 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 		if(currWayPt.type == WayPoint::ROAD_SEGMENT)
 		{
 			currLink = currWayPt.roadSegment->getParentLink();
-		}
-		else
-		{
-			currLink = fwdDriverMovement.getCurrTurning()->getToLane()->getParentSegment()->getParentLink();
-		}
-		//If the drop-off node is at the end of the current link, we do not need to go anywhere
-		//We can drop the passenger off at this point
-		if(currLink->getToNode() == dropOffNode)
-		{
-			onCallDriver->dropoffPassenger();
-			performScheduleItem();
-			return;
-		}
+            subTrip.origin = WayPoint(currLink->getFromNode());
+            if(currLink->getToNode() == dropOffNode)
+            {
+                StopPoint stopPoint;
+                auto lastSeg = fwdDriverMovement.getDrivingPath().back().roadSegment;
+                double lastroadsegmentlength = lastSeg->getLength();
+                stopPoint.distance=2*(lastroadsegmentlength/3.0);
+                stopPoint.dwellTime = 5;
+                stopPoint.segmentId = lastSeg->getRoadSegmentId();
+                onCallDriver->getParams().insertStopPoint(stopPoint);
+                onCallDriver->getParams().currentStopPoint = stopPoint;
+                if(fwdDriverMovement.getDistCoveredOnCurrWayPt()< stopPoint.distance)
+                {
+                    onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_WITH_PASSENGER);
+                    onCallDriver->sendScheduleAckMessage(true);
+
+                    ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+                                    << onCallDriver->getParent()->getDatabaseId() << ": Begin driving with passenger from node "
+                                    << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+                                    << " to drop off node " << dropOffNode->getNodeId() << endl;
+                    //Set vehicle to moving
+                    onCallDriver->getResource()->setMoving(true);
+                    return;
+                }
+            }
+        }
+        else {
+            currLink = fwdDriverMovement.getCurrTurning()->getToLane()->getParentSegment()->getParentLink();
+            subTrip.origin = WayPoint(currLink->getFromNode());
+            if (currLink->getToNode() == dropOffNode) {
+                StopPoint stopPoint;
+                auto lastSeg = fwdDriverMovement.getDrivingPath().back().roadSegment;
+                double lastroadsegmentlength = lastSeg->getLength();
+                stopPoint.distance = 2 * (lastroadsegmentlength / 3.0);
+                stopPoint.dwellTime = 5;
+                stopPoint.segmentId = lastSeg->getRoadSegmentId();
+                onCallDriver->getParams().insertStopPoint(stopPoint);
+                onCallDriver->getParams().currentStopPoint = stopPoint;
+                if (fwdDriverMovement.getDistCoveredOnCurrWayPt() < stopPoint.distance) {
+                    onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_WITH_PASSENGER);
+                    onCallDriver->sendScheduleAckMessage(true);
+
+                    ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
+                                    << onCallDriver->getParent()->getDatabaseId() << ": Begin driving with passenger from node "
+                                    << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+                                    << " to drop off node " << dropOffNode->getNodeId() << endl;
+                    //Set vehicle to moving
+                    onCallDriver->getResource()->setMoving(true);
+                    return;
+                }
+            }
+        }
 	}
 
 	//Get route to the node
@@ -494,7 +608,8 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 					<< onCallDriver->getParent()->getDatabaseId() << ": Begin driving with passenger from node "
 					<< currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
 					<< " to drop off node " << dropOffNode->getNodeId() << endl;
-
-	//Set vehicle to moving
+    onCallDriver->getParent()->destNode = WayPoint(dropOffNode);
+   // cout<<"set dropoffnode to :"<<dropOffNode->getNodeId()<<endl;
+    //Set vehicle to moving
 	onCallDriver->getResource()->setMoving(true);
 }

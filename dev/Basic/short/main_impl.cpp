@@ -294,10 +294,10 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	{
 		personWorkers->assignAWorker(FleetController_ST::getInstance());
 		auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-		for (auto it = controllers.begin(); it != controllers.end(); it++)
-		{
-			personWorkers->assignAWorker(it->second);
-		}
+        for (auto it = controllers.get<ctrlrId>().begin(); it != controllers.get<ctrlrId>().end(); ++it)
+        {
+            personWorkers->assignAWorker(*it);
+        }
 	}
 
 	if(config.simulation.closedLoop.enabled)

@@ -21,6 +21,9 @@ private:
 	const Node *currNode;
     bool pickedUpPasssenger = false;
     bool droppedOffPassenger = false;
+    bool pickedUpAnotherPasssenger = false;
+    bool droppedOffAnotherPassenger = false;
+    bool passengerWaitingtobeDroppedOff = false;
 
 
 protected:

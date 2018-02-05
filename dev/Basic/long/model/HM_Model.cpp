@@ -3225,21 +3225,11 @@ void HM_Model::update(int day)
 			if ( (*it)->getRemainingTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay() )
 			{
 
-				//(*it)->setbiddingMarketEntryDay(day + 1);
-				//(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
 				(*it)->updateRemainingTimeOnMarket();
 			}
 			//unit is off the market if it has already completed the time on the market or if it has not yet entered the market.
 			else if((*it)->getRemainingTimeOnMarket() == 0 || day < (*it)->getbiddingMarketEntryDay() )
 			{
-				//unit is off the market and has completed the waiting time.
-//				if((*it)->getRemainingTimeOffMarket() <= 0)
-//				{
-//					//when a unit is re-awakened it will have the full amount of time on and off market.
-//					(*it)->setbiddingMarketEntryDay(day+1);
-//					(*it)->setRemainingTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-//					(*it)->setRemainingTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
-//				}
 				if((*it)->getRemainingTimeOffMarket() > 0) // unit is off the market.
 				{
 					(*it)->updateRemainingTimeOffMarket();

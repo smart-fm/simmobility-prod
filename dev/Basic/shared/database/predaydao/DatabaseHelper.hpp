@@ -33,8 +33,8 @@ const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_opcos
 const std::string DB_TABLE_TAZ = APPLY_SCHEMA(DEMAND_SCHEMA, "taz_2012");
 const std::string DB_TABLE_TCOST_PVT = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_tcost_car");
 const std::string DB_TABLE_TCOST_PT = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_tcost_bus");
-const std::string DB_TABLE_NODE_ZONE_MAP = APPLY_SCHEMA(DEMAND_SCHEMA, "node_taz_map_onetoone");
-const std::string DB_TABLE_TAZ_WITHOUT_NODE = APPLY_SCHEMA(DEMAND_SCHEMA, "taz_without_node_aditi");
+const std::string DB_TABLE_NODE_ZONE_MAP = APPLY_SCHEMA(DEMAND_SCHEMA, "node_taz_map");
+const std::string DB_TABLE_TAZ_WITHOUT_NODE = APPLY_SCHEMA(DEMAND_SCHEMA, "taz_without_node");
 const std::string DB_TABLE_SUPPLY_NODE = APPLY_SCHEMA(SUPPLY_SCHEMA, "node");
 
 /**

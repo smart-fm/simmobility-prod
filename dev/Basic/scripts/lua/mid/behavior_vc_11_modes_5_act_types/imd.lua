@@ -113,7 +113,7 @@ local beta_female_walk = 0
 
 --choice set
 local choice = {}
-for i = 1, 24*9 do 
+for i = 1, 24*11 do 
 	choice[i] = i
 end
 
@@ -399,14 +399,14 @@ end
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params,dbparams)
-	for i = 1, 24*9 do 
+	for i = 1, 24*11 do 
 		availability[i] = dbparams:availability(i)
 	end
 end
 
 --scale
 local scale={}
-for i = 1, 24*9 do
+for i = 1, 24*11 do
 	scale[i]=1
 end
 

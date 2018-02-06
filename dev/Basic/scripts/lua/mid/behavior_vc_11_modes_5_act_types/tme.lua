@@ -135,9 +135,9 @@ local modes = {['BusTravel'] = 1 , ['MRT'] =2 , ['PrivateBus'] =3 ,  ['Car'] = 4
 -- 10 for SMS
 -- 11 for Rail_SMS
 local choice = {}
-choice["PT"] = {1,2,3}
+choice["PT"] = {1,2,3,11}
 choice["car"] = {4,5,6,7}
-choice["other"] = {8,9}
+choice["other"] = {8,9,10}
 
 --utility
 -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
@@ -350,7 +350,8 @@ local function computeUtilities(params,dbparams)
 	utility[7] = beta_cons_motor + beta2_tt_motor * tt_motor_all + beta_cost * cost_motor + beta_central_motor * central_dummy + beta_zero_motor * zero_motor + beta_oneplus_motor * one_plus_motor + beta_twoplus_motor * two_plus_motor + beta_threeplus_motor * three_plus_motor + beta_female_motor * female_dummy + age_over_15*beta_age_over_15_motor + university_student * beta_university_student_motor + beta_distance_motor * (d1+d2)
 	utility[8] = beta_cons_walk  + beta_tt_walk * tt_walk + beta_central_walk * central_dummy+ beta_female_walk * female_dummy + age_over_15*beta_age_over_15_walk + university_student * beta_university_student_walk
 	utility[9] = beta_cons_taxi + beta_tt_taxi * tt_taxi_all + beta_cost * cost_taxi + beta_central_taxi * central_dummy + beta_female_taxi * female_dummy + age_over_15*beta_age_over_15_taxi + university_student * beta_university_student_taxi
-
+	utility[10] = beta_cons_SMS + beta_tt_SMS * tt_SMS_all + beta_cost * cost_SMS + beta_central_SMS * central_dummy + beta_female_SMS * female_dummy + age_over_15*beta_age_over_15_SMS + university_student * beta_university_student_SMS
+	utility[11] = beta_cons_rail_SMS + beta1_1_tt * tt_rail_SMS_ivt + beta1_2_tt * tt_rail_SMS_walk + beta1_3_tt * tt_rail_SMS_wait + beta_cost * cost_rail_SMS + beta_central_rail_SMS * central_dummy + beta_transfer * average_transfer_number + beta_female_rail_SMS * female_dummy + age_over_15 * beta_age_over_15_rail_SMS + university_student * beta_university_student_rail_SMS
 end
 
 --availability
@@ -367,6 +368,8 @@ local function computeAvailabilities(params,dbparams)
 		dbparams:getModeAvailability(modes.Motorcycle),
 		dbparams:getModeAvailability(modes.Walk),
 		dbparams:getModeAvailability(modes.Taxi),
+		dbparams:getModeAvailability(modes.SMS),
+		dbparams:getModeAvailability(modes.Rail_SMS)
 
 
 }

@@ -339,7 +339,7 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
 
 					householdBiddingWindow = config.ltParams.housingModel.householdBTOBiddingWindow;
 					bidder->setMoveInWaitingTimeInDays(-1);
-					buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
+					//buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 				}
         	}
             break;
@@ -370,7 +370,7 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
 
         			householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow;
         			bidder->setMoveInWaitingTimeInDays(-1);
-        			buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
+        			//buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
         		}
         	}
         	break;
@@ -405,7 +405,6 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
 				//A value of -1 means that this unit is *not* waiting to move in. Any value above 0 implies that the bidder
 				//has successfully bid on a unit and will move in in the number of days specified by the value of this variable.
 				bidder->setMoveInWaitingTimeInDays(-1);
-				buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 			}
 
 			#ifdef VERBOSE

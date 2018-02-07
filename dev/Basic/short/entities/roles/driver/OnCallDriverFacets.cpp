@@ -90,18 +90,16 @@ void OnCallDriverMovement::frame_tick()
                     case DriverUpdateParams::ARRIVED_AT_STOP_POINT:
                     case DriverUpdateParams::WAITING_AT_STOP_POINT:
                     {
-                        if (!pickedUpPasssenger)// && !pickedUpAnotherPasssenger)
+                        if (!pickedUpPasssenger && !pickedUpAnotherPasssenger)
                         {
                             messaging::MessageBus::PostMessage(person_waiting, MSG_WAKEUP_TAXI_PAX,
                                                                messaging::MessageBus::MessagePtr(
                                                                        new OnCallDriverMessage(onCallDriver)));
                             onCallDriver->pickupPassenger();
                             pickedUpPasssenger = true;
+                            passengerWaitingtobeDroppedOff = true;
                         }
-
-                           // passengerWaitingtobeDroppedOff = true;
-
-                    /*    else if(pickedUpPasssenger && !pickedUpAnotherPasssenger)
+                       else if(pickedUpPasssenger && !pickedUpAnotherPasssenger)
                         {
                             if(!passengerWaitingtobeDroppedOff)
                             {
@@ -113,14 +111,14 @@ void OnCallDriverMovement::frame_tick()
                                 pickedUpAnotherPasssenger = true;
                                 passengerWaitingtobeDroppedOff = true;
                             }
-                        }*/
+                        }
                         break;
                     }
                     case DriverUpdateParams::LEAVING_STOP_POINT:
                     {
-                        if((pickedUpPasssenger))// || pickedUpAnotherPasssenger) && passengerWaitingtobeDroppedOff)
+                        if((pickedUpPasssenger || pickedUpAnotherPasssenger) && passengerWaitingtobeDroppedOff)
                         {
-                         //   passengerWaitingtobeDroppedOff = false;
+                            passengerWaitingtobeDroppedOff = false;
                             params.stopPointPool.clear();
                             performScheduleItem();
                         }
@@ -139,38 +137,34 @@ void OnCallDriverMovement::frame_tick()
                 DriverUpdateParams &params = onCallDriver->getParams();
 
                 /* if driver arrived at stop point then message the travelling person about his arrival*/
-                switch (params.stopPointState)
-                {
+                switch (params.stopPointState) {
                     case DriverUpdateParams::ARRIVED_AT_STOP_POINT:
-                    case DriverUpdateParams::WAITING_AT_STOP_POINT:
-                    {
-                        if (pickedUpPasssenger)
-                        {
+                    case DriverUpdateParams::WAITING_AT_STOP_POINT: {
+                        if (pickedUpPasssenger) {
 
-                                onCallDriver->dropoffPassenger();
-                                droppedOffPassenger = true;
-                                pickedUpPasssenger = false;
-                           // passengerWaitingtobeDroppedOff = true;
-                        }
-                     /*   else if (pickedUpAnotherPasssenger && !passengerWaitingtobeDroppedOff)
-                        {
-                            cout<<"picking second passenger"<<endl;
+                            onCallDriver->dropoffPassenger();
+                            droppedOffPassenger = true;
+                            pickedUpPasssenger = false;
+                            passengerWaitingtobeDroppedOff = true;
+                        } else if (pickedUpAnotherPasssenger && !passengerWaitingtobeDroppedOff) {
                             onCallDriver->dropoffPassenger();
                             droppedOffAnotherPassenger = true;
                             pickedUpAnotherPasssenger = false;
-                        }*/
+                        }
                         break;
                     }
-                    case DriverUpdateParams::LEAVING_STOP_POINT:
-                    {
+                    case DriverUpdateParams::LEAVING_STOP_POINT: {
+                        if (droppedOffPassenger) {
+                            droppedOffPassenger = false;
 
-                        if(droppedOffPassenger)// || droppedOffAnotherPassenger) {
-                        {
-                                droppedOffPassenger= false;
-                           /* else if(droppedOffAnotherPassenger)
-                                droppedOffAnotherPassenger= false;
+                            passengerWaitingtobeDroppedOff = false;
+                            onCallDriver->scheduleItemCompleted();
+                            params.stopPointPool.clear();
+                            performScheduleItem();
+                        } else if (droppedOffAnotherPassenger) {
+                            droppedOffAnotherPassenger = false;
 
-                            passengerWaitingtobeDroppedOff = false;*/
+                            passengerWaitingtobeDroppedOff = false;
                             onCallDriver->scheduleItemCompleted();
                             params.stopPointPool.clear();
                             performScheduleItem();
@@ -178,7 +172,6 @@ void OnCallDriverMovement::frame_tick()
                         break;
                     }
                 }
-
 			break;
 		}
 		case PARKED:

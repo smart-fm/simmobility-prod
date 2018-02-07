@@ -281,7 +281,7 @@ void OnCallDriver::pickupPassenger()
         auto currItem = driverSchedule.getCurrScheduleItem();
         const string &passengerId = currItem->tripRequest.userId;
 
-        Person_ST *personPickedUp =dynamic_cast<Person_ST*>(getAssignedSchedule().back().tripRequest.person); //dynamic_cast<Person_ST*>(currItem->tripRequest.person);
+        Person_ST *personPickedUp =dynamic_cast<Person_ST*>(currItem->tripRequest.person);//dynamic_cast<Person_ST*>(getAssignedSchedule().back().tripRequest.person); //
 
         if(personPickedUp)
         {

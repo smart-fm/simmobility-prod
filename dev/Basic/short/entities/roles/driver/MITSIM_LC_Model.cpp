@@ -1999,7 +1999,7 @@ int MITSIM_LC_Model::isLaneConnectedToNextLink(DriverUpdateParams &params, set<c
 	int result = 0;
 	bool isLaneConnected = false;
 	
-	const RoadSegment *currSeg = params.currLane->getParentSegment();
+	const RoadSegment *currSeg = fwdDriverMovement->getCurrWayPoint().roadSegment;
 	const Link *currLink = currSeg->getParentLink();
 	const Link *nextLink = fwdDriverMovement->getNextLink();
 	

@@ -109,5 +109,16 @@ public:
 	 * @return the map of "to lane id" vs turning path if found, else NULL
 	 */
 	const std::map<unsigned int, TurningPath *>* getTurningPaths(unsigned int fromLaneId) const;
+
+	/**
+	 * This method looks up the turning path between the given two lanes.
+	 *
+	 * @param fromLaneId the lane id where the turning path begins
+	 *
+	 * @param toLaneId the lane id at which the turning path ends
+	 *
+	 * @return pointer to the turning path if it exists, else nullptr
+	 */
+	const TurningPath* getTurningPath(unsigned int fromLaneId, unsigned int toLaneId) const;
 };
 }

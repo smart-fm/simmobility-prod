@@ -1863,11 +1863,12 @@ int MITSIM_LC_Model::checkForEventsAhead(DriverUpdateParams& params)
 		needDLC = true;
 	}
 	
-	if (connectedLanes.size() > 0)
+	if (!connectedLanes.empty())
 	{
 		//stop point lane maybe not in targetLanes, so just assign to targetLanes
 		params.targetLanes = connectedLanes;
 	}
+
 	if (params.stopPointState == DriverUpdateParams::STOP_POINT_FOUND || params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT ||
 			params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT || params.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT)
 	{

@@ -5,6 +5,7 @@
 #pragma once
 #include <stdint.h>
 #include "behavioral/PredayClasses.hpp"
+#include "conf/ConfigManager.hpp"
 
 namespace sim_mob
 {
@@ -20,31 +21,11 @@ namespace medium
 class StopGenerationParams
 {
 public:
-	StopGenerationParams(const Tour& tour, const Stop* primaryActivity, const boost::unordered_map<std::string, bool>& dayPattern) :
+        StopGenerationParams(const Tour& tour, const Stop* primaryActivity, const std::unordered_map<int, bool>& dayPatternStops) :
 			tourMode(tour.getTourMode()), primActivityArrivalTime(primaryActivity->getArrivalTime()), primActivityDeptTime(primaryActivity->getDepartureTime()),
-				firstTour(tour.isFirstTour()), firstHalfTour(true), numPreviousStops(0), hasSubtour(tour.hasSubTours()), numRemainingTours(-1), distance(-1.0),
-				timeWindowFirstBound(-1), timeWindowSecondBound(-1) /*initialized with invalid values*/
+                                firstTour(tour.isFirstTour()), firstHalfTour(true), numPreviousStops(0), hasSubtour(tour.hasSubTours()), dayPatternStops(dayPatternStops), tourType(tour.getTourType()),
+                                numRemainingTours(-1), distance(-1.0), timeWindowFirstBound(-1), timeWindowSecondBound(-1) /*initialized with invalid values*/
 	{
-		switch (tour.getTourType())
-		{
-		case WORK:
-			tourType = 1;
-			break;
-		case EDUCATION:
-			tourType = 2;
-			break;
-		case SHOP:
-			tourType = 3;
-			break;
-		case OTHER:
-			tourType = 4;
-			break;
-		}
-
-		workStopAvailability = dayPattern.at("WorkI");
-		eduStopAvailability = dayPattern.at("EduI");
-		shopStopAvailability = dayPattern.at("ShopI");
-		otherStopAvailability = dayPattern.at("OthersI");
 	}
 
 	virtual ~StopGenerationParams()
@@ -58,17 +39,17 @@ public:
 
 	int isDriver() const
 	{
-		return (tourMode == 4);
+                return (ConfigManager::GetInstance().FullConfig().getTravelModeConfig(tourMode).type == PVT_CAR_MODE);
 	}
 
 	int isPassenger() const
 	{
-		return (tourMode == 5 || tourMode == 6);
+                return (ConfigManager::GetInstance().FullConfig().getTravelModeConfig(tourMode).type == SHARING_MODE);
 	}
 
 	int isPublicTransitCommuter() const
 	{
-		return (tourMode >= 1 && tourMode <= 3);
+            return (ConfigManager::GetInstance().FullConfig().getTravelModeConfig(tourMode).type == PT_TRAVEL_MODE);
 	}
 
 	int isFirstTour() const
@@ -210,39 +191,12 @@ public:
 
 	int isAvailable(int stopType) const
 	{
-		switch (stopType)
-		{
-		case 1:
-			return workStopAvailability;
-		case 2:
-			return eduStopAvailability;
-		case 3:
-			return shopStopAvailability;
-		case 4:
-			return otherStopAvailability;
-		case 5:
-			return 1; //Quit alternative is always available
-		}
-	}
+                if (dayPatternStops.find(stopType) == dayPatternStops.end())
+                {
+                    return 1;
+                }
 
-	void setEduStopAvailability(int eduStopAvailability)
-	{
-		this->eduStopAvailability = eduStopAvailability;
-	}
-
-	void setOtherStopAvailability(int otherStopAvailability)
-	{
-		this->otherStopAvailability = otherStopAvailability;
-	}
-
-	void setShopStopAvailability(int shopStopAvailability)
-	{
-		this->shopStopAvailability = shopStopAvailability;
-	}
-
-	void setWorkStopAvailability(int workStopAvailability)
-	{
-		this->workStopAvailability = workStopAvailability;
+                return dayPatternStops.at(stopType);
 	}
 
 	int getHasSubtour() const
@@ -285,10 +239,7 @@ private:
 	double timeWindowFirstBound;
 	double timeWindowSecondBound;
 
-	int workStopAvailability;
-	int eduStopAvailability;
-	int shopStopAvailability;
-	int otherStopAvailability;
+        const std::unordered_map<int, bool>& dayPatternStops;
 };
 } //end namespace medium
 } // end namespace sim_mob

@@ -430,8 +430,6 @@ UpdateStatus Conflux::update(timeslice frameNumber)
 		updateAndReportSupplyStats(currFrame);
 		//reportLinkTravelTimes(currFrame);
 		resetLinkTravelTimes(currFrame);
-		resetSegmentFlows();
-		resetOutputBounds();
 		numUpdatesThisTick = 0;
 		return UpdateStatus::Continue;
 	}
@@ -1069,6 +1067,7 @@ void Conflux::updateAndReportSupplyStats(timeslice frameNumber)
 			{
 				segStatsOutput.append(segStats->reportSegmentStats(frameNumber.frame() / updateInterval));
 				lnkTotalVehicleLength = lnkTotalVehicleLength + segStats->getTotalVehicleLength();
+				segStats->resetSegFlow();
 			}
 			if(updateThisTick)
 			{
@@ -1081,6 +1080,11 @@ void Conflux::updateAndReportSupplyStats(timeslice frameNumber)
 			lnkStats.computeLinkDensity(lnkTotalVehicleLength);
 			lnkStatsOutput.append(lnkStats.writeOutLinkStats(frameNumber.frame() / updateInterval));
 		}
+	}
+
+	if(updateThisTick && outputEnabled)
+	{
+		resetOutputBounds();
 	}
 }
 
@@ -1710,18 +1714,6 @@ void Conflux::incrementSegmentFlow(const RoadSegment* rdSeg, uint16_t statsNum)
 {
 	SegmentStats* segStats = findSegStats(rdSeg, statsNum);
 	segStats->incrementSegFlow();
-}
-
-void Conflux::resetSegmentFlows()
-{
-	for (UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin(); upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
-	{
-		const SegmentStatsList& linkSegments = upstreamIt->second;
-		for (SegmentStatsList::const_iterator segIt = linkSegments.begin(); segIt != linkSegments.end(); segIt++)
-		{
-			(*segIt)->resetSegFlow();
-		}
-	}
 }
 
 void Conflux::updateBusStopAgents()

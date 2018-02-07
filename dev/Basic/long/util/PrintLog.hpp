@@ -550,23 +550,23 @@ namespace sim_mob
 	    	printBidGeneric( model,  id, bid, entry,bidsCounter,  accepted);
 	    }
 
-	    inline void writePreSchoolAssignmentsToFile(BigSerial hhId,BigSerial individualId,BigSerial schoolId)
+	    inline void writePreSchoolAssignmentsToFile(BigSerial individualId,BigSerial studentId,BigSerial schoolId)
 	    {
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_pre_school_assignment)
 				return;
 
-	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % hhId % individualId % schoolId;
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % studentId % schoolId;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRE_SCHOOL_ASSIGNMENT,fmtr.str());
 	    }
 
-	    inline void writeSchoolAssignmentsToFile(BigSerial individualId,BigSerial priSchoolId)
+	    inline void writeSchoolAssignmentsToFile(BigSerial individualId,BigSerial studentId, BigSerial priSchoolId)
 	    {
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_school_assignment)
 				return;
 
-	    	boost::format fmtr = boost::format("%1%, %2%") % individualId % priSchoolId;
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % studentId % priSchoolId ;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCHOOL_ASSIGNMENT,fmtr.str());
 	    }
 
@@ -633,6 +633,38 @@ namespace sim_mob
 				return;
 
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, error );
+	    }
+
+	    inline void writeJobAssignmentProbsToFile(BigSerial individualId,BigSerial tazId, float probability)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % tazId % probability;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_JOB_ASIGN_PROBS,fmtr.str());
+	    }
+
+	    inline void writeIndividualJobAssignmentsToFile(BigSerial individualId, BigSerial jobId)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	    	boost::format fmtr = boost::format("%1%, %2%") % individualId % jobId;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_JOB_ASSIGN,fmtr.str());
+	    }
+
+	    inline void writeDailyHousingMarketUnitsToFile(int day, BigSerial unitId)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	    	boost::format fmtr = boost::format("%1%, %2%") % day % unitId;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_DAILY_HOUSING_MARKET_UNITS,fmtr.str());
+	    }
+
+	    inline void writeUnitTimesToFile( BigSerial unitId, int timeOnMarket, int timeOffMarket, int biddingMarketEntryDay)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % unitId % timeOnMarket % timeOffMarket % biddingMarketEntryDay;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_DAILY_HOUSING_MARKET_UNIT_TIMES,fmtr.str());
 	    }
 	}
 }

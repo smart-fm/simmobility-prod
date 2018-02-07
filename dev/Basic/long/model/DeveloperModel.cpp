@@ -91,6 +91,14 @@ void DeveloperModel::startImpl() {
 	conn_calibration.setSchema(config.schemas.calibration_schema);
 	conn_calibration.connect();
 
+	const std::string parcelTable = config.ltParams.scenario.parcelsTable;
+	const std::string scenarioSchema = config.ltParams.scenario.scenarioSchema;
+
+	//config the db connection based on the scenario.
+	DB_Connection conn_scenario(sim_mob::db::POSTGRES, dbConfig);
+	conn_scenario.setSchema(scenarioSchema);
+	conn_scenario.connect();
+
 	if (conn.isConnected())
 	{
 		ParcelsWithHDB *HDB_Parcel;
@@ -113,8 +121,8 @@ void DeveloperModel::startImpl() {
 		//Load templates
 		loadData<TemplateDao>(conn, templates);
 		//Load parcels
-		loadData<ParcelDao>(conn, initParcelList, parcelsById, &Parcel::getId);
-		ParcelDao parcelDao(conn);
+		loadData<ParcelDao>(conn_scenario, parcelTable, initParcelList, parcelsById, &Parcel::getId);
+		ParcelDao parcelDao(conn,parcelTable);
 		emptyParcels = parcelDao.getEmptyParcels();
 		//Index all empty parcels.
 		for (ParcelList::iterator it = emptyParcels.begin(); it != emptyParcels.end(); it++) {
@@ -166,9 +174,9 @@ void DeveloperModel::startImpl() {
 
 		if(resume)
 		{
-			outputSchema = config.ltParams.currentOutputSchema;
+			outputSchema = config.schemas.main_schema;
 			SimulationStoppedPointDao simStoppedPointDao(conn);
-			const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema+ "."+"simulation_stopped_point;";
+			const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema +"simulation_stopped_point;";
 			simStoppedPointDao.getByQuery(getAllSimStoppedPointParams,simStoppedPointList);
 			if(!simStoppedPointList.empty())
 			{
@@ -178,7 +186,7 @@ void DeveloperModel::startImpl() {
 				projectIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getProjectId();
 			}
 
-			parcelsWithOngoingProjects = parcelDao.getParcelsWithOngoingProjects(outputSchema);
+			parcelsWithOngoingProjects = parcelDao.getParcelsWithOngoingProjects(config.schemas.main_schema);
 			//Index all parcels with ongoing projects.
 			for (ParcelList::iterator it = parcelsWithOngoingProjects.begin(); it != parcelsWithOngoingProjects.end(); it++) {
 				parcelsWithOngoingProjectsById.insert(std::make_pair((*it)->getId(), *it));
@@ -186,12 +194,14 @@ void DeveloperModel::startImpl() {
 
 			//load projects
 			ProjectDao projectDao(conn);
-			projects = projectDao.loadOngoingProjects(outputSchema);
+			projects = projectDao.loadOngoingProjects(config.schemas.main_schema);
 			for (ProjectList::iterator it = projects.begin(); it != projects.end(); it++) {
 				existingProjectIds.push_back((*it)->getProjectId());
 				projectByParcelId.insert(std::make_pair((*it)->getParcelId(),*it));
 			}
 
+			PrintOutV("Total number of projects loaded from previous run: "<<existingProjectIds.size()<<std::endl);
+			PrintOutV("Total number of parcels with ongoing projects: "<<parcelsWithOngoingProjects.size()<<std::endl);
 		}
 		else
 		{
@@ -639,6 +649,7 @@ DeveloperModel::DeveloperList DeveloperModel::getDeveloperAgents(){
 		}
 	}
 	return dailyDevAgents;
+
 }
 
 void DeveloperModel::setDays(int days)
@@ -980,6 +991,7 @@ void DeveloperModel::loadHedonicCoeffs(DB_Connection &conn)
 		hedonicCoefficientsByPropertyTypeId.insert(std::make_pair(coeef->getPropertyTypeId(), coeef));
 
 	}
+	PrintOutV("Hedonic coeffs by property type rows"<< hedonicCoefficientsList.size()<<std::endl);
 }
 
 const HedonicCoeffs* DeveloperModel::getHedonicCoeffsByPropertyTypeId(BigSerial propertyId) const
@@ -1011,6 +1023,7 @@ void DeveloperModel::loadHedonicCoeffsByUnitType(DB_Connection &conn)
 			hedonicCoefficientsByUnitTypeId.insert(std::make_pair(coeef->getUnitTypeId(), coeef));
 
 		}
+		PrintOutV("Hedonic coeffs by unit type rows"<< hedonicCoefficientsByUnitTypeList.size()<<std::endl);
 
 }
 
@@ -1151,4 +1164,10 @@ const LagPrivate_TByUnitType* DeveloperModel::getLagPrivateTByUnitTypeId(BigSeri
 		return itr->second;
 	}
 	return nullptr;
+}
+
+const std::string &DeveloperModel::getScenario()
+{
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	return config.ltParams.scenario.scenarioName;
 }

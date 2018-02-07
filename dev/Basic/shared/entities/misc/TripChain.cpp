@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
 
+#include "conf/ConfigManager.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/network/Node.hpp"
 
@@ -199,22 +200,13 @@ TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(
 StopType sim_mob::TripChainItem::getItemPurpose(std::string purpose)
 {
 	purpose.erase(remove_if(purpose.begin(), purpose.end(), isspace), purpose.end());
-	if (purpose == "Work")
-	{
-		return WORK;
-	}
-	else if (purpose == "Education")
-	{
-		return EDUCATION;
-	}
-	else if (purpose == "Shop")
-	{
-		return SHOP;
-	}
-	else if (purpose == "Other")
-	{
-		return OTHER;
-	}
+
+    const std::unordered_map<std::string, StopType>& purposeNameIdMap = ConfigManager::GetInstance().FullConfig().getActivityTypeStrMap();
+
+    if (purposeNameIdMap.find(purpose) != purposeNameIdMap.end())
+    {
+        return purposeNameIdMap.at(purpose);
+    }
 	else
 	{
 		return NULL_STOP;

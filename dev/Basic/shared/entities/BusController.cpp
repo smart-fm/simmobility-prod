@@ -540,6 +540,10 @@ void BusController::setPTScheduleFromConfig(const vector<PT_BusDispatchFreq>& di
 			{
 				busline->addBusTrip(bustrip);
 			}
+			else
+			{
+				std::cout << "Error: Unable to set the route " << curr->routeId << std::endl;
+			}
 
 			lastBusDispatchTime = startTime;
 		}

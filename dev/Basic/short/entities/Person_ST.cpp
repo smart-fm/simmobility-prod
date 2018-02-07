@@ -316,6 +316,14 @@ vector<BufferedBase *> Person_ST::buildSubscriptionList()
 	subsList.push_back(&yPos);
 
 	//Now, add our own properties.
+	if(this->getPrevRole())
+	{
+		vector<BufferedBase*> roleParams = this->getPrevRole()->getSubscriptionParams();
+
+		//Append the subsList with all elements in roleParams
+		subsList.insert(subsList.end(), roleParams.begin(), roleParams.end());
+	}
+
 	if (this->getRole())
 	{
 		vector<BufferedBase*> roleParams = this->getRole()->getSubscriptionParams();

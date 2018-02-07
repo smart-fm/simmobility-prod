@@ -104,7 +104,7 @@ local beta_threeplus_privatebus = 0
 
 local beta_zero_drive1 = 0
 local beta_oneplus_drive1 = 0
-local beta_twoplus_drive1 = 0 
+local beta_twoplus_drive1 = 0 publicbus_AV
 local beta_threeplus_drive1 = 0
 
 local beta_zero_share2 = 0
@@ -214,6 +214,8 @@ local choice = {
 		9
 }
 
+
+local modes = {['BusTravel'] = 1 , ['MRT'] =2 , ['PrivateBus'] =3 ,  ['Car'] = 4,  ['Car_Sharing_2'] = 5,['Car_Sharing_3'] = 6, ['Motorcycle'] = 7,['Walk'] = 8, ['Taxi'] = 9 }
 
 --choice["PT"] = {1,2,3}
 --choice["non-PT"] = {4,5,6,7,8,9}
@@ -386,15 +388,16 @@ end
 local availability = {}
 local function computeAvailabilities(pparams,mparams)
 	availability = {
-		mparams.publicbus_AV,
-		mparams.mrt_AV,
-		mparams.privatebus_AV,
-		mparams.drive1_AV,
-		mparams.share2_AV,
-		mparams.share3_AV,
-		mparams.motor_AV,
-		mparams.walk_AV,
-		mparams.taxi_AV
+		mparams:getModeAvailability(modes.BusTravel),
+		mparams:getModeAvailability(modes.MRT),
+		mparams:getModeAvailability(modes.PrivateBus),
+		mparams:getModeAvailability(modes.Car),
+		mparams:getModeAvailability(modes.Car_Sharing_2),
+		mparams:getModeAvailability(modes.Car_Sharing_3),
+		mparams:getModeAvailability(modes.Motorcycle),
+		mparams:getModeAvailability(modes.Walk),
+		mparams:getModeAvailability(modes.Taxi)
+	
 	}
 end
 

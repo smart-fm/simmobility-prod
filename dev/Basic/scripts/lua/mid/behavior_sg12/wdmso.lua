@@ -137,6 +137,10 @@ for i = 1, 9 do
 	choice[i] = i
 end
 
+
+
+local modes = {['BusTravel'] = 1 , ['MRT'] =2 , ['PrivateBus'] =3 ,  ['Car'] = 4,  ['Car_Sharing_2'] = 5,['Car_Sharing_3'] = 6, ['Motorcycle'] = 7,['Walk'] = 8, ['Taxi'] = 9 }
+
 --utility
 -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
 -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
@@ -264,15 +268,17 @@ local function computeUtilities(pparams,mparams)
 local availability = {}
 local function computeAvailabilities(params,mparams)
 	availability = {
-		mparams.publicbus_AV, 
-		mparams.mrt_AV, 
-		mparams.privatebus_AV, 
-		mparams.drive1_AV, 
-		mparams.share2_AV, 
-		mparams.share3_AV, 
-		mparams.motor_AV, 
-		mparams.walk_AV, 
-		mparams.taxi_AV
+		
+		mparams:getModeAvailability(modes.BusTravel),
+		mparams:getModeAvailability(modes.MRT),
+		mparams:getModeAvailability(modes.PrivateBus),
+		mparams:getModeAvailability(modes.Car),
+		mparams:getModeAvailability(modes.Car_Sharing_2),
+		mparams:getModeAvailability(modes.Car_Sharing_3),
+		mparams:getModeAvailability(modes.Motorcycle),
+		mparams:getModeAvailability(modes.Walk),
+		mparams:getModeAvailability(modes.Taxi)
+		
 	}
 end
 

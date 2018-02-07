@@ -11,10 +11,10 @@ using namespace sim_mob::long_term;
 
 HedonicCoeffs::HedonicCoeffs( BigSerial proprtyTypeId, double intercept, double logSqrtArea ,double freehold, double logsumWeighted,double pms_1km,
 							  double distanceMallKm,double mrt_200m,double mrt_2_400m,double express_200m,double bus2_400m, double busGt400m,  double age,
-							  double logAgeSquared, double agem25_50, double agem50, double misage, double age_30m) :
+							  double logAgeSquared, double agem25_50, double agem50, double misage, double age_30m, double nonMature, double otherMature, double storey, double storeySquared) :
 							  proprtyTypeId(proprtyTypeId),intercept(intercept),logSqrtArea(logSqrtArea),freehold(freehold),logsumWeighted(logsumWeighted),
 							  pms_1km(pms_1km),distanceMallKm(distanceMallKm),mrt_200m(mrt_200m),mrt_2_400m(mrt_2_400m),express_200m(express_200m),bus2_400m(bus2_400m),
-							  busGt400m(busGt400m),age(age),logAgeSquared(logAgeSquared),agem25_50(agem25_50),agem50(agem50),misage(misage),age_30m(age_30m){}
+							  busGt400m(busGt400m),age(age),logAgeSquared(logAgeSquared),agem25_50(agem25_50),agem50(agem50),misage(misage),age_30m(age_30m),nonMature(nonMature), otherMature(otherMature), storey(storey), storeySquared(storeySquared){}
 
 HedonicCoeffs::~HedonicCoeffs() {}
 
@@ -197,3 +197,44 @@ void HedonicCoeffs::setPms1km(double pms1km)
 {
 	pms_1km = pms1km;
 }
+
+double HedonicCoeffs::getNonMature() const
+{
+	return nonMature;
+}
+
+void HedonicCoeffs::setNonMature(double nonMature)
+{
+	this->nonMature = nonMature;
+}
+
+double HedonicCoeffs::getOtherMature() const
+{
+	return otherMature;
+}
+
+void HedonicCoeffs::setOtherMature(double otherMature)
+{
+	this->otherMature = otherMature;
+}
+
+double HedonicCoeffs::getStorey() const
+{
+	return storey;
+}
+
+void HedonicCoeffs::setStorey(double storey)
+{
+	this->storey = storey;
+}
+
+double HedonicCoeffs::getStoreySquared() const
+{
+	return storeySquared;
+}
+
+void HedonicCoeffs::setStoreySquared(double storeySquared)
+{
+	this->storeySquared = storeySquared;
+}
+

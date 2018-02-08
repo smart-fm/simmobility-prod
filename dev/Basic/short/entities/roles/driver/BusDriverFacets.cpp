@@ -109,8 +109,14 @@ void BusDriverMovement::buildPath(const std::string &routeId, const std::vector<
 		
 		++itSegments;
 	}
-	
-	fwdDriverMovement.setPath(path);
+
+	int laneIdx = 0;
+	auto person = parentBusDriver->getParent();
+
+	//Choose the starting lane and initial speed using the vehicle loading model
+	vehLoadingModel->chooseStartingLaneAndSpeed(path, &laneIdx, person->startSegmentId, &(person->initialSpeed),
+	                                            parentBusDriver->getParams());
+	fwdDriverMovement.setPath(path, laneIdx);
 }
 
 

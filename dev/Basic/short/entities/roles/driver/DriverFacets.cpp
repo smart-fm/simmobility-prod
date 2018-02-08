@@ -58,7 +58,7 @@ boost::mutex DriverMovement::densityUpdateMutex;
 
 DriverMovement::DriverMovement() :
 MovementFacet(), parentDriver(nullptr), trafficSignal(NULL), targetLaneIndex(0), lcModel(nullptr), cfModel(nullptr), intModel(nullptr),
-intModelBkUp(NULL), targetSpeed(0.0)
+intModelBkUp(NULL), vehLoadingModel(nullptr), targetSpeed(0.0)
 {
 }
 
@@ -67,6 +67,7 @@ DriverMovement::~DriverMovement()
 	safe_delete_item(lcModel);
 	safe_delete_item(cfModel);
 	safe_delete_item(intModel);
+	safe_delete_item(vehLoadingModel);
 
 	//Usually the metrics for the last sub-trip is not manually finalised
 	//if(!travelMetric.finalized)
@@ -91,6 +92,7 @@ void DriverMovement::init()
 	lcModel = new MITSIM_LC_Model(params, &fwdDriverMovement);
 	cfModel = new MITSIM_CF_Model(params, &fwdDriverMovement);
 	intModel = new MITSIM_IntDriving_Model(params);
+	vehLoadingModel = new VehicleLoadingModel(params);
 
 	parentDriver->initReactionTime();
 }
@@ -224,104 +226,42 @@ void DriverMovement::frame_tick()
 bool DriverMovement::findEmptySpaceAhead()
 {
 	bool isSpaceFound = true;
-
 	DriverUpdateParams &driverUpdateParams = parentDriver->getParams();
+	set<const Lane*> candidateLanes;
+	unordered_map<const Lane *, NearestVehicle> leadVehicles;
+	unordered_map<const Lane *, NearestVehicle> followVehicles;
 
-	//To store the agents that are in the nearby region
-	vector<const Agent *> nearby_agents;
+	//Get the lead and follower vehicles for the current lane only
+	auto currLane = fwdDriverMovement.getCurrLane();
+	candidateLanes.insert(currLane);
+	vehLoadingModel->getLeadAndFollowerVehicles(driverUpdateParams, candidateLanes, leadVehicles, followVehicles);
 
-	//To store the closest driver approaching from the rear, if any
-	//This is a pair of the driver object and his/her gap from the driver looking to exit the loading
-	//queue
-	pair<Driver *, double> driverApproachingFromRear(NULL, DBL_MAX);
+	//Compute the gap the the leader and follower vehicles and check if we have sufficient gap
+	auto leader = leadVehicles[currLane];
+	auto follower = followVehicles[currLane];
+	double gapToLeader = DBL_MAX;
+	double gapToFollower = DBL_MAX;
 
-	//Get the agents in nearby the current vehicle
-	WayPoint wayPoint(fwdDriverMovement.getCurrLane());
-	nearby_agents = AuraManager::instance().nearbyAgents(parentDriver->getCurrPosition(), wayPoint, distanceInFront, distanceBehind, NULL);
-
-	//Now if a particular agent is a vehicle and is in the same lane as the one we want to get into
-	//then we have to check if it's occupying the space we need
-	for (vector<const Agent *>::iterator itAgents = nearby_agents.begin(); itAgents != nearby_agents.end(); ++itAgents)
+	if (leader.driver)
 	{
-		//We only need to only process agents those are vehicle drivers - this means that they are of type Person
-		//and have role as driver or bus driver
-		const Person_ST *person = dynamic_cast<const Person_ST *> (*itAgents);
-
-		if (person != NULL)
-		{
-			Role<Person_ST> *role = person->getRole();
-			if (role != NULL)
-			{
-				if (role->roleType == Role<Person_ST>::RL_DRIVER || role->roleType == Role<Person_ST>::RL_BUSDRIVER)
-				{
-					Driver *nearbyDriver = dynamic_cast<Driver *> (role);
-					DriverUpdateParams &nearbyDriversParams = nearbyDriver->getParams();
-
-					//Make sure we're not checking distance from ourselves or someone in the loading queue
-					//also ensure that the other vehicle is in our lane
-					if (parentDriver != nearbyDriver && nearbyDriver->isVehicleInLoadingQueue == false &&
-							driverUpdateParams.currLane == nearbyDriversParams.currLane)
-					{
-						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *> (nearbyDriver->Movement());
-						
-						//Match the speed of the nearby vehicle
-						parentDriver->getParent()->initialSpeed = nearbyDriversParams.currSpeed;
-						parentDriver->vehicle->setVelocity(parentDriver->getParent()->initialSpeed);
-
-						//Get the gap to the nearby driver
-						double availableGap = fwdDriverMovement.getDistToEndOfCurrWayPt() - nearbyDriverMovement->fwdDriverMovement.getDistToEndOfCurrWayPt();
-
-						//The gap between current driver and the one in front (or the one coming from behind) should be greater than
-						//length(in m) + (headway(in s) * initial speed(in m/s))
-						double requiredGap = 0;
-						if (availableGap > 0)
-						{
-							//As the gap is positive, there is a vehicle in front of us. We should have enough distance
-							//so as to avoid crashing into it
-							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (cfModel);							
-							requiredGap = (2 * parentDriver->getVehicleLength()) + (mitsim_cf_model->getHBufferUpper() * parentDriver->getParent()->initialSpeed);
-						}
-						else
-						{
-							//As the gap is negative, there is a vehicle coming in from behind. We shouldn't appear right
-							//in front of it, so consider it's speed to calculate required gap
-							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (nearbyDriverMovement->cfModel);
-							requiredGap = (2 * nearbyDriver->getVehicleLength())+ (mitsim_cf_model->getHBufferUpper() * nearbyDriversParams.currSpeed);
-
-							//In case a driver is approaching from the rear, we need to reduce the reaction time, so that he/she
-							//is aware of the presence of the car appearing in front.
-							//But we need only the closest one
-							if (driverApproachingFromRear.second > availableGap)
-							{
-								driverApproachingFromRear.first = nearbyDriver;
-								driverApproachingFromRear.second = availableGap;
-							}
-						}
-
-						if (abs(availableGap) <= abs(requiredGap))
-						{
-							//at least one vehicle is too close, so no need to search further
-							isSpaceFound = false;
-
-							//If any driver was added to the pair - driverApproachingFromRear, remove it
-							//as we're not going to unload the vehicle from the loading queue
-							driverApproachingFromRear.first = NULL;
-							driverApproachingFromRear.second = DBL_MAX;
-
-							break;
-						}
-					}
-				}
-			}
-		}
+		//Time headway to lead vehicle
+		gapToLeader = (2 * leader.distance) /
+				(2 * leader.driver->getFwdVelocity() + (driverUpdateParams.elapsedSeconds * driverUpdateParams.maxAcceleration));
 	}
 
-	//If is any driver approaching from behind (also means that we've found space on the road), 
-	//reduce the reaction time
-	if (driverApproachingFromRear.first != NULL)
+	if (follower.driver)
 	{
-		float alert = CF_CRITICAL_TIMER_RATIO * cfModel->updateStepSize[0];
-		driverApproachingFromRear.first->getParams().reactionTimeCounter = std::min<double>(alert, driverApproachingFromRear.first->getParams().reactionTimeCounter);
+		//Time headway to follower vehicle
+		gapToFollower = (2 * follower.distance) /
+				(2 * follower.driver->getFwdVelocity() + (driverUpdateParams.elapsedSeconds * driverUpdateParams.maxAcceleration));
+	}
+
+	auto carFollowModel = dynamic_cast<const MITSIM_CF_Model *>(cfModel);
+
+	//If any of the gaps are smaller than the headway buffer upper bound, we return false
+	if(gapToLeader < carFollowModel->getHBufferUpper() || gapToFollower < carFollowModel->getHBufferUpper())
+	{
+		isSpaceFound = false;
 	}
 
 	return isSpaceFound;
@@ -1316,7 +1256,7 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 
 		ST_Config& stCfg = ST_Config::getInstance();
 		std::vector<VehicleType>::const_iterator vehicleTypeIter = std::find(stCfg.vehicleTypes.begin(), stCfg.vehicleTypes.end(), 
-				(*parentDriver->parent->currTripChainItem)->getMode());
+				(*parentDriver->getParent()->currTripChainItem)->getMode());
 		
 		if (vehicleTypeIter != stCfg.vehicleTypes.end())
 		{
@@ -1327,7 +1267,15 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 
 		if (createVehicle)
 		{
-			fwdDriverMovement.setPath(buildPath(path), parentDriver->getParent()->startLaneIndex, parentDriver->getParent()->startSegmentId);
+			vector<WayPoint> builtPath = buildPath(path);
+			auto person = parentDriver->getParent();
+
+			//Choose starting lane and initial speed based on the vehicle loading model
+			vehLoadingModel->chooseStartingLaneAndSpeed(builtPath, &(person->startLaneIndex), person->startSegmentId,
+			                                            &(person->initialSpeed), parentDriver->getParams());
+
+			//Set the path and the current position in the driver path mover
+			fwdDriverMovement.setPath(builtPath, person->startLaneIndex);
 			vehicle = new Vehicle(VehicleBase::CAR, length, width, vehName);
 		}
 	}
@@ -1380,7 +1328,7 @@ void DriverMovement::rerouteWithPath(const std::vector<WayPoint> &path, bool isP
 			//Reset the path and advance the driver to current location
 			builtPath.insert(builtPath.begin(), currWayPt);
 
-			fwdDriverMovement.setPathStartingWithTurningGroup(path, fwdDriverMovement.getCurrTurning()->getFromLane());
+			fwdDriverMovement.setPathStartingWithTurningGroup(builtPath, fwdDriverMovement.getCurrTurning()->getFromLane());
 			fwdDriverMovement.advance(distCovered);
 		}
 	}
@@ -1411,7 +1359,7 @@ void DriverMovement::rerouteWithBlacklist(const std::vector<const Link *> &black
 		//Reset the path and advance the driver to current location
 		double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
 		unsigned int currLaneIdx = fwdDriverMovement.getCurrLane()->getLaneIndex();		
-		
+
 		fwdDriverMovement.setPath(buildPath(path), currLaneIdx, currWayPt.roadSegment->getRoadSegmentId());
 		fwdDriverMovement.advance(distCovered);
 	}
@@ -1443,12 +1391,6 @@ void DriverMovement::setOrigin(DriverUpdateParams &params)
 	if (params.currLane)
 	{
 		targetLaneIndex = params.currLaneIndex = params.currLane->getLaneIndex();
-	}
-
-	if(parentDriver->getParent()->initialSpeed == 0)
-	{
-		//Vehicles start at 30-60% of road speed limit (or may be given initial speed in configuration file)
-		parentDriver->getParent()->initialSpeed = Utils::generateFloat(0.30 * params.maxLaneSpeed, 0.60 * params.maxLaneSpeed);
 	}
 	
 	parentDriver->vehicle->setVelocity(parentDriver->getParent()->initialSpeed);

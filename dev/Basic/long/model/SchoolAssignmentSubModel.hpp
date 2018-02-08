@@ -46,6 +46,8 @@ namespace sim_mob
 
 			void assignPreSchool(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day);
 
+			void assignSecondarySchool(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day);
+
 
 		private:
 			HM_Model* model;

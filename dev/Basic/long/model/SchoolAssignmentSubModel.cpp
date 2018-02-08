@@ -270,3 +270,8 @@ void SchoolAssignmentSubModel::assignPreSchool(const Household *household,BigSer
 	writePreSchoolAssignmentsToFile(individualId,individual->getStudentId(),selectedPreSchoolId);
 }
 
+void SchoolAssignmentSubModel::assignSecondarySchool(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day)
+{
+
+}
+

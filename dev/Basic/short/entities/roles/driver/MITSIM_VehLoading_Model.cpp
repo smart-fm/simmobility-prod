@@ -52,7 +52,7 @@ void VehicleLoadingModel::createInitialSpeedAssignmentThresholds(string &strPara
 	{
 		try
 		{
-			params[i] = boost::lexical_cast<double>(arrayStr[i].c_str());
+			params.push_back(boost::lexical_cast<double>(arrayStr[i].c_str()));
 		}
 		catch (boost::bad_lexical_cast &)
 		{

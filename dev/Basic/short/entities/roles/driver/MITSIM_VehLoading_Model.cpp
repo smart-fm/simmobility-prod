@@ -97,6 +97,11 @@ void VehicleLoadingModel::chooseStartingLaneAndSpeed(vector<WayPoint> &path, int
 			isLaneSelected = true;
 		}
 	}
+	else
+	{
+		selectedLane = currSegment->getLane(*laneIdx);
+		candidateLanes.insert(selectedLane);
+	}
 
 	//Map of the candidate lane vs the leader vehicle on that lane
 	unordered_map<const Lane *, NearestVehicle> leadVehicles;

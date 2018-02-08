@@ -1924,7 +1924,7 @@ void HM_Model::startImpl()
 	//assign empty units to freelance housing agents
 	//if(!resume)
 	//{
-		for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
+		for (UnitList::const_iterator it = units.begin(); it != units.begin() + units.size()*0.6; it++)
 		{
 			//HedonicPrice_SubModel hpSubmodel(0, this, (*it));
 			//hpSubmodel.computeInitialHedonicPrice((*it)->getId());

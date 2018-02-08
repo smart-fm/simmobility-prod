@@ -364,7 +364,9 @@ void Person_MT::processRAIL_SMSTrips(std::vector<SubTrip> &subTrips)
 			subTrip.walkTime = 60;
 			modifiedSubTrips.push_back(subTrip);
 		}
-		else if((*itSubTrip).travelMode == "Rail_SMS" && (*itSubTrip).originType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
+		else if(((*itSubTrip).travelMode == "Rail_SMS" || (*itSubTrip).travelMode == "Rail_SMS_Pool" ||
+		     (*itSubTrip).travelMode == "Rail_AMOD" || (*itSubTrip).travelMode == "Rail_AMOD_Pool") &&
+		     (*itSubTrip).originType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
 		{
 			//Travel mode is RAIL_SMS for egress, so split this sub-trip (train station-node) into following sub-trips
 			//walk (train station-node), walk(node-node), wait(node-node), passenger(node-node)

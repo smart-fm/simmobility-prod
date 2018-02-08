@@ -227,41 +227,102 @@ bool DriverMovement::findEmptySpaceAhead()
 {
 	bool isSpaceFound = true;
 	DriverUpdateParams &driverUpdateParams = parentDriver->getParams();
-	set<const Lane*> candidateLanes;
-	unordered_map<const Lane *, NearestVehicle> leadVehicles;
-	unordered_map<const Lane *, NearestVehicle> followVehicles;
 
-	//Get the lead and follower vehicles for the current lane only
-	auto currLane = fwdDriverMovement.getCurrLane();
-	candidateLanes.insert(currLane);
-	vehLoadingModel->getLeadAndFollowerVehicles(driverUpdateParams, candidateLanes, leadVehicles, followVehicles);
+	//To store the agents that are in the nearby region
+	vector<const Agent *> nearby_agents;
 
-	//Compute the gap the the leader and follower vehicles and check if we have sufficient gap
-	auto leader = leadVehicles[currLane];
-	auto follower = followVehicles[currLane];
-	double gapToLeader = DBL_MAX;
-	double gapToFollower = DBL_MAX;
+	//To store the closest driver approaching from the rear, if any
+	//This is a pair of the driver object and his/her gap from the driver looking to exit the loading
+	//queue
+	pair<Driver *, double> driverApproachingFromRear(NULL, DBL_MAX);
 
-	if (leader.driver)
+	//Get the agents in nearby the current vehicle
+	WayPoint wayPoint(fwdDriverMovement.getCurrLane());
+	nearby_agents = AuraManager::instance().nearbyAgents(parentDriver->getCurrPosition(), wayPoint, distanceInFront, distanceBehind, NULL);
+
+	//Now if a particular agent is a vehicle and is in the same lane as the one we want to get into
+	//then we have to check if it's occupying the space we need
+	for (vector<const Agent *>::iterator itAgents = nearby_agents.begin(); itAgents != nearby_agents.end(); ++itAgents)
 	{
-		//Time headway to lead vehicle
-		gapToLeader = (2 * leader.distance) /
-				(2 * leader.driver->getFwdVelocity() + (driverUpdateParams.elapsedSeconds * driverUpdateParams.maxAcceleration));
+		//We only need to only process agents those are vehicle drivers - this means that they are of type Person
+		//and have role as driver or bus driver
+		const Person_ST *person = dynamic_cast<const Person_ST *> (*itAgents);
+
+		if (person != NULL)
+		{
+			Role<Person_ST> *role = person->getRole();
+			if (role != NULL)
+			{
+				if (role->roleType == Role<Person_ST>::RL_DRIVER || role->roleType == Role<Person_ST>::RL_BUSDRIVER)
+				{
+					Driver *nearbyDriver = dynamic_cast<Driver *> (role);
+					DriverUpdateParams &nearbyDriversParams = nearbyDriver->getParams();
+
+					//Make sure we're not checking distance from ourselves or someone in the loading queue
+					//also ensure that the other vehicle is in our lane
+					if (parentDriver != nearbyDriver && nearbyDriver->isVehicleInLoadingQueue == false &&
+					    driverUpdateParams.currLane == nearbyDriversParams.currLane)
+					{
+						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *> (nearbyDriver->Movement());
+
+						//Match the speed of the nearby vehicle
+						parentDriver->getParent()->initialSpeed = nearbyDriversParams.currSpeed;
+						parentDriver->vehicle->setVelocity(parentDriver->getParent()->initialSpeed);
+
+						//Get the gap to the nearby driver
+						double availableGap = fwdDriverMovement.getDistToEndOfCurrWayPt() - nearbyDriverMovement->fwdDriverMovement.getDistToEndOfCurrWayPt();
+
+						//The gap between current driver and the one in front (or the one coming from behind) should be greater than
+						//length(in m) + (headway(in s) * initial speed(in m/s))
+						double requiredGap = 0;
+						if (availableGap > 0)
+						{
+							//As the gap is positive, there is a vehicle in front of us. We should have enough distance
+							//so as to avoid crashing into it
+							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (cfModel);
+							requiredGap = (2 * parentDriver->getVehicleLength()) + (mitsim_cf_model->getHBufferUpper() * parentDriver->getParent()->initialSpeed);
+						}
+						else
+						{
+							//As the gap is negative, there is a vehicle coming in from behind. We shouldn't appear right
+							//in front of it, so consider it's speed to calculate required gap
+							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (nearbyDriverMovement->cfModel);
+							requiredGap = (2 * nearbyDriver->getVehicleLength())+ (mitsim_cf_model->getHBufferUpper() * nearbyDriversParams.currSpeed);
+
+							//In case a driver is approaching from the rear, we need to reduce the reaction time, so that he/she
+							//is aware of the presence of the car appearing in front.
+							//But we need only the closest one
+							if (driverApproachingFromRear.second > availableGap)
+							{
+								driverApproachingFromRear.first = nearbyDriver;
+								driverApproachingFromRear.second = availableGap;
+							}
+						}
+
+						if (abs(availableGap) <= abs(requiredGap))
+						{
+							//at least one vehicle is too close, so no need to search further
+							isSpaceFound = false;
+
+							//If any driver was added to the pair - driverApproachingFromRear, remove it
+							//as we're not going to unload the vehicle from the loading queue
+							driverApproachingFromRear.first = NULL;
+							driverApproachingFromRear.second = DBL_MAX;
+
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
 
-	if (follower.driver)
+	//If is any driver approaching from behind (also means that we've found space on the road),
+	//reduce the reaction time
+	if (driverApproachingFromRear.first != NULL)
 	{
-		//Time headway to follower vehicle
-		gapToFollower = (2 * follower.distance) /
-				(2 * follower.driver->getFwdVelocity() + (driverUpdateParams.elapsedSeconds * driverUpdateParams.maxAcceleration));
-	}
-
-	auto carFollowModel = dynamic_cast<const MITSIM_CF_Model *>(cfModel);
-
-	//If any of the gaps are smaller than the headway buffer upper bound, we return false
-	if(gapToLeader < carFollowModel->getHBufferUpper() || gapToFollower < carFollowModel->getHBufferUpper())
-	{
-		isSpaceFound = false;
+		float alert = CF_CRITICAL_TIMER_RATIO * cfModel->updateStepSize[0];
+		driverApproachingFromRear.first->getParams().reactionTimeCounter = std::min<double>(alert, driverApproachingFromRear.first->getParams().reactionTimeCounter);
 	}
 
 	return isSpaceFound;

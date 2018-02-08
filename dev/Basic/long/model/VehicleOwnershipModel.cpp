@@ -335,6 +335,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 		int numWhiteCollars = 0;
 		int numWorkers = 0;
 		int numElderly = 0;
+		bool taxiAvailability = false;
 
 		if(initLoading)
 		{
@@ -364,6 +365,11 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 			if( (individual->getEmploymentStatusId() == 1)  || (individual->getEmploymentStatusId() == 2) || (individual->getEmploymentStatusId() == 3))
 			{
 				numWorkers++;
+			}
+
+			if(individual->getTaxiDriver() == 1)
+			{
+				taxiAvailability = true;
 			}
 		}
 			household.setNumElderly(numElderly);
@@ -422,35 +428,35 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 			else if(coeffsObj->getVehicleOwnershipOptionId()==1)
 			{
 				vehicleOwnershipLogsum = logsum1;
-				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly);
+				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly,taxiAvailability );
 				expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
 				totalExp = totalExp + expVal;
 			}
 			else if(coeffsObj->getVehicleOwnershipOptionId()==2)
 			{
 				vehicleOwnershipLogsum = logsum2;
-				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly);
+				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly,taxiAvailability);
 				expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
 				totalExp = totalExp + expVal;
 			}
 			else if(coeffsObj->getVehicleOwnershipOptionId()==3)
 			{
 				vehicleOwnershipLogsum = logsum3;
-				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly);
+				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly,taxiAvailability);
 				expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
 				totalExp = totalExp + expVal;
 			}
 			else if(coeffsObj->getVehicleOwnershipOptionId()==4)
 			{
 				vehicleOwnershipLogsum = logsum4;
-				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly);
+				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly,taxiAvailability);
 				expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
 				totalExp = totalExp + expVal;
 			}
 			else if(coeffsObj->getVehicleOwnershipOptionId()==5)
 			{
 				vehicleOwnershipLogsum = logsum5;
-				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly);
+				double expVal = getExp2(unitTypeId,vehicleOwnershipLogsum,coeffsObj,household,numWhiteCollars,numWorkers,numElderly,taxiAvailability);
 				expValMap.insert(std::pair<BigSerial, double>( coeffsObj->getVehicleOwnershipOptionId(), expVal));
 				totalExp = totalExp + expVal;
 			}
@@ -545,7 +551,7 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 
 }
 
-double VehicleOwnershipModel::getExp2(int unitTypeId,double vehicleOwnershipLogsum, VehicleOwnershipCoefficients *coeffsObj, const Household &household,int &numWhiteCollars,int &numWorkers,int & numElderly)
+double VehicleOwnershipModel::getExp2(int unitTypeId,double vehicleOwnershipLogsum, VehicleOwnershipCoefficients *coeffsObj, const Household &household,int &numWhiteCollars,int &numWorkers,int & numElderly,bool taxiAvailability )
 {
 	double value = 0;
 
@@ -605,10 +611,10 @@ double VehicleOwnershipModel::getExp2(int unitTypeId,double vehicleOwnershipLogs
 		value = value + coeffsObj->getHhChild2Plus();
 	}
 
-	if(household.getTaxiAvailability())
-	{
-		value = value + coeffsObj->getTaxi();
-	}
+	//if(household.getTaxiAvailability())
+	//{
+		value = value + coeffsObj->getTaxi() * taxiAvailability;
+	//}
 
 	DistanceMRT *distanceMRT = model->getDistanceMRTById(household.getId());
 

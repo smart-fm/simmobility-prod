@@ -459,6 +459,8 @@ namespace sim_mob
             HHCoordinates* getHHCoordinateByHHId(BigSerial houseHoldId) const;
             SchoolList getPreSchoolList() const;
             School* getPreSchoolById( BigSerial id) const;
+            SchoolList getSecondarySchoolList() const;
+            School* getSecondarySchoolById( BigSerial id) const;
 
             OwnerTenantMovingRate* getOwnerTenantMovingRates(int index);
             TenureTransitionRate* getTenureTransitionRates(int index);
@@ -512,6 +514,7 @@ namespace sim_mob
 
             void loadPrimarySchools(DB_Connection &conn);
             void loadPreSchools(DB_Connection &conn);
+            void loadSecondarySchools(DB_Connection &conn);
             void loadTravelTime(DB_Connection &conn);
             const TravelTime* getTravelTimeByOriginDestTaz(BigSerial originTaz, BigSerial destTaz);
             void incrementPrimarySchoolAssignIndividualCount();
@@ -702,6 +705,8 @@ namespace sim_mob
             HHCoordinatesMap hhCoordinatesById;
             SchoolList preSchools;
             SchoolMap preSchoolById;
+            SchoolList secondarySchools;
+            SchoolMap secondarySchoolById;
             bool resume ;
             bool initialLoading;
             IndvidualEmpSecList indEmpSecList;

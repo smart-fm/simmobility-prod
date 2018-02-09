@@ -1489,9 +1489,10 @@ void HM_Model::startImpl()
 
 		if(config.ltParams.schoolAssignmentModel.enabled)
 		{
-		loadPrimarySchools(conn);
-		loadPreSchools(conn);
-		loadTravelTime(conn_calibration);
+			loadPrimarySchools(conn);
+			loadPreSchools(conn);
+			loadTravelTime(conn_calibration);
+			loadSecondarySchools(conn);
 		}
 
 		if(config.ltParams.jobAssignmentModel.enabled)
@@ -2303,7 +2304,7 @@ void HM_Model::loadPrimarySchools(DB_Connection &conn)
 	std::string tableName = "school";
 
 	//SQL statement
-	soci::rowset<School> primarySchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where school_type = 'primary_school'");
+	soci::rowset<School> primarySchoolObjs = (sql.prepare << "select * from" + conn.getSchema()  + tableName + " where school_type = 'primary_school'");
 
 	for (soci::rowset<School>::const_iterator itPrimarySchool = primarySchoolObjs.begin(); itPrimarySchool != primarySchoolObjs.end(); ++itPrimarySchool)
 	{
@@ -2324,7 +2325,7 @@ void HM_Model::loadPreSchools(DB_Connection &conn)
 	std::string tableName = "school";
 
 	//SQL statement
-	soci::rowset<School> preSchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where school_type = 'pre_school'");
+	soci::rowset<School> preSchoolObjs = (sql.prepare << "select * from "  + conn.getSchema() + tableName + " where school_type = 'pre_school'");
 
 	for (soci::rowset<School>::const_iterator itPreSchool = preSchoolObjs.begin(); itPreSchool != preSchoolObjs.end(); ++itPreSchool)
 	{
@@ -2334,6 +2335,27 @@ void HM_Model::loadPreSchools(DB_Connection &conn)
 	}
 
 	PrintOutV("Number of Pre School rows: " << preSchools.size() << std::endl );
+}
+
+void HM_Model::loadSecondarySchools(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "school";
+
+	//SQL statement
+	soci::rowset<School> secSchoolObjs = (sql.prepare << "select * from "  + conn.getSchema() + tableName + " where school_type = 'secondary_school'");
+
+	for (soci::rowset<School>::const_iterator itSecSchool = secSchoolObjs.begin(); itSecSchool != secSchoolObjs.end(); ++itSecSchool)
+	{
+		School* secondarySchool = new School(*itSecSchool);
+		secondarySchools.push_back(secondarySchool);
+		secondarySchoolById.insert(std::pair<BigSerial, School*>( secondarySchool->getId(), secondarySchool ));
+	}
+
+	PrintOutV("Number of Secondary School rows: " << secondarySchools.size() << std::endl );
+
 }
 
 void HM_Model::loadTravelTime(DB_Connection &conn)
@@ -3478,6 +3500,23 @@ School* HM_Model::getPreSchoolById( BigSerial id) const
 	return nullptr;
 }
 
+HM_Model::SchoolList HM_Model::getSecondarySchoolList() const
+{
+	return this->secondarySchools;
+}
+
+
+School* HM_Model::getSecondarySchoolById( BigSerial id) const
+{
+	SchoolMap::const_iterator itr = secondarySchoolById.find(id);
+
+	if (itr != secondarySchoolById.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
+
 HouseholdUnit* HM_Model::getHouseholdUnitByHHId(BigSerial hhId) const
 {
 	HouseholdUnitMap::const_iterator itr = householdUnitByHHId.find(hhId);
@@ -3546,7 +3585,7 @@ void HM_Model::loadJobAssignments(DB_Connection &conn)
 	std::string tableName = "job_assignment_coefficients";
 
 	//SQL statement
-	soci::rowset<JobAssignmentCoeffs> jobAssignmentCoeffsObj = (sql.prepare << "select * from calibration2012."  + tableName);
+	soci::rowset<JobAssignmentCoeffs> jobAssignmentCoeffsObj = (sql.prepare << "select * from " + conn.getSchema() + tableName);
 
 	for (soci::rowset<JobAssignmentCoeffs>::const_iterator itJobAssignmentCoeffs = jobAssignmentCoeffsObj.begin(); itJobAssignmentCoeffs != jobAssignmentCoeffsObj.end(); ++itJobAssignmentCoeffs)
 	{

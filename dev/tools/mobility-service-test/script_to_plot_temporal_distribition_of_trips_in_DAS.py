@@ -1,6 +1,7 @@
 # Modes of transportation: To be specified in the list modesToBePlotted below:
-# python3 required; pandas library required
-# the activity_schedule file must be present in the same folder; must be in CSV format(just as obtained from the preday output)
+# pandas library required; 
+# psychopg2 required
+# the input section below must be reviewed to specifiy correct connections and table names
 
 
 import csv
@@ -10,13 +11,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import pandas as pd
-
-# Forcing the usage of python 3 or higher
-if sys.version_info[0] < 3:
-	raise Exception("Python 3 or a more recent version is required.")
+import psycopg2
 
 
+######################################################################################################################
+# Input Section: Database connection, Activity schedule tablename and The modes to be plotted should be specified here
 modesToBePlotted = ['Car','BusTravel']
+DB_HOST = 'localhost' #'172.25.184.48'
+DB_PORT = '5432'
+DB_USER = 'postgres'
+DB_PASSWORD = 'postgres'
+DB_NAME = 'simmobcity'
+DAS_TABLE_NAME = 'demand.das_ltpopulation'
+######################################################################################################################
+
 
 
 listOfTimeIntervals = np.arange(3.25,27,0.5)  # time intervals given in float
@@ -26,28 +34,30 @@ for i in range(len(listOfTimeIntervals)):
 
 tripStartCounts = {}
 modeList = []
-with open('activity_schedule') as f:
-	next(f)  # this line needs to be commented if there is no header in the file. The sole purpose of this line is to
-	# skip the line containing the header
 
-	for row in f:
-		listed = row.strip().split(',')
-		stop_activity_type = listed[4]
-		mode_type = listed[7]
-		start_time = float(listed[13])
+fetch_ct_plus_1 = "SELECT person_id, stop_mode, prev_stop_departure_time FROM " + DAS_TABLE_NAME 
 
-		if mode_type not in modesToBePlotted:
-			continue
+connection_string = "dbname='" + DB_NAME + "' user='" + DB_USER + "' host='" + DB_HOST + "' port='" + DB_PORT + "' password='" + DB_PASSWORD + "'"
+conn = psycopg2.connect(connection_string)
+cur = conn.cursor()
+cur.execute(fetch_ct_plus_1)
+rows = cur.fetchall()
+personIdList = []
+ct_plus1_aba_list = []
+for row in rows:
+	stop_activity_type = row[0]
+	mode_type= row[1]
+	start_time = float(row[2])
+	if mode_type not in modesToBePlotted:
+		continue
 
-		if mode_type in tripStartCounts:
-			tripStartCounts[mode_type][dictOfTimeIntervalIndices[start_time]] += 1
-		else:
+	if mode_type in tripStartCounts:
+		tripStartCounts[mode_type][dictOfTimeIntervalIndices[start_time]] += 1
+	else:
 
-			tripStartCounts[mode_type] = [0] * 48   # 48 is the number of time intervals
-			modeList.append(mode_type)
-			tripStartCounts[mode_type][dictOfTimeIntervalIndices[start_time]] = 1
-
-
+		tripStartCounts[mode_type] = [0] * 48   # 48 is the number of time intervals
+		modeList.append(mode_type)
+		tripStartCounts[mode_type][dictOfTimeIntervalIndices[start_time]] = 1
 
 
 
@@ -82,6 +92,7 @@ namesOfTimeIntervals = ['03:00-03:30 ', '03:30-04:00  ', '04:00-04:30', '04:30-0
 xtickNames = plt.setp(df, xticklabels=namesOfTimeIntervals)
 plt.setp(xtickNames, rotation=90, fontsize=10)
 plt.title('Number of trips starting at different times of day ', fontsize=25)
-# plt.tight_layout()
-# plt.savefig('Number of trips starting at different times of day.png')
-plt.show()
+mng = plt.get_current_fig_manager()
+mng.full_screen_toggle()
+plt.show(block = False)
+plt.savefig("Number of trips starting at different times of day.png.png", bbox_inches='tight')

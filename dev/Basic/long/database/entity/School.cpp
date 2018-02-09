@@ -203,5 +203,33 @@ int  School::getNumOfSelectedStudents()
 	return this->selectedStudents.size();
 }
 
+bool School::isArtProgram() const
+{
+	return artProgram;
+}
 
+void School::setArtProgram(bool artProgram)
+{
+	this->artProgram = artProgram;
+}
+
+bool School::isLangProgram() const
+{
+	return langProgram;
+}
+
+void School::setLangProgram(bool langProgram)
+{
+	this->langProgram = langProgram;
+}
+
+bool School::isMusicProgram() const
+{
+	return musicProgram;
+}
+
+void School::setMusicProgram(bool musicProgram)
+{
+	this->musicProgram = musicProgram;
+}
 

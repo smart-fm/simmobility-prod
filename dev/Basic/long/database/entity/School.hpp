@@ -18,14 +18,14 @@ namespace sim_mob
 		{
 		public:
 			School(BigSerial id = INVALID_ID, BigSerial fmBuildingId = INVALID_ID,double floorArea = 0, int schoolSlot = 0, double centroidX = 0, double centroidY = 0, bool giftedProgram = false, bool sapProgram = false,
-				   std::string planningArea = std::string(), BigSerial tazName = INVALID_ID, std::string schoolType = std::string());
+				   std::string planningArea = std::string(), BigSerial tazName = INVALID_ID, std::string schoolType = std::string(), bool artProgram = false, bool musicProgram = false, bool langProgram = false);
 			virtual ~School();
 
 			struct DistanceIndividual
 			{
 				BigSerial individualId;
 				double distanceToSchool;
-			};
+	};
 
 			struct OrderByDistance
 			{
@@ -76,6 +76,13 @@ namespace sim_mob
 			double getReAllocationProb();
 			int getNumOfSelectedStudents();
 			std::vector<School*> getSortedProbSchoolList(std::vector<School*> studentsWithProb);
+			bool isArtProgram() const;
+			void setArtProgram(bool artProgram);
+			bool isLangProgram() const;
+			void setLangProgram(bool langProgram);
+			bool isMusicProgram() const ;
+			void setMusicProgram(bool musicProgram);
+
 
 			void addStudent(BigSerial studentId);
 			void addIndividualDistance(DistanceIndividual &distanceIndividual);
@@ -95,6 +102,9 @@ namespace sim_mob
 			std::string planningArea;
 			BigSerial tazName;
 			std::string schoolType;
+			bool artProgram;
+			bool musicProgram;
+			bool langProgram;
 
 			int numStudents;
 			std::vector<BigSerial> students;

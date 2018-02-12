@@ -5,7 +5,7 @@
 <config>
     <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
     <!-- Admissible values are "preday", "withinday" and "supply". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.-->
-    <mid_term_run_mode value="preday"/>
+    <mid_term_run_mode value="supply"/>
 
     <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
 
@@ -59,8 +59,15 @@
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
             <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
 	    <!-- Demand Related stored procedures-->
-            <mapping name="day_activity_schedule" procedure="get_persons_between"/>
-            <mapping name="freight_trips" procedure="get_freight_between"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between_simon_testing"/>
+            <!-- <mapping name="freight_trips" procedure="get_freight_between"/> -->
+
+            <!-- Smart Mobility Controller related stored procedures -->
+            <mapping name="taxi_fleet" procedure="get_taxi_fleet_on_call_test_simon"/>
+            <mapping name="sms_parking" procedure="get_all_parking()"/>
+            <mapping name="rail_sms_pathset" procedure="get_pt_pathset_tr_sms_mrt"/>
+            <mapping name="rail_sms_edges" procedure="get_pt_tr_edges_sms_mrt()"/>
+            <mapping name="rail_sms_vertices" procedure="get_pt_tr_vertices_sms_mrt()"/>
             </proc_map>
 
         <!-- Singapore network -->
@@ -127,8 +134,8 @@
 
     <system>
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
-        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="simmobcity"/>
-        <population_database  database="fm_hpchead" credentials="fm_hpchead" proc_map=""/>
+        <network_database database="fm_hpc" credentials="fm_hpc" proc_map="simmobcity"/>
+        <population_database  database="fm_hpc" credentials="fm_hpc" proc_map=""/>
 
         <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->
         <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->

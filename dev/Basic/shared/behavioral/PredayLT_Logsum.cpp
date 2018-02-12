@@ -249,7 +249,7 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 
 	bool printedError = false;
 
-	if(personParams.hasFixedWorkPlace())
+	if(personParams.hasFixedWorkPlace() || personParams.isStudent())
 	{
 		int workLoc = workLoc = personParams.getFixedWorkLocation();
 		ZoneParams* orgZnParams = nullptr;
@@ -315,10 +315,25 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 
 		}
 
-        LogsumTourModeParams tmParams(orgZnParams, destZnParams, amCostParams, pmCostParams, personParams, cfg.getActivityTypeId("Work"));
-        PredayLogsumLuaProvider::getPredayModel().computeTourModeLogsum(personParams, cfg.getActivityTypeConfigMap(), tmParams);
+		//set the activity logsum default as 0 for work and education logsums to prevent null values. The simillar thing is done at mid term side.
+		personParams.setActivityLogsum(1,0);
+		personParams.setActivityLogsum(2,0);
+
+		if(personParams.hasFixedWorkPlace())
+		{
+			LogsumTourModeParams tmParams(orgZnParams, destZnParams, amCostParams, pmCostParams, personParams, cfg.getActivityTypeId("Work"));
+			PredayLogsumLuaProvider::getPredayModel().computeTourModeLogsum(personParams, cfg.getActivityTypeConfigMap(), tmParams);
+		}
+
+        if(personParams.isStudent())
+        {
+        	LogsumTourModeParams tmParams(orgZnParams, destZnParams, amCostParams, pmCostParams, personParams, cfg.getActivityTypeId("Education"));
+        	PredayLogsumLuaProvider::getPredayModel().computeTourModeLogsum(personParams, cfg.getActivityTypeConfigMap(), tmParams);
+        }
 
 	}
+
+
 
     LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, cfg.getNumTravelModes());
 

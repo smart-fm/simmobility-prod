@@ -238,22 +238,16 @@ void OnCallDriverMovement::beginCruising(const Node *node)
 
 	const Link *currLink = nullptr;
 	bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
-	vector<WayPoint> route;
 
 	//If the driving path has already been set, we must find path to the node from
 	//the current segment
 	if(pathMover.isDrivingPathSet())
 	{
 		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
-		route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
-	}
-	else
-	{
-		route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
 	}
 
 	//Get route to the node
-	//auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
 #ifndef NDEBUG
 	if(route.empty())
@@ -327,17 +321,7 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	}
 
 	//Get route to the node
-	//auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
-	vector<WayPoint> route;
-
-	if(currLink)
-	{
-		route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *pickupNode);
-	}
-	else
-	{
-		route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *pickupNode);
-	}
+	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
 #ifndef NDEBUG
 	if(route.empty())
@@ -400,17 +384,7 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 	}
 
 	//Get route to the node
-	//auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
-	vector<WayPoint> route;
-
-	if(currLink)
-	{
-		route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *dropOffNode);
-	}
-	else
-	{
-		route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *dropOffNode);
-	}
+	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
 #ifndef NDEBUG
 	if(route.empty())
@@ -463,8 +437,7 @@ void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
 		bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
 
 		//Get route to the node
-		//auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
-		auto route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *parkingNode);
+		auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
 #ifndef NDEBUG
 		if (route.empty())

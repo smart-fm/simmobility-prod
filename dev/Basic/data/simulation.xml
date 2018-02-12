@@ -13,9 +13,9 @@
             </database>
 
             <database id="fm_hpc" dbtype="postgres">
-                <host value="18.58.5.170"/>
+                <host value="172.25.184.156"/>
                 <port value="5432"/>
-                <dbname value="virtualcity_HPC_26_07_2017"/>
+                <dbname value="simmobility_virtualcity_sms_casestudy2017"/>
             </database>
         </databases>
 
@@ -52,7 +52,7 @@
 
         <plaintext-credential id="fm_hpc">
             <username value="postgres"/>
-            <password value="ITSLab2016!"/>
+            <password value="d84dmiN"/>
         </plaintext-credential>
     </credentials>
 </constructs>
@@ -64,7 +64,7 @@
     <!-- Reasonable values for MidTerm -->
     <base_granularity   value="5"   units="seconds"/>
 
-    <total_runtime      value="600"      units="minutes" />
+    <total_runtime      value="1439"      units="minutes" />
     <total_warmup       value="1"    units="minutes" />
     <start_time         value="00:00:00"/>
 
@@ -99,7 +99,18 @@
 </generic_props>
 
 <mobilityServiceController enabled="true">
-    <controller id="1" type="1" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="1"/>
+<!--  SERVICE_CONTROLLER_UNKNOWN = 0,
+      SERVICE_CONTROLLER_ON_HAIL = 1,
+      SERVICE_CONTROLLER_GREEDY = 2,
+      SERVICE_CONTROLLER_SHARED = 3,
+      SERVICE_CONTROLLER_FRAZZOLI = 4,
+      SERVICE_CONTROLLER_INCREMENTAL = 5,
+      SERVICE_CONTROLLER_PROXIMITY = 6,
+      SERVICE_CONTROLLER_AMOD = 7
+
+Note: Controller id indicates the subscribed_controller field specified in the taxi_fleet table-->
+    
+     <controller id="5" type="5" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="10000"/>
 </mobilityServiceController>
 
 <merge_log_files value="true"/>

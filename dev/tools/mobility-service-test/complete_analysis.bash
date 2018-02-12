@@ -2,6 +2,9 @@
 
 OUT_LOCATION=$1 #the dev/Basic folder after SimMobility run
 
+# The database connections and the table containing the activity schedule should be specified
+# in the inputs section of the script_to_plot_temporal_distribition_of_trips_in_DAS.py
+python2.7 script_to_plot_temporal_distribition_of_trips_in_DAS.py
 
 cp -p  $OUT_LOCATION/data/traveltime.csv $OUT_LOCATION
 cp -p $OUT_LOCATION/data/subtrip_metrics.csv $OUT_LOCATION

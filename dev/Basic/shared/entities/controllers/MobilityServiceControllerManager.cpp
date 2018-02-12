@@ -59,7 +59,7 @@ bool MobilityServiceControllerManager::HasMobilityServiceControllerManager()
 
 bool MobilityServiceControllerManager::addMobilityServiceController(MobilityServiceControllerType type,
                                                                     unsigned int scheduleComputationPeriod,
-                                                                    unsigned controllerId)
+                                                                    unsigned controllerId, std::string tripSupportMode)
 {
 
 #ifndef NDEBUG
@@ -72,41 +72,41 @@ bool MobilityServiceControllerManager::addMobilityServiceController(MobilityServ
 	{
 	case SERVICE_CONTROLLER_GREEDY:
 	{
-		controller = new GreedyController(getMutexStrategy(), scheduleComputationPeriod, controllerId,
+		controller = new GreedyController(getMutexStrategy(), scheduleComputationPeriod, controllerId, tripSupportMode,
 		                                      ttEstimateType);
 		break;
 	}
 	case SERVICE_CONTROLLER_SHARED:
 	{
-		controller = new SharedController(getMutexStrategy(), scheduleComputationPeriod, controllerId, ttEstimateType);
+		controller = new SharedController(getMutexStrategy(), scheduleComputationPeriod, controllerId, tripSupportMode, ttEstimateType);
 		break;
 	}
 	case SERVICE_CONTROLLER_FRAZZOLI:
 	{
-		controller = new FrazzoliController(getMutexStrategy(), scheduleComputationPeriod, controllerId,
+		controller = new FrazzoliController(getMutexStrategy(), scheduleComputationPeriod, controllerId, tripSupportMode,
 		                                    ttEstimateType);
 		break;
 	}
 	case SERVICE_CONTROLLER_ON_HAIL:
 	{
-		controller = new OnHailTaxiController(getMutexStrategy(), controllerId);
+		controller = new OnHailTaxiController(getMutexStrategy(), controllerId,tripSupportMode);
 		break;
 	}
 	case SERVICE_CONTROLLER_INCREMENTAL:
 	{
-		controller = new IncrementalSharing(getMutexStrategy(), scheduleComputationPeriod, controllerId,
+		controller = new IncrementalSharing(getMutexStrategy(), scheduleComputationPeriod, controllerId, tripSupportMode,
 		                                    ttEstimateType);
 		break;
 	}
 	case SERVICE_CONTROLLER_PROXIMITY:
 	{
-		controller = new ProximityBased(getMutexStrategy(), scheduleComputationPeriod, controllerId,
+		controller = new ProximityBased(getMutexStrategy(), scheduleComputationPeriod, controllerId, tripSupportMode,
 		                                    ttEstimateType);
 		break;
 	}
 	case SERVICE_CONTROLLER_AMOD:
 	{
-		controller = new AMOD_Controller(getMutexStrategy(), scheduleComputationPeriod, controllerId, ttEstimateType);
+		controller = new AMOD_Controller(getMutexStrategy(), scheduleComputationPeriod, controllerId, tripSupportMode,ttEstimateType);
 		break;
 	}
 	default:

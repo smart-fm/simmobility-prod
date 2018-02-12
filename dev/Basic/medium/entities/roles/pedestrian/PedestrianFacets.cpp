@@ -87,15 +87,33 @@ void PedestrianMovement::frame_init()
 			{
 				std::vector<SubTrip>::iterator subTripItr = person->currSubTrip;
 
+
 				if ((*subTripItr).travelMode == "TravelPedestrian" && subTrip.origin.node == subTrip.destination.node)
 				{
 					std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
 					const Node *taxiEndNode = (*taxiTripItr).destination.node;
+					TripChainItem *tcItem = *(person->currTripChainItem);
 
-					//Choose the controller based on the mode
+					//Choose the controller based on the stop mode in das (i.e. SMS/SMS_POOL,AMOD,RAIL_SMS,etc..)
 					auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 					MobilityServiceController *controller = nullptr;
+					const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
+					auto enabledCtrlrs = cfg.mobilityServiceController.enabledControllers;
+					//auto itCtrlr = controllers.get<ctrlrType>().find(SERVICE_CONTROLLER_AMOD);
+					auto itCtrlr = controllers.get<ctrlTripSupportMode>().find(tcItem->getMode());
 
+					controller = *itCtrlr;
+
+					if (enabledCtrlrs.find(controller->getControllerId())== enabledCtrlrs.end())
+					{
+						std::stringstream msg;
+						msg << "Controller for person travel mode " <<tcItem->getMode()
+						<< " has not been added, but "
+						<< "the demand contains persons taking this mode  service";
+						throw std::runtime_error(msg.str());
+					}
+
+					/*
 					if((*taxiTripItr).travelMode.find("AMOD") != std::string::npos)
 					{
 						//If the person is taking an AMOD service, get the AMOD controller
@@ -126,6 +144,7 @@ void PedestrianMovement::frame_init()
 						auto itCtrlr = controllers.get<ctrlrId>().find(it->first);
 						controller = *itCtrlr;
 					}
+					 */
 
 #ifndef NDEBUG
 					consistencyChecks(controller->getServiceType());

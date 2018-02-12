@@ -19,8 +19,8 @@ namespace sim_mob
 class OnHailTaxiController : public MobilityServiceController
 {
 public:
-	OnHailTaxiController(const MutexStrategy &mtxStrat, unsigned id) :
-			MobilityServiceController(mtxStrat, MobilityServiceControllerType::SERVICE_CONTROLLER_ON_HAIL, id)
+	OnHailTaxiController(const MutexStrategy &mtxStrat, unsigned id, std::string tripSupportMode_) :
+			MobilityServiceController(mtxStrat, MobilityServiceControllerType::SERVICE_CONTROLLER_ON_HAIL, id, tripSupportMode_)
 	{
 	}
 

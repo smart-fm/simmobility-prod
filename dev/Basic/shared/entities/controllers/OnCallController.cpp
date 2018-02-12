@@ -17,8 +17,8 @@ using namespace messaging;
 using namespace std;
 
 OnCallController::OnCallController(const MutexStrategy &mtxStrat, unsigned int computationPeriod,
-                                   MobilityServiceControllerType type_, unsigned id, TT_EstimateType ttEstimateType_)
-		: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod),
+                                   MobilityServiceControllerType type_, unsigned id, std::string tripSupportMode_, TT_EstimateType ttEstimateType_)
+		: MobilityServiceController(mtxStrat, type_, id, tripSupportMode_), scheduleComputationPeriod(computationPeriod),
 		  ttEstimateType(ttEstimateType_)
 {
 	rebalancer = new LazyRebalancer(this); //jo SimpleRebalancer(this);

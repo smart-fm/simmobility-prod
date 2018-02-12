@@ -74,6 +74,7 @@ void FleetController_ST::initialise(std::set<sim_mob::Entity *> &agentList)
                     case SERVICE_CONTROLLER_FRAZZOLI:
                     case SERVICE_CONTROLLER_INCREMENTAL:
                     case SERVICE_CONTROLLER_PROXIMITY:
+                    case SERVICE_CONTROLLER_AMOD:
                         tripType = "OnCallTrip";
                         break;
 

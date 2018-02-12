@@ -126,7 +126,7 @@ protected:
 	// (see https://stackoverflow.com/a/121163/2110769).
 	// The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
 	explicit OnCallController(const MutexStrategy& mtxStrat, unsigned int computationPeriod,
-			MobilityServiceControllerType type_, unsigned id, TT_EstimateType ttEstimateType);
+			MobilityServiceControllerType type_, unsigned id, std::string tripSupportMode_,TT_EstimateType ttEstimateType);
 
 public:
 	virtual ~OnCallController();
@@ -179,6 +179,8 @@ protected:
 	/** Keeps track of how often to process messages. The messages will be process at every
 	 * scheduleComputationPeriod frame ticks*/
 	unsigned int scheduleComputationPeriod;
+
+	std::string tripSupportMode;
 
 	//jo
 	/** Keeps track of when to rebalance */

@@ -13,9 +13,9 @@
             </database>
 
             <database id="fm_hpc" dbtype="postgres">
-                <host value="18.58.5.170"/>
+                <host value="172.25.184.156"/>
                 <port value="5432"/>
-                <dbname value="virtualcity_HPC_26_07_2017"/>
+                <dbname value="simmobility_virtualcity_sms_casestudy2017"/>
             </database>
         </databases>
 
@@ -52,7 +52,7 @@
 
         <plaintext-credential id="fm_hpc">
             <username value="postgres"/>
-            <password value="ITSLab2016!"/>
+            <password value="d84dmiN"/>
         </plaintext-credential>
     </credentials>
 </constructs>
@@ -92,14 +92,15 @@
         <closed_loop_toll file=""/>
         <closed_loop_incentives file=""/>
         <sensor_output file="sensor.txt" step_size="300" />
-    </closed_loop>
+    </closed_loop>RequestType
 </simulation>
 
 <generic_props>
 </generic_props>
 
-<mobilityServiceController enabled="true">
-    <controller id="1" type="1" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="1"/>
+<mobilityServiceController enabled="true" >
+   <!-- <controller id="5" type="7" tripSupportMode = "AMOD" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="10000"/> -->
+    <controller id="5" type="3" tripSupportMode = "AMOD" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="2000"/> 
 </mobilityServiceController>
 
 <merge_log_files value="true"/>

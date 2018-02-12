@@ -65,6 +65,7 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
                     string tripType;
 
                     MobilityServiceControllerType type = it->second.type;
+                    std:: string tripSupportMode = it->second.tripSupportMode;
 
                     switch (type) {
                         case SERVICE_CONTROLLER_ON_HAIL:
@@ -76,6 +77,7 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
                         case SERVICE_CONTROLLER_FRAZZOLI:
                         case SERVICE_CONTROLLER_INCREMENTAL:
                         case SERVICE_CONTROLLER_PROXIMITY:
+                        case SERVICE_CONTROLLER_AMOD:
                             tripType = "OnCallTrip";
                             break;
 

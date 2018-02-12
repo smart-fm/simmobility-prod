@@ -17,10 +17,10 @@ namespace sim_mob
 class IncrementalSharing : public OnCallController
 {
 public:
-	IncrementalSharing(const MutexStrategy &mtxStrat, unsigned int computationPeriod, unsigned id,
+	IncrementalSharing(const MutexStrategy &mtxStrat, unsigned int computationPeriod, unsigned id, std::string tripSupportMode_,
 	                   TT_EstimateType ttEstimateType) : OnCallController(mtxStrat, computationPeriod,
 	                                                                      MobilityServiceControllerType::SERVICE_CONTROLLER_INCREMENTAL,
-	                                                                      id, ttEstimateType)
+	                                                                      id, tripSupportMode_, ttEstimateType)
 	{
 	}
 

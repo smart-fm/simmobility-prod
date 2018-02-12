@@ -322,6 +322,19 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 	auto route = PrivateTrafficRouteChoice::getInstance()->getPathToLink(subTrip, false, currLink, nullptr,
 	                                                                     taxiStandLink, useInSimulationTT);
 
+	//Get shortest path if path is not found in the path-set
+	if(route.empty())
+	{
+		if(currLink)
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Link>(*currLink, *taxiStandLink);
+		}
+		else
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Link>(*currNode, *taxiStandLink);
+		}
+	}
+
 	if(route.empty())
 	{
 		stringstream msg;
@@ -363,6 +376,19 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 
 	//Get route to the node
 	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+
+	//Get shortest path if path is not found in the path-set
+	if(route.empty())
+	{
+		if(currLink)
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
+		}
+		else
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
+		}
+	}
 
 	if(route.empty())
 	{
@@ -407,6 +433,12 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 
 		//Get route to the node
 		auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+
+		//Get shortest path if path is not found in the path-set
+		if(route.empty())
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *destination);
+		}
 
 		if(route.empty())
 		{

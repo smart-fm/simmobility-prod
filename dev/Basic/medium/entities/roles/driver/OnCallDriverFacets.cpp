@@ -249,6 +249,19 @@ void OnCallDriverMovement::beginCruising(const Node *node)
 	//Get route to the node
 	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
+	//Get shortest path if path is not found in the path-set
+	if(route.empty())
+	{
+		if(currLink)
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
+		}
+		else
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
+		}
+	}
+
 #ifndef NDEBUG
 	if(route.empty())
 	{
@@ -323,6 +336,19 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	//Get route to the node
 	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
+	//Get shortest path if path is not found in the path-set
+	if (route.empty())
+	{
+		if (currLink)
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *pickupNode);
+		}
+		else
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *pickupNode);
+		}
+	}
+
 #ifndef NDEBUG
 	if(route.empty())
 	{
@@ -386,6 +412,19 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 	//Get route to the node
 	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
 
+	//Get shortest path if path is not found in the path-set
+	if (route.empty())
+	{
+		if (currLink)
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *dropOffNode);
+		}
+		else
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *dropOffNode);
+		}
+	}
+
 #ifndef NDEBUG
 	if(route.empty())
 	{
@@ -438,6 +477,12 @@ void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
 
 		//Get route to the node
 		auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+
+		//Get shortest path if path is not found in the path-set
+		if (route.empty())
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *parkingNode);
+		}
 
 #ifndef NDEBUG
 		if (route.empty())

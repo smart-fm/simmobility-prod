@@ -208,7 +208,7 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	        {
 	            const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
 	            Unit *unit = hmMessage.getUnit();
-	            unit->setBto(true);
+	            //unit->setBto(true);
 	           	units.push_back(unit);
 	            unitsById.insert(std::make_pair((unit)->getId(), unit));
 	            break;
@@ -342,7 +342,8 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 
 					units.push_back(unit);
 					unitsById.insert(std::make_pair((unit)->getId(), unit));
-					unitIds.push_back(unitId);
+					//unitIds.push_back(unitId);
+					addNewUnit(unitId);
 				}
 				MessageBus::PublishEvent(LTEID_HM_PRIVATE_PRESALE_UNIT_ADDED,MessageBus::EventArgsPtr(new EventArgs()));
 				break;

@@ -685,5 +685,13 @@ namespace sim_mob
 	    	boost::format fmtr = boost::format("%1%, %2%") % unitId % hedonicPrice;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_UNIT_HEDONIC_PRICE,fmtr.str());
 	    }
+
+		inline void writeNewBidsToFile( BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId, double bidValue, int simDay )
+            {
+                ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+                boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%") % bidId % currentUnitId % newUnitId % bidderId %bidValue % simDay;
+                AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_NEW_BIDS,fmtr.str());
+            }
 	}
 }

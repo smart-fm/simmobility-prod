@@ -166,7 +166,7 @@ void VehicleLoadingModel::chooseConnectedLanes(vector<WayPoint> &path, set<const
 {
 	//The first link in the path
 	auto *firstLink = path.front().roadSegment->getParentLink();
-	
+
 	//Check if we have stop points defined in the first link. As stop points will require vehicles to be
 	//on the slowest lane, we must consider them while checking lane connectivity
 	auto segmentsInLink = firstLink->getRoadSegments();

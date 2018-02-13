@@ -300,28 +300,34 @@ void SchoolAssignmentSubModel::assignSecondarySchool(const Household *household,
 //			ind->addprimarySchoolIdWithin5km((*schoolsItr)->getId(),(*schoolsItr));
 //		}
 		valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(SEC_DISTANCE)->getCoefficientEstimate();
-		//TODO::art prog..lang..
+		valueSchool = valueSchool +  (*schoolsItr)->isArtProgram()* model->getSchoolAssignmentCoefficientsById(SEC_ART_PRO)->getCoefficientEstimate();
+		valueSchool = valueSchool +  (*schoolsItr)->isMusicProgram()* model->getSchoolAssignmentCoefficientsById(SEC_MUSIC_PRO)->getCoefficientEstimate();
+		valueSchool = valueSchool +  (*schoolsItr)->isLangProgram()* model->getSchoolAssignmentCoefficientsById(SEC_LANG_PRO)->getCoefficientEstimate();
 
 		const TravelTime *travelTime = model->getTravelTimeByOriginDestTaz(hhPlanningArea->getTazName(),(*schoolsItr)->getTazName());
 		if(travelTime != nullptr)
 		{
 			double publicTravelTime = travelTime->getPublicTravelTime();
 			valueSchool = valueSchool + publicTravelTime * model->getSchoolAssignmentCoefficientsById(SEC_PT_TIME)->getCoefficientEstimate();
+			valueSchool = valueSchool + travelTime->getNumTransfers() * model->getSchoolAssignmentCoefficientsById(SEC_PT_TRANSFER)->getCoefficientEstimate();
 		}
 
 		double income = household->getIncome();
 		const int lowIncomeLimit = 3500;
 		const int highIncomeLimit = 10000;
 		if(income <= lowIncomeLimit) //low income
-				{
-			valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(PRI_LOW_INCOME_HH_X_DISTANCE)->getCoefficientEstimate();
-				}
+		{
+			valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(SEC_INC_LOW_DIST)->getCoefficientEstimate();
+		}
 		else if(income >= highIncomeLimit)//high income
 		{
-			valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(PRI_HIGH_INCOME_HH_X_DISTANCE)->getCoefficientEstimate();
+			valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(SEC_INC_HIGH_DIST)->getCoefficientEstimate();
 		}
-		valueSchool = valueSchool + (distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(PRI_GIFTED_PROGRAM_X_DISTANCE)->getCoefficientEstimate()) * (*schoolsItr)->isGiftedProgram();
-		valueSchool = valueSchool + (distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(PRI_SAP_PROGRAM_X_DISTANCE)->getCoefficientEstimate()) * (*schoolsItr)->isSapProgram();
+
+		if(!(*schoolsItr)->isExpressTest())
+		{
+			valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(SEC_DIST_EXPRESS_NO)->getCoefficientEstimate();
+		}
 
 		double expSchool = exp(valueSchool);
 		totalExp = totalExp + expSchool;
@@ -360,7 +366,7 @@ void SchoolAssignmentSubModel::assignSecondarySchool(const Household *household,
 				pTemp = pTemp + (*probSchoolItr).second;
 			}
 		}
-		model->addStudentToPrimarySchool(individualId,selectedSchoolId,household->getId());
+		//model->addStudentToPrimarySchool(individualId,selectedSchoolId,household->getId());
 	}
 	schoolExpVec.clear();
 	expSchoolMap.clear();

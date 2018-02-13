@@ -117,9 +117,8 @@ void PedestrianMovement::frame_init()
 					if (!controller)
 					{
 						std::stringstream msg;
-						msg << "Controller for person travel mode " <<tcItem->getMode()
-						<< " has not been added, but "
-						<< "the demand contains persons taking this mode  service";
+						msg << "Controller for person travelmode " <<tcItem->getMode()
+						<< " is not present in config file,while the demand (DAS) have this mode";
 						throw std::runtime_error(msg.str());
 					}
 

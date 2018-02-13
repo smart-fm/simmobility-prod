@@ -99,8 +99,8 @@
 </generic_props>
 
 <mobilityServiceController enabled="true" >
-   <!-- <controller id="5" type="7" tripSupportMode = "AMOD" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="10000"/> -->
-    <controller id="5" type="3" tripSupportMode = "AMOD" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="2000"/> 
+	<!-- <controller id="5" type="7" tripSupportMode = "|AMOD|AMOD_Pool|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="10000"/> -->
+    <controller id="5" type="3" tripSupportMode = "|SMS|SMS_Pool|RAIL_SMS|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="2000"/> 
 </mobilityServiceController>
 
 <merge_log_files value="true"/>

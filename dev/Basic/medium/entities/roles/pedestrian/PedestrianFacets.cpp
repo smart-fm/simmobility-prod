@@ -93,18 +93,28 @@ void PedestrianMovement::frame_init()
 					std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
 					const Node *taxiEndNode = (*taxiTripItr).destination.node;
 					TripChainItem *tcItem = *(person->currTripChainItem);
-
+					std::string currentTripChainMode = tcItem->getMode();
 					//Choose the controller based on the stop mode in das (i.e. SMS/SMS_POOL,AMOD,RAIL_SMS,etc..)
 					auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 					MobilityServiceController *controller = nullptr;
 					const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
 					auto enabledCtrlrs = cfg.mobilityServiceController.enabledControllers;
 					//auto itCtrlr = controllers.get<ctrlrType>().find(SERVICE_CONTROLLER_AMOD);
-					auto itCtrlr = controllers.get<ctrlTripSupportMode>().find(tcItem->getMode());
+					//auto itCtrlr = controllers.get<ctrlTripSupportMode>().find(tcItem->getMode());
+					std::map<unsigned int, MobilityServiceControllerConfig>:: iterator itr ;
 
-					controller = *itCtrlr;
+					for (itr = enabledCtrlrs.begin(); itr != enabledCtrlrs.end(); itr++)
+					{
 
-					if (enabledCtrlrs.find(controller->getControllerId())== enabledCtrlrs.end())
+						if (itr->second.tripSupportMode.find(currentTripChainMode.insert(0,"|").append("|"))!= std::string::npos)
+						{
+							auto itCtrlr = controllers.get<ctrlTripSupportMode>().find(itr->second.tripSupportMode);
+							controller = *itCtrlr;
+							break;
+						}
+					}
+
+					if (!controller)
 					{
 						std::stringstream msg;
 						msg << "Controller for person travel mode " <<tcItem->getMode()

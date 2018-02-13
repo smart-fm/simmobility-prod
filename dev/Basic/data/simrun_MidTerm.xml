@@ -57,7 +57,7 @@
             <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
             <mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
             <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
-            <mapping name="day_activity_schedule" procedure="get_persons_between_amod_tripsupportmode_testing"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between_tripsupportmode_testing"/>
             <!--<mapping name="freight_trips" procedure="get_freight_between"/>-->
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
             <mapping name="taxi_fleet" procedure="get_taxi_fleet_on_call_test_simon"/>
@@ -335,7 +335,7 @@
             <!-- max number of iterations that spsa must run for -->
             <iterations value="20"/>
             <!-- termination condition for spsa is (F(X_k+1) - F(X_k) <= tolerance ) where F(X) is the objective function -->
-            <tolerence value="0.000001"/>
+            <tolerence value="0.000001"/>tcItem->getMode()
             <!-- perturbation step size for iteration k is given by c_k = c / ((1+k)^gamma) -->
             <gradient_step_size initial_value="0.1" algorithm_coefficient2="0.101"/>
             <!-- step size for iteration k is given by a_k = a / ((1+k)^alpha) -->

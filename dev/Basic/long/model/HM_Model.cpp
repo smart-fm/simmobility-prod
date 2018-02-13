@@ -1603,6 +1603,12 @@ void HM_Model::startImpl()
 
 		//Load units
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
+		UnitDao unitDao(conn);
+		privatePresaleUnits =  unitDao.getPrivatePresaleUnits();
+		for (UnitList::const_iterator it = privatePresaleUnits.begin(); it != privatePresaleUnits.end(); it++)
+		{
+			 privatePresaleUnitsMap.insert(std::make_pair((*it)->getId(), (*it)->getId()));
+		}
 		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
 		HouseholdDao hhDao(conn);
@@ -1924,7 +1930,20 @@ void HM_Model::startImpl()
 	//assign empty units to freelance housing agents
 	//if(!resume)
 	//{
-		for (UnitList::const_iterator it = units.begin(); it != units.begin() + units.size()*0.6; it++)
+
+	UnitList vacanciesVec;
+	///this unit is a vacancy
+	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
+	{
+		if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() != 3)
+		{
+			if(privatePresaleUnitsMap.find((*it)->getId()) == privatePresaleUnitsMap.end())
+			{
+				vacanciesVec.push_back((*it));
+			}
+		}
+	}
+		for (UnitList::const_iterator it = vacanciesVec.begin(); it != vacanciesVec.begin()+vacanciesVec.size()*0.6; it++)
 		{
 			//HedonicPrice_SubModel hpSubmodel(0, this, (*it));
 			//hpSubmodel.computeInitialHedonicPrice((*it)->getId());
@@ -1968,10 +1987,6 @@ void HM_Model::startImpl()
 
 				writeUnitTimesToFile((*it)->getId(),(*it)->getTimeOnMarket(), (*it)->getTimeOffMarket(), (*it)->getbiddingMarketEntryDay());
 			}
-
-			//this unit is a vacancy
-			if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() != 3)
-			{
 				if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->isBto() == false )
 				{
 					if(!resume)
@@ -2017,7 +2032,7 @@ void HM_Model::startImpl()
 
 					freelanceAgents[vacancies % numWorkers]->addUnitId((*it)->getId());
 					vacancies++;
-				}
+				//}
 			}
 
 

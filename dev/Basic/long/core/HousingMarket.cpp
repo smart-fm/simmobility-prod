@@ -234,7 +234,14 @@ void HousingMarket::getAvailableEntries(const IdVector& tazIds, HousingMarket::C
 
 void HousingMarket::getAvailableEntries(ConstEntryList& outList)
 {
-    copy(entriesById, outList);
+    //copy(entriesById, outList);
+    for( auto itr = entriesById.begin(); itr != entriesById.end(); itr++)
+    {
+    	if( (*itr).second->isBuySellIntervalCompleted() == true)
+    	{
+    		outList.push_back((*itr).second);
+    	}
+    }
 }
 
 size_t HousingMarket::getEntrySize(unsigned int currTick)

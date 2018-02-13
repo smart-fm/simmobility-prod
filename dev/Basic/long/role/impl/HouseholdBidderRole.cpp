@@ -532,7 +532,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 
 				Bid newBid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms(), biddingEntry.getWP(), biddingEntry.getWtp_e(), biddingEntry.getAffordability());
 				bid(entry->getOwner(), newBid);
-
+				writeNewBidsToFile(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), biddingEntry.getBestBid(), now.ms());
 				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 				//add the bids active on last day to op schema
 				if(now.ms() == (config.ltParams.days-1))

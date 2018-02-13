@@ -68,7 +68,8 @@ namespace sim_mob
 				LOG_INDIVIDUAL_JOB_ASSIGN,
 				LOG_DAILY_HOUSING_MARKET_UNITS,
 				LOG_DAILY_HOUSING_MARKET_UNIT_TIMES,
-				LOG_UNIT_HEDONIC_PRICE
+				LOG_UNIT_HEDONIC_PRICE,
+				LOG_NEW_BIDS
             };
 
             LoggerAgent();

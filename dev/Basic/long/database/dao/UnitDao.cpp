@@ -161,7 +161,7 @@ std::vector<Unit*> UnitDao::getBTOUnits(std::tm currentSimYear)
 	return BTOUnitList;
 }
 
-std::vector<Unit*> UnitDao::getPrivatePresaleUnits(std::tm currentSimYear)
+std::vector<Unit*> UnitDao::getPrivatePresaleUnits()
 {
 	const std::string DB_GETALL_PRIVATE_PRESALE_UNITS = "SELECT u.* FROM " + connection.getSchema() + "fm_unit_res u ," +  connection.getSchema() + " private_units p" + " WHERE  "
 			"p.unit_id = u.fm_unit_id";

@@ -548,6 +548,7 @@ namespace sim_mob
             UnitList units; //residential only.
             UnitMap unitsById;
             std::multimap<BigSerial, Unit*> unitsByZoneHousingType;
+	    UnitList privatePresaleUnits;
 
             UnitTypeList unitTypes; //residential only.
             UnitTypeMap unitTypesById;
@@ -628,6 +629,7 @@ namespace sim_mob
             vector<double> logSqrtFloorAreacondo;
 
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
+	    boost::unordered_map<BigSerial, BigSerial> privatePresaleUnitsMap;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;
             VehicleOwnershipCoeffMap vehicleOwnershipCoeffsById;
             TaxiAccessCoeffList taxiAccessCoeffs;

@@ -49,8 +49,9 @@ private:
 	 * Gets the lanes that connect the starting link in the path to the next link
 	 * @param path the path
 	 * @param connectedLanes the lanes that are connected to the next link
+	 * @param params the driver update parameters
 	 */
-	void chooseConnectedLanes(vector<WayPoint> &path, set<const Lane *> &connectedLanes);
+	void chooseConnectedLanes(vector<WayPoint> &path, set<const Lane *> &connectedLanes, DriverUpdateParams &params);
 
 	/**
 	 * Selects the lane with the most amount of space at the entry point of the lane

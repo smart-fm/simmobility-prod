@@ -92,9 +92,6 @@ void OnCallDriverMovement::frame_tick()
                     {
                         if (!pickedUpPasssenger && !pickedUpAnotherPasssenger)
                         {
-                            messaging::MessageBus::PostMessage(person_waiting, MSG_WAKEUP_TAXI_PAX,
-                                                               messaging::MessageBus::MessagePtr(
-                                                                       new OnCallDriverMessage(onCallDriver)));
                             onCallDriver->pickupPassenger();
                             pickedUpPasssenger = true;
                             passengerWaitingtobeDroppedOff = true;
@@ -103,10 +100,6 @@ void OnCallDriverMovement::frame_tick()
                         {
                             if(!passengerWaitingtobeDroppedOff)
                             {
-                                messaging::MessageBus::PostMessage(person_waiting, MSG_WAKEUP_TAXI_PAX,
-                                                                   messaging::MessageBus::MessagePtr(
-                                                                           new OnCallDriverMessage(onCallDriver)));
-
                                 onCallDriver->pickupPassenger();
                                 pickedUpAnotherPasssenger = true;
                                 passengerWaitingtobeDroppedOff = true;
@@ -269,11 +262,10 @@ void OnCallDriverMovement::frame_tick()
 	 //from the current lane
 	 if(pathMover.isDrivingPathSet() && currLane)
 	 {
-		 auto mapTurningsVsLanes = rdNetwork->getTurningPathsFromLanes();
-		 auto itTurningsFromCurrLane = mapTurningsVsLanes.find(currLane);
+		 auto itTurningsFromCurrLane = rdNetwork->getTurningPathsFromLanes().find(currLane);
 
  #ifndef NDEBUG
-		 if(itTurningsFromCurrLane == mapTurningsVsLanes.end())
+		 if(itTurningsFromCurrLane == rdNetwork->getTurningPathsFromLanes().end())
 		 {
 			 stringstream msg;
 			 msg << "No downstream nodes are reachable from node " << fromNode->getNodeId();
@@ -425,6 +417,7 @@ void OnCallDriverMovement::frame_tick()
 
                      ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
                                      << onCallDriver->getParent()->getDatabaseId() << ": Begin driving to pickup point" <<endl;
+                     onCallDriver->getParent()->destNode = WayPoint(pickupNode);
                      //Set vehicle to moving
                      onCallDriver->getResource()->setMoving(true);
                      return;
@@ -450,6 +443,7 @@ void OnCallDriverMovement::frame_tick()
                      ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
                                      << onCallDriver->getParent()->getDatabaseId() << ": Begin driving to pickup point"
                                      << endl;
+                     onCallDriver->getParent()->destNode = WayPoint(pickupNode);
                      //Set vehicle to moving
                      onCallDriver->getResource()->setMoving(true);
                      return;
@@ -535,6 +529,7 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
                                     << onCallDriver->getParent()->getDatabaseId() << ": Begin driving with passenger from node "
                                     << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
                                     << " to drop off node " << dropOffNode->getNodeId() << endl;
+                    onCallDriver->getParent()->destNode = WayPoint(dropOffNode);
                     //Set vehicle to moving
                     onCallDriver->getResource()->setMoving(true);
                     return;
@@ -561,6 +556,8 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
                                     << onCallDriver->getParent()->getDatabaseId() << ": Begin driving with passenger from node "
                                     << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
                                     << " to drop off node " << dropOffNode->getNodeId() << endl;
+
+                    onCallDriver->getParent()->destNode = WayPoint(dropOffNode);
                     //Set vehicle to moving
                     onCallDriver->getResource()->setMoving(true);
                     return;

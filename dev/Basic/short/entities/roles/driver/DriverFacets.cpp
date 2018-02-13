@@ -1613,7 +1613,7 @@ void DriverMovement::reRouteToDestination(DriverUpdateParams &params, const Lane
 			if (!isPathFound || !ConfigManager::GetInstance().FullConfig().PathSetMode())
 			{
 				const StreetDirectory& stdir = StreetDirectory::Instance();
-				path = stdir.SearchShortestDrivingPath<sim_mob::Link, sim_mob::Node>(*nextLink, *(parentDriver->destination));
+				path = stdir.SearchShortestDrivingPath<sim_mob::Link, sim_mob::Node>(*nextLink, *parentDriver->destination);
 
 				if (path.empty())
 				{
@@ -1645,7 +1645,7 @@ void DriverMovement::reRouteToDestination(DriverUpdateParams &params, const Lane
 	{
 		stringstream msg;
 		msg << __func__ << "No alternate path found from lane " << currLane->getLaneId()
-			<< " to destination node " << parentDriver->destination->getNodeId()
+			<< " to destination node " << parentDriver->getParent()->destNode.node->getNodeId()
 			<< " Frame: [" << params.now.frame() << "]";
 		throw runtime_error(msg.str());
 	}

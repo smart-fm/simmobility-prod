@@ -7,6 +7,7 @@
 
 #include "entities/roles/driver/models/VehicleLoadingModel.hpp"
 #include "util/Utils.hpp"
+#include "BusDriver.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -87,7 +88,7 @@ void VehicleLoadingModel::chooseStartingLaneAndSpeed(vector<WayPoint> &path, int
 	if (!isLaneSelected)
 	{
 		//2.1 Short-list lanes that are connected to the next link
-		chooseConnectedLanes(path, candidateLanes);
+		chooseConnectedLanes(path, candidateLanes, params);
 
 		if (candidateLanes.size() == 1)
 		{
@@ -161,22 +162,37 @@ void VehicleLoadingModel::setPathStartSegment(vector<WayPoint> &path, const int 
 	}
 }
 
-void VehicleLoadingModel::chooseConnectedLanes(vector<WayPoint> &path, set<const Lane *> &connectedLanes)
+void VehicleLoadingModel::chooseConnectedLanes(vector<WayPoint> &path, set<const Lane *> &connectedLanes,
+                                               DriverUpdateParams &params)
 {
-	//Get the first turning group in the path
-	const TurningGroup *tGroup = nullptr;
-
-	for (auto it = path.begin() + 1; it != path.end(); ++it)
+	//The first link in the path
+	auto *firstLink = path.front().roadSegment->getParentLink();
+	
+	//Check if we have stop points defined in the first link. As stop points will require vehicles to be
+	//on the slowest lane, we must consider them while checking lane connectivity
+	auto segmentsInLink = firstLink->getRoadSegments();
+	for(auto segment : segmentsInLink)
 	{
-		if (it->type == WayPoint::TURNING_GROUP)
+		auto itStopPt = params.stopPointPool.find(segment->getRoadSegmentId());
+
+		if(itStopPt != params.stopPointPool.end())
 		{
-			tGroup = it->turningGroup;
-			break;
+			//Stop point has been defined, so we can simply select the slowest lane - as it will be the only
+			//lane connected to the stop point - and return
+			connectedLanes.insert(path.front().roadSegment->getLane(0));
+			return;
 		}
 	}
 
-	if (tGroup)
+	//The first turning group in the path
+	const TurningGroup *tGroup = nullptr;
+
+	//The first turning group in the path will be after all the segments in the first link
+	auto itPath = (path.begin() + segmentsInLink.size() - 1);
+
+	if(itPath != path.end())
 	{
+		tGroup = itPath->turningGroup;
 		const std::map<unsigned int, std::map<unsigned int, TurningPath *> > &tPaths = tGroup->getTurningPaths();
 
 		if (!tPaths.empty())

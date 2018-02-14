@@ -70,6 +70,13 @@ void VehicleLoadingModel::createInitialSpeedAssignmentThresholds(string &strPara
 void VehicleLoadingModel::chooseStartingLaneAndSpeed(vector<WayPoint> &path, int *laneIdx, const int segmentId,
                                                      int *initialSpeed, DriverUpdateParams &params)
 {
+	if(path.empty())
+	{
+		//Cannot choose lane and speed if the path is empty. We throw error from frame_init for
+		//empty path scenarios, so we can just return from here
+		return;
+	}
+
 	//1. Validate whether the given start segment id is actually in the path
 	if (segmentId != 0)
 	{
@@ -164,8 +171,10 @@ void VehicleLoadingModel::setPathStartSegment(vector<WayPoint> &path, const int 
 void VehicleLoadingModel::chooseConnectedLanes(vector<WayPoint> &path, set<const Lane *> &connectedLanes,
                                                DriverUpdateParams &params)
 {
+	//The first segment
+	auto firstSegment = path.front().roadSegment;
 	//The first link in the path
-	auto *firstLink = path.front().roadSegment->getParentLink();
+	auto *firstLink = firstSegment->getParentLink();
 
 	//Check if we have stop points defined in the first link. As stop points will require vehicles to be
 	//on the slowest lane, we must consider them while checking lane connectivity
@@ -178,7 +187,7 @@ void VehicleLoadingModel::chooseConnectedLanes(vector<WayPoint> &path, set<const
 		{
 			//Stop point has been defined, so we can simply select the slowest lane - as it will be the only
 			//lane connected to the stop point - and return
-			connectedLanes.insert(path.front().roadSegment->getLane(0));
+			connectedLanes.insert(firstSegment->getLane(0));
 			return;
 		}
 	}
@@ -187,22 +196,28 @@ void VehicleLoadingModel::chooseConnectedLanes(vector<WayPoint> &path, set<const
 	const TurningGroup *tGroup = nullptr;
 
 	//The first turning group in the path will be after all the segments in the first link
-	auto itPath = path.begin() + segmentsInLink.size();
+	auto itTurningGrp = path.begin() + segmentsInLink.size();
 
-	if(itPath != path.end())
+	if(itTurningGrp != path.end())
 	{
-		tGroup = itPath->turningGroup;
+		tGroup = itTurningGrp->turningGroup;
 		const std::map<unsigned int, std::map<unsigned int, TurningPath *> > &tPaths = tGroup->getTurningPaths();
 
 		if (!tPaths.empty())
 		{
 			//Set all lanes that are connected to the turning paths as candidate lanes
-			//tPaths is a map of <from lane, <to lane, turning path> >, we can use the from lane
-			//as the candidate lanes
-			for (const auto &tPath : tPaths)
+			//To do this, we must use the lane connections from the lanes from the current segment to
+			//check whether we reach the required turning paths
+
+			for(auto lane : firstSegment->getLanes())
 			{
-				//Add the lane of the from lane
-				connectedLanes.insert(tPath.second.begin()->second->getFromLane());
+				//Iterator to the next way-point in the path
+				auto itNxtWayPt = path.begin() + 1;
+
+				if(isLaneConnected(lane, itNxtWayPt, itTurningGrp))
+				{
+					connectedLanes.insert(lane);
+				}
 			}
 		}
 		else
@@ -215,8 +230,45 @@ void VehicleLoadingModel::chooseConnectedLanes(vector<WayPoint> &path, set<const
 	else
 	{
 		//Path contains only a single link. Set all lanes as candidate lanes
-		auto lanes = path.front().roadSegment->getLanes();
+		auto lanes = firstSegment->getLanes();
 		connectedLanes.insert(lanes.begin(), lanes.end());
+	}
+}
+
+bool VehicleLoadingModel::isLaneConnected(const Lane *lane, vector<WayPoint>::const_iterator itNxtWayPt,
+                                          vector<WayPoint>::const_iterator itTGroup)
+{
+	if(itNxtWayPt == itTGroup)
+	{
+		auto tGroup = itTGroup->turningGroup;
+		auto tPaths = tGroup->getTurningPaths(lane->getLaneId());
+
+		//If the map is valid, then lane is connected and we return true
+		//If the map is not valid, then the lane is not connected and we return false
+		return (tPaths != nullptr);
+	}
+	else
+	{
+		//The next way point can only be a segment as we are looking for connectivity to the first turning
+		std::vector<const LaneConnector *> connectors;
+		lane->getPhysicalConnectors(connectors);
+
+		if (!connectors.empty())
+		{
+			bool isConnected = false;
+
+			for(auto itConnectors = connectors.begin(); itConnectors != connectors.end(); ++itConnectors)
+			{
+				isConnected = isConnected || isLaneConnected((*itConnectors)->getToLane(), (itNxtWayPt + 1), itTGroup);
+			}
+
+			return isConnected;
+		}
+		else
+		{
+			//We're not connected to the next segment
+			return false;
+		}
 	}
 }
 

@@ -42,6 +42,7 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
                 it->first);
 
         const unsigned int maxFleetSize = it->second.maxFleetSize;
+        MobilityServiceControllerType controllerType = it->second.type;
 
         std::multimap<unsigned int, FleetItem>::iterator lstart = lTaxiFleetIt.first;
 
@@ -49,8 +50,8 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
 
         unsigned int currTaxi = 0;
 
-        ControllerLog() << "Total number of service vehicles loaded from database: " << taxiFleet.count(it->first)
-                        << std::endl;
+        ControllerLog() << "For Controller type: " << sim_mob::toString(controllerType)<<" total number of service vehicles loaded from database: " << taxiFleet.count(it->first)
+        << std::endl;
         ControllerLog() << "Max. fleet size configured: " << maxFleetSize << std::endl;
 
         while (lstart != lend && currTaxi < maxFleetSize) {

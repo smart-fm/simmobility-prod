@@ -54,7 +54,7 @@ protected:
 		sim_mob::consistencyChecks(type_);
 #endif
 		ControllerLog() << "MobilityServiceController instantiated, type:" << sim_mob::toString(controllerServiceType)
-		                << ", id:" << controllerId << ", pointer:" << this << std::endl;
+		                << ", id:" << controllerId << ", SupportedTripModes:" << tripSupportMode << ", pointer:" << this << std::endl;
 
 	}
 

@@ -93,7 +93,7 @@ void PedestrianMovement::frame_init()
 					std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
 					const Node *taxiEndNode = (*taxiTripItr).destination.node;
 					TripChainItem *tcItem = *(person->currTripChainItem);
-					std::string currentTripChainMode = tcItem->getMode();
+
 					//Choose the controller based on the stop mode in das (i.e. SMS/SMS_POOL,AMOD,RAIL_SMS,etc..)
 					auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
 					MobilityServiceController *controller = nullptr;
@@ -105,7 +105,7 @@ void PedestrianMovement::frame_init()
 
 					for (itr = enabledCtrlrs.begin(); itr != enabledCtrlrs.end(); itr++)
 					{
-
+						std::string currentTripChainMode = tcItem->getMode();
 						if (itr->second.tripSupportMode.find(currentTripChainMode.insert(0,"|").append("|"))!= std::string::npos)
 						{
 							auto itCtrlr = controllers.get<ctrlTripSupportMode>().find(itr->second.tripSupportMode);

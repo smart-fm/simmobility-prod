@@ -60,7 +60,7 @@
             <mapping name="day_activity_schedule" procedure="get_persons_between_tripsupportmode_testing"/>
             <!--<mapping name="freight_trips" procedure="get_freight_between"/>-->
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
-            <mapping name="taxi_fleet" procedure="get_taxi_fleet_on_call_test_simon"/>
+            <mapping name="taxi_fleet" procedure="get_taxi_fleet_all_aditi"/>
 
             <mapping name="taxi_stands" procedure="get_taxi_stands()"/>
         </proc_map>

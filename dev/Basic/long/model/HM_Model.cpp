@@ -2128,9 +2128,9 @@ void HM_Model::startImpl()
 					//PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
 				}
 			}
-		}
+		//}
 
-	//}
+	}
 
 	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
 
@@ -3881,6 +3881,21 @@ JobsByIndustryTypeByTaz* HM_Model::getJobsBySectorByTazId(BigSerial tazId) const
 HM_Model::TazList&  HM_Model::getTazList()
 {
 	return tazs;
+}
+
+HM_Model::MtzTazList& HM_Model::getMtztazList()
+{
+	return this->mtzTaz;
+}
+
+HM_Model::MtzList& HM_Model::getMtzList()
+{
+	return mtz;
+}
+
+HM_Model::PlanningSubzoneList& HM_Model::getPlanningSubzoneList()
+{
+	return planningSubzone;
 }
 
 void HM_Model::incrementPrimarySchoolAssignIndividualCount()

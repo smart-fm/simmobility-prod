@@ -497,6 +497,9 @@ namespace sim_mob
             JobsByIndustryTypeByTaz* getJobsBySectorByTazId(BigSerial tazId) const;
 
             TazList& getTazList();
+            MtzTazList& getMtztazList();
+            MtzList& getMtzList();
+            PlanningSubzoneList& getPlanningSubzoneList();
 
             void loadIndLogsumJobAssignments(BigSerial individuaId);
             IndLogsumJobAssignmentList& getIndLogsumJobAssignment();
@@ -548,7 +551,7 @@ namespace sim_mob
             UnitList units; //residential only.
             UnitMap unitsById;
             std::multimap<BigSerial, Unit*> unitsByZoneHousingType;
-	    UnitList privatePresaleUnits;
+            UnitList privatePresaleUnits;
 
             UnitTypeList unitTypes; //residential only.
             UnitTypeMap unitTypesById;

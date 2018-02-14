@@ -54,6 +54,17 @@ private:
 	void chooseConnectedLanes(vector<WayPoint> &path, set<const Lane *> &connectedLanes, DriverUpdateParams &params);
 
 	/**
+	 * Checks if the given lane in a link is connected to the turning group at the end of the same link
+	 * @param lane the lane for which the connectivity is to be tested
+	 * @param itNxtWayPt iterator to a way point. This should point to the way point which is after the segment
+	 * to which the lane belongs
+	 * @param itTGroup iterator to the turning group at the end of the link
+	 * @return true if the lane is connected to the turning group, false otherwise
+	 */
+	bool isLaneConnected(const Lane *lane, vector<WayPoint>::const_iterator itNxtWayPt,
+	                     vector<WayPoint>::const_iterator itTGroup);
+
+	/**
 	 * Selects the lane with the most amount of space at the entry point of the lane
 	 * @param connectedLanes the lanes that are connected to the next link
 	 * @param leadVehicles the map of candidate lane vs the lead vehicles in that lane

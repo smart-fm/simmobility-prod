@@ -67,7 +67,7 @@ namespace
         if( response != NOT_AVAILABLE )
         	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
 
-        if(response == ACCEPTED)
+        if(response != NOT_AVAILABLE)
         {
         	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
         	int moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
@@ -106,7 +106,7 @@ namespace
         	newBid->setCurrentUnitPrice(thisBidder->getCurrentUnitPrice());
         	newBid->setLogsum(thisBidder->getLogsum());
         	newBid->setSellerId(agent.getId());
-        	newBid->setAccepted(ACCEPTED);
+        	newBid->setAccepted(response);
         	model->addNewBids(newBid);
         	boost::shared_ptr<UnitSale> unitSale(new UnitSale(model->getUnitSaleId(),bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()),(bid.getSimulationDay() - unit->getbiddingMarketEntryDay()),(bid.getSimulationDay()-agent.getAwakeningDay())));
         	model->addUnitSales(unitSale);

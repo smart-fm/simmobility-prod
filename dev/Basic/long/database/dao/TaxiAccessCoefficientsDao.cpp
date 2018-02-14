@@ -10,7 +10,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-TaxiAccessCoefficientsDao::TaxiAccessCoefficientsDao(DB_Connection& connection): SqlAbstractDao<TaxiAccessCoefficients>( connection, "", "", "", "","SELECT * FROM " + connection.getSchema()+"taxi_access_coefficients", "") {}
+TaxiAccessCoefficientsDao::TaxiAccessCoefficientsDao(DB_Connection& connection): SqlAbstractDao<TaxiAccessCoefficients>( connection, "", "", "", "","SELECT * FROM " + connection.getSchema()+"taxi_access_coefficients where model_version = 3", "") {}
 
 TaxiAccessCoefficientsDao::~TaxiAccessCoefficientsDao() {}
 

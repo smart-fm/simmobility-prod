@@ -105,8 +105,8 @@ void PedestrianMovement::frame_init()
 
 					for (itr = enabledCtrlrs.begin(); itr != enabledCtrlrs.end(); itr++)
 					{
-						std::string currentTripChainMode = tcItem->getMode();
-						if (itr->second.tripSupportMode.find(currentTripChainMode.insert(0,"|").append("|"))!= std::string::npos)
+						std::string currentTripChainMode = boost::to_upper_copy(tcItem->getMode());
+						if (boost::to_upper_copy(itr->second.tripSupportMode).find(currentTripChainMode.insert(0,"|").append("|"))!= std::string::npos)
 						{
 							auto itCtrlr = controllers.get<ctrlTripSupportMode>().find(itr->second.tripSupportMode);
 							controller = *itCtrlr;

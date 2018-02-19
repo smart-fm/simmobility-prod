@@ -92,7 +92,7 @@
         <closed_loop_toll file=""/>
         <closed_loop_incentives file=""/>
         <sensor_output file="sensor.txt" step_size="300" />
-    </closed_loop>RequestType
+    </closed_loop>
 </simulation>
 
 <generic_props>

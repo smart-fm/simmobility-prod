@@ -51,7 +51,7 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
         unsigned int currTaxi = 0;
 
         ControllerLog() << "For Controller type: " << sim_mob::toString(controllerType)<<" total number of service vehicles loaded from database: " << taxiFleet.count(it->first)
-        << std::endl;
+                        << std::endl;
         ControllerLog() << "Max. fleet size configured: " << maxFleetSize << std::endl;
 
         while (lstart != lend && currTaxi < maxFleetSize) {

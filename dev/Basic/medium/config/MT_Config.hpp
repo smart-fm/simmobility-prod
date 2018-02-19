@@ -730,18 +730,6 @@ public:
 	void setThreadsNumInPersonLoader(unsigned int number);
 
 	/**
-	 * set percentage of on-demand traveler
-	 * @param percentage is value of on-demand traveler
-	 */
-	void setPercentageOfOnDemandTraveler(unsigned int percentage);
-
-	/**
-	 * get percentage of on-demand traveler
-	 * @return the percentage of on-demand traveler
-	 */
-	unsigned int getPercentageOfOnDemandTraveler() const;
-
-	/**
 	 * Enumerator for mid term run mode
 	 */
 	enum MidTermRunMode
@@ -872,9 +860,6 @@ private:
 
 	/**set of segment stats with taxi-stands*/
 	std::set<SegmentStats*> segmentStatsWithTaxiStands;
-
-	/**percentage for on-demand traveler*/
-	unsigned int percentageOfOnDemandTraveler;
 };
 }
 }

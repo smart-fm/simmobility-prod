@@ -310,23 +310,30 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 
 	const Link *currLink = nullptr;
 	bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
-	vector<WayPoint> route;
 
 	//If the driving path has already been set, we must find path to the taxi stand from
 	//the current segment
 	if(pathMover.isDrivingPathSet())
 	{
 		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
-		route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Link>(*currLink, *taxiStandLink);
-	}
-	else
-	{
-		route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Link>(*currNode, *taxiStandLink);
 	}
 
 	//Get route to the taxi stand
-	//auto route = PrivateTrafficRouteChoice::getInstance()->getPathToLink(subTrip, false, currLink, nullptr,
-	//                                                                     taxiStandLink, useInSimulationTT);
+	auto route = PrivateTrafficRouteChoice::getInstance()->getPathToLink(subTrip, false, currLink, nullptr,
+	                                                                     taxiStandLink, useInSimulationTT);
+
+	//Get shortest path if path is not found in the path-set
+	if(route.empty())
+	{
+		if(currLink)
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Link>(*currLink, *taxiStandLink);
+		}
+		else
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Link>(*currNode, *taxiStandLink);
+		}
+	}
 
 	if(route.empty())
 	{
@@ -359,22 +366,29 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 
 	const Link *currLink = nullptr;
 	bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
-	vector<WayPoint> route;
 
 	//If the driving path has already been set, we must find path to the node from
 	//the current segment
 	if(pathMover.isDrivingPathSet())
 	{
 		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
-		route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
-	}
-	else
-	{
-		route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
 	}
 
 	//Get route to the node
-	//auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+
+	//Get shortest path if path is not found in the path-set
+	if(route.empty())
+	{
+		if(currLink)
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
+		}
+		else
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
+		}
+	}
 
 	if(route.empty())
 	{
@@ -418,8 +432,13 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 		bool useInSimulationTT = onHailDriver->getParent()->usesInSimulationTravelTime();
 
 		//Get route to the node
-		//auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
-		auto route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *destination);
+		auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+
+		//Get shortest path if path is not found in the path-set
+		if(route.empty())
+		{
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *destination);
+		}
 
 		if(route.empty())
 		{
@@ -500,9 +519,8 @@ BehaviourDecision OnHailDriverBehaviour::makeBehaviourDecision() const
 {
 	if(!hasDriverShiftEnded())
 	{
-		return BehaviourDecision::DRIVE_TO_TAXISTAND;
-		/*return (BehaviourDecision) Utils::generateInt((int) BehaviourDecision::CRUISE,
-		                                              (int) BehaviourDecision::DRIVE_TO_TAXISTAND);*/
+		return (BehaviourDecision) Utils::generateInt((int) BehaviourDecision::CRUISE,
+		                                              (int) BehaviourDecision::DRIVE_TO_TAXISTAND);
 	}
 	else
 	{

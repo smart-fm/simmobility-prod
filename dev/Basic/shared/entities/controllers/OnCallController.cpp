@@ -412,7 +412,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 #endif
 
 	ControllerLog() << sim_mob::toString(this->getServiceType() )<< " controller sent this assignment : "<< schedule <<". The assignement is sent at " <<
-	currTick << " to driver " << driver->getDatabaseId();
+	                currTick << " to driver " << driver->getDatabaseId();
 #ifndef NDEBUG
 	ControllerLog() <<", whose pointer is driver=" << driver <<", (MessageHandler *) driver="<<(MessageHandler *) driver;
 #endif

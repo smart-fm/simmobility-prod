@@ -131,7 +131,6 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processDwellTimeElement(GetSingleElementByName(node, "dwell_time_parameters", true));
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
 	processThreadsNumInPersonLoaderElement(GetSingleElementByName(node, "thread_number_in_person_loader", true));
-	processPercentageOnDemandTravelerElement(GetSingleElementByName(node, "on_demand_traveler_percentage", true));
 	processStatisticsOutputNode(GetSingleElementByName(node, "output_statistics", true));
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
@@ -330,13 +329,6 @@ void ParseMidTermConfigFile::processThreadsNumInPersonLoaderElement(xercesc::DOM
 	unsigned int num = ParseUnsignedInt(GetNamedAttributeValue(node, "value", true), 1);
 	mtCfg.setThreadsNumInPersonLoader(num);
 }
-
-void ParseMidTermConfigFile::processPercentageOnDemandTravelerElement(xercesc::DOMElement* node)
-{
-	unsigned int num = ParseUnsignedInt(GetNamedAttributeValue(node, "value", true), 1);
-	mtCfg.setPercentageOfOnDemandTraveler(num);
-}
-
 
 void ParseMidTermConfigFile::processBusCapactiyElement(xercesc::DOMElement* node)
 {

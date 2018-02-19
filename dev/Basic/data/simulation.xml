@@ -64,7 +64,7 @@
     <!-- Reasonable values for MidTerm -->
     <base_granularity   value="5"   units="seconds"/>
 
-    <total_runtime      value="600"      units="minutes" />
+    <total_runtime      value="180"      units="minutes" />
     <total_warmup       value="1"    units="minutes" />
     <start_time         value="05:00:00"/>
 
@@ -99,11 +99,22 @@
 </generic_props>
 
 <mobilityServiceController enabled="true" >
-<!-- Trip Support Modes available 
-"Rail_SMS_Pool" "AMOD_Pool" "Rail_SMS" "SMS_Pool" "SMS" "AMOD" 
--->
+<!--  SERVICE_CONTROLLER_UNKNOWN = 0,
+      SERVICE_CONTROLLER_ON_HAIL = 1,
+      SERVICE_CONTROLLER_GREEDY = 2,
+      SERVICE_CONTROLLER_SHARED = 3,
+      SERVICE_CONTROLLER_FRAZZOLI = 4,
+      SERVICE_CONTROLLER_INCREMENTAL = 5,
+      SERVICE_CONTROLLER_PROXIMITY = 6,
+      SERVICE_CONTROLLER_AMOD = 7
+
+Note: Controller id indicates the subscribed_controller field specified in the taxi_fleet table-->
+
+    <!-- Trip Support Modes available
+    "Rail_SMS_Pool" "AMOD_Pool" "Rail_SMS" "SMS_Pool" "SMS" "AMOD"
+    -->
     <controller id="2" type="7" tripSupportMode = "|AMOD|AMOD_Pool|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="10000"/> -->
-    <controller id="4" type="3" tripSupportMode = "|SMS|SMS_Pool|Rail_SMS|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="2000"/> 
+    <controller id="4" type="3" tripSupportMode = "|SMS|SMS_Pool|Rail_SMS|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="2000"/>
 </mobilityServiceController>
 
 <merge_log_files value="true"/>

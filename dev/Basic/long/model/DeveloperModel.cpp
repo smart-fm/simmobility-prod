@@ -991,6 +991,7 @@ void DeveloperModel::loadHedonicCoeffs(DB_Connection &conn)
 		hedonicCoefficientsByPropertyTypeId.insert(std::make_pair(coeef->getPropertyTypeId(), coeef));
 
 	}
+	PrintOutV("Hedonic coeffs by property type rows"<< hedonicCoefficientsList.size()<<std::endl);
 }
 
 const HedonicCoeffs* DeveloperModel::getHedonicCoeffsByPropertyTypeId(BigSerial propertyId) const
@@ -1022,6 +1023,7 @@ void DeveloperModel::loadHedonicCoeffsByUnitType(DB_Connection &conn)
 			hedonicCoefficientsByUnitTypeId.insert(std::make_pair(coeef->getUnitTypeId(), coeef));
 
 		}
+		PrintOutV("Hedonic coeffs by unit type rows"<< hedonicCoefficientsByUnitTypeList.size()<<std::endl);
 
 }
 

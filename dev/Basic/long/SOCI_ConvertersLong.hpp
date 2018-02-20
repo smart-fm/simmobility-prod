@@ -54,6 +54,8 @@ struct type_conversion<sim_mob::long_term::HedonicCoeffs>
     	hedonicCoeffs.setAge(values.get<double>("age", 0));
     	hedonicCoeffs.setLogAgeSquared(values.get<double>("age_squared", 0));
     	hedonicCoeffs.setMisage(values.get<double>("misage", 0));
+    	hedonicCoeffs.setStorey(values.get<double>("storey", 0));
+    	hedonicCoeffs.setStoreySquared(values.get<double>("storey_squared", 0));
 
     }
 };
@@ -68,7 +70,7 @@ struct type_conversion<sim_mob::long_term::HedonicCoeffsByUnitType>
     {
     	hedonicCoeffsByUT.setUnitTypeId(values.get<BigSerial>("unit_type_id", INVALID_ID));
     	hedonicCoeffsByUT.setIntercept(values.get<double>("intercept", 0));
-    	hedonicCoeffsByUT.setLogSqrtArea(values.get<double>("log_area", 0));
+    	hedonicCoeffsByUT.setLogArea(values.get<double>("log_area", 0));
     	hedonicCoeffsByUT.setFreehold( values.get<double>("freehold", 0));
     	hedonicCoeffsByUT.setLogsumWeighted(values.get<double>("logsum_weighted", 0));
     	hedonicCoeffsByUT.setPms1km(values.get<double>("pms_1km", 0));
@@ -81,6 +83,10 @@ struct type_conversion<sim_mob::long_term::HedonicCoeffsByUnitType>
     	hedonicCoeffsByUT.setAge(values.get<double>("age", 0));
     	hedonicCoeffsByUT.setAgeSquared(values.get<double>("age_squared", 0));
     	hedonicCoeffsByUT.setMisage(values.get<double>("misage", 0));
+    	hedonicCoeffsByUT.setNonMature(values.get<double>("non_mature", 0));
+    	hedonicCoeffsByUT.setOtherMature(values.get<double>("other_mature", 0));
+    	hedonicCoeffsByUT.setStorey(values.get<double>("storey", 0));
+    	hedonicCoeffsByUT.setStoreySquared(values.get<double>("storey_squared", 0));
 
     }
 };
@@ -315,6 +321,28 @@ struct type_conversion<sim_mob::long_term::JobsWithIndustryTypeAndTazId>
     	jobsWithIndustryTypeAndTazId.setIndustryTypeId(values.get<int>("industry_type_id",0));
     	jobsWithIndustryTypeAndTazId.setTazId(values.get<BigSerial>("taz_id",0));
 
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::School>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::School& school)
+    {
+    	school.setId(values.get<BigSerial>("id",0));
+    	school.setFmBuildingId(values.get<BigSerial>("fm_building_id",0));
+    	school.setFloorArea(values.get<double>("floor_area",0));
+    	school.setSchoolSlot(values.get<int>("school_slot",0));
+    	school.setCentroidX(values.get<double>("centroid_x",0));
+    	school.setCentroidY(values.get<double>("centroid_y",0));
+    	school.setGiftedProgram(values.get<int>("gifted_program",0));
+    	school.setSapProgram(values.get<int>("sap_program",0));
+    	school.setPlanningArea(values.get<std::string>("planning_area",std::string()));
+    	school.setTazName(values.get<BigSerial>("taz_name",0));
+    	school.setSchoolType(values.get<std::string>("school_type",std::string()));
     }
 };
 

@@ -249,10 +249,9 @@ local choice = {
 		6,
 		7,
 		8,
-		9,
-		10,
-		11
-}
+		9
+		
+		}
 
 
 local modes = {['BusTravel'] = 1 , ['MRT'] =2 , ['PrivateBus'] =3 ,  ['Car'] = 4,  ['Car_Sharing_2'] = 5,['Car_Sharing_3'] = 6, ['Motorcycle'] = 7,['Walk'] = 8, ['Taxi'] = 9 , ['SMS'] = 10, ['Rail_SMS'] = 11 }
@@ -490,8 +489,6 @@ local function computeUtilities(params,dbparams)
 	utility[7] = beta_cons_motor + beta2_tt_motor * tt_motor_all + beta9_1_cost * cost_over_income_motor * (1-missing_income) + beta9_2_cost * cost_motor * missing_income  + beta_central_motor * central_dummy + beta_zero_motor * zero_motor + beta_oneplus_motor * one_plus_motor + beta_twoplus_motor * two_plus_motor + beta_threeplus_motor * three_plus_motor + beta_female_oneplus_motor * female_dummy *one_plus_car + beta_female_twoplus_motor * female_dummy * two_plus_car + beta_zero_motor_car * zero_car + beta_oneplus_motor_car * one_plus_car + beta_twoplus_motor_car * two_plus_car + beta_threeplus_motor_car * three_plus_car + beta_age2025_zero_car_motor *age2025 * zero_car + beta_age2635_zero_car_motor * zero_car * age2635 + beta_age3650_zero_car_motor * zero_car * age3650 + beta_age5165_zero_car_motor * zero_car * age5165 + beta_age65_zero_car_motor * zero_car * age65 + beta_age65_one_plus_car_motor * one_plus_car * age65
 	utility[8] = beta_cons_walk  + beta_tt_walk * tt_walk + beta_central_walk * central_dummy+ beta_female_oneplus_walk * female_dummy * one_plus_car + beta_female_twoplus_walk * female_dummy * two_plus_car + beta_zero_walk * zero_car + beta_oneplus_walk * one_plus_car + beta_twoplus_walk * two_plus_car + beta_threeplus_walk * three_plus_car + beta_age2025_zero_car_walk * zero_car * age2025 + beta_age2635_zero_car_walk * zero_car * age2635 + beta_age3650_one_plus_car_walk * one_plus_car * age3650 + beta_age5165_zero_car_walk * zero_car * age5165 + beta_age65_zero_car_walk * zero_car * age65 + beta_age65_one_plus_car_walk * one_plus_car * age65 
 	utility[9] = beta_cons_taxi + beta_tt_taxi * tt_taxi_all + beta10_1_cost * cost_over_income_taxi * (1-missing_income) + beta10_2_cost * cost_taxi * missing_income + beta_central_taxi * central_dummy + beta_female_oneplus_taxi * female_dummy * one_plus_car + beta_female_twoplus_taxi * female_dummy * two_plus_car + beta_zero_taxi * zero_car + beta_oneplus_taxi * one_plus_car + beta_twoplus_taxi * two_plus_car + beta_threeplus_taxi * three_plus_car + beta_age2635_zero_car_taxi * age2635* zero_car + beta_age2635_one_plus_car_taxi * one_plus_car * age2635 + beta_age3650_one_plus_car_taxi * one_plus_car * age3650 + beta_age5165_zero_car_taxi * zero_car * age5165 + beta_age65_zero_car_taxi * zero_car * age65
-	utility[10] = beta_cons_SMS + beta_tt_SMS * tt_SMS_all + beta11_1_cost * cost_over_income_SMS * (1-missing_income) + beta11_2_cost * cost_SMS * missing_income + beta_central_SMS * central_dummy + beta_female_oneplus_SMS * female_dummy * one_plus_car + beta_female_twoplus_SMS * female_dummy * two_plus_car + beta_zero_SMS * zero_car + beta_oneplus_SMS * one_plus_car + beta_twoplus_SMS * two_plus_car + beta_threeplus_SMS * three_plus_car + beta_age2635_zero_car_SMS * age2635* zero_car + beta_age2635_one_plus_car_SMS * one_plus_car * age2635 + beta_age3650_one_plus_car_SMS * one_plus_car * age3650 + beta_age5165_zero_car_SMS * zero_car * age5165 + beta_age65_zero_car_SMS * zero_car * age65
-	utility[11] = beta_cons_rail_SMS + beta1_1_tt * tt_rail_SMS_ivt + beta1_2_tt * tt_rail_SMS_walk + beta1_3_tt * tt_rail_SMS_wait + beta4_1_cost * cost_over_income_rail_SMS * (1-missing_income) + beta4_2_cost * cost_rail_SMS * missing_income + beta_central_rail_SMS * central_dummy + beta_transfer * average_transfer_number + beta_female_oneplus_rail_SMS * female_dummy * one_plus_car + beta_female_twoplus_rail_SMS * female_dummy * two_plus_car + beta_zero_rail_SMS * zero_car + beta_oneplus_rail_SMS * one_plus_car + beta_twoplus_rail_SMS * two_plus_car + beta_threeplus_rail_SMS * three_plus_car + beta_age2025_zero_car_rail_SMS * zero_car * age2025 + beta_age2635_zero_car_rail_SMS * zero_car * age2635  
 
 end
 
@@ -514,8 +511,6 @@ local function computeAvailabilities(params,dbparams)
 		dbparams:getModeAvailability(modes.Motorcycle),
 		dbparams:getModeAvailability(modes.Walk),
 		dbparams:getModeAvailability(modes.Taxi),
-		dbparams:getModeAvailability(modes.SMS),
-		dbparams:getModeAvailability(modes.Rail_SMS)
 
 
 	}

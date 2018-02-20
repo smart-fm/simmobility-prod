@@ -18,7 +18,7 @@ namespace sim_mob {
         public:
         	HedonicCoeffs(BigSerial propertyTypeId = INVALID_ID,double intercept = 0, double logSqrtArea = 0,double freehold = 0, double logsumWeighted = 0,
         				  double pms_1km = 0, double distanceMallKm = 0,double mrt_200m = 0,double mrt_2_400m = 0,double express_200m = 0,double bus2_400m = 0, double busGt400m = 0,  double age = 0,
-						  double logAgeSquared = 0, double agem25_50 = 0, double agem50 = 0, double misage = 0, double age_30m = 0);
+						  double logAgeSquared = 0, double agem25_50 = 0, double agem50 = 0, double misage = 0, double age_30m = 0, double nonMature = 0, double otherMature =0, double storey =0, double storeySquared = 0);
 
             virtual ~HedonicCoeffs();
 
@@ -44,6 +44,10 @@ namespace sim_mob {
             double getMrt_2_400m() const;
             double getMrt200m() const ;
             double getPms1km() const;
+            double getNonMature() const;
+            double getOtherMature() const;
+            double getStorey() const;
+            double getStoreySquared() const;
 
             void setAge30m(double age30m);
             void setAge(double age);
@@ -63,6 +67,10 @@ namespace sim_mob {
             void setMrt_2_400m(double mrt2400m);
             void setMrt200m(double mrt200m);
             void setPms1km(double pms1km);
+            void setNonMature(double nonMature);
+            void setOtherMature(double otherMature);
+            void setStorey(double storey);
+            void setStoreySquared(double storeySquared);
 
 
         private:
@@ -85,6 +93,10 @@ namespace sim_mob {
             double agem50;
             double misage;
             double age_30m;
+            double nonMature;
+            double otherMature;
+            double storey;
+            double storeySquared;
         };
     }
 }

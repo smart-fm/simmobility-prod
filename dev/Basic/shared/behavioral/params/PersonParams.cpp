@@ -13,28 +13,6 @@ namespace
 {
 const int NUM_VALID_INCOME_CATEGORIES = 12;
 const std::vector<long> EMPTY_VECTOR_OF_LONGS = std::vector<long>();
-
-/**
- * initializes all possible time windows in a day and returns a vector of all windows.
- */
-std::vector<TimeWindowAvailability> insertAllTimeWindows()
-{
-	// Following values are hard coded for now.
-	double dayStart = 1; //index of first half hour window in a day
-	double dayEnd = 48; //index of last half hour window in a day
-	double stepSz = 1;
-
-	std::vector<TimeWindowAvailability> timeWindows;
-	for (double i = dayStart; i <= dayEnd; i = i + stepSz)
-	{
-		for (double j = i; j <= dayEnd; j = j + stepSz)
-		{
-			timeWindows.push_back(TimeWindowAvailability(i, j));
-		}
-	}
-	return timeWindows;
-}
-
 }
 
 TimeWindowAvailability::TimeWindowAvailability() :
@@ -51,14 +29,91 @@ TimeWindowAvailability::TimeWindowAvailability(double startTime, double endTime,
 	}
 }
 
-const std::vector<TimeWindowAvailability> TimeWindowAvailability::timeWindowsLookup = insertAllTimeWindows();
+// Global initialization of static TimeWindowsLookup::timeWindows
+TimeWindowsLookup::TimeWindows TimeWindowsLookup::timeWindows = [&]{
+	TimeWindows out;
+	size_t idx = 0;
+	for (double start = 1; start <= intervalsPerDay; start++)
+	{
+		for (double end = start; end <= intervalsPerDay; end++)
+		{
+			TimeWindow tw = {start, end};
+			out[idx] = tw;
+			idx++;
+		}
+	}
+	return out;
+}();
+
+TimeWindowAvailability TimeWindowsLookup::getTimeWindowAt(size_t i)
+{
+	TimeWindow timeWindow = timeWindows[i];
+	return TimeWindowAvailability(timeWindow[0], timeWindow[1]);
+}
+
+TimeWindowAvailability TimeWindowsLookup::operator[](size_t i) const
+{
+	TimeWindow timeWindow = timeWindows[i];
+	bool isAvailable = availability[i];
+	return TimeWindowAvailability(timeWindow[0], timeWindow[1], isAvailable);
+}
+
+bool TimeWindowsLookup::areAllUnavailable() const
+{
+	return availability.none();
+}
+
+void TimeWindowsLookup::setAllAvailable()
+{
+	availability.set();
+}
+
+void TimeWindowsLookup::setAllUnavailable()
+{
+	availability.reset();
+}
+
+void TimeWindowsLookup::setAvailable(double startTime, double endTime)
+{
+	setRange(startTime, endTime, true);
+}
+
+void TimeWindowsLookup::setUnavailable(double startTime, double endTime)
+{
+	setRange(startTime, endTime, false);
+}
+
+void TimeWindowsLookup::setRange(double startTime, double endTime, bool val)
+{
+	if (startTime <= endTime)
+	{
+		size_t idx = 0;
+		for (double start = 1; start <= intervalsPerDay; start++)
+		{
+			for (double end = start; end <= intervalsPerDay; end++)
+			{
+				if ((start >= startTime && start <= endTime) || (end >= startTime && end <= endTime))
+				{
+					availability[idx] = false;
+				}
+				idx++;
+			}
+		}
+	}
+	else
+	{
+		std::stringstream errStream;
+		errStream << "Invalid time window" << "|start: " << startTime << "|end: " << endTime << std::endl;
+		throw std::runtime_error(errStream.str());
+	}
+}
 
 double PersonParams::incomeCategoryLowerLimits[] = {};
 std::map<long, Address> PersonParams::addressLookup = std::map<long, Address>();
 std::map<unsigned int, unsigned int> PersonParams::postCodeToNodeMapping = std::map<unsigned int, unsigned int>();
 std::map<int, std::vector<long> > PersonParams::zoneAddresses = std::map<int, std::vector<long> >();
 
-PersonParams::PersonParams(bool allocateTimeWindowLookup) :
+PersonParams::PersonParams() :
 		personId(""), hhId(""), personTypeId(-1), ageId(-1), isUniversityStudent(-1), studentTypeId(-1), isFemale(-1), incomeId(-1), worksAtHome(-1),
 			hasFixedWorkTiming(-1), homeLocation(-1), fixedWorkLocation(-1), fixedSchoolLocation(-1), stopType(-1), drivingLicence(-1),
 			hhOnlyAdults(-1), hhOnlyWorkers(-1), hhNumUnder4(-1), hasUnder15(-1), vehicleOwnershipCategory(VehicleOwnershipOption::INVALID),
@@ -66,14 +121,11 @@ PersonParams::PersonParams(bool allocateTimeWindowLookup) :
 			genderId(-1), missingIncome(-1), homeAddressId(-1), activityAddressId(-1), carLicense(false), motorLicense(false),
 			vanbusLicense(false), fixedWorkplace(false), student(false), hhSize(-1), hhNumAdults(-1), hhNumWorkers(-1), hhNumUnder15(-1), householdFactor(-1)
 {
-	if (allocateTimeWindowLookup) {
-		initTimeWindows();
-	}
+	setAllTimeWindowsAvailable();
 }
 
 PersonParams::~PersonParams()
 {
-	timeWindowAvailability.clear();
 }
 
 void PersonParams::setVehicleOwnershipCategory(int vehicleOwnershipCategory)
@@ -86,47 +138,19 @@ void PersonParams::setVehicleOwnershipCategory(int vehicleOwnershipCategory)
 	this->vehicleOwnershipCategory = vehOwnOption;
 }
 
-void PersonParams::initTimeWindows()
-{
-	if (!timeWindowAvailability.empty())
-	{
-		timeWindowAvailability.clear();
-	}
-	for (double i = 1; i <= 48; i++)
-	{
-		for (double j = i; j <= 48; j++)
-		{
-			timeWindowAvailability.push_back(TimeWindowAvailability(i, j, true)); //make all time windows available
-		}
-	}
+void PersonParams::setAllTimeWindowsAvailable() {
+	this->timeWindowsLookup.setAllAvailable();
+
 }
 
 void PersonParams::blockTime(double startTime, double endTime)
 {
-	if (startTime <= endTime)
-	{
-		for (std::vector<TimeWindowAvailability>::iterator i = timeWindowAvailability.begin(); i != timeWindowAvailability.end(); i++)
-		{
-			TimeWindowAvailability& twa = (*i);
-			double start = twa.getStartTime();
-			double end = twa.getEndTime();
-			if ((start >= startTime && start <= endTime) || (end >= startTime && end <= endTime))
-			{
-				twa.setAvailability(false);
-			}
-		}
-	}
-	else
-	{
-		std::stringstream errStream;
-		errStream << "invalid time window was passed for blocking" << " |start: " << startTime << " |end: " << endTime << std::endl;
-		throw std::runtime_error(errStream.str());
-	}
+	this->timeWindowsLookup.setUnavailable(startTime, endTime);
 }
 
 int PersonParams::getTimeWindowAvailability(size_t timeWnd, int mode) const
 {
-	const TimeWindowAvailability& timeWndwAvail = timeWindowAvailability[timeWnd - 1];
+	const TimeWindowAvailability& timeWndwAvail = this->timeWindowsLookup[timeWnd - 1];
 	//anytime before 6AM cannot is not a valid start time for tour's primary activity with PT modes
 	if((mode == 1 || mode == 2) && timeWndwAvail.getStartTime() <= 6)
 	{
@@ -134,7 +158,7 @@ int PersonParams::getTimeWindowAvailability(size_t timeWnd, int mode) const
 	}
 	else
 	{
-		return timeWindowAvailability[timeWnd - 1].getAvailability();
+		return timeWindowsLookup[timeWnd - 1].getAvailability();
 	}
 }
 

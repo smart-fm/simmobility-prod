@@ -209,8 +209,6 @@
 	    <mode name="Motorcycle" type="5" num_sharing="1"/>
 	    <mode name="Walk" type="6" num_sharing="1"/>
 	    <mode name="Taxi" type="7" num_sharing="1"/>
-	    <mode name="SMS" type="7" num_sharing="1"/>
-	    <mode name="Rail_SMS" type="1" num_sharing="1"/>
     </travel_modes>
 
     <!-- Activity types can be configured by adding or removing from the list below. -->
@@ -219,7 +217,6 @@
 	    <activity_type name="Education" withinday_mode_choice="wdme" num_tours="nte" tour_mode_dest="" tour_mode="tme" tour_time_of_day="ttde" type="2" logsum_table_column="education"/>
 	    <activity_type name="Shop" withinday_mode_choice="wdmso" num_tours="nts" tour_mode_dest="tmds" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="shop"/>
 	    <activity_type name="Other" withinday_mode_choice="wdmso" num_tours="nto" tour_mode_dest="tmdo" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="other"/>
-	    <activity_type name="NewType" withinday_mode_choice="wdmso" num_tours="nto" tour_mode_dest="tmdo" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="newtype"/>
     </activity_types>
 
        <!-- ======================= SUPPLY ======================== -->

@@ -149,9 +149,6 @@ void BusDriverMovement::frame_init()
 
 		parentBusDriver->setBusLineId(busLine);
 
-		//Set the initial values of the parameters
-		setOrigin(parentBusDriver->getParams());
-
 		//Retrieve the bus stops for the bus
 		busStops = busTrip->getBusRouteInfo().getBusStops();
 
@@ -165,6 +162,9 @@ void BusDriverMovement::frame_init()
 	{
 		//Use the vehicle to build a bus, then delete the old vehicle.
 		parentBusDriver->setVehicle(newVehicle);
+
+		//Set the initial values of the parameters
+		setOrigin(parentBusDriver->getParams());
 	}
 }
 

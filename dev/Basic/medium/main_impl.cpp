@@ -638,7 +638,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		float alpha = cfg.getAlphaValueForLinkTTFeedback();
 
 		Print() << "Update historical travel time: Started\n";
-		std::string linkTTupdateCmd = "python scripts/python/upsert_link_travel_time.py " +
+		std::string linkTTupdateCmd = "python2.7 scripts/python/upsert_link_travel_time.py " +
 				             pathTolinkTTfile + " " + historicalTTtableName + " " + std::to_string(alpha);
 		int res = std::system(linkTTupdateCmd.c_str());
 
@@ -753,7 +753,7 @@ bool performMidFullLoop(const std::string& configFileName, std::list<std::string
 	if (cfg.isSubtripTravelTimeFeedbackEnabled)
 	{
 		Print() << "Subtrip metrics feedback: Started\n";
-		std::string stFeedbackCmd = "python scripts/python/TravelTimeAggregator.py " + ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput;
+		std::string stFeedbackCmd = "python2.7 scripts/python/TravelTimeAggregator.py " + ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput;
 		std::cout <<"The python command " <<stFeedbackCmd<<"\n";
 		int res = std::system(stFeedbackCmd.c_str());
 		if (res == 0 )

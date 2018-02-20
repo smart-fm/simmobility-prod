@@ -19,9 +19,9 @@ class GreedyController : public OnCallController
 {
 public:
 	GreedyController
-			(const MutexStrategy &mtxStrat, unsigned int computationPeriod, unsigned id, TT_EstimateType ttEstimateType)
+			(const MutexStrategy &mtxStrat, unsigned int computationPeriod, unsigned id, std::string tripSupportMode_ ,TT_EstimateType ttEstimateType)
 			:
-			OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_GREEDY, id,
+			OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_GREEDY, id, tripSupportMode_,
 			                 ttEstimateType)
 	{
 	}

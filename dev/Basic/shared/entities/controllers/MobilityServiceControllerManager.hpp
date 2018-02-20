@@ -25,13 +25,16 @@ namespace sim_mob
 
 struct ctrlrId{};
 struct ctrlrType{};
+struct ctrlTripSupportMode{};
 
-typedef multi_index_container<MobilityServiceController *, indexed_by<
-		ordered_unique<
-				tag<ctrlrId>, BOOST_MULTI_INDEX_MEMBER(MobilityServiceController, const unsigned, controllerId)>,
-		ordered_non_unique<
-		        tag<ctrlrType>, BOOST_MULTI_INDEX_MEMBER(MobilityServiceController, const MobilityServiceControllerType, controllerServiceType)> >
-> SvcControllerMap;
+
+typedef multi_index_container<MobilityServiceController *,
+								indexed_by<
+													ordered_unique<tag<ctrlrId>, BOOST_MULTI_INDEX_MEMBER(MobilityServiceController, const unsigned, controllerId)>,
+													ordered_non_unique<tag<ctrlrType>, BOOST_MULTI_INDEX_MEMBER(MobilityServiceController, const MobilityServiceControllerType, controllerServiceType)>,
+										            ordered_non_unique<tag<ctrlTripSupportMode>, BOOST_MULTI_INDEX_MEMBER(MobilityServiceController, std::string, tripSupportMode)>
+								          >
+							> SvcControllerMap;
 
 
 class MobilityServiceControllerManager : public Agent
@@ -63,7 +66,7 @@ public:
 	 * @param  scheduleComputationPeriod Schedule computation period of controller
 	 * @return                           Sucess
 	 */
-	bool addMobilityServiceController(MobilityServiceControllerType type, unsigned int scheduleComputationPeriod, unsigned id);
+	bool addMobilityServiceController(MobilityServiceControllerType type, unsigned int scheduleComputationPeriod, unsigned id, std::string tripSupportMode);
 
 
 	/**
@@ -112,7 +115,7 @@ protected:
 	void frame_output(timeslice now);
 
 private:
-	/** This is a boost multi-index. Stores the various controllers with the id and type as keys.*/
+	/** This is a boost multi-index. Stores the various controllers with the id ,type and tripSupportMode as keys.*/
 	SvcControllerMap controllers;
 
 	/** Store self instance */

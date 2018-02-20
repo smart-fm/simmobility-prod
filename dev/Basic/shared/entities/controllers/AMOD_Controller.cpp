@@ -7,9 +7,9 @@
 using namespace sim_mob;
 using namespace std;
 
-AMOD_Controller::AMOD_Controller(const MutexStrategy &mtx, unsigned int computationPeriod, unsigned int id,
+AMOD_Controller::AMOD_Controller(const MutexStrategy &mtx, unsigned int computationPeriod, unsigned int id, std::string tripSupportMode_,
                                  TT_EstimateType tt_estType) : OnCallController(mtx, computationPeriod,
-                                                                                SERVICE_CONTROLLER_AMOD, id, tt_estType)
+                                                                                SERVICE_CONTROLLER_AMOD, id, tripSupportMode_,tt_estType)
 {}
 
 void AMOD_Controller::computeSchedules()

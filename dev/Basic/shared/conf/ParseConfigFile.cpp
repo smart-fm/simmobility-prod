@@ -890,6 +890,10 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
 			MobilityServiceControllerType type =
 					(MobilityServiceControllerType)ParseUnsignedInt(GetNamedAttributeValue(*it, "type"));
 
+			std::string tripSupportMode = "";
+			tripSupportMode =
+					ParseString(GetNamedAttributeValue(*it, "tripSupportMode"), "");
+
 			unsigned int scheduleComputationPeriod =
 					ParseUnsignedInt(GetNamedAttributeValue(*it, "scheduleComputationPeriod"));
 
@@ -909,6 +913,7 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
 				vcc.type = type;
 				vcc.scheduleComputationPeriod = scheduleComputationPeriod;
 				vcc.maxFleetSize=maxFleetSize;
+				vcc.tripSupportMode = tripSupportMode;
 				cfg.mobilityServiceController.enabledControllers[key] = vcc;
 			}
 		}

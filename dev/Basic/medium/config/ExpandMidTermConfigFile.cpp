@@ -120,12 +120,13 @@ void ExpandMidTermConfigFile::processConfig()
         	const MobilityServiceControllerType controllerType = p.second.type;
         	const unsigned scheduleComputationPeriod = p.second.scheduleComputationPeriod;
         	const unsigned controllerId = p.first;
+			std::string tripSupportMode = p.second.tripSupportMode;
 
 #ifndef NDEBUG
         	sim_mob::consistencyChecks(controllerType);
 #endif
 
-            if (!serviceCtrlMgr->addMobilityServiceController(controllerType, scheduleComputationPeriod, controllerId))
+            if (!serviceCtrlMgr->addMobilityServiceController(controllerType, scheduleComputationPeriod, controllerId, tripSupportMode))
 			{
 				stringstream msg;
 				msg << "Error processing configuration file. Invalid values for <controller=\""

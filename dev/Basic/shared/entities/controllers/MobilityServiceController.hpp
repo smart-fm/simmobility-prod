@@ -47,14 +47,14 @@ protected:
 	// (see https://stackoverflow.com/a/121163/2110769)
 	// The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
 	explicit MobilityServiceController(const MutexStrategy &mtxStrat,
-	                                   MobilityServiceControllerType type_, unsigned id_)
-			: Agent(mtxStrat, id_), controllerServiceType(type_), controllerId(id_)
+	                                   MobilityServiceControllerType type_, unsigned id_, std::string tripSupportMode_)
+			: Agent(mtxStrat, id_), controllerServiceType(type_), controllerId(id_), tripSupportMode(tripSupportMode_)
 	{
 #ifndef NDEBUG
 		sim_mob::consistencyChecks(type_);
 #endif
 		ControllerLog() << "MobilityServiceController instantiated, type:" << sim_mob::toString(controllerServiceType)
-		                << ", id:" << controllerId << ", pointer:" << this << std::endl;
+		                << ", id:" << controllerId << ", SupportedTripModes:" << tripSupportMode << ", pointer:" << this << std::endl;
 
 	}
 
@@ -81,6 +81,8 @@ public:
 	const MobilityServiceControllerType controllerServiceType;
 
 	const unsigned controllerId;
+
+	std::string tripSupportMode;
 
 	static const unsigned toleratedExtraTime; //seconds
 

@@ -17,8 +17,8 @@ using namespace messaging;
 using namespace std;
 
 OnCallController::OnCallController(const MutexStrategy &mtxStrat, unsigned int computationPeriod,
-                                   MobilityServiceControllerType type_, unsigned id, TT_EstimateType ttEstimateType_)
-		: MobilityServiceController(mtxStrat, type_, id), scheduleComputationPeriod(computationPeriod),
+                                   MobilityServiceControllerType type_, unsigned id, std::string tripSupportMode_, TT_EstimateType ttEstimateType_)
+		: MobilityServiceController(mtxStrat, type_, id, tripSupportMode_), scheduleComputationPeriod(computationPeriod),
 		  ttEstimateType(ttEstimateType_)
 {
 	rebalancer = new LazyRebalancer(this); //jo SimpleRebalancer(this);
@@ -411,7 +411,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	}
 #endif
 
-	ControllerLog() << schedule << "sent by the controller. The assignement is sent at " <<
+	ControllerLog() << sim_mob::toString(this->getServiceType() )<< " controller sent this assignment : "<< schedule <<". The assignement is sent at " <<
 	                currTick << " to driver " << driver->getDatabaseId();
 #ifndef NDEBUG
 	ControllerLog() <<", whose pointer is driver=" << driver <<", (MessageHandler *) driver="<<(MessageHandler *) driver;

@@ -519,9 +519,8 @@ BehaviourDecision OnHailDriverBehaviour::makeBehaviourDecision() const
 {
 	if(!hasDriverShiftEnded())
 	{
-		return BehaviourDecision::DRIVE_TO_TAXISTAND;
-		/*return (BehaviourDecision) Utils::generateInt((int) BehaviourDecision::CRUISE,
-		                                              (int) BehaviourDecision::DRIVE_TO_TAXISTAND);*/
+		return (BehaviourDecision) Utils::generateInt((int) BehaviourDecision::CRUISE,
+		                                              (int) BehaviourDecision::DRIVE_TO_TAXISTAND);
 	}
 	else
 	{

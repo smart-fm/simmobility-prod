@@ -19,9 +19,9 @@ namespace sim_mob
 class SharedController : public OnCallController
 {
 public:
-	SharedController(const MutexStrategy &mtxStrat, unsigned int computationPeriod, unsigned id,
+	SharedController(const MutexStrategy &mtxStrat, unsigned int computationPeriod, unsigned id, std::string tripSupportMode_,
 	                 TT_EstimateType ttEstimateType) : OnCallController(mtxStrat, computationPeriod,
-	                                                                    MobilityServiceControllerType::SERVICE_CONTROLLER_SHARED, id,
+	                                                                    MobilityServiceControllerType::SERVICE_CONTROLLER_SHARED, id, tripSupportMode_,
 	                                                                    ttEstimateType)
 	{
 	}

@@ -79,6 +79,7 @@ void OnCallDriverMovement::frame_tick()
 	}
 	case DRIVE_WITH_PASSENGER:
 	{
+		//Call the passenger frame tick method to update the travel times
 		for(auto itPax : onCallDriver->passengers)
 		{
 			itPax.second->Movement()->frame_tick();

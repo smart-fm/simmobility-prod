@@ -665,9 +665,11 @@ struct MobilityServiceControllerConfig
 	MobilityServiceControllerType type;
 	unsigned int scheduleComputationPeriod;
 	std::vector<std::string> vehicleIds;
+	std::string tripSupportMode;
 	unsigned int maxFleetSize;
 
-	MobilityServiceControllerConfig() : type(SERVICE_CONTROLLER_UNKNOWN), scheduleComputationPeriod(0) {}
+
+	MobilityServiceControllerConfig() : type(SERVICE_CONTROLLER_UNKNOWN), scheduleComputationPeriod(0), tripSupportMode("") {}
 };
 
 /**

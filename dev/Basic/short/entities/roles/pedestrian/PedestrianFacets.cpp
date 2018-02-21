@@ -107,35 +107,30 @@ void PedestrianMovement::frame_init()
             {
                 std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
                 const Node *taxiEndNode = (*taxiTripItr).destination.node;
+                TripChainItem *tcItem = *(person->currTripChainItem);
 
-            //choose the controller based on the mode
+                //Choose the controller based on the stop mode in das (i.e. SMS/SMS_POOL,AMOD,RAIL_SMS,etc..)
                 auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
                 MobilityServiceController *controller = nullptr;
-                if((*taxiTripItr).travelMode.find("AMOD") != std::string::npos)
+                const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
+                auto enabledCtrlrs = cfg.mobilityServiceController.enabledControllers;
+                std::map<unsigned int, MobilityServiceControllerConfig>:: iterator itr ;
+                for (itr = enabledCtrlrs.begin(); itr != enabledCtrlrs.end(); itr++)
                 {
-                    //If the person is taking an AMOD service, get the AMOD controller
-                    auto itCtrlr = controllers.get<ctrlrType>().find(SERVICE_CONTROLLER_AMOD);
-                    if (itCtrlr == controllers.get<ctrlrType>().end())
+                	std::string currentTripChainMode = boost::to_upper_copy(tcItem->getMode());
+                    if (boost::to_upper_copy(itr->second.tripSupportMode).find(currentTripChainMode.insert(0,"|").append("|"))!= std::string::npos)
                     {
-                        std::stringstream msg;
-                        msg << "Controller of type " << toString(SERVICE_CONTROLLER_AMOD)
-                            << " has not been added, but "
-                            << "the demand contains persons taking AMOD service";
-                            throw std::runtime_error(msg.str());
+                    	auto itCtrlr = controllers.get<ctrlTripSupportMode>().find(itr->second.tripSupportMode);
+                    	controller = *itCtrlr;
+                    	break;
                     }
-                    controller = *itCtrlr;
                 }
-                else
+                if (!controller)
                 {
-                    //Choose randomly from available controllers
-                    const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
-                    auto enabledCtrlrs = cfg.mobilityServiceController.enabledControllers;
-                    auto it = enabledCtrlrs.begin();
-                    auto randomNum = Utils::generateInt(0, enabledCtrlrs.size() - 1);
-                    std::advance(it, randomNum);
-                    //Here we have to search by id, as the enabled controllers map has id as the key
-                    auto itCtrlr = controllers.get<ctrlrId>().find(it->first);
-                    controller = *itCtrlr;
+                    std::stringstream msg;
+                    msg << "Controller for person travelmode " <<tcItem->getMode()
+                        << " is not present in config file,while the demand (DAS) have this mode";
+                    throw std::runtime_error(msg.str());
                 }
 
 #ifndef NDEBUG
@@ -145,7 +140,7 @@ void PedestrianMovement::frame_init()
 #endif
                 //If the the request is a pool request, set type as shared. Else it is a single request
                 RequestType reqType = RequestType::TRIP_REQUEST_SINGLE;
-                if((*taxiTripItr).travelMode.find("Pool") != std::string::npos)
+                if((*tcItem).travelMode.find("Pool") != std::string::npos)
                 {
 
                     reqType = RequestType::TRIP_REQUEST_SHARED;

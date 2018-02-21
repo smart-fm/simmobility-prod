@@ -40,7 +40,9 @@ Role<Person_ST>* Passenger::clone(Person_ST *parent) const
 	{
 		personRoleType = Role<Person_ST>::RL_PRIVATEBUSPASSENGER;
 	}
-    else if (parent->currSubTrip->getMode() == "Taxi" || parent->currSubTrip->getMode() == "SMS" || parent->currSubTrip->getMode() == "AMOD" || parent->currSubTrip->getMode() == "SMS_Taxi" )
+    else if (parent->currSubTrip->getMode() == "Taxi" || parent->currSubTrip->getMode() == "SMS" || parent->currSubTrip->getMode() == "AMOD"
+             || parent->currSubTrip->getMode() == "SMS_Taxi" || parent->currSubTrip->getMode() == "AMOD_Taxi"
+                                                                || parent->currSubTrip->getMode() == "SMS_Pool_Taxi"|| parent->currSubTrip->getMode() == "AMOD_Pool_Taxi")
     {
         personRoleType = Role<Person_ST>::RL_TAXIPASSENGER;
     }
@@ -110,7 +112,23 @@ void Passenger::collectTravelTime()
         }
         else if((*(parent->currSubTrip)).travelMode == "SMS_Taxi")
         {
-            personTravelTime.mode = "ON_SMS_TAXI";
+            personTravelTime.mode = "ON_SMS_Veh";
+        }
+        else if((*(parent->currSubTrip)).travelMode == "SMS_Pool_Taxi")
+        {
+            personTravelTime.mode = "ON_SMS_Pool_Veh";
+        }
+        else if((*(parent->currSubTrip)).travelMode == "AMOD_Taxi")
+        {
+            personTravelTime.mode = "ON_AMOD_Veh";
+        }
+        else if((*(parent->currSubTrip)).travelMode == "AMOD_Pool_Taxi")
+        {
+            personTravelTime.mode = "ON_AMOD_Pool_Veh";
+        }
+        else
+        {
+            personTravelTime.mode = "ON_RAIL_SMS_Veh";
         }
     }
 	else

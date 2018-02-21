@@ -15,6 +15,8 @@
 #include <entities/roles/driver/OnCallDriverFacets.hpp>
 #include "entities/roles/pedestrian/PedestrianFacets.hpp"
 
+#include "geospatial/streetdir/RailTransit.hpp"
+#include "util/GeomHelpers.hpp"
 using namespace std;
 using namespace sim_mob;
 
@@ -889,6 +891,8 @@ SegmentTravelStats& Person_ST::finalizeCurrRdSegTravelStat(const RoadSegment* rd
 
 void Person_ST::convertToSmartMobilityTrips()
 {
+    ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+    std::string railFLMPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["rail_sms_pathset"];
 	vector<TripChainItem *>::iterator tripChainItemIt;
 	for (auto tripChainItemIt = tripChain.begin(); tripChainItemIt != tripChain.end(); ++tripChainItemIt)
 	{
@@ -911,7 +915,8 @@ void Person_ST::convertToSmartMobilityTrips()
 			{
 				if (itSubTrip->origin.type == WayPoint::NODE && itSubTrip->destination.type == WayPoint::NODE)
 				{
-					if(itSubTrip->getMode() == "SMS" || itSubTrip->getMode() == "AMOD")
+                    if(itSubTrip->getMode() == "SMS" || itSubTrip->getMode() == "SMS_Pool" ||
+                       itSubTrip->getMode() == "AMOD" || itSubTrip->getMode() == "AMOD_Pool")
 					{
 						addWalkAndWaitLegs(smartMobilityTrips, itSubTrip, (*itSubTrip).destination.node);
 						//Ride to destination
@@ -926,9 +931,38 @@ void Person_ST::convertToSmartMobilityTrips()
 						subTrip.endLocationId = boost::lexical_cast<string>(
 								itSubTrip->destination.node->getNodeId());
 						subTrip.endLocationType = "NODE";
-						subTrip.travelMode = "SMS_Taxi";
+                        subTrip.travelMode = itSubTrip->getMode() + "_Taxi";
 						smartMobilityTrips.push_back(subTrip);
 					}
+                    else if(itSubTrip->getMode() == "Rail_SMS" || itSubTrip->getMode() == "Rail_SMS_Pool" ||
+                             itSubTrip->getMode() == "Rail_AMOD" || itSubTrip->getMode() == "Rail_AMOD_Pool")
+                    {
+                        std::vector<OD_Trip> odTrips;
+                        std::string personDbId = this->getDatabaseId();
+                        unsigned int start_time = ((*tripChainItemIt)->startTime.offsetMS_From(
+                                ConfigManager::GetInstance().FullConfig().simStartTime()) / 1000); // start time in seconds
+
+                        bool ret = PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(
+                                itSubTrip->origin.node->getNodeId(),
+                                itSubTrip->destination.node->getNodeId(), itSubTrip->startTime.getValue(), odTrips,
+                                personDbId, start_time, railFLMPathsetStoredProcName, PT_Network::TYPE_RAIL_SMS);
+
+                        findMrtTripsAndPerformRailTransitRoute(odTrips);
+
+                        if (ret)
+                        {
+                            ret = makeODsToTrips(&(*itSubTrip), smartMobilityTrips, odTrips, PT_NetworkCreater::getInstance(PT_Network::TYPE_RAIL_SMS), itSubTrip->getMode());
+                            processRAIL_SMSTrips(smartMobilityTrips);
+                        }
+
+                        if (!ret)
+                        {
+                            tripChain.clear();
+                            setToBeRemoved();
+                            ConfigManager::GetInstanceRW().FullConfig().numPathNotFound++;
+                            return;
+                        }
+                    }
 				}
 			}
 			if (!smartMobilityTrips.empty())
@@ -1043,4 +1077,322 @@ void Person_ST::addWalkAndWaitLegs(vector<SubTrip> &subTrips, const vector<SubTr
 	subTrip.endLocationType = "NODE";
 	subTrip.travelMode = "WaitingTaxiActivity";
 	subTrips.push_back(subTrip);
+}
+void Person_ST::findMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_Trip>& matchedTrips)
+{
+    std::vector<sim_mob::OD_Trip>::iterator itr = matchedTrips.begin();
+    std::vector<sim_mob::OD_Trip> newODTrips;
+
+    while (itr != matchedTrips.end())
+    {
+        if ((*itr).tType == TRAIN_EDGE)
+        {
+            std::string src = (*itr).startStop;
+            std::string end = (*itr).endStop;
+            size_t pos = 0;
+
+            if ((pos = (src.find("/"))) != std::string::npos)
+            {
+                src = src.substr(0, pos);
+            }
+
+            if ((pos = (end.find("/"))) != std::string::npos)
+            {
+                end = end.substr(0, pos);
+            }
+
+            std::vector<std::string> railPath = RailTransit::getInstance().fetchBoardAlightStopSeq(src, end);
+            if (railPath.empty())
+            {
+                return;
+            }
+
+            std::vector<sim_mob::OD_Trip> odTrips = splitMrtTrips(railPath);
+            newODTrips.insert(newODTrips.end(), odTrips.begin(), odTrips.end());
+        }
+        else
+        {
+            newODTrips.push_back(*itr);
+        }
+        itr++;
+    }
+
+    matchedTrips = newODTrips;
+}
+std::vector<sim_mob::OD_Trip>  Person_ST::splitMrtTrips(std::vector<std::string> railPath)
+{
+    vector<std::string>::iterator it=railPath.begin();
+    std::string first = (*it);
+    std::string second =* (it+1);
+    sim_mob::TrainStop* firststop = sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[first];
+    sim_mob::TrainStop* nextstop = sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[second];
+    if((boost::iequals(firststop->getStopName(),nextstop->getStopName())))
+    {
+        railPath.erase(it);
+        it = railPath.begin();
+    }
+    vector<std::string>::iterator itrEnd=railPath.end();
+    std::string last = *(itrEnd-1);
+    std::string seclast = *(itrEnd-2);
+    firststop = sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[seclast];
+    nextstop = sim_mob::PT_NetworkCreater::getInstance().MRTStopsMap[last];
+    if((boost::iequals(firststop->getStopName(),nextstop->getStopName())))
+    {
+        railPath.erase(itrEnd-1);
+    }
+
+    std::vector<sim_mob::OD_Trip> odTrips;
+    std::string src = (*it);
+    std::string end = "";
+    std::string prev = "";
+    while(it != railPath.end())
+    {
+        /** hardcoding the line now since all lines are not implemented */
+        if((*it).find("NE") != std::string::npos || (*it).find("EW") !=  std::string::npos||(*it).find("CG") !=  std::string::npos)
+        {
+            if( !boost::iequals(prev, "") )
+            {
+                end=prev;
+                //make subtrip of start and end
+                odTrips.push_back(CreateMRTSubTrips(src,end));
+            }
+            src = (*it);
+            end = *(++it);
+            //make subtrip;
+            odTrips.push_back(CreateMRTSubTrips(src,end));
+            ++it;
+            if(it == railPath.end())
+            {
+                break;
+            }
+            src = (*it);
+            prev = "";
+            continue;
+        }
+
+        if(it+1 == railPath.end())
+        {
+            end = (*it);
+            //make subtrip
+            odTrips.push_back( CreateMRTSubTrips(src,end) );
+        }
+        prev = (*it);
+        it++;
+
+    }
+    return odTrips;
+}
+
+sim_mob::OD_Trip Person_ST::CreateMRTSubTrips(std::string src,std::string dest)
+{
+    sim_mob::OD_Trip odTrip;
+    sim_mob::TrainStop* destStop = sim_mob::PT_NetworkCreater::getInstance().findMRT_Stop(dest);
+    WayPoint wayPointDestStop;//=WayPoint(destStop);
+    WayPoint wayPointSrcStop;
+    if (destStop)
+    {
+        wayPointDestStop = WayPoint(destStop);
+    }
+
+    sim_mob::TrainStop* srcStop = sim_mob::PT_NetworkCreater::getInstance().findMRT_Stop(src);
+
+    if (srcStop)
+    {
+        wayPointSrcStop = WayPoint(srcStop);
+    }
+
+    sim_mob::SubTrip subTrip;
+    odTrip.startStop=srcStop->getStopName();;
+    odTrip.endStop=destStop->getStopName();
+    odTrip.sType=2;
+    odTrip.eType=2;
+    odTrip.tType=TRAIN_EDGE;
+    std::map<std::string ,std::map<std::string ,std::vector<PT_NetworkEdge>>> mrtEdgeMap=PT_NetworkCreater::getInstance().MRTStopdgesMap;
+    std::vector<PT_NetworkEdge> edgeVector=mrtEdgeMap[odTrip.startStop][odTrip.endStop];
+    typename std::vector<PT_NetworkEdge>::iterator iter=edgeVector.begin();
+    std::string selServiceLine="";
+
+    if(iter!=edgeVector.end())
+    {
+        PT_NetworkEdge selEdge=*iter;
+        if(edgeVector.size()>1)
+        {
+            while(iter!=edgeVector.end())
+            {
+                std::string serviceLine=iter->getServiceLine();
+                if(boost::iequals(src.substr(0,2),serviceLine.substr(0,2)))
+                {
+                    selServiceLine=serviceLine;
+                    selEdge=*iter;
+                }
+                iter++;
+            }
+        }
+
+        odTrip.id=selEdge.getEdgeId();
+        odTrip.serviceLine=selEdge.getServiceLine();
+        odTrip.serviceLines=selEdge.getServiceLines();
+        odTrip.travelTime = selEdge.getTransitTimeSecs();
+        odTrip.walkTime = selEdge.getWalkTimeSecs();
+    }
+
+    return odTrip;
+
+}
+void Person_ST::processRAIL_SMSTrips(std::vector<SubTrip> &subTrips)
+{
+    std::vector<SubTrip> modifiedSubTrips;
+
+    for(auto itSubTrip = subTrips.begin(); itSubTrip != subTrips.end(); ++itSubTrip)
+    {
+        if (((*itSubTrip).travelMode == "Rail_SMS" || (*itSubTrip).travelMode == "Rail_SMS_Pool" ||
+             (*itSubTrip).travelMode == "Rail_AMOD" || (*itSubTrip).travelMode == "Rail_AMOD_Pool") &&
+            (*itSubTrip).originType == TripChainItem::LT_NODE)
+        {
+            //Ride to node near the train station
+            const Node *nodeNearStation =
+                    itSubTrip->destination.trainStop->getRandomStationSegment()->getParentLink()->getToNode();
+
+            double distanceToNode =dist((*itSubTrip).origin.node->getLocation(), nodeNearStation->getLocation());
+            SubTrip subTrip;
+
+            //Walk to the train station if it is with-in a radius of 1km
+            if(distanceToNode <= 1000)
+            {
+                subTrip.setPersonID(-1);
+                subTrip.itemType = TripChainItem::getItemType("Trip");
+                subTrip.startTime = itSubTrip->startTime;
+                subTrip.origin = itSubTrip->origin;
+                subTrip.destination = WayPoint(nodeNearStation);
+                subTrip.startLocationId = boost::lexical_cast<string>(itSubTrip->origin.node->getNodeId());
+                subTrip.startLocationType = "NODE";
+                subTrip.endLocationId = boost::lexical_cast<string>(nodeNearStation->getNodeId());
+                subTrip.endLocationType = "NODE";
+                subTrip.travelMode = "Walk";
+                subTrip.isPT_Walk = false;
+                modifiedSubTrips.push_back(subTrip);
+
+                Warn() << "Replaced " << (*itSubTrip).travelMode << " trip from node " << (*itSubTrip).origin.node->getNodeId()
+                       << " to node near station " << itSubTrip->destination.trainStop->getStopName()
+                       << " with Walk trip\n";
+            }
+            else
+            {
+                //Travel mode is RAIL_SMS for access, so split this sub-trip (node-train station) into following sub-trips
+                //walk (node-node), wait(node-node), passenger(node-node), walk(node-train stn)
+                addWalkAndWaitLegs(modifiedSubTrips, itSubTrip, nodeNearStation);
+
+                subTrip.setPersonID(-1);
+                subTrip.itemType = TripChainItem::getItemType("Trip");
+                subTrip.startTime = itSubTrip->startTime;
+                subTrip.origin = itSubTrip->origin;
+                subTrip.destination = WayPoint(nodeNearStation);
+                subTrip.startLocationId = boost::lexical_cast<string>(itSubTrip->origin.node->getNodeId());
+                subTrip.startLocationType = "NODE";
+                subTrip.endLocationId = boost::lexical_cast<string>(nodeNearStation->getNodeId());
+                subTrip.endLocationType = "NODE";
+                subTrip.travelMode = (*itSubTrip).travelMode + "_Taxi";
+                modifiedSubTrips.push_back(subTrip);
+            }
+
+            //Walk to train station
+            subTrip.origin = subTrip.destination;
+            subTrip.originType = TripChainItem::LT_NODE;
+            subTrip.destination = itSubTrip->destination;
+            subTrip.destinationType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
+            subTrip.startLocationId = boost::lexical_cast<string>(nodeNearStation->getNodeId());
+            subTrip.startLocationType = "NODE";
+            subTrip.endLocationId = itSubTrip->destination.trainStop->getStopName();
+            subTrip.endLocationType = "MS";
+            subTrip.travelMode = "Walk";
+            subTrip.isPT_Walk = true;
+            subTrip.walkTime = 60;
+            modifiedSubTrips.push_back(subTrip);
+        }
+        else if(((*itSubTrip).travelMode == "Rail_SMS" || (*itSubTrip).travelMode == "Rail_SMS_Pool" ||
+                 (*itSubTrip).travelMode == "Rail_AMOD" || (*itSubTrip).travelMode == "Rail_AMOD_Pool") &&
+                (*itSubTrip).originType == TripChainItem::LT_PUBLIC_TRANSIT_STOP)
+        {
+            //Travel mode is RAIL_SMS for egress, so split this sub-trip (train station-node) into following sub-trips
+            //walk (train station-node), walk(node-node), wait(node-node), passenger(node-node)
+
+            //Walk to node near the train station
+            const Node *nodeNearStation =
+                    itSubTrip->origin.trainStop->getRandomStationSegment()->getParentLink()->getToNode();
+
+            SubTrip subTrip;
+            subTrip.setPersonID(-1);
+            subTrip.itemType = TripChainItem::getItemType("Trip");
+            subTrip.startTime = itSubTrip->startTime;
+            subTrip.origin = itSubTrip->origin;
+            subTrip.originType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
+            subTrip.destination = WayPoint(nodeNearStation);
+            subTrip.destinationType = TripChainItem::LT_NODE;
+            subTrip.startLocationId = subTrip.origin.trainStop->getStopName();
+            subTrip.startLocationType = "MS";
+            subTrip.endLocationId = boost::lexical_cast<string>(nodeNearStation->getNodeId());
+            subTrip.endLocationType = "NODE";
+            subTrip.travelMode = "Walk";
+            subTrip.isPT_Walk = true;
+            subTrip.walkTime = 60;
+            modifiedSubTrips.push_back(subTrip);
+
+            if((*itSubTrip).destination.node->getNodeId() != nodeNearStation->getNodeId())
+            {
+                double distanceToNode = dist((*itSubTrip).destination.node->getLocation(), nodeNearStation->getLocation());
+
+                if (distanceToNode > 1000)
+                {
+                    subTrip.origin = WayPoint(nodeNearStation);
+                    subTrip.originType = TripChainItem::LT_NODE;
+                    subTrip.destination = subTrip.origin;
+                    subTrip.destinationType = TripChainItem::LT_NODE;
+                    subTrip.startLocationId = boost::lexical_cast<string>(subTrip.origin.node->getNodeId());
+                    subTrip.startLocationType = "NODE";
+                    subTrip.endLocationId = boost::lexical_cast<string>(subTrip.destination.node->getNodeId());
+                    subTrip.endLocationType = "NODE";
+                    subTrip.travelMode = "TravelPedestrian";
+                    subTrip.isTT_Walk = true;
+                    modifiedSubTrips.push_back(subTrip);
+
+                    //Wait for pick-up
+                    subTrip.destination = itSubTrip->destination;
+                    subTrip.endLocationId = boost::lexical_cast<string>(itSubTrip->destination.node->getNodeId());
+                    subTrip.travelMode = "WaitingTaxiActivity";
+                    modifiedSubTrips.push_back(subTrip);
+
+                    //Ride to destination
+                    subTrip.travelMode = (*itSubTrip).travelMode + "_Taxi";
+                    modifiedSubTrips.push_back(subTrip);
+                }
+                else
+                {
+                    subTrip.origin = WayPoint(nodeNearStation);
+                    subTrip.originType = TripChainItem::LT_NODE;
+                    subTrip.destination = itSubTrip->destination;
+                    subTrip.destinationType = TripChainItem::LT_NODE;
+                    subTrip.startLocationId = boost::lexical_cast<string>(subTrip.origin.node->getNodeId());
+                    subTrip.startLocationType = "NODE";
+                    subTrip.endLocationId = boost::lexical_cast<string>(subTrip.destination.node->getNodeId());
+                    subTrip.endLocationType = "NODE";
+                    subTrip.travelMode = "Walk";
+                    subTrip.isTT_Walk = false;
+                    modifiedSubTrips.push_back(subTrip);
+
+                    Warn() << "Replaced " << (*itSubTrip).travelMode << " trip from node near station "
+                           << itSubTrip->origin.trainStop->getStopName() << " to node " << subTrip.destination.node->getNodeId()
+                           << " with Walk trip\n";
+                }
+            }
+        }
+        else
+        {
+            modifiedSubTrips.push_back(*itSubTrip);
+        }
+    }
+
+    if(!modifiedSubTrips.empty())
+    {
+        subTrips = modifiedSubTrips;
+    }
 }

@@ -162,7 +162,7 @@ void PedestrianMovement::frame_init()
 
 					//If the the request is a pool request, set type as shared. Else it is a single request
 					RequestType reqType = RequestType::TRIP_REQUEST_SINGLE;
-					if((*taxiTripItr).travelMode.find("Pool") != std::string::npos)
+					if((*tcItem).travelMode.find("Pool") != std::string::npos)
 					{
 						reqType = RequestType::TRIP_REQUEST_SHARED;
 					}

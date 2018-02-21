@@ -96,7 +96,12 @@ private:
 
     void convertToSmartMobilityTrips();
 
+    void findMrtTripsAndPerformRailTransitRoute(std::vector<sim_mob::OD_Trip>& matchedTrips);
+    std::vector<sim_mob::OD_Trip>  splitMrtTrips(std::vector<std::string> railPath);
 
+    sim_mob::OD_Trip CreateMRTSubTrips(std::string src,std::string dest);
+
+    void processRAIL_SMSTrips(std::vector<SubTrip> &subTrips);
 protected:
 	/**
 	 * Called during the first call to update() for the person

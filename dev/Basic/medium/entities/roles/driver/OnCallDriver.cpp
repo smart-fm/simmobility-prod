@@ -104,6 +104,15 @@ void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, con
 		parent->setToBeRemoved();
 		break;
 	}
+	case MSG_DELAY_SHIFT_END:
+	{
+		//As the driver has been assigned a schedule exactly at the time it sent a shift-end message,
+		//the controller will not unsubscribe the driver immediately, but ask it to delay the shift-end.
+		//Once the driver completes the schedule, it can perform the tasks in the endShift() method again
+		//and then wait for the acknowledgement for the unsubscribe message.
+		isWaitingForUnsubscribeAck = false;
+		break;
+	}
 	case MSG_WAKEUP_SHIFT_END:
 	{
 		//Only when the driver is parked we need to handle this message, in other cases the driver is already

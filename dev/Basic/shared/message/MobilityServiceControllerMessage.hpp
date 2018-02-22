@@ -23,6 +23,7 @@ enum MobilityServiceControllerMessage
 	MSG_UNSUBSCRIBE_SUCCESSFUL,
 	MSG_DRIVER_AVAILABLE,
 	MSG_DRIVER_SHIFT_END,
+	MSG_DELAY_SHIFT_END,
 	MSG_DRIVER_SCHEDULE_STATUS,
 	MSG_TRIP_REQUEST,
 	MSG_SCHEDULE_PROPOSITION,
@@ -106,6 +107,20 @@ public:
 	}
 
 	virtual ~DriverShiftCompleted()
+	{
+	}
+
+	Person *person;
+};
+
+class DelayShiftEndMessage : public messaging::Message
+{
+public:
+	DelayShiftEndMessage(Person *p) : person(p)
+	{
+	}
+
+	virtual ~DelayShiftEndMessage()
 	{
 	}
 

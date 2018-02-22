@@ -70,16 +70,6 @@ void OnCallController::unsubscribeDriver(Person *driver)
 			<< "schedule associated. This is impossible. It should have had at least an empty schedule";
 		throw std::runtime_error(msg.str());
 	}
-
-	unsigned scheduleSize = driverSchedules.at(driver).size();
-
-	if (scheduleSize > 0)
-	{
-		std::stringstream msg;
-		msg << "Driver with pointer " << driver << " has a non empty schedule and she sent a message "
-			<< "to unsubscribe. This is not admissible";
-		throw std::runtime_error(msg.str());
-	}
 #endif
 
 	driverSchedules.erase(driver);
@@ -141,10 +131,22 @@ void OnCallController::onDriverShiftEnd(Person *driver)
 {
 	ControllerLog() << "Shift end msg received from driver " << driver << endl;
 
-	unsubscribeDriver(driver);
+	if(driverSchedules.at(driver).empty())
+	{
+		unsubscribeDriver(driver);
 
-	MessageBus::PostMessage((MessageHandler *) driver, MSG_UNSUBSCRIBE_SUCCESSFUL,
-	                        MessageBus::MessagePtr(new DriverUnsubscribeMessage(driver)));
+		MessageBus::PostMessage((MessageHandler *) driver, MSG_UNSUBSCRIBE_SUCCESSFUL,
+		                        MessageBus::MessagePtr(new DriverUnsubscribeMessage(driver)));
+	}
+	else
+	{
+		//Driver has a non-empty schedule. This can only happen in the following case at the moment - the driver
+		//sends the shift-end message at time t and the controller also sends a schedule proposition message at time t.
+		//So, we send a delay shift-end message that forces the drivers to end their shifts only after finishing
+		//the assigned schedule
+		MessageBus::PostMessage((MessageHandler *) driver, MSG_DELAY_SHIFT_END,
+		                        MessageBus::MessagePtr(new DelayShiftEndMessage(driver)));
+	}
 }
 
 void OnCallController::onDriverScheduleStatus(Person *driver)

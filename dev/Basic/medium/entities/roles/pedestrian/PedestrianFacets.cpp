@@ -78,7 +78,10 @@ void PedestrianMovement::frame_init()
 		isOnDemandTraveler = false;
 		Person_MT *person = parentPedestrian->getParent();
 
-		if (subTrip.origin.type == WayPoint::NODE && subTrip.destination.type == WayPoint::NODE)
+        TripChainItem *tcItem = *(person->currTripChainItem);
+
+
+		if (tcItem->getMode()!= "Taxi" && subTrip.origin.type == WayPoint::NODE && subTrip.destination.type == WayPoint::NODE)
 		{
 			isOnDemandTraveler = true;
 			const Node *taxiStartNode = subTrip.destination.node;
@@ -92,7 +95,6 @@ void PedestrianMovement::frame_init()
 				{
 					std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
 					const Node *taxiEndNode = (*taxiTripItr).destination.node;
-					TripChainItem *tcItem = *(person->currTripChainItem);
 
 					//Choose the controller based on the stop mode in das (i.e. SMS/SMS_POOL,AMOD,RAIL_SMS,etc..)
 					auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();

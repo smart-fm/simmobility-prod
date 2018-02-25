@@ -107,11 +107,11 @@ void MobilityServiceController::unsubscribeDriver(Person *driver)
 #ifndef NDEBUG
 	if (driver->getDatabaseId().empty() )
 	{
-		std::stringstream msg; msg<<"The driver with pointer "<< driver<<" has no databaseId and she is asking to unsubscribe";
+		std::stringstream msg; msg<<"The driver " << driver->getDatabaseId()<<"("<< driver  <<")"<<" has no databaseId and she is asking to unsubscribe";
 		throw std::runtime_error(msg.str() );
 	}
 #endif
-	ControllerLog() << "Unsubscription of driver "<< driver->getDatabaseId()  <<" with pointer " << driver << " at time "
+	ControllerLog() << "Unsubscription of driver "<< driver->getDatabaseId()  <<"("<< driver <<")"<< " at time "
 	                << currTick << std::endl;
 	subscribedDrivers.erase(std::remove(subscribedDrivers.begin(),
 	                                    subscribedDrivers.end(), driver), subscribedDrivers.end());

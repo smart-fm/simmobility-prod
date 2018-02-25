@@ -369,7 +369,7 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	onCallDriver->sendScheduleAckMessage(true);
 
 	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
-	                << parent->getDatabaseId() << ": Begin driving from node "
+	                << parent->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s) from node "
 	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
 	                << " to pickup node " << pickupNode->getNodeId() << endl;
 
@@ -447,7 +447,7 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 	onCallDriver->getResource()->setMoving(true);
 
 	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
-	                << parent->getDatabaseId() << ": Begin driving with passenger from node "
+	                << parent->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s) from node "
 	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
 	                << " to drop off node " << dropOffNode->getNodeId() << endl;
 
@@ -503,7 +503,7 @@ void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
 		onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_TO_PARKING);
 
 		ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
-		                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving to park, from node "
+		                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s) from node "
 		                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
 		                << " to parking node " << parkingNode->getNodeId() << endl;
 	}

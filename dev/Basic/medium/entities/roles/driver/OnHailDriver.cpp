@@ -156,7 +156,7 @@ void OnHailDriver::addPassenger(Person_MT *person)
 		throw runtime_error(msg.str());
 	}
 #endif
-
+	const SegmentStats *currSegStats = movement->getMesoPathMover().getCurrSegStats();
 	Role<Person_MT> *personRole = person->getRole();
 	passenger = dynamic_cast<Passenger *>(personRole);
 
@@ -168,9 +168,15 @@ void OnHailDriver::addPassenger(Person_MT *person)
 		    << " does not have a passenger role!";
 		throw runtime_error(msg.str());
 	}
+	passenger->setDriver(this);
+	passenger->setStartPoint(person->currSubTrip->origin);
+	passenger->setStartPointDriverDistance(movement->getTravelMetric().distance);
+	passenger->setEndPoint(person->currSubTrip->destination);
+	passenger->Movement()->startTravelTimeMetric();
 
-	ControllerLog() << parent->currTick.ms() << "ms: OnHailDriver " << parent->getDatabaseId() << ": Picked-up "
-	                << person->getDatabaseId() << " while " << getDriverStatusStr() << endl;
+	ControllerLog() << parent->currTick.ms() << "ms: OnHailDriver " << parent->getDatabaseId() << ": Picked-up pax "
+	                << person->getDatabaseId() << " from node "
+					   << currSegStats->getRoadSegment()->getParentLink()->getToNode()->getNodeId()<< " while " << getDriverStatusStr() << endl;
 #endif
 }
 
@@ -194,7 +200,7 @@ void OnHailDriver::alightPassenger()
 	passenger = nullptr;
 
 #ifndef NDEBUG
-	ControllerLog() << parent->currTick.ms() << "ms: OnHailDriver " << parent->getDatabaseId() << ": Dropped-off "
+	ControllerLog() << parent->currTick.ms() << "ms: OnHailDriver " << parent->getDatabaseId() << ": Dropped-off pax "
 	                << person->getDatabaseId() << " at node "
 	                << currSegStats->getRoadSegment()->getParentLink()->getToNode()->getNodeId() << endl;
 #endif
@@ -206,4 +212,10 @@ void OnHailDriver::evictPassenger()
 	//This essentially means we are ending the simulation for this person, as its frame_tick would
 	//not be called by anyone and its role would also never change.
 	passenger = nullptr;
+}
+
+
+std::string OnHailDriver::getPassengerId() const
+{
+	return (passenger ? passenger->getParent()->getDatabaseId() : "No Passenger");
 }

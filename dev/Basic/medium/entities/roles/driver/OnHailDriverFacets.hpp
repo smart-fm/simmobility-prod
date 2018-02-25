@@ -59,6 +59,10 @@ private:
 	/**The taxi stand most recently chosen by the driver*/
 	const TaxiStand *chosenTaxiStand;
 
+/**record original start node*/
+	const Node *originNode = nullptr;
+
+
 protected:
 	/**
 	 * Sets the current lane to lane infinity of the current segment. This method must be called when
@@ -147,6 +151,19 @@ public:
 	const TaxiStand* getChosenTaxiStand() const
 	{
 		return chosenTaxiStand;
+	}
+
+	/**The current fleet item*/
+	FleetController::FleetItem serviceVehicle;
+
+	const FleetController::FleetItem &getCurrentFleetItem() const
+	{
+		return serviceVehicle;
+	}
+
+	void setOriginNode(const Node *node)
+	{
+		originNode = node;
 	}
 };
 

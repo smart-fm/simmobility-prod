@@ -248,6 +248,26 @@ struct WayPoint
 		return *this;
 	}
 
+
+	const std::string getWayPointTypeStr() const
+	{
+		switch(type)
+		{
+		case NODE: {return "NODE"; }
+		case LANE:{ return "LANE"; }
+		case ROAD_SEGMENT:{return "ROAD_SEGMENT"; }
+		case LINK:{return "LINK"; }
+		case TURNING_PATH: {return "TURNING_PATH";}
+		case TURNING_GROUP: {return "TURNING_GROUP";}
+		case BUS_STOP: {return "BUS_STOP";}
+		case TRAIN_STOP: {return "TRAIN_STOP";}
+		case MRT_PLATFORM:{return "MRT_PLATFORM";}
+		case TAXI_STAND:{return "TAXI_STAND";}
+		default: throw std::runtime_error("This WayPoint Type is INVALID");
+		}
+	}
+
+
 };
 }
 

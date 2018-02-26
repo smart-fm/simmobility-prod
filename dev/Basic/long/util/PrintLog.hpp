@@ -609,13 +609,14 @@ namespace sim_mob
 	     * @param unit to be written.
 	     *
 	     */
-	    inline void printNewUnitsInMarket(BigSerial sellerId, BigSerial unitId, int entryday, int timeOnMarket, int timeOffMarket)
+	    inline void printNewUnitsInMarket(BigSerial sellerId, BigSerial unitId, int entryday, int timeOnMarket, int timeOffMarket, std::tm saleFromDate)
 	    {
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.units_in_market)
 				return;
 
-	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%") % sellerId % unitId % entryday % timeOnMarket % timeOffMarket;
+			boost::gregorian::date saleFromDateGreg 	 = boost::gregorian::date_from_tm(saleFromDate);
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%") % sellerId % unitId % entryday % timeOnMarket % timeOffMarket % boost::gregorian::to_iso_extended_string(saleFromDateGreg);
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS_IN_MARKET,fmtr.str());
 	    }
 

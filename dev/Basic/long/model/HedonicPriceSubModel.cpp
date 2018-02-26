@@ -156,6 +156,35 @@ void HedonicPrice_SubModel::ComputeHedonicPrice( HouseholdSellerRole::SellingUni
     }
 }
 
+void HedonicPrice_SubModel::ComputeHedonicPrice( RealEstateSellerRole::SellingUnitInfo &info, RealEstateSellerRole::UnitsInfoMap &sellingUnitsMap, BigSerial agentId)
+{
+	double finalCoefficient = ComputeLagCoefficient();
+
+	unit->setLagCoefficient(finalCoefficient);
+	lagCoefficient = finalCoefficient;
+
+	info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
+
+	ComputeExpectation(info.numExpectations, info.expectations);
+
+	//number of expectations should match
+	if (info.expectations.size() == info.numExpectations)
+	{
+		sellingUnitsMap.erase(unit->getId());
+		sellingUnitsMap.insert(std::make_pair(unit->getId(), info));
+
+		//just revert the expectations order.
+		for (int i = 0; i < info.expectations.size() ; i++)
+		{
+			int dayToApply = day + (i * info.interval);
+			printExpectation( day, dayToApply, unit->getId(), agentId, info.expectations[i]);
+		}
+	}
+	else
+	{
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Expectations is empty.") % unit->getId()).str());
+	}
+}
 
 void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector<ExpectationEntry> &expectations )
 {

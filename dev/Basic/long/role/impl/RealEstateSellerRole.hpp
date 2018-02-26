@@ -82,7 +82,7 @@ namespace sim_mob
         public:
             typedef boost::unordered_map<BigSerial, unsigned int> CounterMap;
 
-        private:
+        public:
             typedef std::vector<ExpectationEntry> ExpectationList;
 
             struct SellingUnitInfo

@@ -26,6 +26,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/SharedFunctions.hpp"
+#include "model/HedonicPriceSubModel.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -312,7 +313,7 @@ void RealEstateSellerRole::update(timeslice now)
                 PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent " <<  this->getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
 				#endif
 
-                printNewUnitsInMarket(getParent()->getId(), unit->getId(), unit->getbiddingMarketEntryDay(), unit->getTimeOnMarket(), unit->getTimeOffMarket());
+                printNewUnitsInMarket(getParent()->getId(), unit->getId(), unit->getbiddingMarketEntryDay(), unit->getTimeOnMarket(), unit->getTimeOffMarket(), unit->getSaleFromDate());
             }
 
             selling = true;
@@ -505,48 +506,70 @@ void RealEstateSellerRole::notifyWinnerBidders()
 
 void RealEstateSellerRole::calculateUnitExpectations(const Unit& unit)
 {
-	HM_Model* model = dynamic_cast<RealEstateAgent*>(getParent())->getModel();
+	if(unit.isBto())
+	{
+		HM_Model* model = dynamic_cast<RealEstateAgent*>(getParent())->getModel();
 
-	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	unsigned int timeInterval = config.ltParams.housingModel.timeInterval;
-	unsigned int timeOnMarket = config.ltParams.housingModel.timeOnMarket;
 
-    const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
-    SellingUnitInfo info;
-    info.startedDay = currentTime.ms();
-    info.interval = timeInterval;
-    info.daysOnMarket = unit.getTimeOnMarket();
+		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+		unsigned int timeInterval = config.ltParams.housingModel.timeInterval;
+		unsigned int timeOnMarket = config.ltParams.housingModel.timeOnMarket;
 
-    info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
-    //luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
+		const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
+		SellingUnitInfo info;
+		info.startedDay = currentTime.ms();
+		info.interval = timeInterval;
+		info.daysOnMarket = unit.getTimeOnMarket();
 
-    //number of expectations should match 
-    //if (info.expectations.size() == info.numExpectations)
-    {
-        //just revert the expectations order.
-        for (int i = 0; i < info.numExpectations; i++)
-        {
-            //int dayToApply = currentTime.ms() + (i * info.interval);
-            //printExpectation(currentTime, dayToApply, unit.getId(), *dynamic_cast<RealEstateAgent*>(getParent()), info.expectations[i]);
+		info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
+		//luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
 
-        	double asking =unit.getBTOPrice();
-        	double hedonic = unit.getBTOPrice();
-        	double target = unit.getBTOPrice();
+		//number of expectations should match
+		//if (info.expectations.size() == info.numExpectations)
+		{
+			//just revert the expectations order.
+			for (int i = 0; i < info.numExpectations; i++)
+			{
+				//int dayToApply = currentTime.ms() + (i * info.interval);
+				//printExpectation(currentTime, dayToApply, unit.getId(), *dynamic_cast<RealEstateAgent*>(getParent()), info.expectations[i]);
 
-            ExpectationEntry expectation;
+				double asking =unit.getBTOPrice();
+				double hedonic = unit.getBTOPrice();
+				double target = unit.getBTOPrice();
 
-            expectation.askingPrice = asking;
-            expectation.hedonicPrice = hedonic;
-            expectation.targetPrice = target;
+				ExpectationEntry expectation;
 
-            info.expectations.push_back(expectation);
+				expectation.askingPrice = asking;
+				expectation.hedonicPrice = hedonic;
+				expectation.targetPrice = target;
 
-        }
+				info.expectations.push_back(expectation);
 
-        sellingUnitsMap.erase(unit.getId());
-        sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
+			}
 
-    }
+			sellingUnitsMap.erase(unit.getId());
+			sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
+
+		}
+	}
+	else
+	{
+		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+		unsigned int timeInterval = config.ltParams.housingModel.timeInterval;
+
+		SellingUnitInfo info;
+		info.startedDay = currentTime.ms();
+		info.interval = timeInterval;
+		info.daysOnMarket = unit.getTimeOnMarket();
+
+		HM_Model* model = getParent()->getModel();
+
+		Unit *castUnit = const_cast<Unit*>(&unit);
+
+		HedonicPrice_SubModel hpSubmodel( currentTime.ms(), model, castUnit);
+
+		hpSubmodel.ComputeHedonicPrice(info, sellingUnitsMap, parent->getId());
+	}
 }
 
 bool RealEstateSellerRole::getCurrentExpectation(const BigSerial& unitId, ExpectationEntry& outEntry)

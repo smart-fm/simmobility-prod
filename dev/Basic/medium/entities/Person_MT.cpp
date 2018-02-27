@@ -1044,13 +1044,13 @@ bool Person_MT::advanceCurrentTripChainItem()
 		{
 			return res;
 		}
+
+		//Trip completed, update the number of trips completed
+		ConfigManager::GetInstanceRW().FullConfig().numTripsCompleted++;
 	}
 
 	//do the increment
 	++currTripChainItem;
-
-	//Update the number of trips completed
-	ConfigManager::GetInstanceRW().FullConfig().numTripsCompleted++;
 
 	if (currTripChainItem == tripChain.end())
 	{

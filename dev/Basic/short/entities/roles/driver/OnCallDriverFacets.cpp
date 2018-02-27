@@ -72,9 +72,9 @@ void OnCallDriverMovement::frame_tick()
 		{
 			if(fwdDriverMovement.isEndOfPath())
 			{
-				const Node *endOfPathNode = fwdDriverMovement.getCurrLink()->getToNode();
-				continueCruising(endOfPathNode);
-				performScheduleItem();
+                    const Node *endOfPathNode = fwdDriverMovement.getCurrLink()->getToNode();
+                    continueCruising(endOfPathNode);
+                    performScheduleItem();
 			}
 			break;
 		}
@@ -178,7 +178,7 @@ void OnCallDriverMovement::frame_tick()
        DriverMovement::frame_tick();
 
    }
-   if(fwdDriverMovement.isDoneWithEntireRoute())
+ if(fwdDriverMovement.isDoneWithEntireRoute())
     {
         DriverMovement::frame_tick();
     }
@@ -186,7 +186,7 @@ void OnCallDriverMovement::frame_tick()
     {
         if (fwdDriverMovement.getCurrWayPoint().type == WayPoint::ROAD_SEGMENT)
         {
-            currNode = fwdDriverMovement.getCurrWayPoint().roadSegment->getParentLink()->getFromNode();
+           currNode = fwdDriverMovement.getCurrWayPoint().roadSegment->getParentLink()->getFromNode();
         }
     }
 
@@ -204,8 +204,8 @@ void OnCallDriverMovement::frame_tick()
 
 		 if (onCallDriver->driverSchedule.isScheduleCompleted())
 		 {
-			 const Node *endOfPathNode = fwdDriverMovement.getCurrLink()->getToNode();
-			 continueCruising(endOfPathNode);
+                 const Node *endOfPathNode = fwdDriverMovement.getCurrLink()->getToNode();
+                 continueCruising(endOfPathNode);
 		 }
 
 		 //Get the current schedule item
@@ -257,6 +257,7 @@ void OnCallDriverMovement::frame_tick()
 	 const Lane *currLane = pathMover.getCurrLane();
 
 	 vector<const Node *> reachableNodes;
+     const Node* nonblackListedNode = nullptr;
 
 	 //If we are continuing from an existing path, we need to check for connectivity
 	 //from the current lane
@@ -275,9 +276,19 @@ void OnCallDriverMovement::frame_tick()
 
 		 //Add all nodes that are reachable from the current lane to vector
 		 for(auto it = itTurningsFromCurrLane->second.begin(); it != itTurningsFromCurrLane->second.end(); ++it)
-		 {
-			 reachableNodes.push_back(it->second->getToLane()->getParentSegment()->getParentLink()->getToNode());
-		 }
+         {
+             if (onCallDriver->movement->blackListedNodes.find(
+                     it->second->getToLane()->getParentSegment()->getParentLink()->getToNode()->getNodeId()) !=
+                 onCallDriver->movement->blackListedNodes.end())
+             {
+                 nonblackListedNode = chooseRandomNode();
+                 return nonblackListedNode;
+             }
+             else
+             {
+                 reachableNodes.push_back(it->second->getToLane()->getParentSegment()->getParentLink()->getToNode());
+             }
+         }
 	 }
 	 else
 	 {
@@ -285,7 +296,16 @@ void OnCallDriverMovement::frame_tick()
 		 //reachable
 		 for(auto link : downstreamLinks)
 		 {
-			 reachableNodes.push_back(link->getToNode());
+             if(onCallDriver->movement->blackListedNodes.find(link->getToNode()->getNodeId()) !=
+                onCallDriver->movement->blackListedNodes.end())
+             {
+                 nonblackListedNode = chooseRandomNode();
+                 return nonblackListedNode;
+             }
+             else
+             {
+                 reachableNodes.push_back(link->getToNode());
+             }
 		 }
 	 }
 
@@ -301,9 +321,35 @@ void OnCallDriverMovement::frame_tick()
 
 	 //Select one node from the reachable nodes at random
 	 unsigned int random = Utils::generateInt(0, reachableNodes.size() - 1);
-	 return reachableNodes[random];
+     const Node *selectedNode = reachableNodes[random];
 
+     //Check if we've selected a node which is the same as the fromNode
+     //This can happen when there are small loops in the network and we will fail to get an
+     //updated path
+     while(selectedNode == fromNode)
+     {
+         //Choose a random node anywhere in the network
+         selectedNode = chooseRandomNode();
+     }
+
+     return selectedNode;
  }
+const Node* OnCallDriverBehaviour::chooseRandomNode() const
+{
+    auto nodeMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
+    auto itRandomNode = nodeMap.begin();
+    advance(itRandomNode, Utils::generateInt(0, nodeMap.size() - 1));
+
+    const Node *result = itRandomNode->second;
+
+    //Ensure chosen node is not a source/sink node
+    if(result->getNodeType() == SOURCE_OR_SINK_NODE || onCallDriver->movement->blackListedNodes.find(result->getNodeId())!=onCallDriver->movement->blackListedNodes.end())
+    {
+        result = chooseRandomNode();
+    }
+
+    return result;
+}
  bool OnCallDriverBehaviour::hasDriverShiftEnded() const
  {
 	 return (onCallDriver->getParent()->currTick.ms() / 1000) >= onCallDriver->getParent()->getServiceVehicle().endTime;
@@ -324,7 +370,7 @@ void OnCallDriverMovement::frame_tick()
 	 //the current segment
 	 if(fwdDriverMovement.isDrivingPathSet())
 	 {
-		 currLink = fwdDriverMovement.getCurrLink();
+             currLink = fwdDriverMovement.getCurrLink();
 	 }
 
 	 //Get route to the node

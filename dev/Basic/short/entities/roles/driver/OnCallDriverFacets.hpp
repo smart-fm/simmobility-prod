@@ -92,6 +92,10 @@ public:
      * @param dropOffNode the node at which the passenger is to be dropped off
      */
     void beginDriveToDropOffPoint(const Node *dropOffNode);
+
+    const std::unordered_set<int>  blackListedNodes={20659,18938,21067,13691,23180,21058,14104,14348,17517,18530,16657,10917,20657,15492,11506,15035,13910,13392,23191,10549,
+                                                     19690,13543,17593,10206,11986,19415,13514,23184,23185,14576,11340,11341,23182,11741,23190,13462,10076,17515,17704,20277,13362};
+
 };
 
 class OnCallDriverBehaviour : public DriverBehavior
@@ -117,6 +121,8 @@ public:
 	 * @return the chosen Node
 	 */
 	const Node *chooseDownstreamNode(const Node *fromNode) const;
+
+    const Node* chooseRandomNode() const;
 
 	/**
 	 * Checks if the driver's shift has ended

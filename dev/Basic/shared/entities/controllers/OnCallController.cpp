@@ -70,6 +70,16 @@ void OnCallController::unsubscribeDriver(Person *driver)
 			<< "schedule associated. This is impossible. It should have had at least an empty schedule";
 		throw std::runtime_error(msg.str());
 	}
+
+	unsigned scheduleSize = driverSchedules.at(driver).size();
+
+	if (scheduleSize > 0)
+	{
+		std::stringstream msg;
+		msg << "Driver " << driver->getDatabaseId()<< "(" << driver << ")" << " has a non empty schedule and she sent a message "
+			<< "to unsubscribe. This is not admissible";
+		throw std::runtime_error(msg.str());
+	}
 #endif
 
 	driverSchedules.erase(driver);
@@ -129,7 +139,7 @@ void OnCallController::driverUnavailable(Person *person)
 
 void OnCallController::onDriverShiftEnd(Person *driver)
 {
-	ControllerLog() << "Shift end msg received from driver " << driver << endl;
+	ControllerLog() << "Shift end msg received from driver " << driver->getDatabaseId()<<"(" << driver<< ")" << " at " << currTick<<std::endl;
 
 	if(driverSchedules.at(driver).empty())
 	{
@@ -238,7 +248,7 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 	{
 		const TripRequestMessage &requestArgs = MSG_CAST(TripRequestMessage, message);
 
-		ControllerLog() << "Request received by the controller: " << requestArgs << ". This request is received at " <<
+		ControllerLog() << "Request received by the controller of type "<< sim_mob::toString(controllerServiceType)<<" :" << requestArgs << ". This request is received at " <<
 		                currTick << std::endl;
 
 #ifndef NDEBUG
@@ -381,8 +391,10 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 
 	// We have just assigned a new schedule to the driver.
 	// We remove the first item of the schedule from the controller's copy, so that the controller
-	// know what part of the schedule is remaining
-	//aa!!: Why do we remove just the first item?
+	// know what part of the schedule is remaining. We do this because we want to prevent the controller
+	// from modifying the scheduleItem that the driver is currently executing. Therefore, we give the 
+	// controller the visibility only of the part of the schedule that the controller can modify, namely the entire
+	// schedule minus the first schedule item
 	Schedule controllersCopy = schedule;
 	controllersCopy.erase(controllersCopy.begin());
 
@@ -413,10 +425,10 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	}
 #endif
 
-	ControllerLog() << sim_mob::toString(this->getServiceType() )<< " controller sent this assignment : "<< schedule <<". The assignement is sent at " <<
-	                currTick << " to driver " << driver->getDatabaseId();
+	ControllerLog() << sim_mob::toString(this->getServiceType() )<< " controller sent this assignment to driver :" << driver->getDatabaseId() <<"("<<driver<<")"<< schedule <<". The assignement is sent at " <<
+	                currTick << "to ";
 #ifndef NDEBUG
-	ControllerLog() <<", whose pointer is driver=" << driver <<", (MessageHandler *) driver="<<(MessageHandler *) driver;
+	ControllerLog() <<", (MessageHandler *) driver="<<(MessageHandler *) driver;
 #endif
 	ControllerLog() << std::endl;
 }

@@ -256,7 +256,7 @@ short Schedule::getPassengerCount() const
 
 std::ostream &operator<<(std::ostream &strm, const sim_mob::TripRequestMessage &request)
 {
-	return strm << "request issued by " << request.userId<< " person = "<<request.person << " at " << request.timeOfRequest <<
+	return strm << "request issued by " << " person  "<<request.person->getDatabaseId()<<"("<< request.person<<")" <<" at " << request.timeOfRequest <<
 	            " to go from node " << request.startNode->getNodeId() <<
 	            ", to node " << request.destinationNode->getNodeId();
 }
@@ -268,12 +268,12 @@ std::ostream &operator<<(std::ostream &strm, const sim_mob::ScheduleItem &item)
 	{
 	case (sim_mob::ScheduleItemType::PICKUP):
 	{
-		strm << "PICKUP of " << item.tripRequest;
+		strm << "PICKUP  " << item.tripRequest;
 		break;
 	}
 	case (sim_mob::ScheduleItemType::DROPOFF):
 	{
-		strm << "DROPOFF of " << item.tripRequest;
+		strm << "DROPOFF  " << item.tripRequest;
 		break;
 	}
 	case (sim_mob::ScheduleItemType::CRUISE):
@@ -288,7 +288,7 @@ std::ostream &operator<<(std::ostream &strm, const sim_mob::ScheduleItem &item)
 	}
 	case (sim_mob::ScheduleItemType::PARK):
 	{
-		strm << "Parking to " << item.parking->getParkingId();
+		strm << "Parking to parkig id :" << item.parking->getParkingId();
 		break;
 	}
 	default:
@@ -304,7 +304,7 @@ std::ostream &operator<<(std::ostream &strm, const sim_mob::Schedule &schedule)
 	strm << "Schedule [";
 	for (const sim_mob::ScheduleItem &item : schedule)
 	{
-		strm << item << ", ";
+		strm << item << ". ";
 	}
 	strm << " ]";
 	return strm;

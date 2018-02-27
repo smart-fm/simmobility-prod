@@ -8,10 +8,15 @@
 #include "logging/ControllerLog.hpp"
 #include "OnHailDriver.hpp"
 #include "path/PathSetManager.hpp"
+#include "config/MT_Config.hpp"
 
 using namespace sim_mob;
 using namespace medium;
 using namespace std;
+
+
+
+sim_mob::BasicLogger& onHailTaxiTrajectoryLogger  = sim_mob::Logger::log("onhail_taxi_trajectory.csv");
 
 OnHailDriverMovement::OnHailDriverMovement() : currNode(nullptr), chosenTaxiStand(nullptr)
 {
@@ -52,6 +57,7 @@ void OnHailDriverMovement::frame_init()
 	performDecisionActions(decision);
 
 	onHailDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
+	serviceVehicle = onHailDriver->getParent()->getServiceVehicle();
 }
 
 void OnHailDriverMovement::frame_tick()
@@ -148,8 +154,56 @@ void OnHailDriverMovement::frame_tick()
 
 string OnHailDriverMovement::frame_tick_output()
 {
-	return string();
+	const DriverUpdateParams &params = parentDriver->getParams();
+	if (pathMover.isPathCompleted() || ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
+	{
+		return std::string();
+	}
+
+	std::ostringstream out(" ");
+
+
+	if ((*(onHailDriver->getParent()->currTripChainItem))->origin.node == currNode && params.now.ms() == (uint32_t) 0)
+	{
+		out << serviceVehicle.vehicleNo << "," << onHailDriver->getParent()->getDatabaseId() << ","
+		<< currNode->getNodeId() << "," << DailyTime(serviceVehicle.startTime * 1000).getStrRepr()
+		<< ",NULL,NULL," << onHailDriver->getDriverStatusStr()
+		<< ", 0"
+		<< ",No Passenger"
+		<< std::endl;
+	}
+	else
+	{
+		const std::string driverId = onHailDriver->getParent()->getDatabaseId();
+		const unsigned int nodeId = currNode->getNodeId();
+		const unsigned int roadSegmentId = (parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId());
+		const Lane *currLane = parentDriver->getParent()->getCurrLane();
+		const unsigned int currLaneId = (currLane ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0);
+		const std::string driverStatusStr = onHailDriver->getDriverStatusStr();
+		const string timeStr = (DailyTime(params.now.ms()) + DailyTime(
+				ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
+
+		out << serviceVehicle.vehicleNo << "," << driverId << ","
+		<< nodeId << ","
+		<< timeStr << ","
+		<< roadSegmentId << ","
+		<< currLaneId
+		<< "," << driverStatusStr
+		<< ","<< onHailDriver->getPassengerCount()
+		<<"," << onHailDriver->getPassengerId()
+		<< std::endl;
+	}
+
+
+
+	/* for Debug Purpose Only : to print details in Console
+    	Print() << out.str();
+    */
+	onHailTaxiTrajectoryLogger << out.str();
+	return out.str();
 }
+
+
 
 bool OnHailDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 {
@@ -444,7 +498,7 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 		{
 			stringstream msg;
 			msg << "Path not found. Driver " << onHailDriver->getParent()->getDatabaseId()
-			    << " could not find a path to the passenger's destination node " << destination->getNodeId()
+			    << " could not find a path to the passenger "<<person->getDatabaseId() <<" destination node " << destination->getNodeId()
 			    << " from the current node " << currNode->getNodeId() << " and link ";
 			msg << (currLink ? currLink->getLinkId() : 0);
 			throw no_path_error(msg.str());
@@ -456,7 +510,7 @@ void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
 		onHailDriver->setDriverStatus(DRIVE_WITH_PASSENGER);
 
 		ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
-		                << onHailDriver->getParent()->getDatabaseId() << ": Begin driving with pax from node "
+		                << onHailDriver->getParent()->getDatabaseId() << ": Begin driving with pax "<<person->getDatabaseId() <<" from node "
 		                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
 		                << " to node " << destination->getNodeId() << endl;
 	}

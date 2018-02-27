@@ -173,10 +173,9 @@ void OnCallDriver::subscribeToController()
 	MessageBus::PostMessage(*it, MSG_DRIVER_SUBSCRIBE, MessageBus::MessagePtr(new DriverSubscribeMessage(parent)));
 
 #ifndef NDEBUG
-	ControllerLog() << "OnCallDriver " << parent->getDatabaseId()
+	ControllerLog() << "OnCallDriver " << parent->getDatabaseId() << "(" << parent << ")"
 	                << " sent a subscription to the controller "
-	                << (*it)->toString() << " at time " << parent->currTick;
-	ControllerLog() << ". parentDriver pointer " << parent << endl;
+	                << (*it)->toString() << " at time " << parent->currTick<< endl;
 #endif
 
 	subscribedControllers.push_back(*it);

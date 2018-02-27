@@ -142,6 +142,8 @@ public:
 		toBeRemovedFromTaxiStand = value;
 	}
 
+	std::string getPassengerId() const ;
+
 	friend class OnHailDriverMovement;
 	friend class OnHailDriverBehaviour;
 };

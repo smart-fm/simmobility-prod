@@ -79,9 +79,7 @@ void PedestrianMovement::frame_init()
 		Person_MT *person = parentPedestrian->getParent();
 
         TripChainItem *tcItem = *(person->currTripChainItem);
-
-
-		if (tcItem->getMode()!= "Taxi" && subTrip.origin.type == WayPoint::NODE && subTrip.destination.type == WayPoint::NODE)
+		if (subTrip.origin.type == WayPoint::NODE && subTrip.destination.type == WayPoint::NODE)
 		{
 			isOnDemandTraveler = true;
 			const Node *taxiStartNode = subTrip.destination.node;
@@ -89,7 +87,6 @@ void PedestrianMovement::frame_init()
 			if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
 			{
 				std::vector<SubTrip>::iterator subTripItr = person->currSubTrip;
-
 
 				if ((*subTripItr).travelMode == "TravelPedestrian" && subTrip.origin.node == subTrip.destination.node)
 				{

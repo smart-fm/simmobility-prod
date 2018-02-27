@@ -621,8 +621,10 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 			trip->getPersonID() << "," << //	person_id
 			trip->getPersonID() << "_" << trip->sequenceNumber << "," << //	trip_id
 			st.tripID << "," << //	subtrip_id
+	        st.origin.getWayPointTypeStr() << "," << //	origin type
 			origin << "," << //	origin
 			(*currTripChainItem)->originZoneCode << "," <<
+			st.destination.getWayPointTypeStr()<< "," << //	destination type
 			destination << "," << //	destination
 			(*currTripChainItem)->destinationZoneCode << "," <<
 			st.travelMode << "," << //	mode
@@ -633,6 +635,7 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 			restrictedRegion.str() << "\n"; /* MIXED CBD Information */
 
 	csv << res.str();
+	csv.flush();
 
 	int cbdStartNode = 0, cbdEndNode = 0;
 	if (subtripMetrics.cbdOrigin.type == WayPoint::NODE)

@@ -168,6 +168,8 @@ void OnHailDriver::addPassenger(Person_MT *person)
 		    << " does not have a passenger role!";
 		throw runtime_error(msg.str());
 	}
+#endif
+
 	passenger->setDriver(this);
 	passenger->setStartPoint(person->currSubTrip->origin);
 	passenger->setStartPointDriverDistance(movement->getTravelMetric().distance);
@@ -177,7 +179,7 @@ void OnHailDriver::addPassenger(Person_MT *person)
 	ControllerLog() << parent->currTick.ms() << "ms: OnHailDriver " << parent->getDatabaseId() << ": Picked-up pax "
 	                << person->getDatabaseId() << " from node "
 					   << currSegStats->getRoadSegment()->getParentLink()->getToNode()->getNodeId()<< " while " << getDriverStatusStr() << endl;
-#endif
+
 }
 
 void OnHailDriver::alightPassenger()
@@ -199,11 +201,9 @@ void OnHailDriver::alightPassenger()
 	conflux->dropOffTraveller(person);
 	passenger = nullptr;
 
-#ifndef NDEBUG
 	ControllerLog() << parent->currTick.ms() << "ms: OnHailDriver " << parent->getDatabaseId() << ": Dropped-off pax "
 	                << person->getDatabaseId() << " at node "
 	                << currSegStats->getRoadSegment()->getParentLink()->getToNode()->getNodeId() << endl;
-#endif
 }
 
 void OnHailDriver::evictPassenger()

@@ -160,7 +160,6 @@ void OnHailDriver::addPassenger(Person_MT *person)
 	Role<Person_MT> *personRole = person->getRole();
 	passenger = dynamic_cast<Passenger *>(personRole);
 
-#ifndef NDEBUG
 	if(!passenger)
 	{
 		stringstream msg;
@@ -168,8 +167,6 @@ void OnHailDriver::addPassenger(Person_MT *person)
 		    << " does not have a passenger role!";
 		throw runtime_error(msg.str());
 	}
-#endif
-
 	passenger->setDriver(this);
 	passenger->setStartPoint(person->currSubTrip->origin);
 	passenger->setStartPointDriverDistance(movement->getTravelMetric().distance);

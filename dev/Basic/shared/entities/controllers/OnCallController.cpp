@@ -391,8 +391,10 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 
 	// We have just assigned a new schedule to the driver.
 	// We remove the first item of the schedule from the controller's copy, so that the controller
-	// know what part of the schedule is remaining
-	//aa!!: Why do we remove just the first item?
+	// know what part of the schedule is remaining. We do this because we want to prevent the controller
+	// from modifying the scheduleItem that the driver is currently executing. Therefore, we give the 
+	// controller the visibility only of the part of the schedule that the controller can modify, namely the entire
+	// schedule minus the first schedule item
 	Schedule controllersCopy = schedule;
 	controllersCopy.erase(controllersCopy.begin());
 

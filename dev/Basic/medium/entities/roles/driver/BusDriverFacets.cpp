@@ -306,43 +306,73 @@ const Lane* BusDriverMovement::getBestTargetLane(const SegmentStats* nextSegStat
 		const Lane* minLane = nullptr;
 		double minQueueLength = std::numeric_limits<double>::max();
 		double minLength = std::numeric_limits<double>::max();
-		double que = 0.0;
-		double total = 0.0;
+	        double totalLength = 0.0 ;
+		double queueLength = 0.0 ;
 
 		const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
 		const std::vector<Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
-		for (vector<Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
+		for (vector<Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 		{
 			const Lane* lane = *lnIt;
 			if (!lane->isPedestrianLane())
 			{
-				if(nextToNextSegStats
-						&& !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())
-						&& nextLink
-						&& !nextSegStats->isConnectedToDownstreamLink(nextLink, lane))
-				{ continue; }
-				total = nextSegStats->getLaneTotalVehicleLength(lane);
-				que = nextSegStats->getLaneQueueLength(lane);
-				if (minLength > total)
+				if (!laneConnectorOverride
+					&& nextToNextSegStats
+					&& !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())
+					&& nextLink
+					&& !nextSegStats->isConnectedToDownstreamLink(nextLink, lane))
 				{
-					//if total length of vehicles is less than current minLength
-					minLength = total;
-					minQueueLength = que;
-					minLane = lane;
+					continue;
 				}
-				else if (minLength == total)
+
+				totalLength = nextSegStats->getLaneTotalVehicleLength(lane);
+				queueLength = nextSegStats->getLaneQueueLength(lane);
+
+				if(queueLength == 0)
 				{
-					//if total length of vehicles is equal to current minLength
-					if (minQueueLength > que)
+					if (minQueueLength == 0)
 					{
-						//and if the queue length is less than current minQueueLength
-						minQueueLength = que;
+						if (minLength > totalLength)
+						{
+							//Choose lane with lower number of vehicles on it as both temp chosen lane
+							// current lane have no queue
+							minLength = totalLength;
+							minQueueLength = queueLength;
+							minLane = lane;
+						}
+					}
+					else
+					{
+						// as the temp chosen lane has queue and the current lane does not
+						// we choose current one
+						minLength = totalLength;
+						minQueueLength = queueLength;
 						minLane = lane;
+					}
+				}
+				else
+				{
+					// current lane has a queue
+					if(minQueueLength > queueLength)
+					{
+						//Choose lane with lower queue length
+						minLength = totalLength;
+						minQueueLength = queueLength;
+						minLane = lane;
+					}
+					else if(minQueueLength == queueLength)
+					{
+						//In case of a tie, use the one with smaller total length
+						if(minLength > totalLength)
+						{
+							minLength = totalLength;
+							minQueueLength = queueLength;
+							minLane = lane;
+						}
 					}
 				}
 			}
 		}
-
 		if(!minLane)
 		{
 			//throw std::runtime_error("best target lane was not set!");

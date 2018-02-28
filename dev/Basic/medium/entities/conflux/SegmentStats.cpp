@@ -1039,7 +1039,7 @@ unsigned int SegmentStats::computeExpectedOutputPerTick()
 	{
 		count += i->second->laneParams->getOutputFlowRate() * ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	}
-	return std::floor(count);
+	return std::ceil(count);
 }
 
 void SegmentStats::updateLinkDrivingTimes(double drivingTimeToEndOfLink)

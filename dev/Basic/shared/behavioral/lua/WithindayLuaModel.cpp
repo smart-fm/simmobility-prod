@@ -41,9 +41,9 @@ void ensureContext()
 			modelCtx->wdModel.initialize();
 			threadContext.reset(modelCtx);
 		}
-		catch (const std::out_of_range& oorx)
+		catch (const std::runtime_error& ex)
 		{
-			throw std::runtime_error("missing or invalid generic property 'external_scripts'");
+			throw ex;
 		}
 	}
 }

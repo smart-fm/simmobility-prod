@@ -715,6 +715,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	std::string choiceset(" ");
     	for(int n = 0; n < screenedEntriesVec.size(); n++)
     	{
+    		printChoiceset2(day, household->getId(),screenedEntriesVec[n]->getUnitId());
     		choiceset += std::to_string( screenedEntriesVec[n]->getUnitId() )  + ", ";
     	}
 

@@ -457,6 +457,15 @@ namespace sim_mob
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET,fmtr.str());
 	    }
 
+	    inline void printChoiceset2( int day, BigSerial householdId, BigSerial unitId)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%")% day % householdId % unitId;
+
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET2,fmtr.str());
+	    }
+
 	    inline void PrintExit(int day, const Household *household, int result)
 	   	{
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();

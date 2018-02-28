@@ -227,6 +227,9 @@ void DriverMovement::frame_tick()
 		setParentData(params);
 	}
 
+	//Reset the value, so that we can enter above condition when needed next time.
+	isRouteChangedInVQ = false;
+
 /*	//Debug print
 	if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
 	{

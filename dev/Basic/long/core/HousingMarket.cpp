@@ -226,7 +226,10 @@ void HousingMarket::getAvailableEntries(const IdVector& tazIds, HousingMarket::C
             //copy lists.
             for (HousingMarket::EntryMap::iterator itMap = map.begin(); itMap != map.end(); itMap++)
             {
-                outList.push_back(itMap->second);
+            	if(itMap->second->isBuySellIntervalCompleted())
+            	{
+            		outList.push_back(itMap->second);
+            	}
             }
         }
     }

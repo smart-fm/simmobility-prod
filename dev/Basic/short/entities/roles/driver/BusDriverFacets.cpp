@@ -109,8 +109,22 @@ void BusDriverMovement::buildPath(const std::string &routeId, const std::vector<
 		
 		++itSegments;
 	}
-	
-	fwdDriverMovement.setPath(path);
+
+	//Set invalid value as default, so that the vehicle loading model will choose a lane
+	int laneIdx = -1;
+	auto person = parentBusDriver->getParent();
+
+	//If the first link has a bus stop, we simply set the slowest lane as the selected lane - as it is
+	//the only one connected to the stop
+	if(path.front().roadSegment->getParentLink() == (*busStopTracker)->getParentSegment()->getParentLink())
+	{
+		laneIdx = 0;
+	}
+
+	//Choose the starting lane and initial speed using the vehicle loading model
+	vehLoadingModel->chooseStartingLaneAndSpeed(path, &laneIdx, person->startSegmentId, &(person->initialSpeed),
+	                                            parentBusDriver->getParams());
+	fwdDriverMovement.setPath(path, laneIdx);
 }
 
 
@@ -120,11 +134,6 @@ void BusDriverMovement::frame_init()
 	const Person_ST *parent = parentBusDriver->getParent();
 
 	if (parent)
-	{
-		newVehicle = initialiseBusPath(true);
-	}
-
-	if (newVehicle)
 	{
 		TripChainItem *tripChainItem = *(parent->currTripChainItem);
 		BusTrip *busTrip = dynamic_cast<BusTrip *> (tripChainItem);
@@ -136,24 +145,26 @@ void BusDriverMovement::frame_init()
 			throw std::runtime_error(msg.str());
 		}
 
-		//Use the vehicle to build a bus, then delete the old vehicle.
-		
 		const string &busLine = busTrip->getBusLine()->getBusLineID();
-		
+
 		parentBusDriver->setBusLineId(busLine);
+
+		//Retrieve the bus stops for the bus
+		busStops = busTrip->getBusRouteInfo().getBusStops();
+
+		//Track the bus stops.
+		busStopTracker = busStops.begin();
+
+		newVehicle = initialiseBusPath(true);
+	}
+
+	if (newVehicle)
+	{
+		//Use the vehicle to build a bus, then delete the old vehicle.
 		parentBusDriver->setVehicle(newVehicle);
 
 		//Set the initial values of the parameters
 		setOrigin(parentBusDriver->getParams());
-
-		//Retrieve the bus stops for the bus
-		busStops = busTrip->getBusRouteInfo().getBusStops();
-		
-		//Track the bus stops.
-		busStopTracker = busStops.begin();
-
-		//Set initial speed of bus to 0
-		parentBusDriver->getParams().initialSpeed = 0;
 	}
 }
 

@@ -306,12 +306,12 @@ const Lane* BusDriverMovement::getBestTargetLane(const SegmentStats* nextSegStat
 		const Lane* minLane = nullptr;
 		double minQueueLength = std::numeric_limits<double>::max();
 		double minLength = std::numeric_limits<double>::max();
-	        double totalLength = 0.0 ;
+		double totalLength = 0.0 ;
 		double queueLength = 0.0 ;
 
 		const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
-		const std::vector<Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
-		for (vector<Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
+		const std::vector<const Lane *> &lanes = nextSegStats->getRoadSegment()->getLanes();
+		for (vector<const Lane *>::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 		{
 			const Lane* lane = *lnIt;
 			if (!lane->isPedestrianLane())
@@ -375,36 +375,21 @@ const Lane* BusDriverMovement::getBestTargetLane(const SegmentStats* nextSegStat
 		}
 		if(!minLane)
 		{
-			//throw std::runtime_error("best target lane was not set!");
-			//TODO: if minLane is null, there is probably no lane connection from any lane in next segment stats to
-			// the lanes in the nextToNextSegmentStats. The code in this block is a hack to avoid errors due to this reason.
-			//This code must be removed and an error must be thrown here in future.
-			for (vector<Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
-			{
-				if (!((*lnIt)->isPedestrianLane()))
-				{
-					const Lane* lane = *lnIt;
-					total = nextSegStats->getLaneTotalVehicleLength(lane);
-					que = nextSegStats->getLaneQueueLength(lane);
-					if (minLength > total)
-					{
-						//if total length of vehicles is less than current minLength
-						minLength = total;
-						minQueueLength = que;
-						minLane = lane;
-					}
-					else if (minLength == total)
-					{
-						//if total length of vehicles is equal to current minLength
-						if (minQueueLength > que)
-						{
-							//and if the queue length is less than current minQueueLength
-							minQueueLength = que;
-							minLane = lane;
-						}
-					}
-				}
-			}
+			Print() << "\nCurrent Path " << pathMover.getPath().size() << std::endl;
+			Print() << MesoPathMover::getPathString(pathMover.getPath());
+
+			std::ostringstream out("");
+			out << "best target lane was not set!" << "\nCurrent Segment: "
+			    << pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
+			    << " =>" << nextSegStats->getRoadSegment()->getRoadSegmentId()
+			    << " =>" << nextToNextSegStats->getRoadSegment()->getRoadSegmentId() << std::endl;
+			out << "firstSegInNextLink:" << (nextLink ? nextLink->getRoadSegments().front()->getRoadSegmentId() : 0)
+			    << "|NextLink: " << (nextLink ? nextLink->getLinkId() : 0)
+			    << "|downstreamLinks of " << nextSegStats->getRoadSegment()->getRoadSegmentId() << std::endl;
+
+			Print() << out.str();
+			nextSegStats->printDownstreamLinks();
+			throw std::runtime_error(out.str());
 		}
 		return minLane;
 	}

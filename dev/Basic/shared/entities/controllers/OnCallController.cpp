@@ -376,7 +376,8 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 		std::stringstream msg;
 		msg << "Assigning a schedule to driver " << driverId
 			<< ". She should be present both in availableDrivers and driverSchedules but is she present in driverSchedules? "
-			<< answer1 << " and is she present in availableDrivers? " << answer2;
+			<< answer1 << " and is she present in availableDrivers? " << answer2 << "Driver true Schedule: " << driver->exportServiceDriver()->getAssignedSchedule() <<std::endl
+            << " Copy of schedules: "<< driverSchedules[driver];
 		throw std::runtime_error(msg.str());
 	}
 
@@ -406,6 +407,10 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 
 	//If this schedule only caters to 1 person, the add the driver to the list of partially available drivers
 	//Schedule size 3 indicates a schedule for 1 person: pick-up, drop-off and park
+
+    if (driverSchedules[driver].begin()->tripRequest.requestType == RequestType::TRIP_REQUEST_SHARED &&
+        this->controllerServiceType != MobilityServiceControllerType::SERVICE_CONTROLLER_AMOD )
+    {
 	if (schedule.size() <= 3 && partiallyAvailableDrivers.count(driver) == 0)
 	{
 		partiallyAvailableDrivers.insert(driver);
@@ -414,7 +419,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	{
 		partiallyAvailableDrivers.erase(driver);
 	}
-
+    }
 #ifndef NDEBUG
 	if (!isUpdatedSchedule && availableDrivers.size() != availableDriversBeforeTheRemoval-1)
 	{

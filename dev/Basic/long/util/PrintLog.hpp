@@ -358,8 +358,26 @@ namespace sim_mob
 												% logsum[1259]  % logsum[1260]  % logsum[1261]  % logsum[1262]  % logsum[1263]  % logsum[1264]  % logsum[1265]  % logsum[1266]*/;
 
 
-
-			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_HITS_LOGSUM, fmtr.str());
+			if(title.compare("logsum")==0)
+			{
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_HITS_LOGSUM, fmtr.str());
+			}
+			else if(title.compare("workLogsum")==0)
+			{
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_WORK_LOGSUM, fmtr.str());
+			}
+			else if(title.compare("eduLogsum")==0)
+			{
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_EDU_LOGSUM, fmtr.str());
+			}
+			else if(title.compare("shopLogsum")==0)
+			{
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_SHOP_LOGSUM, fmtr.str());
+			}
+			else if(title.compare("otherLogsum")==0)
+			{
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_OTHER_LOGSUM, fmtr.str());
+			}
 
 			std::cout << fmtr.str() << std::endl;
 		}

@@ -720,6 +720,8 @@ public:
 	 */
 	const std::vector<long>& getAddressIdsInZone(int zoneCode) const;
 
+	std::unordered_map<StopType, double> getActivityLogsums() const;
+
 private:
 	std::string personId;
 	std::string hhId;

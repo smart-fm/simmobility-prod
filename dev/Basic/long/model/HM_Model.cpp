@@ -3011,6 +3011,10 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 		//	continue;
 
 		vector<double> logsum;
+		vector<double> workLogsum;
+		vector<double> eduLogsum;
+		vector<double> shopLogsum;
+		vector<double> otherLogsum;
 		vector<double> travelProbability;
 		vector<double> tripsExpected;
 
@@ -3147,6 +3151,28 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			double tripsExpectedD		= personParams.getTripsExpected();
 
 			logsum.push_back(logsumD);
+
+			std::unordered_map<StopType, double> activityLogsums = personParams.getActivityLogsums();
+
+			for (auto activityLogsum : activityLogsums )
+			{
+				if(activityLogsum.first == 1)
+				{
+					workLogsum.push_back(activityLogsum.second);
+				}
+				else if(activityLogsum.first == 2)
+				{
+					eduLogsum.push_back(activityLogsum.second);
+				}
+				if(activityLogsum.first == 3)
+				{
+					shopLogsum.push_back(activityLogsum.second);
+				}
+				if(activityLogsum.first == 4)
+				{
+					otherLogsum.push_back(activityLogsum.second);
+				}
+			}
 			travelProbability.push_back(travelProbabilityD);
 			tripsExpected.push_back(tripsExpectedD);
 		}
@@ -3162,6 +3188,10 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 		{
 			boost::mutex::scoped_lock lock( mtx5 );
 			printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), logsum  );
+			printHouseholdHitsLogsum( "workLogsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), workLogsum  );
+			printHouseholdHitsLogsum( "eduLogsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), eduLogsum  );
+			printHouseholdHitsLogsum( "shopLogsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), shopLogsum  );
+			printHouseholdHitsLogsum( "otherLogsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), otherLogsum  );
 		}
 		//printHouseholdHitsLogsum( "travelProbability", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), travelProbability );
 		//printHouseholdHitsLogsum( "tripsExpected", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tripsExpected );

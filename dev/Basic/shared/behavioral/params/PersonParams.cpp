@@ -282,6 +282,11 @@ const std::vector<long>& PersonParams::getAddressIdsInZone(int zoneCode) const
 	return znAddressIt->second;
 }
 
+std::unordered_map<StopType, double> PersonParams::getActivityLogsums() const
+{
+		return activityLogsums;
+}
+
 void PersonParams::setAddressLookup(const sim_mob::Address& address)
 {
     sim_mob::Address& lCurrAddress = addressLookup[address.getAddressId()];

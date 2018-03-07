@@ -217,7 +217,7 @@ double HM_Model::TazStats::getAvgHHSize() const
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
 											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
 											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false),jobAssignIndCount(0), isConnected(false),
-											numPrimarySchoolAssignIndividuals(0),numPreSchoolAssignIndividuals(0){}
+											numPrimarySchoolAssignIndividuals(0),numPreSchoolAssignIndividuals(0),indLogsumCounter(0){}
 
 HM_Model::~HM_Model()
 {
@@ -2952,8 +2952,8 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 
 		hitsSample = this->getHouseHoldHitsById( householdId );
 
-		if( !hitsSample )
-			return;
+		//if( !hitsSample )
+		//	return;
 
 		Household *currentHousehold = getHouseholdById( householdId );
 
@@ -2961,12 +2961,12 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			return;
 
 
-		/*
-		if(logsumUniqueCounter.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter.end())
-			logsumUniqueCounter.insert(hitsSample->getHouseholdHitsId());
-		else
-			return;
-		*/
+
+//		if(logsumUniqueCounter.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter.end())
+//			logsumUniqueCounter.insert(hitsSample->getHouseholdHitsId());
+//		else
+//			return;
+
 	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
@@ -2978,8 +2978,8 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
 
 
-		/*
-		 *This commented code lumps individuals by their person param unique characteristics to speed up logsum computation
+
+		//This commented code lumps individuals by their person param unique characteristics to speed up logsum computation
         {
 
 			if(!( thisIndividual->getId() >= 0 && thisIndividual->getId() < 10000000 ))
@@ -2997,7 +2997,7 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			else
 					continue;
         }
-        */
+
 
 
 
@@ -3187,6 +3187,8 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 
 		{
 			boost::mutex::scoped_lock lock( mtx5 );
+			indLogsumCounter++;
+			PrintOutV("indLogsumCounter"<<indLogsumCounter<<std::endl);
 			printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), logsum  );
 			printHouseholdHitsLogsum( "workLogsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), workLogsum  );
 			printHouseholdHitsLogsum( "eduLogsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), eduLogsum  );

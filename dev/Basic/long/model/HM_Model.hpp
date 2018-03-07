@@ -627,6 +627,7 @@ namespace sim_mob
             boost::shared_mutex sharedMtx;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
+            int indLogsumCounter;
 
             vector<double> logSqrtFloorAreahdb;
             vector<double> logSqrtFloorAreacondo;

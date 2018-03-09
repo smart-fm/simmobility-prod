@@ -1621,18 +1621,21 @@ void HM_Model::startImpl()
 		loadData<UnitTypeDao>(conn, unitTypes, unitTypesById, &UnitType::getId);
 		PrintOutV("Number of unit types: " << unitTypes.size() << std::endl);
 
-		IndividualDao indDao(conn);
-		primarySchoolIndList = indDao.getPrimarySchoolIndividual(currentSimYear);
-		//Index all primary school inds.
-		for (IndividualList::iterator it = primarySchoolIndList.begin(); it != primarySchoolIndList.end(); it++) {
-			primarySchoolIndById.insert(std::make_pair((*it)->getId(), *it));
-		}
+		if(config.ltParams.schoolAssignmentModel.enabled)
+		{
+			IndividualDao indDao(conn);
+			primarySchoolIndList = indDao.getPrimarySchoolIndividual(currentSimYear);
+			//Index all primary school inds.
+			for (IndividualList::iterator it = primarySchoolIndList.begin(); it != primarySchoolIndList.end(); it++) {
+				primarySchoolIndById.insert(std::make_pair((*it)->getId(), *it));
+			}
 
-		preSchoolIndList = indDao.getPreSchoolIndividual(currentSimYear);
-		//Index all pre school inds.
-		for (IndividualList::iterator it = preSchoolIndList.begin(); it != preSchoolIndList.end(); it++) {
-			preSchoolIndById.insert(std::make_pair((*it)->getId(), *it));
+			preSchoolIndList = indDao.getPreSchoolIndividual(currentSimYear);
+			//Index all pre school inds.
+			for (IndividualList::iterator it = preSchoolIndList.begin(); it != preSchoolIndList.end(); it++) {
+				preSchoolIndById.insert(std::make_pair((*it)->getId(), *it));
 
+			}
 		}
 
 		PrintOutV("Number of pre school individuals: " << preSchoolIndList.size() << std::endl );
@@ -2654,6 +2657,7 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, vector<d
 		if(this->getIndividualById(householdIndividualIds[n])->getIncome() > income)
 		{
 			maxIncomeInd = householdIndividualIds[n];
+			income = this->getIndividualById(householdIndividualIds[n])->getIncome();
 		}
 
 	}

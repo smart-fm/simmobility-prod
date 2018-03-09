@@ -611,10 +611,10 @@ double VehicleOwnershipModel::getExp2(int unitTypeId,double vehicleOwnershipLogs
 		value = value + coeffsObj->getHhChild2Plus();
 	}
 
-	//if(household.getTaxiAvailability())
-	//{
-		value = value + coeffsObj->getTaxi() * taxiAvailability;
-	//}
+	if(household.getTaxiAvailability())
+	{
+		value = value + coeffsObj->getTaxi() ;//* taxiAvailability;
+	}
 
 	DistanceMRT *distanceMRT = model->getDistanceMRTById(household.getId());
 

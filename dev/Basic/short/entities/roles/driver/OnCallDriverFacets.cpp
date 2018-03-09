@@ -375,7 +375,17 @@ const Node* OnCallDriverBehaviour::chooseRandomNode() const
 
 	 //Get route to the node
 	 auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
-
+     if(route.empty())
+     {
+         if(currLink)
+         {
+             route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
+         }
+         else
+         {
+             route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
+         }
+     }
  #ifndef NDEBUG
 	 if(route.empty())
 	 {
@@ -500,7 +510,17 @@ const Node* OnCallDriverBehaviour::chooseRandomNode() const
 
 	 //Get route to the node
 	 auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
-
+     if(route.empty())
+     {
+         if(currLink)
+         {
+             route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *pickupNode);
+         }
+         else
+         {
+             route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *pickupNode);
+         }
+     }
  #ifndef NDEBUG
 	 if(route.empty())
 	 {
@@ -614,7 +634,17 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 
 	//Get route to the node
 	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
-
+     if(route.empty())
+     {
+         if(currLink)
+         {
+             route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *dropOffNode);
+         }
+         else
+         {
+             route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *dropOffNode);
+         }
+     }
 #ifndef NDEBUG
 	if(route.empty())
 	{

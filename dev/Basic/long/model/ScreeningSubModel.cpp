@@ -27,33 +27,45 @@ namespace sim_mob
 
 		BigSerial ScreeningSubModel::ComputeWorkPlanningArea(PlanningArea *planningAreaWork)
 		{
-				Job  *headOfHhJob = model->getJobById( (headOfHousehold)->getJobId());
-				Establishment *headOfHhEstablishment = model->getEstablishmentById(headOfHhJob->getEstablishmentId());
+			Job  *headOfHhJob = model->getJobById( (headOfHousehold)->getJobId());
+			Establishment *headOfHhEstablishment = model->getEstablishmentById(headOfHhJob->getEstablishmentId());
 
-				BigSerial establishmentSlaAddressId = model->getEstablishmentSlaAddressId(headOfHhJob->getEstablishmentId());
+			BigSerial establishmentSlaAddressId = model->getEstablishmentSlaAddressId(headOfHhJob->getEstablishmentId());
 
-				Postcode *slaAddressWork = model->getPostcodeById(establishmentSlaAddressId);
+			Postcode *slaAddressWork = model->getPostcodeById(establishmentSlaAddressId);
+			PlanningSubzone *planningSubzoneWork = nullptr;
+			int tazIdWork = 0;
+
+			if(headOfHhJob->getId() !=0)
+			{
+
 
 				int tazIdWork = slaAddressWork->getTazId();
 				Taz *tazWork  = model->getTazById(tazIdWork);
 				int mtzIdWork = model->getMtzIdByTazId(tazIdWork);
 				Mtz *mtzWork  = model->getMtzById(mtzIdWork);
 
-				PlanningSubzone *planningSubzoneWork = nullptr;
+
 
 				if(mtzWork)
 					planningSubzoneWork = model->getPlanningSubzoneById( mtzWork->getPlanningSubzoneId() );
 
 				if(planningSubzoneWork)
 					planningAreaWork = (model->getPlanningAreaById(planningSubzoneWork->getPlanningAreaId()));
+			}
+			else
+			{
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "Job id 0 for head of hh  %1%.") %  headOfHousehold->getJobId()).str());
+								return 0;
+			}
 
-				if(!planningAreaWork)
-				{
-					AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "Planning Area null for Taz id  %1%.") %  tazIdWork).str());
-					return 0;
-				}
+			if(!planningAreaWork)
+			{
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "Planning Area null for Taz id  %1%.") %  tazIdWork).str());
+				return 0;
+			}
 
-				return planningSubzoneWork->getPlanningAreaId();
+			return planningSubzoneWork->getPlanningAreaId();
 
 		}
 
@@ -84,14 +96,14 @@ namespace sim_mob
 		void ScreeningSubModel::ComputeHeadOfHousehold(Household* household)
 		{
 			std::vector<BigSerial> individuals = household->getIndividuals();
+
 			for(int n = 0; n < individuals.size(); n++)
 			{
 				Individual *tempIndividual = model->getIndividualById(individuals[n]);
 
-				if( tempIndividual->getHouseholdHead() == true )
+				if( tempIndividual->getHouseholdHead()== true )
 				{
 					headOfHousehold = tempIndividual;
-					break;
 				}
 			}
 		}

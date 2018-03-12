@@ -603,7 +603,16 @@ bool DriverMovement::updateMovement()
 	if(!prevLink && currLink || (prevLink && currLink && prevLink != currLink))
 	{
 		double linkEntryTimeSec = params.elapsedSeconds + (params.now.ms() / 1000);
-		parentDriver->getParent()->currLinkTravelStats.start(currLink, linkEntryTimeSec);
+        if(parentDriver->getParent()->currLinkTravelStats.started)
+        {
+            auto distance = fwdDriverMovement.getDistCoveredOnCurrWayPt();
+            fwdDriverMovement.advance(distance);
+
+        }
+        else
+        {
+            parentDriver->getParent()->currLinkTravelStats.start(currLink, linkEntryTimeSec);
+        }
 	}
 
 	if (!fwdDriverMovement.isDoneWithEntireRoute())

@@ -2155,24 +2155,20 @@ int MITSIM_LC_Model::getConnectedLanesInLookAheadDistance(DriverUpdateParams &pa
 		//The way points in the look ahead distance
 		itWayPts = wayPtsInLookAheadDist.begin() + 1;
 		double distance = 0;
-		
-		if(isLaneConnected(*itLanes, itWayPts, end, &distance))
-		{
-			params.lcDebugStr << ";cl" << (*itLanes)->getLaneId();
-			lanePool.push_back(*itLanes);
+		if(itWayPts->type!=sim_mob::WayPoint::INVALID) {
+            if (isLaneConnected(*itLanes, itWayPts, end, &distance)) {
+                params.lcDebugStr << ";cl" << (*itLanes)->getLaneId();
+                lanePool.push_back(*itLanes);
 
-			if (params.currLane == *itLanes)
-			{
-				res = 0;
-			}
-		}
-		else
-		{
-			if(params.distToStop > distance)
-			{
-				params.distToStop = distance;
-			}
-		}
+                if (params.currLane == *itLanes) {
+                    res = 0;
+                }
+            } else {
+                if (params.distToStop > distance) {
+                    params.distToStop = distance;
+                }
+            }
+        }
 	}
 	
 	return res;

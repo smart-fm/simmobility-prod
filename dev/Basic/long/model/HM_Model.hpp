@@ -525,6 +525,7 @@ namespace sim_mob
             int getPreSchoolAssignIndividualCount();
             void addStudentToPrimarySchool(BigSerial individualId, int schoolId, BigSerial householdId);
             HouseholdList getPendingHouseholds();
+            int getIndLogsumCounter();
 
 
         protected:
@@ -633,7 +634,7 @@ namespace sim_mob
             vector<double> logSqrtFloorAreacondo;
 
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
-	    boost::unordered_map<BigSerial, BigSerial> privatePresaleUnitsMap;
+	        boost::unordered_map<BigSerial, BigSerial> privatePresaleUnitsMap;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;
             VehicleOwnershipCoeffMap vehicleOwnershipCoeffsById;
             TaxiAccessCoeffList taxiAccessCoeffs;

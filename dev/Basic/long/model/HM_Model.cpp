@@ -2950,26 +2950,17 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 	HouseHoldHitsSample *hitsSample = nullptr;
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
+	if(config.ltParams.outputHouseholdLogsums.hitsRun)
 	{
 		boost::mutex::scoped_lock lock( mtx3 );
-
 		hitsSample = this->getHouseHoldHitsById( householdId );
-
-		//if( !hitsSample )
-		//	return;
-
 		Household *currentHousehold = getHouseholdById( householdId );
-
 		if( !currentHousehold )
 			return;
-
-
-
-//		if(logsumUniqueCounter.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter.end())
-//			logsumUniqueCounter.insert(hitsSample->getHouseholdHitsId());
-//		else
-//			return;
+		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
+			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
+		else
+			return;
 
 	}
 
@@ -2984,23 +2975,23 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 
 
 		//This commented code lumps individuals by their person param unique characteristics to speed up logsum computation
-        {
-
-			if(!( thisIndividual->getId() >= 0 && thisIndividual->getId() < 10000000 ))
-				continue;
-
-			boost::mutex::scoped_lock lock( mtx6 );
-
-			auto groupId = workersGrpByLogsumParamsById.find(thisIndividual->getId());
-
-			if( groupId == workersGrpByLogsumParamsById.end())
-					continue;
-
-			if( logsumUniqueCounter.find(groupId->second->getLogsumCharacteristicsGroupId()) == logsumUniqueCounter.end())
-					logsumUniqueCounter.insert( groupId->second->getLogsumCharacteristicsGroupId() );
-			else
-					continue;
-        }
+//        {
+//
+//			if(!( thisIndividual->getId() >= 0 && thisIndividual->getId() < 10000000 ))
+//				continue;
+//
+//			boost::mutex::scoped_lock lock( mtx6 );
+//
+//			auto groupId = workersGrpByLogsumParamsById.find(thisIndividual->getId());
+//
+//			if( groupId == workersGrpByLogsumParamsById.end())
+//					continue;
+//
+//			if( logsumUniqueCounter.find(groupId->second->getLogsumCharacteristicsGroupId()) == logsumUniqueCounter.end())
+//					logsumUniqueCounter.insert( groupId->second->getLogsumCharacteristicsGroupId() );
+//			else
+//					continue;
+//        }
 
 
 
@@ -3188,7 +3179,6 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			printHouseholdHitsLogsum("title", "hitsId", "householdId", "individualId", "paxId", tazIds);
 		}
 
-
 		{
 			boost::mutex::scoped_lock lock( mtx5 );
 			indLogsumCounter++;
@@ -3199,8 +3189,6 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			printHouseholdHitsLogsum( "shopLogsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), shopLogsum  );
 			printHouseholdHitsLogsum( "otherLogsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), otherLogsum  );
 		}
-		//printHouseholdHitsLogsum( "travelProbability", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), travelProbability );
-		//printHouseholdHitsLogsum( "tripsExpected", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tripsExpected );
 	}
 }
 
@@ -4125,6 +4113,11 @@ void HM_Model::incrementJobAssignIndividualCount()
 HM_Model::HouseholdList HM_Model::getPendingHouseholds()
 {
 	return pendingHouseholds;
+}
+
+int HM_Model::getIndLogsumCounter()
+{
+	return this->indLogsumCounter;
 }
 
 void HM_Model::stopImpl()

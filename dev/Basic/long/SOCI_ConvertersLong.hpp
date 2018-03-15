@@ -25,6 +25,8 @@
 #include "database/entity/TAOByUnitType.hpp"
 #include "database/entity/StudyArea.hpp"
 #include "database/entity/JobsWithIndustryTypeAndTazId.hpp"
+#include "database/entity/StudentStop.hpp"
+#include "database/entity/EzLinkStop.hpp"
 
 using namespace sim_mob;
 using namespace long_term;
@@ -343,6 +345,34 @@ struct type_conversion<sim_mob::long_term::School>
     	school.setPlanningArea(values.get<std::string>("planning_area",std::string()));
     	school.setTazName(values.get<BigSerial>("taz_name",0));
     	school.setSchoolType(values.get<std::string>("school_type",std::string()));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::EzLinkStop>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::EzLinkStop& ezLinkStop)
+    {
+    	ezLinkStop.setId(values.get<BigSerial>("id",0));
+    	ezLinkStop.setXCoord(values.get<double>("x_coord",0));
+    	ezLinkStop.setYCoord(values.get<double>("y_coord",0));
+    	ezLinkStop.setNearestSchoolId(values.get<BigSerial>("nearest_school_id",0));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::StudentStop>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::StudentStop& studentStop)
+    {
+    	studentStop.setHomeStopEzLinkId(values.get<int>("home_stop_ez_link_id",0));
+    	studentStop.setSchoolStopEzLinkId(values.get<double>("school_stop_ez_link_id",0));
     }
 };
 

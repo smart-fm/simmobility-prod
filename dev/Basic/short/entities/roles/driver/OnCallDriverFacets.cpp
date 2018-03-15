@@ -84,13 +84,12 @@ void OnCallDriverMovement::frame_tick()
 			//Note: OnCallDriver::pickupPassenger marks the schedule item complete and moves to
 			//the next item
                 DriverUpdateParams &params = onCallDriver->getParams();
-                Person * person_waiting = onCallDriver->getAssignedSchedule().back().tripRequest.person;
                 switch (params.stopPointState)
                 {
                     case DriverUpdateParams::ARRIVED_AT_STOP_POINT:
                     case DriverUpdateParams::WAITING_AT_STOP_POINT:
                     {
-                        if (!pickedUpPasssenger && !pickedUpAnotherPasssenger)
+                     /*   if (!pickedUpPasssenger && !pickedUpAnotherPasssenger)
                         {
                             onCallDriver->pickupPassenger();
                             pickedUpPasssenger = true;
@@ -104,16 +103,28 @@ void OnCallDriverMovement::frame_tick()
                                 pickedUpAnotherPasssenger = true;
                                 passengerWaitingtobeDroppedOff = true;
                             }
+                        }*/
+                        if(leftPickupStopPoint ==true)
+                        {
+                            onCallDriver->pickupPassenger();
+                            leftPickupStopPoint =false;
                         }
                         break;
                     }
                     case DriverUpdateParams::LEAVING_STOP_POINT:
                     {
-                        if((pickedUpPasssenger || pickedUpAnotherPasssenger) && passengerWaitingtobeDroppedOff)
+                       /* if((pickedUpPasssenger || pickedUpAnotherPasssenger) && passengerWaitingtobeDroppedOff)
                         {
                             passengerWaitingtobeDroppedOff = false;
                             params.stopPointPool.clear();
                             performScheduleItem();
+                        }
+                        */
+                        if(leftPickupStopPoint == false)
+                        {
+                            params.stopPointPool.clear();
+                            performScheduleItem();
+                            leftPickupStopPoint = true;
                         }
                         break;
                     }
@@ -133,7 +144,7 @@ void OnCallDriverMovement::frame_tick()
                 switch (params.stopPointState) {
                     case DriverUpdateParams::ARRIVED_AT_STOP_POINT:
                     case DriverUpdateParams::WAITING_AT_STOP_POINT: {
-                        if (pickedUpPasssenger) {
+/*                        if (pickedUpPasssenger) {
 
                             onCallDriver->dropoffPassenger();
                             droppedOffPassenger = true;
@@ -143,11 +154,16 @@ void OnCallDriverMovement::frame_tick()
                             onCallDriver->dropoffPassenger();
                             droppedOffAnotherPassenger = true;
                             pickedUpAnotherPasssenger = false;
+                        }*/
+                        if(leftDropOffStopPoint == true)
+                        {
+                            onCallDriver->dropoffPassenger();
+                            leftDropOffStopPoint = false;
                         }
                         break;
                     }
                     case DriverUpdateParams::LEAVING_STOP_POINT: {
-                        if (droppedOffPassenger) {
+                   /*     if (droppedOffPassenger) {
                             droppedOffPassenger = false;
 
                             passengerWaitingtobeDroppedOff = false;
@@ -160,6 +176,13 @@ void OnCallDriverMovement::frame_tick()
                             passengerWaitingtobeDroppedOff = false;
                             onCallDriver->scheduleItemCompleted();
                             params.stopPointPool.clear();
+                            performScheduleItem();
+                        }*/
+                        if(leftDropOffStopPoint == false)
+                        {
+                            onCallDriver->scheduleItemCompleted();
+                            params.stopPointPool.clear();
+                            leftDropOffStopPoint = true;
                             performScheduleItem();
                         }
                         break;
@@ -178,13 +201,17 @@ void OnCallDriverMovement::frame_tick()
        DriverMovement::frame_tick();
 
    }
+    /*
  if(fwdDriverMovement.isDoneWithEntireRoute())
     {
-        DriverMovement::frame_tick();
+        //DriverMovement::frame_tick();
+        cout<<"Curr lane: " <<fwdDriverMovement.getCurrLane()<<endl;
+     //   DriverUpdateParams &params= onCallDriver->getParams();
+      // reRouteToDestination(params,fwdDriverMovement.getCurrLane());
     }
-    else
+    else*/
     {
-        if (fwdDriverMovement.getCurrWayPoint().type == WayPoint::ROAD_SEGMENT)
+        if (!(fwdDriverMovement.isDoneWithEntireRoute()) && fwdDriverMovement.getCurrWayPoint().type == WayPoint::ROAD_SEGMENT)
         {
            currNode = fwdDriverMovement.getCurrWayPoint().roadSegment->getParentLink()->getFromNode();
         }
@@ -363,7 +390,6 @@ const Node* OnCallDriverBehaviour::chooseRandomNode() const
 	 subTrip.destination = WayPoint(node);
 
 	 const Link *currLink = nullptr;
-	 const Lane *currLane;
 	 bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
 
 	 //If the driving path has already been set, we must find path to the node from
@@ -375,6 +401,7 @@ const Node* OnCallDriverBehaviour::chooseRandomNode() const
 
 	 //Get route to the node
 	 auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+     //Get shortest path if path is not found in the path-set
      if(route.empty())
      {
          if(currLink)
@@ -510,6 +537,7 @@ const Node* OnCallDriverBehaviour::chooseRandomNode() const
 
 	 //Get route to the node
 	 auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+     //Get shortest path if path is not found in the path-set
      if(route.empty())
      {
          if(currLink)
@@ -634,17 +662,17 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 
 	//Get route to the node
 	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
-     if(route.empty())
-     {
-         if(currLink)
-         {
-             route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *dropOffNode);
-         }
-         else
-         {
-             route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *dropOffNode);
-         }
-     }
+    if(route.empty())
+    {
+        if(currLink)
+        {
+            route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *dropOffNode);
+        }
+        else
+        {
+            route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *dropOffNode);
+        }
+    }
 #ifndef NDEBUG
 	if(route.empty())
 	{

@@ -2005,7 +2005,7 @@ int MITSIM_LC_Model::isLaneConnectedToNextLink(DriverUpdateParams &params, set<c
 	const Link *nextLink = fwdDriverMovement->getNextLink();
 	
 	//Check if next link exists (This may be last link in the path)
-	if(nextLink)
+	if(nextLink && currLink!=nextLink)
 	{
 		//The turning group connecting the current and next links.
 		const TurningGroup *turningGroup = currLink->getToNode()->getTurningGroup(currLink->getLinkId(), nextLink->getLinkId());

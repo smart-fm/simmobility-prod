@@ -372,7 +372,7 @@ struct type_conversion<sim_mob::long_term::StudentStop>
     from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::StudentStop& studentStop)
     {
     	studentStop.setHomeStopEzLinkId(values.get<int>("home_stop_ez_link_id",0));
-    	studentStop.setSchoolStopEzLinkId(values.get<double>("school_stop_ez_link_id",0));
+    	studentStop.setSchoolStopEzLinkId(values.get<int>("school_stop_ez_link_id",0));
     }
 };
 

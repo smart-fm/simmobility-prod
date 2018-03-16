@@ -560,16 +560,35 @@ namespace sim_mob
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRE_SCHOOL_ASSIGNMENT,fmtr.str());
 	    }
 
-	    inline void writeSchoolAssignmentsToFile(BigSerial individualId,BigSerial studentId, BigSerial priSchoolId)
+	    inline void writePrimarySchoolAssignmentsToFile(BigSerial individualId,BigSerial studentId, BigSerial priSchoolId)
 	    {
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_school_assignment)
 				return;
 
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % studentId % priSchoolId ;
-	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCHOOL_ASSIGNMENT,fmtr.str());
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRIMARY_SCHOOL_ASSIGNMENT,fmtr.str());
 	    }
 
+	    inline void writeUniversityAssignmentsToFile(BigSerial individualId,BigSerial studentId, BigSerial universityId)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	    	if(!config.ltParams.outputFiles.log_school_assignment)
+	    		return;
+
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % studentId % universityId ;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_UNIVERSITY_ASSIGNMENT,fmtr.str());
+	    }
+
+	    inline void writePolyTechAssignmentsToFile(BigSerial individualId,BigSerial studentId, BigSerial polyTechId)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	    	if(!config.ltParams.outputFiles.log_school_assignment)
+	    		return;
+
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % studentId % polyTechId ;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_POLYTECH_ASSIGNMENT,fmtr.str());
+	    }
 
 	    inline void writeRandomNumsToFile(int counter,BigSerial hhId, float montecarlo)
 	    {

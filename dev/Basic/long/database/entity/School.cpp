@@ -10,8 +10,8 @@
 using namespace sim_mob::long_term;
 
 School::School(BigSerial id, BigSerial fmBuildingId ,double floorArea, int schoolSlot, double centroidX, double centroidY, bool giftedProgram, bool sapProgram,
-			   std::string planningArea, BigSerial tazName, std::string schoolType, bool artProgram, bool musicProgram, bool langProgram, bool expressTest, double studentDensity, int numStudents, int studentLimit) : id(id),fmBuildingId(fmBuildingId), floorArea(floorArea), schoolSlot(schoolSlot),centroidX(centroidX),centroidY(centroidY),
-			   giftedProgram(giftedProgram), sapProgram(sapProgram), planningArea(planningArea),tazName(tazName),schoolType(schoolType),artProgram(artProgram),musicProgram(musicProgram),langProgram(langProgram),expressTest(expressTest), studentDensity(studentDensity), numStudents(numStudents), studentLimit(studentLimit){}
+			   std::string planningArea, BigSerial tazName, std::string schoolType, bool artProgram, bool musicProgram, bool langProgram, bool expressTest, double studentDensity, int numStudents) : id(id),fmBuildingId(fmBuildingId), floorArea(floorArea), schoolSlot(schoolSlot),centroidX(centroidX),centroidY(centroidY),
+			   giftedProgram(giftedProgram), sapProgram(sapProgram), planningArea(planningArea),tazName(tazName),schoolType(schoolType),artProgram(artProgram),musicProgram(musicProgram),langProgram(langProgram),expressTest(expressTest), studentDensity(studentDensity), numStudents(numStudents){}
 
 School::~School(){}
 
@@ -241,16 +241,6 @@ bool School::isExpressTest() const
 void School::setExpressTest(bool expressTest)
 {
 	this->expressTest = expressTest;
-}
-
-int School::getStudentLimit() const
-{
-	return studentLimit;
-}
-
-void School::setStudentLimit(int studentLimit)
-{
-	this->studentLimit = studentLimit;
 }
 
 double School::getStudentDensity() const

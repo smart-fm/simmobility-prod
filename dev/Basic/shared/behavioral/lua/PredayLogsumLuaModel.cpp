@@ -162,7 +162,7 @@ void sim_mob::PredayLogsumLuaModel::computeTourModeLogsum(PersonParams& personPa
 
         if (actConfig.type == EDUCATION_ACTIVITY_TYPE && personParams.isStudent())
         {
-        	if (!actConfig.tourModeDestModel.empty())
+        	if (!actConfig.tourModeModel.empty())
         	{
         		std::string luaFunc = "compute_logsum_" + actConfig.tourModeModel;
         		LuaRef computeLogsumTMW = getGlobal(state.get(), luaFunc.c_str());

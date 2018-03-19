@@ -321,6 +321,10 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
 						node, "launchBTO"), "value"), false);
 
+	cfg.ltParams.launchPrivatePresale =
+			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+					node, "launchPrivatePresale"), "value"), false);
+
 	processDeveloperModelNode(GetSingleElementByName(node, "developerModel"));
 	processHousingModelNode(GetSingleElementByName(node, "housingModel"));
 	processHouseHoldLogsumsNode(GetSingleElementByName(node, "outputHouseholdLogsums"));

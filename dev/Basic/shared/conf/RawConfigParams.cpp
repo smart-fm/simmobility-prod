@@ -18,7 +18,7 @@ sim_mob::SimulationParams::SimulationParams() :
 
 
 sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), tickStep(0), maxIterations(0),year(0),resume(false),currentOutputSchema(std::string()),mainSchemaVersion(std::string()),configSchemaVersion(std::string()),calibrationSchemaVersion(std::string()),geometrySchemaVersion(std::string()),opSchemaloadingInterval(0)
-										   ,initialLoading(false), launchBTO(false){}
+										   ,initialLoading(false), launchBTO(false), launchPrivatePresale(false){}
 sim_mob::LongTermParams::DeveloperModel::DeveloperModel(): enabled(false), timeInterval(0), initialPostcode(0),initialUnitId(0),initialBuildingId(0),
 															initialProjectId(0),minLotSize(0), constructionStartDay(0), saleFromDay(0),occupancyFromDay(0), constructionCompletedDay(0) {}
 sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), timeOffMarket(0), wtpOffsetEnabled(false),vacantUnitActivationProbability(0),

@@ -53,6 +53,7 @@ struct LongTermParams
 	unsigned int opSchemaloadingInterval;
 	bool initialLoading;
 	bool launchBTO;
+	bool launchPrivatePresale;
 
 	struct DeveloperModel{
 		DeveloperModel();

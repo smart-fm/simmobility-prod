@@ -112,7 +112,8 @@
 	<currentOutputSchema value = "baseline_2012_20170811023744"/> <!--if resume is true give the current op schema name-->
         <opSchemaloadingInterval value = "367"/>
         <initialLoading value = "true" />
-        <launchBTO value = "true"/>
+        <launchBTO value = "false"/>
+	<launchPrivatePresale value = "false" />
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>
@@ -125,11 +126,11 @@
 		<occupancyFromDay value = "365"/>
 		<constructionCompletedDay value = "365"/>
     	</developerModel>
-	<outputHouseholdLogsums enabled="false">
+	<outputHouseholdLogsums enabled="true">
 	    <vehicleOwnershipLogsum value ="false"/>
 	    <fixedHomeVariableWork value ="false"/>
-	    <fixedWorkVariableHome value ="false"/>
-            <hitsRun value = "false" />
+	    <fixedWorkVariableHome value ="true"/>
+            <hitsRun value = "true" />
 	</outputHouseholdLogsums>
     	<housingModel enabled="true"> 	    
             <timeOnMarket value="72"/>
@@ -212,7 +213,7 @@
         </outputFiles>
     </longTermParams>
 
-    <model_scripts path="scripts/lua/mid/behavior-models-gen-preday-9modes-4-activ/" format="lua">
+    <model_scripts path="scripts/lua/mid/behavior_SG_07022018_12_4/" format="lua">
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
@@ -220,7 +221,8 @@
 	<script name="tmw" file="tmw.lua"/> <!--Tour Mode/Destination Work -->
 	<script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
 	<script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
-	<script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->                    
+	<script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->  
+        <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->                      
     </model_scripts>
 </config>
 

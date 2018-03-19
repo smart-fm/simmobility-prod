@@ -78,7 +78,7 @@
 #include <DatabaseHelper.hpp>
 #include "model/VehicleOwnershipModel.hpp"
 #include "model/JobAssignmentModel.hpp"
-
+#include "model/SchoolAssignmentSubModel.hpp"
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -1493,6 +1493,13 @@ void HM_Model::startImpl()
 			loadPreSchools(conn);
 			loadTravelTime(conn_calibration);
 			loadSecondarySchools(conn);
+			loadUniversities(conn);
+			loadPolyTechnics(conn);
+			loadEzLinkStops(conn_calibration);
+			loadStudentStops(conn_calibration);
+			assignNearestUniToEzLinkStops();
+			assignNearestPolytechToEzLinkStops();
+
 		}
 
 		if(config.ltParams.jobAssignmentModel.enabled)
@@ -1779,9 +1786,12 @@ void HM_Model::startImpl()
 
 		//These households with tenure_status 3 are considered to be occupied by foreign workers
 		const int FROZEN_HH = 3;
-		//note::if you want to run job assignment model or school assignment model with foreign workers population, please comment this line.
-		if( household->getTenureStatus() == FROZEN_HH )
-			continue;
+		//school assignment model and foreign job assignment needs foriegn households as well.
+		if(!config.ltParams.schoolAssignmentModel.enabled || !config.ltParams.jobAssignmentModel.foreignWorkers)
+		{
+			if( household->getTenureStatus() == FROZEN_HH )
+				continue;
+		}
 
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
 
@@ -2304,7 +2314,7 @@ void HM_Model::loadPrimarySchools(DB_Connection &conn)
 	std::string tableName = "school";
 
 	//SQL statement
-	soci::rowset<School> primarySchoolObjs = (sql.prepare << "select * from" + conn.getSchema()  + tableName + " where school_type = 'primary_school'");
+	soci::rowset<School> primarySchoolObjs = (sql.prepare << "select * from " + conn.getSchema()  + tableName + " where school_type = 'primary_school'");
 
 	for (soci::rowset<School>::const_iterator itPrimarySchool = primarySchoolObjs.begin(); itPrimarySchool != primarySchoolObjs.end(); ++itPrimarySchool)
 	{
@@ -2355,6 +2365,88 @@ void HM_Model::loadSecondarySchools(DB_Connection &conn)
 	}
 
 	PrintOutV("Number of Secondary School rows: " << secondarySchools.size() << std::endl );
+
+}
+
+void  HM_Model::loadUniversities(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "school";
+
+	//SQL statement
+	soci::rowset<School> uniObjs = (sql.prepare << "select * from "  + conn.getSchema() + tableName + " where school_type = 'university'");
+
+	for (soci::rowset<School>::const_iterator itUni = uniObjs.begin(); itUni != uniObjs.end(); ++itUni)
+	{
+		School* university = new School(*itUni);
+		universities.push_back(university);
+		universityById.insert(std::pair<BigSerial, School*>( university->getId(), university ));
+	}
+
+	PrintOutV("Number of university rows: " << universities.size() << std::endl );
+
+}
+
+void HM_Model::loadPolyTechnics(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "school";
+
+	//SQL statement
+	soci::rowset<School> polyTechObjs = (sql.prepare << "select * from "  + conn.getSchema() + tableName + " where school_type = 'polytechnic'");
+
+	for (soci::rowset<School>::const_iterator itPoly = polyTechObjs.begin(); itPoly != polyTechObjs.end(); ++itPoly)
+	{
+		School* polyTechnic = new School(*itPoly);
+		polyTechnics.push_back(polyTechnic);
+		polyTechnicById.insert(std::pair<BigSerial, School*>( polyTechnic->getId(), polyTechnic ));
+	}
+
+	PrintOutV("Number of polyTechnic rows: " << polyTechnics.size() << std::endl );
+}
+
+void HM_Model::loadEzLinkStops(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "ez_link_stop";
+
+	//SQL statement
+	soci::rowset<EzLinkStop> ezLinkStopObjs = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
+
+	for (soci::rowset<EzLinkStop>::const_iterator itEzLink = ezLinkStopObjs.begin(); itEzLink != ezLinkStopObjs.end(); ++itEzLink)
+	{
+		EzLinkStop* ezLinkStop = new EzLinkStop(*itEzLink);
+		ezLinkStops.push_back(ezLinkStop);
+		//ezLinkStopById.insert(std::pair<BigSerial, EzLinkStop*>( ezLinkStop->getId(), ezLinkStop ));
+	}
+
+	PrintOutV("Number of ezLink Stop rows: " << ezLinkStops.size() << std::endl );
+
+}
+
+void HM_Model::loadStudentStops(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "student_stop";
+
+	//SQL statement
+	soci::rowset<StudentStop> studentStopObjs = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
+
+	for (soci::rowset<StudentStop>::const_iterator itStudentStop = studentStopObjs.begin(); itStudentStop != studentStopObjs.end(); ++itStudentStop)
+	{
+		StudentStop* stStop = new StudentStop(*itStudentStop);
+		studentStops.push_back(stStop);
+	}
+
+	PrintOutV("Number of Student Stop rows: " << studentStops.size() << std::endl );
 
 }
 
@@ -3517,6 +3609,38 @@ School* HM_Model::getSecondarySchoolById( BigSerial id) const
 	return nullptr;
 }
 
+HM_Model::SchoolList HM_Model::getUniversityList() const
+{
+	return this->universities;
+}
+
+School* HM_Model::getUniversityById( BigSerial id) const
+{
+	SchoolMap::const_iterator itr = universityById.find(id);
+
+	if (itr != universityById.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
+
+HM_Model::SchoolList HM_Model::getPolytechnicList() const
+{
+	return this->polyTechnics;
+}
+
+School* HM_Model::getPolytechnicById( BigSerial id) const
+{
+	SchoolMap::const_iterator itr = polyTechnicById.find(id);
+
+	if (itr != polyTechnicById.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
+
 HouseholdUnit* HM_Model::getHouseholdUnitByHHId(BigSerial hhId) const
 {
 	HouseholdUnitMap::const_iterator itr = householdUnitByHHId.find(hhId);
@@ -3668,12 +3792,25 @@ void HM_Model::addStudentToPrimarySchool(BigSerial individualId, int schoolId, B
 	{
 		boost::mutex::scoped_lock lock( mtx );
 		School *priSchool = getPrimarySchoolById(schoolId);
+		Individual *ind = getIndividualById(individualId);
 		priSchool->addStudent(individualId);
+		writePrimarySchoolAssignmentsToFile(individualId,ind->getStudentId(),schoolId);
 		HHCoordinates *hhCoords = getHHCoordinateByHHId(householdId);
 		double distanceFromHomeToSchool = (distanceCalculateEuclidean(priSchool->getCentroidX(),priSchool->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
 		School::DistanceIndividual distanceInd{individualId,distanceFromHomeToSchool};
 		priSchool->addIndividualDistance(distanceInd);
 	}
+}
+
+void HM_Model::addStudentToSecondarychool(BigSerial individualId, int schoolId, BigSerial householdId)
+{
+	{
+		boost::mutex::scoped_lock lock( mtx );
+		School *secSchool = getSecondarySchoolById(schoolId);
+		secSchool->addStudent(individualId);Individual *ind = getIndividualById(individualId);
+		writeSecondarySchoolAssignmentsToFile(individualId,ind->getStudentId(),schoolId);
+	}
+
 }
 
 void HM_Model::loadIndLogsumJobAssignments(BigSerial individuaId)
@@ -3829,6 +3966,148 @@ int HM_Model::getJobAssignIndividualCount()
 void HM_Model::incrementJobAssignIndividualCount()
 {
 	++jobAssignIndCount;
+}
+
+HM_Model::StudentStopList HM_Model::getStudentStops()
+{
+	return this->studentStops;
+}
+
+HM_Model::EzLinkStopList HM_Model::getEzLinkStops()
+{
+	return this->ezLinkStops;
+}
+
+EzLinkStop* HM_Model::getEzLinkStopsWithNearestUniById(BigSerial id) const
+{
+	EzLinkStopMap::const_iterator itr = ezLinkStopsWithNearestUniById.find(id);
+
+	if (itr != ezLinkStopsWithNearestUniById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+void HM_Model::assignNearestUniToEzLinkStops()
+{
+	//HM_Model::EzLinkStopMap ezLinkStopsWithNearestSchoolById;
+	BigSerial nearestSchoolId = 0;
+
+	for(EzLinkStop *ezLinkStop : ezLinkStops)
+	{
+		double minDistance = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), universities[0]->getCentroidX(), universities[0]->getCentroidY());
+		for(School *university : universities)
+		{
+			double distanceFromStopToUnit = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), university->getCentroidX(), university->getCentroidY());
+			if(distanceFromStopToUnit < minDistance)
+			{
+				minDistance = distanceFromStopToUnit;
+				nearestSchoolId = university->getId();
+			}
+		}
+		if(minDistance < 1000)
+		{
+			ezLinkStop->setNearestSchoolId(nearestSchoolId);
+			ezLinkStopsWithNearestUni.push_back(ezLinkStop);
+			ezLinkStopsWithNearestUniById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
+		}
+		else
+		{
+			ezLinkStop->setNearestSchoolId(0);
+		}
+	}
+
+	HM_Model::StudentStopList studentStops = getStudentStops();
+
+	for(StudentStop *studentStop : studentStops)
+	{
+		HM_Model::EzLinkStopMap::const_iterator itr = ezLinkStopsWithNearestUniById.find(studentStop->getSchoolStopEzLinkId());
+
+		if (itr != ezLinkStopsWithNearestUniById.end())
+		{
+			studentStopsWithNearestUni.push_back(studentStop);
+		}
+
+	}
+}
+
+void HM_Model::assignNearestPolytechToEzLinkStops()
+{
+
+	HM_Model::EzLinkStopMap ezLinkStopsWithNearestSchoolById;
+	BigSerial nearestSchoolId = 0;
+
+	for(EzLinkStop *ezLinkStop : ezLinkStops)
+	{
+		double minDistance = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), polyTechnics[0]->getCentroidX(), polyTechnics[0]->getCentroidY());
+		for(School *polyTech : polyTechnics)
+		{
+			double distanceFromStopToUnit = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), polyTech->getCentroidX(), polyTech->getCentroidY());
+			if(distanceFromStopToUnit < minDistance)
+			{
+				minDistance = distanceFromStopToUnit;
+				nearestSchoolId = polyTech->getId();
+			}
+		}
+		if(minDistance < 1000)
+		{
+			ezLinkStop->setNearestSchoolId(nearestSchoolId);
+			ezLinkStopsWithNearestPolyTech.push_back(ezLinkStop);
+			ezLinkStopsWithNearestPolytechById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
+		}
+		else
+		{
+			ezLinkStop->setNearestSchoolId(0);
+		}
+	}
+
+	HM_Model::StudentStopList studentStops = getStudentStops();
+
+	for(StudentStop *studentStop : studentStops)
+	{
+		HM_Model::EzLinkStopMap::const_iterator itr = ezLinkStopsWithNearestPolytechById.find(studentStop->getSchoolStopEzLinkId());
+
+		if (itr != ezLinkStopsWithNearestPolytechById.end())
+		{
+			studentStopsWithNearestPolyTech.push_back(studentStop);
+		}
+
+	}
+}
+
+HM_Model::EzLinkStopList HM_Model::getEzLinkStopsWithNearsetUni()
+{
+	return ezLinkStopsWithNearestUni;
+}
+
+HM_Model::StudentStopList HM_Model::getStudentStopsWithNearestUni()
+{
+	return studentStopsWithNearestUni;
+}
+
+HM_Model::EzLinkStopList HM_Model::getEzLinkStopsWithNearsetPolytech()
+{
+	return this->ezLinkStopsWithNearestPolyTech;
+}
+
+HM_Model::StudentStopList HM_Model::getStudentStopsWithNearestPolytech()
+{
+	return this->studentStopsWithNearestPolyTech;
+
+}
+
+EzLinkStop* HM_Model::getEzLinkStopsWithNearestPolytechById(BigSerial id) const
+{
+	EzLinkStopMap::const_iterator itr = ezLinkStopsWithNearestPolytechById.find(id);
+
+	if (itr != ezLinkStopsWithNearestPolytechById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
 }
 
 void HM_Model::stopImpl()

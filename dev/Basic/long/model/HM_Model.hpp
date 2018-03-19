@@ -59,6 +59,8 @@
 #include "database/entity/JobAssignmentCoeffs.hpp"
 #include "database/entity/IndLogsumJobAssignment.hpp"
 #include "database/entity/JobsWithIndustryTypeAndTazId.hpp"
+#include "database/entity/EzLinkStop.hpp"
+#include "database/entity/StudentStop.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -229,6 +231,12 @@ namespace sim_mob
 
             typedef pair<BigSerial, int> TazAndIndustryTypeKey;
             typedef std::multimap<TazAndIndustryTypeKey, JobsWithIndustryTypeAndTazId*> JobsWithTazAndIndustryTypeMap;
+
+            typedef std::vector<EzLinkStop*> EzLinkStopList;
+            typedef boost::unordered_map<BigSerial, EzLinkStop*> EzLinkStopMap;
+
+            typedef std::vector<StudentStop*> StudentStopList;
+            //typedef boost::unordered_map<BigSerial, EzLinkStop*> EzLinkStopMap;
 
             /**
              * Taz statistics
@@ -461,6 +469,22 @@ namespace sim_mob
             School* getPreSchoolById( BigSerial id) const;
             SchoolList getSecondarySchoolList() const;
             School* getSecondarySchoolById( BigSerial id) const;
+            SchoolList getUniversityList() const;
+            School* getUniversityById( BigSerial id) const;
+            SchoolList getPolytechnicList() const;
+            School* getPolytechnicById( BigSerial id) const;
+            StudentStopList getStudentStops();
+            EzLinkStopList getEzLinkStops();
+            EzLinkStop* getEzLinkStopsWithNearestUniById(BigSerial id) const;
+            //find the nearest universityfor each ezlink stop.
+            void assignNearestUniToEzLinkStops();
+            void assignNearestPolytechToEzLinkStops();
+            EzLinkStopList getEzLinkStopsWithNearsetUni();
+            StudentStopList getStudentStopsWithNearestUni();
+            EzLinkStopList getEzLinkStopsWithNearsetPolytech();
+            StudentStopList getStudentStopsWithNearestPolytech();
+            EzLinkStop* getEzLinkStopsWithNearestPolytechById(BigSerial id) const;
+
 
             OwnerTenantMovingRate* getOwnerTenantMovingRates(int index);
             TenureTransitionRate* getTenureTransitionRates(int index);
@@ -515,6 +539,10 @@ namespace sim_mob
             void loadPrimarySchools(DB_Connection &conn);
             void loadPreSchools(DB_Connection &conn);
             void loadSecondarySchools(DB_Connection &conn);
+            void loadUniversities(DB_Connection &conn);
+            void loadPolyTechnics(DB_Connection &conn);
+            void loadEzLinkStops(DB_Connection &conn);
+            void loadStudentStops(DB_Connection &conn);
             void loadTravelTime(DB_Connection &conn);
             const TravelTime* getTravelTimeByOriginDestTaz(BigSerial originTaz, BigSerial destTaz);
             void incrementPrimarySchoolAssignIndividualCount();
@@ -522,6 +550,7 @@ namespace sim_mob
             void incrementPreSchoolAssignIndividualCount();
             int getPreSchoolAssignIndividualCount();
             void addStudentToPrimarySchool(BigSerial individualId, int schoolId, BigSerial householdId);
+            void addStudentToSecondarychool(BigSerial individualId, int schoolId, BigSerial householdId);
 
 
         protected:
@@ -707,10 +736,22 @@ namespace sim_mob
             SchoolMap preSchoolById;
             SchoolList secondarySchools;
             SchoolMap secondarySchoolById;
+            SchoolList universities;
+            SchoolList polyTechnics;
+            SchoolMap universityById;
+            SchoolMap polyTechnicById;
             bool resume ;
             bool initialLoading;
             IndvidualEmpSecList indEmpSecList;
             IndvidualEmpSecMap indEmpSecbyIndId;
+            EzLinkStopList ezLinkStops;
+            EzLinkStopList ezLinkStopsWithNearestUni;
+            EzLinkStopMap ezLinkStopsWithNearestUniById;
+            StudentStopList studentStops;
+            StudentStopList studentStopsWithNearestUni;
+            EzLinkStopList ezLinkStopsWithNearestPolyTech;
+            StudentStopList studentStopsWithNearestPolyTech;
+            EzLinkStopMap ezLinkStopsWithNearestPolytechById;
 
             LtVersionList ltVersionList;
             LtVersionMap ltVersionById;

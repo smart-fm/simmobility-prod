@@ -30,6 +30,8 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 	HHCoordinates *hhCoords = model->getHHCoordinateByHHId(household->getId());
 	for(schoolsItr = primarySchools.begin(); schoolsItr != primarySchools.end(); ++schoolsItr )
 	{
+		if((*schoolsItr)->getNumStudents() < (*schoolsItr)->getSchoolSlot())
+		{
 		double valueSchool = 0;
 		HouseholdPlanningArea *hhPlanningArea = model->getHouseholdPlanningAreaByHHId(household->getId());
 		const std::string hhDGP = hhPlanningArea->getPlanningArea();
@@ -80,6 +82,7 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 		totalExp = totalExp + expSchool;
 		schoolExpVec.push_back(expSchool);
 		expSchoolMap.insert(std::pair<BigSerial, double>( (*schoolsItr)->getId(), expSchool));
+	}
 	}
 
 	std::map<BigSerial,double> probSchoolMap;
@@ -176,7 +179,7 @@ void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
 			Individual *individual = model->getIndividualById(individualId);
 			BigSerial studentId = individual->getStudentId();
 			BigSerial schoolId = priSchool->getId();
-			writeSchoolAssignmentsToFile(individualId,studentId,schoolId);
+			writePrimarySchoolAssignmentsToFile(individualId,studentId,schoolId);
 		}
 		students.clear();
 	}
@@ -185,7 +188,6 @@ void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
 void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individualId)
 {
 	HM_Model::SchoolList primarySchools = model->getPrimarySchoolList();
-	std::size_t const studentLimitPerSchool = 3000;
 	Individual *individual = model->getIndividualById(individualId);
 	if(individual != nullptr)
 	{
@@ -196,6 +198,7 @@ void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individ
 			if(individual->getIsPrimarySchoolWithin5Km(primaryScool->getId()))
 			{
 				int numSelectedStudents = primaryScool->getNumSelectedStudents();
+				std::size_t const studentLimitPerSchool = primaryScool->getSchoolSlot();
 				if(numSelectedStudents < studentLimitPerSchool)
 				{
 					totalStudentLimitDif = totalStudentLimitDif + (studentLimitPerSchool - numSelectedStudents);
@@ -212,7 +215,7 @@ void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individ
 			if(individual->getIsPrimarySchoolWithin5Km(priSchool->getId()))
 			{
 				int numSelectedStudents = priSchool->getNumSelectedStudents();
-				if(priSchool->getNumOfSelectedStudents() < studentLimitPerSchool)
+				if(priSchool->getNumOfSelectedStudents() < priSchool->getSchoolSlot())
 				{
 					double probSchool = numSelectedStudents / totalStudentLimitDif;
 					priSchool->setReAllocationProb(probSchool);
@@ -280,59 +283,60 @@ void SchoolAssignmentSubModel::assignSecondarySchool(const Household *household,
 	HHCoordinates *hhCoords = model->getHHCoordinateByHHId(household->getId());
 	for(schoolsItr = secondarySchools.begin(); schoolsItr != secondarySchools.end(); ++schoolsItr )
 	{
-		double valueSchool = 0;
-		HouseholdPlanningArea *hhPlanningArea = model->getHouseholdPlanningAreaByHHId(household->getId());
-		const std::string hhDGP = hhPlanningArea->getPlanningArea();
-		const std::string schoolPlanningArea = (*schoolsItr)->getPlanningArea();
-		if (hhDGP.compare(schoolPlanningArea) == 0)
+		//assign students only to schools with free slots.
+		if((*schoolsItr)->getSchoolSlot() > (*schoolsItr)->getNumStudents())
 		{
-			valueSchool = valueSchool + model->getSchoolAssignmentCoefficientsById(SEC_DGP_SAME)->getCoefficientEstimate();
-		}
-		if( (*schoolsItr)->getTazName() == hhPlanningArea->getTazId())
-		{
-			valueSchool = valueSchool + model->getSchoolAssignmentCoefficientsById(SEC_MTZ_SAME)->getCoefficientEstimate();
-		}
+			double valueSchool = 0;
+			HouseholdPlanningArea *hhPlanningArea = model->getHouseholdPlanningAreaByHHId(household->getId());
+			const std::string hhDGP = hhPlanningArea->getPlanningArea();
+			const std::string schoolPlanningArea = (*schoolsItr)->getPlanningArea();
+			if (hhDGP.compare(schoolPlanningArea) == 0)
+			{
+				valueSchool = valueSchool + model->getSchoolAssignmentCoefficientsById(SEC_DGP_SAME)->getCoefficientEstimate();
+			}
+			if( (*schoolsItr)->getTazName() == hhPlanningArea->getTazId())
+			{
+				valueSchool = valueSchool + model->getSchoolAssignmentCoefficientsById(SEC_MTZ_SAME)->getCoefficientEstimate();
+			}
 
-		double distanceFromHomeToSchool = (distanceCalculateEuclidean((*schoolsItr)->getCentroidX(),(*schoolsItr)->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
-//		if(distanceFromHomeToSchool <=5)
-//		{
-//			Individual *ind = model->getIndividualById(individualId);
-//			ind->addprimarySchoolIdWithin5km((*schoolsItr)->getId(),(*schoolsItr));
-//		}
-		valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(SEC_DISTANCE)->getCoefficientEstimate();
-		valueSchool = valueSchool +  (*schoolsItr)->isArtProgram()* model->getSchoolAssignmentCoefficientsById(SEC_ART_PRO)->getCoefficientEstimate();
-		valueSchool = valueSchool +  (*schoolsItr)->isMusicProgram()* model->getSchoolAssignmentCoefficientsById(SEC_MUSIC_PRO)->getCoefficientEstimate();
-		valueSchool = valueSchool +  (*schoolsItr)->isLangProgram()* model->getSchoolAssignmentCoefficientsById(SEC_LANG_PRO)->getCoefficientEstimate();
+			double distanceFromHomeToSchool = (distanceCalculateEuclidean((*schoolsItr)->getCentroidX(),(*schoolsItr)->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
+			valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(SEC_DISTANCE)->getCoefficientEstimate();
+			valueSchool = valueSchool +  (*schoolsItr)->isArtProgram()* model->getSchoolAssignmentCoefficientsById(SEC_ART_PRO)->getCoefficientEstimate();
+			valueSchool = valueSchool +  (*schoolsItr)->isMusicProgram()* model->getSchoolAssignmentCoefficientsById(SEC_MUSIC_PRO)->getCoefficientEstimate();
+			valueSchool = valueSchool +  (*schoolsItr)->isLangProgram()* model->getSchoolAssignmentCoefficientsById(SEC_LANG_PRO)->getCoefficientEstimate();
 
-		const TravelTime *travelTime = model->getTravelTimeByOriginDestTaz(hhPlanningArea->getTazName(),(*schoolsItr)->getTazName());
-		if(travelTime != nullptr)
-		{
-			double publicTravelTime = travelTime->getPublicTravelTime();
-			valueSchool = valueSchool + publicTravelTime * model->getSchoolAssignmentCoefficientsById(SEC_PT_TIME)->getCoefficientEstimate();
-			valueSchool = valueSchool + travelTime->getNumTransfers() * model->getSchoolAssignmentCoefficientsById(SEC_PT_TRANSFER)->getCoefficientEstimate();
-		}
+			valueSchool = valueSchool +  (*schoolsItr)->getStudentDensity()* model->getSchoolAssignmentCoefficientsById(SEC_STU_DEN)->getCoefficientEstimate();
 
-		double income = household->getIncome();
-		const int lowIncomeLimit = 3500;
-		const int highIncomeLimit = 10000;
-		if(income <= lowIncomeLimit) //low income
-		{
-			valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(SEC_INC_LOW_DIST)->getCoefficientEstimate();
-		}
-		else if(income >= highIncomeLimit)//high income
-		{
-			valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(SEC_INC_HIGH_DIST)->getCoefficientEstimate();
-		}
+			const TravelTime *travelTime = model->getTravelTimeByOriginDestTaz(hhPlanningArea->getTazName(),(*schoolsItr)->getTazName());
+			if(travelTime != nullptr)
+			{
+				double publicTravelTime = travelTime->getPublicTravelTime();
+				valueSchool = valueSchool + publicTravelTime * model->getSchoolAssignmentCoefficientsById(SEC_PT_TIME)->getCoefficientEstimate();
+				valueSchool = valueSchool + travelTime->getNumTransfers() * model->getSchoolAssignmentCoefficientsById(SEC_PT_TRANSFER)->getCoefficientEstimate();
+			}
 
-		if(!(*schoolsItr)->isExpressTest())
-		{
-			valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(SEC_DIST_EXPRESS_NO)->getCoefficientEstimate();
-		}
+			double income = household->getIncome();
+			const int lowIncomeLimit = 3500;
+			const int highIncomeLimit = 10000;
+			if(income <= lowIncomeLimit) //low income
+			{
+				valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(SEC_INC_LOW_DIST)->getCoefficientEstimate();
+			}
+			else if(income >= highIncomeLimit)//high income
+			{
+				valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(SEC_INC_HIGH_DIST)->getCoefficientEstimate();
+			}
 
-		double expSchool = exp(valueSchool);
-		totalExp = totalExp + expSchool;
-		schoolExpVec.push_back(expSchool);
-		expSchoolMap.insert(std::pair<BigSerial, double>( (*schoolsItr)->getId(), expSchool));
+			if(!(*schoolsItr)->isExpressTest())
+			{
+				valueSchool = valueSchool + distanceFromHomeToSchool * model->getSchoolAssignmentCoefficientsById(SEC_DIST_EXPRESS_NO)->getCoefficientEstimate();
+			}
+
+			double expSchool = exp(valueSchool);
+			totalExp = totalExp + expSchool;
+			schoolExpVec.push_back(expSchool);
+			expSchoolMap.insert(std::pair<BigSerial, double>( (*schoolsItr)->getId(), expSchool));
+		}
 	}
 
 	std::map<BigSerial,double> probSchoolMap;
@@ -366,11 +370,220 @@ void SchoolAssignmentSubModel::assignSecondarySchool(const Household *household,
 				pTemp = pTemp + (*probSchoolItr).second;
 			}
 		}
-		//model->addStudentToPrimarySchool(individualId,selectedSchoolId,household->getId());
+		model->addStudentToSecondarychool(individualId,selectedSchoolId,household->getId());
 	}
 	schoolExpVec.clear();
 	expSchoolMap.clear();
 
-
 }
 
+void SchoolAssignmentSubModel::getSortedDistanceStopList(std::vector<SchoolAssignmentSubModel::DistanceEzLinkStop>& ezLinkStopsWithDistanceFromHomeToSchool)
+{
+	std::sort(ezLinkStopsWithDistanceFromHomeToSchool.begin(), ezLinkStopsWithDistanceFromHomeToSchool.end(), SchoolAssignmentSubModel::OrderByDistance());
+}
+
+
+std::map<BigSerial, int> SchoolAssignmentSubModel::getStudentStopFequencyMap(HM_Model::StudentStopList &list)
+{
+   std::map<BigSerial, int> studentStopMap;
+   //mymap.insert ( std::pair<char,int>('a',100) );
+   for( StudentStop* studentStop : list )
+   {
+	   ++studentStopMap[studentStop->getSchoolStopEzLinkId()];
+   }
+   //count.size() has the number of unique words
+   //count["word"] has the frequency
+   return studentStopMap;
+}
+
+void SchoolAssignmentSubModel::assignUniversity(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day)
+{
+	//refer page 6 of https://docs.google.com/document/d/1qC4TxjOG1ZkBLTxhDRvaucfwA9b08cRGAlV3UEb1hsY/edit for explanation of each step.
+	HM_Model::EzLinkStopList ezLinkStops = model->getEzLinkStops();
+	HHCoordinates *hhCoords = model->getHHCoordinateByHHId(household->getId());
+	HM_Model::EzLinkStopMap nearbyEzLinkStopsById;
+	std::vector<SchoolAssignmentSubModel::DistanceEzLinkStop> distanceFromHomeToEzLinkStop;
+	//for each student : Create a list of EZlink stops (stop_temp) where the distance from each stop to the student home location is less than 1000m.
+	for(EzLinkStop *ezLinkStop : ezLinkStops)
+	{
+		double distanceFromEzLinkStopToHome = (distanceCalculateEuclidean(ezLinkStop->getXCoord(),ezLinkStop->getYCoord(),hhCoords->getCentroidX(),hhCoords->getCentroidY()));
+		//SchoolAssignmentSubModel::DistanceEzLinkStop distanceStop{ezLinkStop->getId(),distanceFromEzLinkStopToHome};
+		//distanceFromHomeToEzLinkStop.push_back(distanceStop);
+		if(distanceFromEzLinkStopToHome < 1000)
+		{
+			nearbyEzLinkStopsById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
+
+		}
+	}
+
+	//Create a list of student_university_od_temp from student_od where student_od$home_stop is in the stop_temp.
+	HM_Model::StudentStopList studentStops = model->getStudentStopsWithNearestUni();
+	HM_Model::StudentStopList nearByStudentStops;
+	for(StudentStop *studentStop : studentStops)
+	{
+		HM_Model::EzLinkStopMap::const_iterator itr = nearbyEzLinkStopsById.find(studentStop->getHomeStopEzLinkId());
+
+		if (itr != nearbyEzLinkStopsById.end())
+		{
+			nearByStudentStops.push_back(studentStop);
+		}
+	}
+
+	//if there is no stop in student_university_od_temp (i.e. no stop in student_od that is close to student’s home location):create a list of 100 bus stop closest to the student home location.
+	HM_Model::StudentStopList studentStopsWithNearestSchool = model->getStudentStopsWithNearestUni();
+	if(nearByStudentStops.size() == 0)
+	{
+		for(StudentStop* studentStop : studentStopsWithNearestSchool)
+		{
+			BigSerial schoolStopId = studentStop->getSchoolStopEzLinkId();
+			EzLinkStop *ezLinkStop = model->getEzLinkStopsWithNearestUniById(schoolStopId);
+			double distance = (distanceCalculateEuclidean(ezLinkStop->getXCoord(),ezLinkStop->getYCoord(),hhCoords->getCentroidX(),hhCoords->getCentroidY()));
+			SchoolAssignmentSubModel::DistanceEzLinkStop distanceStop{ezLinkStop->getId(),distance};
+			distanceFromHomeToEzLinkStop.push_back(distanceStop);
+		}
+		getSortedDistanceStopList(distanceFromHomeToEzLinkStop);
+		const int ezLinkStopLimit = 100;
+		std::vector<SchoolAssignmentSubModel::DistanceEzLinkStop> distEzLinkStopWithinLimit(distanceFromHomeToEzLinkStop.begin(), distanceFromHomeToEzLinkStop.begin() + ezLinkStopLimit);
+		for(SchoolAssignmentSubModel::DistanceEzLinkStop distanceEzLinkStop : distEzLinkStopWithinLimit)
+		{
+			for(StudentStop* studentStop : studentStopsWithNearestSchool)
+			{
+				if(studentStop->getSchoolStopEzLinkId() == distanceEzLinkStop.stopId)
+				{
+					nearByStudentStops.push_back(studentStop);
+				}
+			}
+		}
+	}
+
+	//int numSchoolStops = count_if (nearByStudentStops.begin(), nearByStudentStops.end(), IsUniqueSchoolStop);
+	std::map<BigSerial, int> studentStopMap = getStudentStopFequencyMap(nearByStudentStops);
+	std::map<BigSerial,double> probSchoolMap;
+	for(StudentStop *studentStop : nearByStudentStops)
+	{
+		int schoolStopFrequency = studentStopMap[studentStop->getSchoolStopEzLinkId()];
+		double prob = double(schoolStopFrequency) / nearByStudentStops.size();
+		probSchoolMap.insert(std::pair<BigSerial, double>( studentStop->getSchoolStopEzLinkId(), prob));
+	}
+
+	//generate a random number with uniform real distribution.
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> dis(0.0, 1.0);
+	double randomNum =  dis(gen);
+	double pTemp = 0;
+	BigSerial selectedSchoolStopId = 0;
+	std::map<BigSerial,double>::const_iterator probSchoolItr;
+	for(probSchoolItr = probSchoolMap.begin(); probSchoolItr != probSchoolMap.end(); ++probSchoolItr)
+	{
+		if ((pTemp < randomNum) && (randomNum < (pTemp + (*probSchoolItr).second)))
+		{
+			selectedSchoolStopId = probSchoolItr->first;
+			break;
+		}
+		else
+		{
+			pTemp = pTemp + (*probSchoolItr).second;
+		}
+	}
+
+	BigSerial selectedSchoolId = model->getEzLinkStopsWithNearestUniById(selectedSchoolStopId)->getNearestSchoolId();
+
+	Individual *ind = model->getIndividualById(individualId);
+	writeUniversityAssignmentsToFile(individualId,ind->getStudentId(),selectedSchoolId);
+}
+
+void SchoolAssignmentSubModel::assignPolyTechnic(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day)
+{
+	//refer page 6 of https://docs.google.com/document/d/1qC4TxjOG1ZkBLTxhDRvaucfwA9b08cRGAlV3UEb1hsY/edit for explanation of each step.
+	HM_Model::EzLinkStopList ezLinkStops = model->getEzLinkStops();
+	HHCoordinates *hhCoords = model->getHHCoordinateByHHId(household->getId());
+	HM_Model::EzLinkStopMap nearbyEzLinkStopsById;
+	std::vector<SchoolAssignmentSubModel::DistanceEzLinkStop> distanceFromHomeToEzLinkStop;
+	//for each student : Create a list of EZlink stops (stop_temp) where the distance from each stop to the student home location is less than 1000m.
+	for(EzLinkStop *ezLinkStop : ezLinkStops)
+	{
+		double distanceFromEzLinkStopToHome = (distanceCalculateEuclidean(ezLinkStop->getXCoord(),ezLinkStop->getYCoord(),hhCoords->getCentroidX(),hhCoords->getCentroidY()));
+		//SchoolAssignmentSubModel::DistanceEzLinkStop distanceStop{ezLinkStop->getId(),distanceFromEzLinkStopToHome};
+		//distanceFromHomeToEzLinkStop.push_back(distanceStop);
+		if(distanceFromEzLinkStopToHome < 1000)
+		{
+			nearbyEzLinkStopsById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
+
+		}
+	}
+
+	//Create a list of student_university_od_temp from student_od where student_od$home_stop is in the stop_temp.
+	HM_Model::StudentStopList studentStopsWithNearestSchool = model->getStudentStopsWithNearestPolytech();
+	HM_Model::StudentStopList nearByStudentStops;
+	for(StudentStop *studentStop : studentStopsWithNearestSchool)
+	{
+		HM_Model::EzLinkStopMap::const_iterator itr = nearbyEzLinkStopsById.find(studentStop->getHomeStopEzLinkId());
+
+		if (itr != nearbyEzLinkStopsById.end())
+		{
+			nearByStudentStops.push_back(studentStop);
+		}
+	}
+
+	//if there is no stop in student_university_od_temp (i.e. no stop in student_od that is close to student’s home location):create a list of 100 bus stop closest to the student home location.
+	if(nearByStudentStops.size() == 0)
+	{
+		for(StudentStop* studentStop : studentStopsWithNearestSchool)
+		{
+			BigSerial schoolStopId = studentStop->getSchoolStopEzLinkId();
+			EzLinkStop *ezLinkStop = model->getEzLinkStopsWithNearestPolytechById(schoolStopId);
+			double distance = (distanceCalculateEuclidean(ezLinkStop->getXCoord(),ezLinkStop->getYCoord(),hhCoords->getCentroidX(),hhCoords->getCentroidY()));
+			SchoolAssignmentSubModel::DistanceEzLinkStop distanceStop{ezLinkStop->getId(),distance};
+			distanceFromHomeToEzLinkStop.push_back(distanceStop);
+		}
+		getSortedDistanceStopList(distanceFromHomeToEzLinkStop);
+		const int ezLinkStopLimit = 100;
+		std::vector<SchoolAssignmentSubModel::DistanceEzLinkStop> distEzLinkStopWithinLimit(distanceFromHomeToEzLinkStop.begin(), distanceFromHomeToEzLinkStop.begin() + ezLinkStopLimit);
+		for(SchoolAssignmentSubModel::DistanceEzLinkStop distanceEzLinkStop : distEzLinkStopWithinLimit)
+		{
+			for(StudentStop* studentStop : studentStopsWithNearestSchool)
+			{
+				if(studentStop->getSchoolStopEzLinkId() == distanceEzLinkStop.stopId)
+				{
+					nearByStudentStops.push_back(studentStop);
+				}
+			}
+		}
+	}
+
+	std::map<BigSerial, int> studentStopMap = getStudentStopFequencyMap(nearByStudentStops);
+	std::map<BigSerial,double> probSchoolMap;
+	for(StudentStop *studentStop : nearByStudentStops)
+	{
+		int schoolStopFrequency = studentStopMap[studentStop->getSchoolStopEzLinkId()];
+		double prob = double(schoolStopFrequency) / nearByStudentStops.size();
+		probSchoolMap.insert(std::pair<BigSerial, double>( studentStop->getSchoolStopEzLinkId(), prob));
+	}
+
+	//generate a random number with uniform real distribution.
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> dis(0.0, 1.0);
+	double randomNum =  dis(gen);
+	double pTemp = 0;
+	BigSerial selectedSchoolStopId = 0;
+	std::map<BigSerial,double>::const_iterator probSchoolItr;
+	for(probSchoolItr = probSchoolMap.begin(); probSchoolItr != probSchoolMap.end(); ++probSchoolItr)
+	{
+		if ((pTemp < randomNum) && (randomNum < (pTemp + (*probSchoolItr).second)))
+		{
+			selectedSchoolStopId = probSchoolItr->first;
+			break;
+		}
+		else
+		{
+			pTemp = pTemp + (*probSchoolItr).second;
+		}
+	}
+
+	BigSerial selectedSchoolId = model->getEzLinkStopsWithNearestPolytechById(selectedSchoolStopId)->getNearestSchoolId();
+
+	Individual *ind = model->getIndividualById(individualId);
+	writePolyTechAssignmentsToFile(individualId,ind->getStudentId(),selectedSchoolId);
+}

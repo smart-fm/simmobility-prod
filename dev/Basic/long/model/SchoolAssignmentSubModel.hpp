@@ -26,6 +26,22 @@ namespace sim_mob
 
 			virtual ~SchoolAssignmentSubModel();
 
+			struct DistanceEzLinkStop
+			{
+				BigSerial stopId;
+				double distanceToSchool;
+			};
+
+			struct OrderByDistance
+			{
+				bool operator ()( const DistanceEzLinkStop &a, const DistanceEzLinkStop &b ) const
+
+				{
+					return a.distanceToSchool < b.distanceToSchool;
+				}
+			};
+
+			bool IsUniqueSchoolStop (StudentStop& s1, StudentStop s2) { return (s1.getSchoolStopEzLinkId()==s2.getSchoolStopEzLinkId()); }
 			/*
 			 * first round of assigning individuals to primary schools
 			 */
@@ -47,6 +63,15 @@ namespace sim_mob
 			void assignPreSchool(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day);
 
 			void assignSecondarySchool(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day);
+
+			//sort the ezlink stops by the distance from student home to ezlink stop.
+			void getSortedDistanceStopList(std::vector<SchoolAssignmentSubModel::DistanceEzLinkStop>& ezLinkStopsWithDistanceFromHomeToSchool);
+
+			std::map<BigSerial, int> getStudentStopFequencyMap(HM_Model::StudentStopList &list);
+
+			void assignUniversity(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day);
+
+			void assignPolyTechnic(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day);
 
 
 		private:

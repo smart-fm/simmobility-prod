@@ -250,8 +250,11 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 	bool printedError = false;
 
 	//set the activity logsum default as 0 for work and education logsums to prevent null values. The simillar thing is done at mid term side.
-			personParams.setActivityLogsum(1,0);
-			personParams.setActivityLogsum(2,0);
+	personParams.setActivityLogsum(1,0);
+	personParams.setActivityLogsum(2,0);
+
+	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, cfg.getNumTravelModes());
+	PredayLogsumLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, cfg.getActivityTypeConfigMap(), tmdParams, zoneMap.size());
 
 	if(personParams.hasFixedWorkPlace() || personParams.isStudent())
 	{
@@ -319,10 +322,6 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 
 		}
 
-//		//set the activity logsum default as 0 for work and education logsums to prevent null values. The simillar thing is done at mid term side.
-//		personParams.setActivityLogsum(1,0);
-//		personParams.setActivityLogsum(2,0);
-
 		if(personParams.hasFixedWorkPlace())
 		{
 			LogsumTourModeParams tmParams(orgZnParams, destZnParams, amCostParams, pmCostParams, personParams, cfg.getActivityTypeId("Work"));
@@ -337,10 +336,6 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 
 	}
 
-
-
-    LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, cfg.getNumTravelModes());
-
 	try
 	{
 		tmdParams.setCbdOrgZone(zoneMap.at(zoneLookupItr->second)->getCbdDummy());
@@ -353,8 +348,6 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 		printedError = true;
 	}
 
-
-    PredayLogsumLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, cfg.getActivityTypeConfigMap(), tmdParams, zoneMap.size());
 	PredayLogsumLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);
 	PredayLogsumLuaProvider::getPredayModel().computeDayPatternBinaryLogsums(personParams);
 

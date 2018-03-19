@@ -1603,12 +1603,16 @@ void HM_Model::startImpl()
 
 		//Load units
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
-		UnitDao unitDao(conn);
-		privatePresaleUnits =  unitDao.getPrivatePresaleUnits();
-		for (UnitList::const_iterator it = privatePresaleUnits.begin(); it != privatePresaleUnits.end(); it++)
+		if(config.ltParams.launchPrivatePresale)
 		{
-			 privatePresaleUnitsMap.insert(std::make_pair((*it)->getId(), (*it)->getId()));
+			UnitDao unitDao(conn);
+			privatePresaleUnits =  unitDao.getPrivatePresaleUnits();
+			for (UnitList::const_iterator it = privatePresaleUnits.begin(); it != privatePresaleUnits.end(); it++)
+			{
+				privatePresaleUnitsMap.insert(std::make_pair((*it)->getId(), (*it)->getId()));
+			}
 		}
+
 		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
 		HouseholdDao hhDao(conn);
@@ -2442,7 +2446,10 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 		vector<double> logsum;
 		vector<double> travelProbability;
 		vector<double> tripsExpected;
-
+		double workLogsum;
+		double eduLogsum;
+		double shopLogsum;
+		double otherLogsum;
 
 		BigSerial tazW = 0;
 		BigSerial tazH = 0;
@@ -2547,6 +2554,28 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			logsum.push_back( personParams5.getDpbLogsum());
 			travelProbability.push_back(personParams5.getTravelProbability());
 			tripsExpected.push_back(personParams5.getTripsExpected());
+
+			std::unordered_map<StopType, double> activityLogsums = personParams.getActivityLogsums();
+
+			for (auto activityLogsum : activityLogsums )
+			{
+				if(activityLogsum.first == 1)
+				{
+					workLogsum = activityLogsum.second;
+				}
+				else if(activityLogsum.first == 2)
+				{
+					eduLogsum = activityLogsum.second;
+				}
+				if(activityLogsum.first == 3)
+				{
+					shopLogsum = activityLogsum.second;
+				}
+				if(activityLogsum.first == 4)
+				{
+					otherLogsum = activityLogsum.second;
+				}
+			}
 		}
 
 		/*
@@ -2633,7 +2662,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 		simulationStopCounter++;
 
-		printHouseholdHitsLogsumFVO( "", -1, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
+		printHouseholdHitsLogsumFVO( "", -1, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, workLogsum, eduLogsum, shopLogsum, otherLogsum, travelProbability, tripsExpected );
 		PrintOutV( simulationStopCounter << ". " << "" << ", " << -1 << ", " << "" << ", " << currentHousehold->getId() << ", " << thisIndividual->getMemberId()
 										 << ", " << householdIndividualIds[n] << ", " << tazH << ", " << tazW << ", "
 										 << std::setprecision(5)
@@ -2670,6 +2699,10 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, vector<d
 		{
 		vector<double> travelProbability;
 		vector<double> tripsExpected;
+		double workLogsum;
+		double eduLogsum;
+		double shopLogsum;
+		double otherLogsum;
 
 		int tazIdW = -1;
 		int tazIdH = -1;
@@ -2778,9 +2811,31 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, vector<d
 			logsum.push_back( personParams5.getDpbLogsum());
 			travelProbability.push_back(personParams5.getTravelProbability());
 			tripsExpected.push_back(personParams5.getTripsExpected());
+
+			std::unordered_map<StopType, double> activityLogsums = personParams.getActivityLogsums();
+
+			for (auto activityLogsum : activityLogsums )
+			{
+				if(activityLogsum.first == 1)
+				{
+					workLogsum = activityLogsum.second;
+				}
+				else if(activityLogsum.first == 2)
+				{
+					eduLogsum = activityLogsum.second;
+				}
+				if(activityLogsum.first == 3)
+				{
+					shopLogsum = activityLogsum.second;
+				}
+				if(activityLogsum.first == 4)
+				{
+					otherLogsum = activityLogsum.second;
+				}
+			}
 		}
 
-		printHouseholdHitsLogsumFVO( "", paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
+		printHouseholdHitsLogsumFVO( "", paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, workLogsum, eduLogsum, shopLogsum, otherLogsum, travelProbability, tripsExpected );
 		//		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << currentHousehold->getId() << ", " << thisIndividual->getMemberId()
 		//										 << ", " << householdIndividualIds[n] << ", " << tazH << ", " << tazW << ", "
 		//										 << std::setprecision(5)
@@ -2817,6 +2872,10 @@ void HM_Model::getLogsumOfHitsHouseholdVO(BigSerial householdId)
 		vector<double> logsum;
 		vector<double> travelProbability;
 		vector<double> tripsExpected;
+		double workLogsum;
+		double eduLogsum;
+		double shopLogsum;
+		double otherLogsum;
 
 		int workTazId = -1;
 		int homeTazId = -1;
@@ -2929,11 +2988,33 @@ void HM_Model::getLogsumOfHitsHouseholdVO(BigSerial householdId)
 			logsum.push_back( personParams5.getDpbLogsum());
 			travelProbability.push_back(personParams5.getTravelProbability());
 			tripsExpected.push_back(personParams5.getTripsExpected());
+
+			std::unordered_map<StopType, double> activityLogsums = personParams.getActivityLogsums();
+
+			for (auto activityLogsum : activityLogsums )
+			{
+				if(activityLogsum.first == 1)
+				{
+					workLogsum = activityLogsum.second;
+				}
+				else if(activityLogsum.first == 2)
+				{
+					eduLogsum = activityLogsum.second;
+				}
+				if(activityLogsum.first == 3)
+				{
+					shopLogsum = activityLogsum.second;
+				}
+				if(activityLogsum.first == 4)
+				{
+					otherLogsum = activityLogsum.second;
+				}
+			}
 		}
 
 		simulationStopCounter++;
 
-		printHouseholdHitsLogsumFVO( hitsIndividualLogsum[p]->getHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
+		printHouseholdHitsLogsumFVO( hitsIndividualLogsum[p]->getHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, workLogsum, eduLogsum, shopLogsum, otherLogsum, travelProbability, tripsExpected );
 //		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << currentHousehold->getId() << ", " << thisIndividual->getMemberId()
 //				<< ", " << householdIndividualIds[n] << ", " << tazH << ", " << tazW << ", "
 //				<< std::setprecision(5)
@@ -2950,10 +3031,10 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 	HouseHoldHitsSample *hitsSample = nullptr;
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	hitsSample = this->getHouseHoldHitsById( householdId );
 	if(config.ltParams.outputHouseholdLogsums.hitsRun)
 	{
 		boost::mutex::scoped_lock lock( mtx3 );
-		hitsSample = this->getHouseHoldHitsById( householdId );
 		Household *currentHousehold = getHouseholdById( householdId );
 		if( !currentHousehold )
 			return;

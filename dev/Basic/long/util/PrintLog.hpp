@@ -570,6 +570,16 @@ namespace sim_mob
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRIMARY_SCHOOL_ASSIGNMENT,fmtr.str());
 	    }
 
+	    inline void writeSecondarySchoolAssignmentsToFile(BigSerial individualId,BigSerial studentId, BigSerial priSchoolId)
+	    {
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			if(!config.ltParams.outputFiles.log_school_assignment)
+				return;
+
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % studentId % priSchoolId ;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SECONDARY_SCHOOL_ASSIGNMENT,fmtr.str());
+	    }
+
 	    inline void writeUniversityAssignmentsToFile(BigSerial individualId,BigSerial studentId, BigSerial universityId)
 	    {
 	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();

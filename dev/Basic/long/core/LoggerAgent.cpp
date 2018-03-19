@@ -254,6 +254,11 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 		streams.insert(std::make_pair(LOG_PRIMARY_SCHOOL_ASSIGNMENT, primarySchoolAssignmentFile));
 		*primarySchoolAssignmentFile << "individualId, studentId, primarySchoolId" << std::endl;
 
+		//seconary school assignment
+		std::ofstream* secondarySchoolAssignmentFile = new std::ofstream("secondarySchools.csv");
+		streams.insert(std::make_pair(LOG_SECONDARY_SCHOOL_ASSIGNMENT, secondarySchoolAssignmentFile));
+		*secondarySchoolAssignmentFile << "individualId, studentId, secondarySchoolId" << std::endl;
+
 		//university assignment
 		std::ofstream* uniAssignmentFile = new std::ofstream("universities.csv");
 		streams.insert(std::make_pair(LOG_UNIVERSITY_ASSIGNMENT, uniAssignmentFile));

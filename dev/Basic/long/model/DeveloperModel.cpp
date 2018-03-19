@@ -168,8 +168,14 @@ void DeveloperModel::startImpl() {
 
 		std::tm currentSimYear = getDateBySimDay(simYear,0);
 		UnitDao unitDao(conn);
-		btoUnits = unitDao.getBTOUnits(currentSimYear);
-		privatePresaleUnits = unitDao.getPrivatePresaleUnits();
+		if(config.ltParams.launchBTO)
+		{
+			btoUnits = unitDao.getBTOUnits(currentSimYear);
+		}
+		if(config.ltParams.launchPrivatePresale)
+		{
+			privatePresaleUnits = unitDao.getPrivatePresaleUnits();
+		}
 		//ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
 
 		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());

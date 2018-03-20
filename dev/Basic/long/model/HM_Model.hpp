@@ -340,7 +340,7 @@ namespace sim_mob
             void getLogsumOfIndividuals(BigSerial id);
             void getLogsumOfVaryingHomeOrWork(BigSerial id);
             void getLogsumOfHouseholdVO(BigSerial householdId);
-            void getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, vector<double>&logsum);
+            void getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::unordered_map<int,double>&logsum);
             void getLogsumOfHitsHouseholdVO(BigSerial householdId);
 
             HousingMarket* getMarket();

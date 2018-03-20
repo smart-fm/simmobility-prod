@@ -42,7 +42,7 @@ void OnCallDriverMovement::frame_init()
 
 	//Retrieve the starting node of the driver
 	currNode = (*(onCallDriver->getParent()->currTripChainItem))->origin.node;
-	onCallDriver->getParams().initialSpeed = 0;
+	//onCallDriver->getParams().initialSpeed = 0;
 
 	//Register with the controller to which the driver is subscribed
 

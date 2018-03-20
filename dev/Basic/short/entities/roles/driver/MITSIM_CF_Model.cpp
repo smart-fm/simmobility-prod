@@ -1090,6 +1090,7 @@ double MITSIM_CF_Model::calcWaitForAllowedLaneAcc(DriverUpdateParams &params)
 double MITSIM_CF_Model::calcDesiredSpeed(DriverUpdateParams &params)
 {
 	double speedOnSign = 0;
+    double desiredSpeed = 0;
 
 	if (params.speedLimit)
 	{
@@ -1097,14 +1098,30 @@ double MITSIM_CF_Model::calcDesiredSpeed(DriverUpdateParams &params)
 	}
 	else
 	{
-		speedOnSign = params.maxLaneSpeed;
+        if(params.currLane)
+        {
+            speedOnSign = params.currLane->getParentSegment()->getMaxSpeed();
+        }
+        else
+        {
+
+            speedOnSign = fwdDriverMovement->getCurrTurning()->getMaxSpeed();
+            //speedOnSign = params.maxLaneSpeed;
+        }
 	}
 
 	float desired = speedFactor * speedOnSign;
 
 	desired = desired * (1 + getSpeedLimitAddon());
 
-	double desiredSpeed = std::min<double>(desired, params.maxLaneSpeed);
+    if(params.currLane)
+    {
+        desiredSpeed = std::min<double>(desired, params.currLane->getParentSegment()->getMaxSpeed());
+    }
+    else
+    {
+        desiredSpeed = std::min<double>(desired, params.maxLaneSpeed);
+    }
 	return desiredSpeed;
 }
 
@@ -1262,7 +1279,7 @@ double MITSIM_CF_Model::calcAdjacentGapRate(DriverUpdateParams& p)
 double MITSIM_CF_Model::calcAccForStoppingPoint(DriverUpdateParams &params)
 {
 	std::stringstream debugStr;
-	debugStr << ";SS-Dist" << params.distanceToStoppingPt << ";" << params.stopPointState << ";";
+	//debugStr << ";SS-Dist" << params.distanceToStoppingPt << ";" << params.stopPointState << ";" << params.perceivedFwdVelocity;
 
 	double acc = params.maxAcceleration;
 
@@ -1271,12 +1288,11 @@ double MITSIM_CF_Model::calcAccForStoppingPoint(DriverUpdateParams &params)
 		if (params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT)
 		{
 			acc = calcBrakeToStopAcc(params, params.distToStop);
-			debugStr << "SP-Arriving;";
-			return acc;
+	//		debugStr << "SP-Arriving;";
 		}
 		if (params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT || params.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT)
 		{
-			debugStr << "SP-Arrived;";
+	//		debugStr << "SP-Arrived;";
 			acc = params.maxDeceleration;
 		}
 	}
@@ -1342,7 +1358,17 @@ double MITSIM_CF_Model::calcBrakeToStopAcc(DriverUpdateParams &params, double di
 
 double MITSIM_CF_Model::calcDesiredSpeedAcc(DriverUpdateParams &params)
 {
-	float maxspd = params.maxLaneSpeed;
+	float maxspd = 0;
+    if(params.currLane)
+    {
+        maxspd = params.currLane->getParentSegment()->getMaxSpeed();
+
+    }
+    else
+    {
+        maxspd = fwdDriverMovement->getCurrTurning()->getMaxSpeed();
+        //maxspd = params.maxLaneSpeed;
+    }
 	double epsilon_v = Math::DOUBLE_EPSILON;
 
 	if (params.perceivedFwdVelocity < maxspd - epsilon_v)

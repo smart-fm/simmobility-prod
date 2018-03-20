@@ -1458,7 +1458,8 @@ void DriverMovement::setOrigin(DriverUpdateParams &params)
 {
 	//Set the max speed and target speed
 	params.maxLaneSpeed = fwdDriverMovement.getCurrSegment()->getMaxSpeed();
-	params.desiredSpeed = targetSpeed = params.maxLaneSpeed;
+    targetSpeed = params.maxLaneSpeed;
+    params.desiredSpeed = params.maxLaneSpeed;
 
 	//Set the current and target lanes.
 	params.currLane = fwdDriverMovement.getCurrLane();

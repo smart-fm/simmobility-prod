@@ -408,6 +408,12 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 			while(tourIt!=subToursList.end()) { tourIt = subToursList.erase(tourIt); }
 			return;
 		}
+		
+		// If no time window is available, we do not schedule this sub tour
+        	if (personParams.getTimeWindowLookup().areAllUnavailable())
+		{
+			return;
+		}
 
 		// predict time of day
 		TimeWindowAvailability timeWindow = predictSubTourTimeOfDay(subTour, workBasedSubTourParams);
@@ -820,6 +826,13 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours,
 				destLocation = (*stopIt)->getStopLocation(); //we have predicted the location for all stops already.
 				++stopIt; //get back
 			}
+
+			// If no time window is available, we do not schedule this stop
+			if (personParams.getTimeWindowLookup().areAllUnavailable())
+			{
+				break;
+			}
+			
 			stopTodSuccessful = predictStopTimeOfDay(prevStop, destLocation, true);  //predict arrival time for nextStop
 			if(!stopTodSuccessful) { break; } //break off here if prediction was unsuccessful. This stop and remaining stops are to be deleted.
 			currStop = prevStop;
@@ -864,6 +877,12 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours,
 				++stopIt;
 				destLocation = (*stopIt)->getStopLocation(); //we have predicted the location for all stops already.
 				--stopIt; //get back
+			}
+
+			// If no time window is available, we do not schedule this stop
+			if (personParams.getTimeWindowLookup().areAllUnavailable())
+			{
+				break;
 			}
 			stopTodSuccessful = predictStopTimeOfDay(nextStop, destLocation, false); //predict departure time for nextStop
 			if(!stopTodSuccessful) { break; } //break off here if prediction was unsuccessful. This stop and remaining stops are to be deleted.
@@ -1546,6 +1565,12 @@ void PredaySystem::planDay()
 			}
 		}
 
+		// If no time window is available, we do not schedule this tour
+        	if (personParams.getTimeWindowLookup().areAllUnavailable())
+		{
+            		break;
+		}
+
 		// Predict time of day for this tour
 		TimeWindowAvailability timeWindow = predictTourTimeOfDay(tour);
 		if(timeWindow.getStartTime() == 0 && timeWindow.getEndTime() == 0)
@@ -1945,3 +1970,4 @@ void sim_mob::medium::PredaySystem::updateStatistics(CalibrationStatistics& stat
 		else { statsCollector.addToTravelDistanceStats(0, householdFactor); }
 	}
 }
+

@@ -4000,22 +4000,18 @@ void HM_Model::assignNearestUniToEzLinkStops()
 		double minDistance = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), universities[0]->getCentroidX(), universities[0]->getCentroidY());
 		for(School *university : universities)
 		{
-			double distanceFromStopToUnit = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), university->getCentroidX(), university->getCentroidY());
-			if(distanceFromStopToUnit < minDistance)
+			double distanceFromStopToUni = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), university->getCentroidX(), university->getCentroidY());
+			if(distanceFromStopToUni < minDistance)
 			{
-				minDistance = distanceFromStopToUnit;
+				minDistance = distanceFromStopToUni;
 				nearestSchoolId = university->getId();
 			}
 		}
 		if(minDistance < 1000)
 		{
-			ezLinkStop->setNearestSchoolId(nearestSchoolId);
+			ezLinkStop->setNearestUniversityId(nearestSchoolId);
 			ezLinkStopsWithNearestUni.push_back(ezLinkStop);
 			ezLinkStopsWithNearestUniById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
-		}
-		else
-		{
-			ezLinkStop->setNearestSchoolId(0);
 		}
 	}
 
@@ -4044,22 +4040,18 @@ void HM_Model::assignNearestPolytechToEzLinkStops()
 		double minDistance = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), polyTechnics[0]->getCentroidX(), polyTechnics[0]->getCentroidY());
 		for(School *polyTech : polyTechnics)
 		{
-			double distanceFromStopToUnit = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), polyTech->getCentroidX(), polyTech->getCentroidY());
-			if(distanceFromStopToUnit < minDistance)
+			double distanceFromStopToUni = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), polyTech->getCentroidX(), polyTech->getCentroidY());
+			if(distanceFromStopToUni < minDistance)
 			{
-				minDistance = distanceFromStopToUnit;
+				minDistance = distanceFromStopToUni;
 				nearestSchoolId = polyTech->getId();
 			}
 		}
 		if(minDistance < 1000)
 		{
-			ezLinkStop->setNearestSchoolId(nearestSchoolId);
+			ezLinkStop->setNearestPolytechnicId(nearestSchoolId);
 			ezLinkStopsWithNearestPolyTech.push_back(ezLinkStop);
 			ezLinkStopsWithNearestPolytechById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
-		}
-		else
-		{
-			ezLinkStop->setNearestSchoolId(0);
 		}
 	}
 

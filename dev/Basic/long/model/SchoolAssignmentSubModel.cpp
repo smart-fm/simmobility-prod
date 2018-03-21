@@ -487,7 +487,7 @@ void SchoolAssignmentSubModel::assignUniversity(const Household *household,BigSe
 		}
 	}
 
-	BigSerial selectedSchoolId = model->getEzLinkStopsWithNearestUniById(selectedSchoolStopId)->getNearestSchoolId();
+	BigSerial selectedSchoolId = model->getEzLinkStopsWithNearestUniById(selectedSchoolStopId)->getNearestUniversityId();
 
 	Individual *ind = model->getIndividualById(individualId);
 	writeUniversityAssignmentsToFile(individualId,ind->getStudentId(),selectedSchoolId);
@@ -582,7 +582,7 @@ void SchoolAssignmentSubModel::assignPolyTechnic(const Household *household,BigS
 		}
 	}
 
-	BigSerial selectedSchoolId = model->getEzLinkStopsWithNearestPolytechById(selectedSchoolStopId)->getNearestSchoolId();
+	BigSerial selectedSchoolId = model->getEzLinkStopsWithNearestPolytechById(selectedSchoolStopId)->getNearestPolytechnicId();
 
 	Individual *ind = model->getIndividualById(individualId);
 	writePolyTechAssignmentsToFile(individualId,ind->getStudentId(),selectedSchoolId);

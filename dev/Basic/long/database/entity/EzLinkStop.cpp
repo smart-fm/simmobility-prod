@@ -9,7 +9,7 @@
 
 using namespace sim_mob::long_term;
 
-EzLinkStop::EzLinkStop(BigSerial id , double xCoord, double yCoord, BigSerial nearestSchoolId): id(id),xCoord(xCoord),	yCoord(yCoord),nearestSchoolId(nearestSchoolId){}
+EzLinkStop::EzLinkStop(BigSerial id , double xCoord, double yCoord, BigSerial nearestUniversityId, BigSerial nearestPolytechnicId): id(id),xCoord(xCoord),	yCoord(yCoord),nearestUniversityId(nearestUniversityId), nearestPolytechnicId(nearestPolytechnicId){}
 
 EzLinkStop::~EzLinkStop(){}
 
@@ -18,7 +18,8 @@ EzLinkStop::EzLinkStop(const EzLinkStop& source)
 	this->id = source.id;
 	this->xCoord = source.xCoord;
 	this->yCoord = source.yCoord;
-	this->nearestSchoolId = source.nearestSchoolId;
+	this->nearestUniversityId = source.nearestUniversityId;
+	this->nearestPolytechnicId = source.nearestPolytechnicId;
 }
 
 
@@ -27,7 +28,8 @@ EzLinkStop& EzLinkStop::operator=(const EzLinkStop& source)
 	this->id = source.id;
 	this->xCoord = source.xCoord;
 	this->yCoord = source.yCoord;
-	this->nearestSchoolId = source.nearestSchoolId;
+	this->nearestUniversityId = source.nearestUniversityId;
+	this->nearestPolytechnicId = source.nearestPolytechnicId;
 
 	return *this;
 }
@@ -40,16 +42,6 @@ BigSerial EzLinkStop::getId() const
 void EzLinkStop::setId(BigSerial id)
 {
 	this->id = id;
-}
-
-BigSerial EzLinkStop::getNearestSchoolId() const
-{
-	return nearestSchoolId;
-}
-
-void EzLinkStop::setNearestSchoolId(BigSerial nearestSchoolId)
-{
-	this->nearestSchoolId = nearestSchoolId;
 }
 
 double EzLinkStop::getXCoord() const
@@ -70,4 +62,24 @@ double EzLinkStop::getYCoord() const
 void EzLinkStop::setYCoord(double coord)
 {
 	yCoord = coord;
+}
+
+BigSerial EzLinkStop::getNearestPolytechnicId() const
+{
+	return nearestPolytechnicId;
+}
+
+void EzLinkStop::setNearestPolytechnicId(BigSerial nearestPolytechnicId)
+{
+	this->nearestPolytechnicId = nearestPolytechnicId;
+}
+
+BigSerial EzLinkStop::getNearestUniversityId() const
+{
+	return nearestUniversityId;
+}
+
+void EzLinkStop::setNearestUniversityId(BigSerial nearestUniversityId)
+{
+	this->nearestUniversityId = nearestUniversityId;
 }

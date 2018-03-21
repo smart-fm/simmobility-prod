@@ -17,7 +17,7 @@ namespace sim_mob
 		class EzLinkStop
 		{
 		public:
-			EzLinkStop(	BigSerial id = 0, double xCoord = 0, double yCoord = 0, BigSerial nearestSchoolId = 0);
+			EzLinkStop(	BigSerial id = 0, double xCoord = 0, double yCoord = 0, BigSerial nearestUniversityId = 0, BigSerial nearestPolytechnicId = 0);
 			~EzLinkStop();
 
 			EzLinkStop( const EzLinkStop& source);
@@ -26,17 +26,20 @@ namespace sim_mob
 
 			BigSerial getId() const;
 			void setId(BigSerial id);
-			BigSerial getNearestSchoolId() const;
-			void setNearestSchoolId(BigSerial nearestSchoolId);
 			double getXCoord() const;
 			void setXCoord(double coord);
 			double getYCoord() const;
 			void setYCoord(double coord);
+			BigSerial getNearestPolytechnicId() const;
+			void setNearestPolytechnicId(BigSerial nearestPolytechnicId) ;
+			BigSerial getNearestUniversityId() const;
+			void setNearestUniversityId(BigSerial nearestUniversityId);
 
 			BigSerial 	id;
 			double xCoord;
 			double yCoord;
-			BigSerial nearestSchoolId;
+			BigSerial nearestUniversityId;
+			BigSerial nearestPolytechnicId;
 
 		};
 	}

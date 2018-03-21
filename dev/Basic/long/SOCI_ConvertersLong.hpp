@@ -345,6 +345,11 @@ struct type_conversion<sim_mob::long_term::School>
     	school.setPlanningArea(values.get<std::string>("planning_area",std::string()));
     	school.setTazName(values.get<BigSerial>("taz_name",0));
     	school.setSchoolType(values.get<std::string>("school_type",std::string()));
+    	school.setArtProgram(values.get<int>("art_program",0));
+    	school.setMusicProgram(values.get<int>("music_program",0));
+    	school.setLangProgram(values.get<int>("lang_program",0));
+    	school.setStudentDensity(values.get<double>("student_den",0));
+    	school.setExpressTest(values.get<int>("express_test",0));
     }
 };
 
@@ -359,7 +364,6 @@ struct type_conversion<sim_mob::long_term::EzLinkStop>
     	ezLinkStop.setId(values.get<BigSerial>("id",0));
     	ezLinkStop.setXCoord(values.get<double>("x_coord",0));
     	ezLinkStop.setYCoord(values.get<double>("y_coord",0));
-    	ezLinkStop.setNearestSchoolId(values.get<BigSerial>("nearest_school_id",0));
     }
 };
 

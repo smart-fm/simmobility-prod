@@ -267,43 +267,60 @@ void OnCallDriver::pickupPassenger()
 	//Get the conflux
 	MesoPathMover &pathMover = movement->getMesoPathMover();
 	const SegmentStats *currSegStats = pathMover.getCurrSegStats();
-	Conflux *conflux = currSegStats->getParentConflux();
-
+	medium::Conflux* conflux = NULL;
+	if(currSegStats)
+	{
+		conflux = currSegStats->getParentConflux();
+	}
+	else //This is the case when we have need to pickup passenger immediately .Mean driver is at same position where he need to pickup.
+	{
+		conflux =  Conflux::getConfluxFromNode(getCurrentNode());
+#ifndef NDEBUG
+		if(!conflux)
+		{
+			 stringstream msg;
+			 msg << "Node " << getCurrentNode()->getNodeId() << " does not have a Conflux associated with it!";
+			throw runtime_error(msg.str());
+		}
+#endif
+	}
 	//Indicates whether we need to pick up another person at this point
 	bool pickupAnotherPerson = false;
-
 	do
 	{
 		//Get the passenger name from the schedule
 		auto currItem = driverSchedule.getCurrScheduleItem();
 		const string &passengerId = currItem->tripRequest.userId;
-
-		Person_MT *personPickedUp = conflux->pickupTraveller(passengerId);
-
+		Person_MT *personPickedUp =NULL;
+		if(conflux)
+		{
+			personPickedUp = conflux->pickupTraveller(passengerId);
+		}
+		else
+		{
+			Print()<<"Conflux not found. can not pickup Passenger"<<endl;
+		}
 #ifndef NDEBUG
 		if (!personPickedUp)
 		{
 			stringstream msg;
-			msg << "Pickup failed for " << personPickedUp << " at time " << parent->currTick
-			    << ", and driverId " << parent->getDatabaseId() << ". personToPickUp is NULL" << std::endl;
+			msg << "Pickup failed for " << passengerId << " at time " << parent->currTick
+			<< ", and driverId " << parent->getDatabaseId() << ". personToPickUp is NULL" << std::endl;
 			throw runtime_error(msg.str());
 		}
 #endif
-
 		Role<Person_MT> *curRole = personPickedUp->getRole();
 		Passenger *passenger = dynamic_cast<Passenger *>(curRole);
-
 #ifndef NDEBUG
 		if (!passenger)
 		{
 			stringstream msg;
 			msg << "Pickup failed for " << passengerId << " at time " << parent->currTick
-			    << ", and driverId " << parent->getDatabaseId() << ". personToPickUp is not a passenger"
-			    << std::endl;
+			<< ", and driverId " << parent->getDatabaseId() << ". personToPickUp is not a passenger"
+			<< std::endl;
 			throw runtime_error(msg.str());
 		}
 #endif
-
 		//Add the passenger
 		passengers[passengerId] = passenger;
 		passenger->setDriver(this);
@@ -313,26 +330,34 @@ void OnCallDriver::pickupPassenger()
 		passenger->Movement()->startTravelTimeMetric();
 
 		ControllerLog() << "Pickup succeeded for " << passengerId << " at time " << parent->currTick
-		                << " with startNodeId " << conflux->getConfluxNode()->getNodeId() << ", destinationNodeId "
-		                << personPickedUp->currSubTrip->destination.node->getNodeId()
-		                << ", and driverId " << parent->getDatabaseId() << std::endl;
+		<< " with startNodeId " << conflux->getConfluxNode()->getNodeId() << ", destinationNodeId "
+		<< personPickedUp->currSubTrip->destination.node->getNodeId()
+		<< ", and driverId " << parent->getDatabaseId() << std::endl;
 
 		//Mark schedule item as completed
 		scheduleItemCompleted();
-
 		//Check if the next schedule item is also a pickup and at the same node
 		//Note: This can happen when a controller that assigns shared requests is being used
-
 		//Note: We have marked the previous schedule item as completed, so the current schedule item
 		//iterator has been updated
-		auto nxtItem = driverSchedule.getCurrScheduleItem();
-
-		pickupAnotherPerson = nxtItem->scheduleItemType == PICKUP
-		                      && currItem->tripRequest.startNode == nxtItem->tripRequest.startNode;
-
+		if(!driverSchedule.isScheduleCompleted())
+		{
+			auto nxtItem = driverSchedule.getCurrScheduleItem();
+			pickupAnotherPerson = nxtItem->scheduleItemType == PICKUP
+			&& currItem->tripRequest.startNode == nxtItem->tripRequest.startNode;
+			if (pickupAnotherPerson)
+			{
+				ControllerLog() << "These persons will be picking up from same node :(" << passengerId << " |" <<
+				nxtItem->tripRequest.userId << ") by driver " << parent->getDatabaseId() << " from Node " <<
+				currItem->tripRequest.startNode->getNodeId() << endl;
+			}
+		}
+		else
+		{
+			pickupAnotherPerson =false;
+		}
 	}while(pickupAnotherPerson);
 }
-
 void OnCallDriver::dropoffPassenger()
 {
 	//Indicates whether we need to drop off another person at this point

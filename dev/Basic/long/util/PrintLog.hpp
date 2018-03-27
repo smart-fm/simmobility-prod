@@ -550,53 +550,53 @@ namespace sim_mob
 	    	printBidGeneric( model,  id, bid, entry,bidsCounter,  accepted);
 	    }
 
-	    inline void writePreSchoolAssignmentsToFile(BigSerial individualId,BigSerial studentId,BigSerial schoolId)
+	    inline void writePreSchoolAssignmentsToFile(BigSerial individualId,BigSerial schoolId)
 	    {
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_pre_school_assignment)
 				return;
 
-	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % studentId % schoolId;
+	    	boost::format fmtr = boost::format("%1%, %2%") % individualId % schoolId;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRE_SCHOOL_ASSIGNMENT,fmtr.str());
 	    }
 
-	    inline void writePrimarySchoolAssignmentsToFile(BigSerial individualId,BigSerial studentId, BigSerial priSchoolId)
+	    inline void writePrimarySchoolAssignmentsToFile(BigSerial individualId,BigSerial priSchoolId)
 	    {
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_school_assignment)
 				return;
 
-	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % studentId % priSchoolId ;
+	    	boost::format fmtr = boost::format("%1%, %2%") % individualId  % priSchoolId ;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_PRIMARY_SCHOOL_ASSIGNMENT,fmtr.str());
 	    }
 
-	    inline void writeSecondarySchoolAssignmentsToFile(BigSerial individualId,BigSerial studentId, BigSerial priSchoolId)
+	    inline void writeSecondarySchoolAssignmentsToFile(BigSerial individualId, BigSerial priSchoolId)
 	    {
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_school_assignment)
 				return;
 
-	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % studentId % priSchoolId ;
+	    	boost::format fmtr = boost::format("%1%, %2%") % individualId % priSchoolId ;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SECONDARY_SCHOOL_ASSIGNMENT,fmtr.str());
 	    }
 
-	    inline void writeUniversityAssignmentsToFile(BigSerial individualId,BigSerial studentId, BigSerial universityId)
+	    inline void writeUniversityAssignmentsToFile(BigSerial individualId, BigSerial universityId)
 	    {
 	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	    	if(!config.ltParams.outputFiles.log_school_assignment)
 	    		return;
 
-	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % studentId % universityId ;
+	    	boost::format fmtr = boost::format("%1%, %2%") % individualId % universityId ;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_UNIVERSITY_ASSIGNMENT,fmtr.str());
 	    }
 
-	    inline void writePolyTechAssignmentsToFile(BigSerial individualId,BigSerial studentId, BigSerial polyTechId)
+	    inline void writePolyTechAssignmentsToFile(BigSerial individualId, BigSerial polyTechId)
 	    {
 	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	    	if(!config.ltParams.outputFiles.log_school_assignment)
 	    		return;
 
-	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId % studentId % polyTechId ;
+	    	boost::format fmtr = boost::format("%1%, %2%") % individualId  % polyTechId ;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_POLYTECH_ASSIGNMENT,fmtr.str());
 	    }
 
@@ -620,6 +620,20 @@ namespace sim_mob
 
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%") % parcel.getId() % newDevelopment % profit % devType % threshold_roi % roi;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_DEV_ROI,fmtr.str());
+	    }
+
+	    inline void writeEzlinkStopsWithNearesUniToFile(BigSerial ezLinkstopId, BigSerial universityId)
+	    {
+	    	boost::format fmtr = boost::format("%1%, %2%") % ezLinkstopId % universityId ;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_NEARSET_UNI_EZ_LINK,fmtr.str());
+
+	    }
+
+	    inline void writeEzlinkStopsWithNearesPolyToFile(BigSerial ezLinkstopId, BigSerial polytechnicId)
+	    {
+	    	boost::format fmtr = boost::format("%1%, %2%") % ezLinkstopId % polytechnicId ;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_NEARSET_POLYTECH_EZ_LINK,fmtr.str());
+
 	    }
 
 	    /**

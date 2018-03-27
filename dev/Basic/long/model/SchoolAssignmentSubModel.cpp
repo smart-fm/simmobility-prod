@@ -116,7 +116,7 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 			pTemp = pTemp + (*probSchoolItr).second;
 		}
 	}
-	model->addStudentToPrimarySchool(individualId,selectedSchoolId,household->getId());
+	model->addStudentToPrimarySchool(individualId,selectedSchoolId, household->getId());
 	}
 	schoolExpVec.clear();
 	expSchoolMap.clear();
@@ -179,7 +179,7 @@ void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
 			Individual *individual = model->getIndividualById(individualId);
 			BigSerial studentId = individual->getStudentId();
 			BigSerial schoolId = priSchool->getId();
-			writePrimarySchoolAssignmentsToFile(individualId,studentId,schoolId);
+			writePrimarySchoolAssignmentsToFile(individualId,schoolId);
 		}
 		students.clear();
 	}
@@ -215,9 +215,10 @@ void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individ
 			if(individual->getIsPrimarySchoolWithin5Km(priSchool->getId()))
 			{
 				int numSelectedStudents = priSchool->getNumSelectedStudents();
+				std::size_t const studentLimitPerSchool = priSchool->getSchoolSlot();
 				if(priSchool->getNumOfSelectedStudents() < priSchool->getSchoolSlot())
 				{
-					double probSchool = numSelectedStudents / totalStudentLimitDif;
+					double probSchool = (studentLimitPerSchool - numSelectedStudents) / totalStudentLimitDif;
 					priSchool->setReAllocationProb(probSchool);
 					schoolsWithProb.push_back(priSchool);
 					probSchoolMap.insert(std::pair<BigSerial, double>( priSchool->getId(), probSchool));
@@ -262,15 +263,18 @@ void SchoolAssignmentSubModel::assignPreSchool(const Household *household,BigSer
 	BigSerial selectedPreSchoolId = preSchools.at(0)->getId();
 	for(preSchoolsItr = preSchools.begin(); preSchoolsItr != preSchools.end(); ++preSchoolsItr )
 	{
-		double distanceFromHomeToSchool = distanceCalculateEuclidean((*preSchoolsItr)->getCentroidX(),(*preSchoolsItr)->getCentroidY(),hhCentroidX,hhCentroidY);
-		if(distanceFromHomeToSchool < minDistance)
+		if((*preSchoolsItr)->getNumStudents() < (*preSchoolsItr)->getSchoolSlot())
 		{
-			minDistance = distanceFromHomeToSchool;
-			selectedPreSchoolId = (*preSchoolsItr)->getId();
+			double distanceFromHomeToSchool = distanceCalculateEuclidean((*preSchoolsItr)->getCentroidX(),(*preSchoolsItr)->getCentroidY(),hhCentroidX,hhCentroidY);
+			if(distanceFromHomeToSchool < minDistance)
+			{
+				minDistance = distanceFromHomeToSchool;
+				selectedPreSchoolId = (*preSchoolsItr)->getId();
+			}
 		}
 	}
 	Individual *individual = model->getIndividualById(individualId);
-	writePreSchoolAssignmentsToFile(individualId,individual->getStudentId(),selectedPreSchoolId);
+	model->addStudentToPrechool(individualId,selectedPreSchoolId);
 }
 
 void SchoolAssignmentSubModel::assignSecondarySchool(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day)
@@ -370,7 +374,7 @@ void SchoolAssignmentSubModel::assignSecondarySchool(const Household *household,
 				pTemp = pTemp + (*probSchoolItr).second;
 			}
 		}
-		model->addStudentToSecondarychool(individualId,selectedSchoolId,household->getId());
+		model->addStudentToSecondarychool(individualId,selectedSchoolId);
 	}
 	schoolExpVec.clear();
 	expSchoolMap.clear();
@@ -396,7 +400,7 @@ std::map<BigSerial, int> SchoolAssignmentSubModel::getStudentStopFequencyMap(HM_
    return studentStopMap;
 }
 
-void SchoolAssignmentSubModel::assignUniversity(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day)
+void SchoolAssignmentSubModel::assignUniversity( const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day)
 {
 	//refer page 6 of https://docs.google.com/document/d/1qC4TxjOG1ZkBLTxhDRvaucfwA9b08cRGAlV3UEb1hsY/edit for explanation of each step.
 	HM_Model::EzLinkStopList ezLinkStops = model->getEzLinkStops();
@@ -409,9 +413,14 @@ void SchoolAssignmentSubModel::assignUniversity(const Household *household,BigSe
 		double distanceFromEzLinkStopToHome = (distanceCalculateEuclidean(ezLinkStop->getXCoord(),ezLinkStop->getYCoord(),hhCoords->getCentroidX(),hhCoords->getCentroidY()));
 		//SchoolAssignmentSubModel::DistanceEzLinkStop distanceStop{ezLinkStop->getId(),distanceFromEzLinkStopToHome};
 		//distanceFromHomeToEzLinkStop.push_back(distanceStop);
-		if(distanceFromEzLinkStopToHome < 1000)
+		BigSerial nearestSchoolId = ezLinkStop->getNearestUniversityId();
+		if(nearestSchoolId != 0 )
 		{
-			nearbyEzLinkStopsById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
+			School *school = model->getUniversityById(nearestSchoolId);
+			if ((distanceFromEzLinkStopToHome < 1000) && (school->getNumStudents() < school->getSchoolSlot()))
+			{
+				nearbyEzLinkStopsById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
+			}
 
 		}
 	}
@@ -450,21 +459,70 @@ void SchoolAssignmentSubModel::assignUniversity(const Household *household,BigSe
 			{
 				if(studentStop->getSchoolStopEzLinkId() == distanceEzLinkStop.stopId)
 				{
-					nearByStudentStops.push_back(studentStop);
+					BigSerial ezLinkStopId = studentStop->getSchoolStopEzLinkId();
+					BigSerial uniId = model->getEzLinkStopsWithNearestUniById(ezLinkStopId)->getNearestUniversityId();
+					School *uni = model->getUniversityById(uniId);
+					if(uni->getNumStudents() < uni->getSchoolSlot())
+					{
+						nearByStudentStops.push_back(studentStop);
+					}
 				}
 			}
 		}
 	}
 
-	//int numSchoolStops = count_if (nearByStudentStops.begin(), nearByStudentStops.end(), IsUniqueSchoolStop);
-	std::map<BigSerial, int> studentStopMap = getStudentStopFequencyMap(nearByStudentStops);
+
 	std::map<BigSerial,double> probSchoolMap;
-	for(StudentStop *studentStop : nearByStudentStops)
+	BigSerial selectedSchoolId = 0;
+	if(nearByStudentStops.size() == 0)
 	{
-		int schoolStopFrequency = studentStopMap[studentStop->getSchoolStopEzLinkId()];
-		double prob = double(schoolStopFrequency) / nearByStudentStops.size();
-		probSchoolMap.insert(std::pair<BigSerial, double>( studentStop->getSchoolStopEzLinkId(), prob));
+		double totalStudentLimitDif = 0;
+		HM_Model::SchoolList universitiesWithSlots;
+		for(School *school : model->getUniversityList())
+		{
+			if(school->getNumStudents() < school->getSchoolSlot())
+			{
+				totalStudentLimitDif = totalStudentLimitDif + (school->getSchoolSlot() - school->getNumStudents());
+				universitiesWithSlots.push_back(school);
+			}
+		}
+		for(School *school : universitiesWithSlots)
+		{
+			double probSchool = (school->getSchoolSlot() - school->getNumStudents()) / totalStudentLimitDif;
+			probSchoolMap.insert(std::pair<BigSerial, double>( school->getId(), probSchool));
+		}
+
+		//generate a random number with uniform real distribution.
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_real_distribution<> dis(0.0, 1.0);
+			double randomNum =  dis(gen);
+			double pTemp = 0;
+
+			std::map<BigSerial,double>::const_iterator probSchoolItr;
+			for(probSchoolItr = probSchoolMap.begin(); probSchoolItr != probSchoolMap.end(); ++probSchoolItr)
+			{
+				if ((pTemp < randomNum) && (randomNum < (pTemp + (*probSchoolItr).second)))
+				{
+					selectedSchoolId = probSchoolItr->first;
+					break;
+				}
+				else
+				{
+					pTemp = pTemp + (*probSchoolItr).second;
+				}
+			}
 	}
+	else
+	{
+		std::map<BigSerial, int> studentStopMap = getStudentStopFequencyMap(nearByStudentStops);
+		for(StudentStop *studentStop : nearByStudentStops)
+		{
+			int schoolStopFrequency = studentStopMap[studentStop->getSchoolStopEzLinkId()];
+			double prob = double(schoolStopFrequency) / nearByStudentStops.size();
+			probSchoolMap.insert(std::pair<BigSerial, double>( studentStop->getSchoolStopEzLinkId(), prob));
+		}
+
 
 	//generate a random number with uniform real distribution.
 	std::random_device rd;
@@ -486,11 +544,17 @@ void SchoolAssignmentSubModel::assignUniversity(const Household *household,BigSe
 			pTemp = pTemp + (*probSchoolItr).second;
 		}
 	}
+	if(selectedSchoolStopId != 0)
+	{
+		selectedSchoolId = model->getEzLinkStopsWithNearestUniById(selectedSchoolStopId)->getNearestUniversityId();
+	}
+	}
+	if(selectedSchoolId == 0)
+	{
+		PrintOutV("school id 0 for uni assignment"<<std::endl);
+	}
+	model->addStudentToUniversity(individualId,selectedSchoolId);
 
-	BigSerial selectedSchoolId = model->getEzLinkStopsWithNearestUniById(selectedSchoolStopId)->getNearestUniversityId();
-
-	Individual *ind = model->getIndividualById(individualId);
-	writeUniversityAssignmentsToFile(individualId,ind->getStudentId(),selectedSchoolId);
 }
 
 void SchoolAssignmentSubModel::assignPolyTechnic(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day)
@@ -506,10 +570,15 @@ void SchoolAssignmentSubModel::assignPolyTechnic(const Household *household,BigS
 		double distanceFromEzLinkStopToHome = (distanceCalculateEuclidean(ezLinkStop->getXCoord(),ezLinkStop->getYCoord(),hhCoords->getCentroidX(),hhCoords->getCentroidY()));
 		//SchoolAssignmentSubModel::DistanceEzLinkStop distanceStop{ezLinkStop->getId(),distanceFromEzLinkStopToHome};
 		//distanceFromHomeToEzLinkStop.push_back(distanceStop);
-		if(distanceFromEzLinkStopToHome < 1000)
+		BigSerial nearestSchoolId = ezLinkStop->getNearestPolytechnicId();
+		if(nearestSchoolId != 0 )
 		{
-			nearbyEzLinkStopsById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
+			School *school = model->getPolytechnicById(nearestSchoolId);
+			if ((distanceFromEzLinkStopToHome < 1000) && (school->getNumStudents() < school->getSchoolSlot()))
+			{
+				nearbyEzLinkStopsById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
 
+			}
 		}
 	}
 
@@ -546,44 +615,102 @@ void SchoolAssignmentSubModel::assignPolyTechnic(const Household *household,BigS
 			{
 				if(studentStop->getSchoolStopEzLinkId() == distanceEzLinkStop.stopId)
 				{
-					nearByStudentStops.push_back(studentStop);
+					BigSerial schoolStopId = studentStop->getSchoolStopEzLinkId();
+					BigSerial polytechId = model->getEzLinkStopsWithNearestPolytechById(schoolStopId)->getNearestPolytechnicId();
+					School *poly = model->getPolytechnicById(polytechId);
+					if(poly->getNumStudents() < poly->getSchoolSlot())
+					{
+
+						nearByStudentStops.push_back(studentStop);
+					}
 				}
 			}
 		}
 	}
 
-	std::map<BigSerial, int> studentStopMap = getStudentStopFequencyMap(nearByStudentStops);
+	BigSerial selectedSchoolId = 0;
 	std::map<BigSerial,double> probSchoolMap;
-	for(StudentStop *studentStop : nearByStudentStops)
+
+	if(nearByStudentStops.size() == 0)
 	{
-		int schoolStopFrequency = studentStopMap[studentStop->getSchoolStopEzLinkId()];
-		double prob = double(schoolStopFrequency) / nearByStudentStops.size();
-		probSchoolMap.insert(std::pair<BigSerial, double>( studentStop->getSchoolStopEzLinkId(), prob));
+		double totalStudentLimitDif = 0;
+		HM_Model::SchoolList polytechnicsWithSlots;
+		for(School *school : model->getPolytechnicList())
+		{
+			if(school->getNumStudents() < school->getSchoolSlot())
+			{
+				totalStudentLimitDif = totalStudentLimitDif + (school->getSchoolSlot() - school->getNumStudents());
+				polytechnicsWithSlots.push_back(school);
+			}
+		}
+		for(School *school : polytechnicsWithSlots)
+		{
+			double probSchool = (school->getSchoolSlot() - school->getNumStudents()) / totalStudentLimitDif;
+			probSchoolMap.insert(std::pair<BigSerial, double>( school->getId(), probSchool));
+		}
+
+		//generate a random number with uniform real distribution.
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<> dis(0.0, 1.0);
+		double randomNum =  dis(gen);
+		double pTemp = 0;
+
+		std::map<BigSerial,double>::const_iterator probSchoolItr;
+		for(probSchoolItr = probSchoolMap.begin(); probSchoolItr != probSchoolMap.end(); ++probSchoolItr)
+		{
+			if ((pTemp < randomNum) && (randomNum < (pTemp + (*probSchoolItr).second)))
+			{
+				selectedSchoolId = probSchoolItr->first;
+				break;
+			}
+			else
+			{
+				pTemp = pTemp + (*probSchoolItr).second;
+			}
+		}
+	}
+	else
+	{
+
+		std::map<BigSerial, int> studentStopMap = getStudentStopFequencyMap(nearByStudentStops);
+		for(StudentStop *studentStop : nearByStudentStops)
+		{
+			int schoolStopFrequency = studentStopMap[studentStop->getSchoolStopEzLinkId()];
+			double prob = double(schoolStopFrequency) / nearByStudentStops.size();
+			probSchoolMap.insert(std::pair<BigSerial, double>( studentStop->getSchoolStopEzLinkId(), prob));
+		}
+
+		//generate a random number with uniform real distribution.
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<> dis(0.0, 1.0);
+		double randomNum =  dis(gen);
+		double pTemp = 0;
+		BigSerial selectedSchoolStopId = 0;
+		std::map<BigSerial,double>::const_iterator probSchoolItr;
+		for(probSchoolItr = probSchoolMap.begin(); probSchoolItr != probSchoolMap.end(); ++probSchoolItr)
+		{
+			if ((pTemp < randomNum) && (randomNum < (pTemp + (*probSchoolItr).second)))
+			{
+				selectedSchoolStopId = probSchoolItr->first;
+				break;
+			}
+			else
+			{
+				pTemp = pTemp + (*probSchoolItr).second;
+			}
+		}
+
+		if(selectedSchoolStopId != 0)
+		{
+			selectedSchoolId = model->getEzLinkStopsWithNearestPolytechById(selectedSchoolStopId)->getNearestPolytechnicId();
+		}
+	}
+	if(selectedSchoolId == 0)
+	{
+		PrintOutV("school id 0 for polytech assignment"<<std::endl);
 	}
 
-	//generate a random number with uniform real distribution.
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_real_distribution<> dis(0.0, 1.0);
-	double randomNum =  dis(gen);
-	double pTemp = 0;
-	BigSerial selectedSchoolStopId = 0;
-	std::map<BigSerial,double>::const_iterator probSchoolItr;
-	for(probSchoolItr = probSchoolMap.begin(); probSchoolItr != probSchoolMap.end(); ++probSchoolItr)
-	{
-		if ((pTemp < randomNum) && (randomNum < (pTemp + (*probSchoolItr).second)))
-		{
-			selectedSchoolStopId = probSchoolItr->first;
-			break;
-		}
-		else
-		{
-			pTemp = pTemp + (*probSchoolItr).second;
-		}
-	}
-
-	BigSerial selectedSchoolId = model->getEzLinkStopsWithNearestPolytechById(selectedSchoolStopId)->getNearestPolytechnicId();
-
-	Individual *ind = model->getIndividualById(individualId);
-	writePolyTechAssignmentsToFile(individualId,ind->getStudentId(),selectedSchoolId);
+	model->addStudentToPolytechnic(individualId,selectedSchoolId);
 }

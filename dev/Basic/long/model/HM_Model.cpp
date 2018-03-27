@@ -3787,14 +3787,23 @@ int HM_Model::getPreSchoolAssignIndividualCount()
 	return this->numPreSchoolAssignIndividuals;
 }
 
+void HM_Model::addStudentToPrechool(BigSerial individualId, int schoolId)
+{
+	{
+		boost::mutex::scoped_lock lock( mtx );
+		School *preSchool = getPreSchoolById(schoolId);
+		preSchool->addStudent(individualId);
+		writePreSchoolAssignmentsToFile(individualId,schoolId);
+	}
+}
+
 void HM_Model::addStudentToPrimarySchool(BigSerial individualId, int schoolId, BigSerial householdId)
 {
 	{
 		boost::mutex::scoped_lock lock( mtx );
 		School *priSchool = getPrimarySchoolById(schoolId);
-		Individual *ind = getIndividualById(individualId);
 		priSchool->addStudent(individualId);
-		writePrimarySchoolAssignmentsToFile(individualId,ind->getStudentId(),schoolId);
+		writePrimarySchoolAssignmentsToFile(individualId,schoolId);
 		HHCoordinates *hhCoords = getHHCoordinateByHHId(householdId);
 		double distanceFromHomeToSchool = (distanceCalculateEuclidean(priSchool->getCentroidX(),priSchool->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
 		School::DistanceIndividual distanceInd{individualId,distanceFromHomeToSchool};
@@ -3802,13 +3811,42 @@ void HM_Model::addStudentToPrimarySchool(BigSerial individualId, int schoolId, B
 	}
 }
 
-void HM_Model::addStudentToSecondarychool(BigSerial individualId, int schoolId, BigSerial householdId)
+void HM_Model::addStudentToSecondarychool(BigSerial individualId, int schoolId)
 {
 	{
 		boost::mutex::scoped_lock lock( mtx );
 		School *secSchool = getSecondarySchoolById(schoolId);
-		secSchool->addStudent(individualId);Individual *ind = getIndividualById(individualId);
-		writeSecondarySchoolAssignmentsToFile(individualId,ind->getStudentId(),schoolId);
+		secSchool->addStudent(individualId);
+		writeSecondarySchoolAssignmentsToFile(individualId,schoolId);
+	}
+
+}
+
+void HM_Model::addStudentToUniversity(BigSerial individualId, int schoolId)
+{
+	{
+		boost::mutex::scoped_lock lock( mtx );
+		School *university = getUniversityById(schoolId);
+		if(university != nullptr)
+		{
+			university->addStudent(individualId);
+		}
+
+		writeUniversityAssignmentsToFile(individualId,schoolId);
+	}
+
+}
+
+void HM_Model::addStudentToPolytechnic(BigSerial individualId, int schoolId)
+{
+	{
+		boost::mutex::scoped_lock lock( mtx );
+		School *polytechnic = getPolytechnicById(schoolId);
+		if(polytechnic != nullptr)
+		{
+			polytechnic->addStudent(individualId);
+		}
+		writePolyTechAssignmentsToFile(individualId,schoolId);
 	}
 
 }
@@ -4011,6 +4049,7 @@ void HM_Model::assignNearestUniToEzLinkStops()
 		{
 			ezLinkStop->setNearestUniversityId(nearestSchoolId);
 			ezLinkStopsWithNearestUni.push_back(ezLinkStop);
+			writeEzlinkStopsWithNearesUniToFile(ezLinkStop->getId(), nearestSchoolId);
 			ezLinkStopsWithNearestUniById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
 		}
 	}
@@ -4049,6 +4088,7 @@ void HM_Model::assignNearestPolytechToEzLinkStops()
 		}
 		if(minDistance < 1000)
 		{
+			writeEzlinkStopsWithNearesPolyToFile(ezLinkStop->getId(), nearestSchoolId);
 			ezLinkStop->setNearestPolytechnicId(nearestSchoolId);
 			ezLinkStopsWithNearestPolyTech.push_back(ezLinkStop);
 			ezLinkStopsWithNearestPolytechById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));

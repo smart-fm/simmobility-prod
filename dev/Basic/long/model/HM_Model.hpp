@@ -549,8 +549,11 @@ namespace sim_mob
             int getPrimaySchoolAssignIndividualCount();
             void incrementPreSchoolAssignIndividualCount();
             int getPreSchoolAssignIndividualCount();
+            void addStudentToPrechool(BigSerial individualId, int schoolId);
             void addStudentToPrimarySchool(BigSerial individualId, int schoolId, BigSerial householdId);
-            void addStudentToSecondarychool(BigSerial individualId, int schoolId, BigSerial householdId);
+            void addStudentToSecondarychool(BigSerial individualId, int schoolId);
+            void addStudentToUniversity(BigSerial individualId, int schoolId);
+            void addStudentToPolytechnic(BigSerial individualId, int schoolId);
 
 
         protected:

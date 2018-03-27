@@ -398,8 +398,18 @@ public:
      */
 	std::string getScriptFileName(std::string key) const
 	{
-        /// at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
-		return scriptFileNameMap.at(key);
+		try
+		{
+			/// at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
+			return scriptFileNameMap.at(key);
+		}
+		catch(const std::out_of_range& oorx)
+		{
+			std::stringstream msg;
+			msg << scriptLanguage << " file for the model \'" << key << "\' not defined in the <model_scripts> section "
+			    << "of the configuration file ";
+			throw std::runtime_error(msg.str());
+		}
 	}
 
     /**

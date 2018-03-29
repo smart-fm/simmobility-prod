@@ -1638,6 +1638,12 @@ long sim_mob::medium::PredaySystem::getFirstNodeInZone(const std::vector<ZoneNod
 void sim_mob::medium::PredaySystem::computeLogsums()
 {
     const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+
+    TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, numModes, unavailableODs);
+	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
+    PredayLuaProvider::getPredayModel().initializeLogsums(personParams, activityTypeConfigMap);
+    PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, activityTypeConfigMap, tmdParams, zoneMap.size());
+
 	if(personParams.hasFixedWorkPlace())
 	{
 		TourModeParams tmParams;
@@ -1645,7 +1651,7 @@ void sim_mob::medium::PredaySystem::computeLogsums()
         PredayLuaProvider::getPredayModel().computeTourModeLogsumWork(personParams, activityTypeConfigMap, tmParams);
 	}
     TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, numModes, unavailableODs);
-	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
+	if(personParams.isStudent())
     PredayLuaProvider::getPredayModel().initializeLogsums(personParams, activityTypeConfigMap);
     PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, activityTypeConfigMap, tmdParams, zoneMap.size());
     	// ISABEL

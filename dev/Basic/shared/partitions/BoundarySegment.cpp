@@ -41,7 +41,7 @@ void sim_mob::BoundarySegment::buildBoundaryBox(double boundary_length, double b
 	//change to use the start and end node in the polyline.
 	int lane_count = boundarySegment->getLanes().size();
 	int middle_lane = lane_count / 2;
-	sim_mob::Lane* the_lane = boundarySegment->getLanes()[middle_lane];
+	const sim_mob::Lane* the_lane = boundarySegment->getLane(middle_lane);
 	const std::vector<PolyPoint> the_lines = the_lane->getPolyLine()->getPoints();
 	const Point& start_node = the_lines[0];
 	const Point& end_node = the_lines[the_lines.size() - 1];

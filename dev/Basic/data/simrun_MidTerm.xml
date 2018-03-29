@@ -59,6 +59,12 @@
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
             <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
 	    <!-- Demand Related stored procedures-->
+	    <!-- Restricted Region (if a region needs to be filtered) Related stored procedures-->
+            <mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
+            <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
+            <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
+            <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
+	    <!-- Demand Related stored procedures-->
             <mapping name="day_activity_schedule" procedure="get_persons_between_simon_testing"/>
             <!--<mapping name="freight_trips" procedure="get_freight_between"/>
 get_persons_between_pan_amod_testing_withoutonhailtaxi-->
@@ -70,7 +76,7 @@ get_persons_between_pan_amod_testing_withoutonhailtaxi-->
             <mapping name="rail_sms_pathset" procedure="get_pt_pathset_tr_sms_mrt"/>
             <mapping name="rail_sms_edges" procedure="get_pt_tr_edges_sms_mrt()"/>
             <mapping name="rail_sms_vertices" procedure="get_pt_tr_vertices_sms_mrt()"/>
-        </proc_map>
+            </proc_map>
 
         <!-- Singapore network -->
 
@@ -151,7 +157,7 @@ get_persons_between_pan_amod_testing_withoutonhailtaxi-->
 <!-- granularity of each component must be a multiple of the "base" granularity -->
     <!-- default value "base" granularity for mid-term is 5 seconds-->
 <workers>
-        <person count="2" granularity="5 seconds"/> <!-- Person agents (with Roles) with count for threads as person count in Mid-Term Supply. -->
+        <person count="10" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
 </workers>
 
 <incidentsData enabled="false">
@@ -196,7 +202,7 @@ get_persons_between_pan_amod_testing_withoutonhailtaxi-->
     <trainController enabled="false" train_control_type="moving_block">
     <output_enabled value="false"/>
     <distance_arriving_at_platform value ="0.001"/>
-</trainController>
+    </trainController>    
 
 <!-- config used for enabling region restriction for private vehicles. The region must be pre-defined and kept in the database. The corresponding functions must be provided in the proc_map -->
 <region_restriction enabled="false"/>
@@ -302,10 +308,10 @@ get_persons_between_pan_amod_testing_withoutonhailtaxi-->
     <!-- prints person ids and tour details in console for each person if enabled -->
     <console_output enabled="true"/>
     <!-- table containing logsums for each individual in the population. NOTE:  -->
-        <logsum_table name="demand.preday_logsum_test_new_activity_sg_aditi"/>
+        <logsum_table name="demand.preday_logsum"/>
 
         <!-- model scripts for PRE-DAY -->
-        <model_scripts path="scripts/lua/mid/behavior_fornew_act_type_sg" format="lua">
+        <model_scripts path="scripts/lua/mid/behavior_vc" format="lua">
         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
         <script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
         <script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
@@ -331,7 +337,7 @@ get_persons_between_pan_amod_testing_withoutonhailtaxi-->
         <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->
         <script name="zpa" file="zpa.lua"/> <!--Zone postcode assignment -->
         <script name="zpa" file="zpa.lua"/> <!--Zone postcode assignment -->
-    </model_scripts>
+	</model_scripts>
 
        <!-- ======================= CALIBRAION ======================== -->
     <calibration enabled="false">

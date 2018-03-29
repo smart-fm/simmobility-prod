@@ -163,6 +163,7 @@ public:
 	void setYieldingToDriver(const Driver *driver);
 
 	const Lane* getCurrLane() const;
+	const TurningPath* getCurrTurningPath() const;
 
 	const Point& getCurrPosition() const;
 	void setCurrPosition(Point currPosition);
@@ -289,6 +290,11 @@ public:
 	bool IsVehicleInLoadingQueue() const
 	{
 		return isVehicleInLoadingQueue;
+	}
+
+	bool IsInIntersection() const
+	{
+		return isInIntersection_.get();
 	}
 
 #ifndef SIMMOB_DISABLE_MPI

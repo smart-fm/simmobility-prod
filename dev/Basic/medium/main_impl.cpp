@@ -9,6 +9,9 @@
 // added to access the lua function: to set the seed before the start of the preday run
 #include "behavioral/lua/PredayLuaProvider.hpp"
 
+// added to access the lua function: to set the seed before the start of the preday run
+#include "behavioral/lua/PredayLuaProvider.hpp"
+
 //TODO: Replace with <chrono> or something similar.
 #include <sys/time.h>
 

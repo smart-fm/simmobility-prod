@@ -58,11 +58,19 @@
 </constructs>
 
 <simulation>
+
+        <!-- Preday Seed Value. Currently only the preday is repeatable.  -->
+        <seedValue value = "1331"/>
+
     <!-- Reasonable values for ShortTerm -->
     <!--<base_granularity   value="100"   units="ms"/>-->
 
     <!-- Reasonable values for MidTerm -->
     <base_granularity   value="5"   units="seconds"/>
+
+
+        <!--Operational cost per km for car. Default value = 0.147-->
+        <operational_cost value="0.147"/>
 
     <total_runtime      value="10"      units="minutes" />
     <total_warmup       value="1"    units="minutes" />

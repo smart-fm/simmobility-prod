@@ -152,7 +152,7 @@ private:
 
 	/**The car following parameters*/
 	CarFollowingParams CF_parameters[2];
-	
+
 	/**Merging parameters*/
 	vector<double> mergingParams;
 
@@ -375,7 +375,7 @@ private:
 	 * @return acceleration
      */
 	double calcAccToCreateGap(DriverUpdateParams &params, NearestVehicle &nearestVeh, float gap);
-	
+
 	/**
 	 * Calculates the acceleration while exiting a specific lane. For e.g: If a vehicle is not in the correct lane
 	 * close to the end of a link, it may decelerate to a stop and wait for lane changing.
@@ -603,7 +603,7 @@ public:
      */
 	virtual double makeAcceleratingDecision(DriverUpdateParams &params);
 
-	double getHBufferUpper()
+	const double getHBufferUpper() const
 	{
 		return hBufferUpper;
 	}

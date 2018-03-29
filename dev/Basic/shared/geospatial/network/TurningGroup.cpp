@@ -159,3 +159,21 @@ const std::map<unsigned int, TurningPath *>* TurningGroup::getTurningPaths(unsig
 		return NULL;
 	}
 }
+
+const TurningPath* TurningGroup::getTurningPath(unsigned int fromLaneId, unsigned int toLaneId) const
+{
+	const TurningPath *tPath = nullptr;
+	auto tPaths = getTurningPaths(fromLaneId);
+
+	if(tPaths)
+	{
+		auto itTurningPath = tPaths->find(toLaneId);
+
+		if(itTurningPath != tPaths->end())
+		{
+			tPath = itTurningPath->second;
+		}
+	}
+
+	return tPath;
+}

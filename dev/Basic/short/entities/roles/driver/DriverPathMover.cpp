@@ -318,12 +318,12 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 	{
 		//Copy the way-points from the given path
 		drivingPath = path;
-		
+
 		//Check if the start segment is given, if not start at the first segment
 		if(startSegmentId != 0)
 		{
 			std::vector<WayPoint>::const_iterator it = drivingPath.begin();
-			
+
 			//Look for the given start segment in the path
 			while(it != drivingPath.end())
 			{
@@ -335,10 +335,10 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 						break;
 					}
 				}
-				
+
 				++it;
 			}
-			
+
 			//If the requested segment was not in the driving path, start from the first segment
 			if(it == drivingPath.end())
 			{
@@ -351,62 +351,9 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 			currWayPointIt = drivingPath.begin();
 		}
 		
-		//The current lane index
-		unsigned int currLaneIndex = 0;
-		unsigned int noOfLanes = currWayPointIt->roadSegment->getNoOfLanes();
-		
-		//Validate the given start lane index
-		if(startLaneIndex < 0 || startLaneIndex >= noOfLanes)
-		{
-			//Invalid index
-			
-			if(drivingPath.size() > 1 && (currWayPointIt + 1)->type == WayPoint::TURNING_GROUP)
-			{
-				//Only one segment in the current link. Assign a lane that connects to the next link
-				
-				//Get the turning group and turning paths
-				const TurningGroup *tGroup = (currWayPointIt + 1)->turningGroup;
-				const std::map<unsigned int, std::map<unsigned int, TurningPath *> > &tPaths = tGroup->getTurningPaths();
-				
-				if(!tPaths.empty())
-				{
-					//Select "from lane" randomly from the available paths
-					unsigned int randomInt = Utils::generateInt(0, tPaths.size() - 1);
-					std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator it = tPaths.begin();
-					std::advance(it, randomInt);
-
-					//Extract the lane index
-					currLaneIndex = it->first % 10;
-				}
-				else
-				{
-					currLaneIndex = Utils::generateInt(0, noOfLanes-1);
-				}
-			}
-			else
-			{
-				currLaneIndex = Utils::generateInt(0, noOfLanes-1);
-			}
-		}
-		else
-		{
-			currLaneIndex = startLaneIndex;
-		}
-		
 		//Set the current lane
-		currLane = currWayPointIt->roadSegment->getLane(currLaneIndex);
+		currLane = currWayPointIt->roadSegment->getLane(startLaneIndex);
 
-		
-		//Ensure that this is not a pedestrian lane
-		while(currLane->isPedestrianLane())
-		{
-			Print() << "Starting lane " << currLane->getLaneId() << " (index = " << currLaneIndex << ")is a pedestrian lane";
-			Print() << "Selecting next lane...";
-			
-			//Try the next lane
-			++currLaneIndex;
-			currLane = currWayPointIt->roadSegment->getLane(currLaneIndex);
-		}
 		
 		//Set the current poly-line and the set the iterators to point to the current and next points
 		currPolyLine = currLane->getPolyLine();

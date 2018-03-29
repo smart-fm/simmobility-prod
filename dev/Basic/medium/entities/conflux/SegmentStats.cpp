@@ -87,7 +87,7 @@ SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, dou
 	numVehicleLanes = 0;
 
 	// initialize LaneAgents in the map
-	std::vector<Lane*>::const_iterator laneIt = rdSeg->getLanes().begin();
+	std::vector<const Lane*>::const_iterator laneIt = rdSeg->getLanes().begin();
 	while (laneIt != rdSeg->getLanes().end())
 	{
 		LaneStats* lnStats = new LaneStats(*laneIt, length);
@@ -450,8 +450,8 @@ unsigned int SegmentStats::numAgentsInLane(const Lane* lane) const
 unsigned int SegmentStats::numMovingInSegment(bool hasVehicle) const
 {
 	unsigned int movingCounts = 0;
-	const std::vector<Lane*>& segLanes = roadSegment->getLanes();
-	std::vector<Lane*>::const_iterator laneIt = segLanes.begin();
+	const std::vector<const Lane*>& segLanes = roadSegment->getLanes();
+	std::vector<const Lane*>::const_iterator laneIt = segLanes.begin();
 	while (laneIt != segLanes.end())
 	{
 		if ((hasVehicle && !(*laneIt)->isPedestrianLane()) || (!hasVehicle && (*laneIt)->isPedestrianLane()))
@@ -562,6 +562,25 @@ double LaneStats::getDensity()
 	return density;
 }
 
+//density will be computed in vehicles/meter-lane for the moving part of the lane
+double LaneStats::getDensity()
+{
+	double density = 0.0;
+	double queueLength = getQueueLength();
+	double movingPartLength = length - queueLength;
+	double movingPCUs = getMovingLength() / PASSENGER_CAR_UNIT;
+
+	if (movingPartLength > PASSENGER_CAR_UNIT)
+	{
+		density = movingPCUs / movingPartLength;
+	}
+	else
+	{
+		density = 1 / PASSENGER_CAR_UNIT;
+	}
+	return density;
+}
+
 //density will be computed in vehicles/lane-km for the full segment
 double SegmentStats::getTotalDensity(bool hasVehicle)
 {
@@ -575,8 +594,8 @@ double SegmentStats::getTotalDensity(bool hasVehicle)
 unsigned int SegmentStats::numQueuingInSegment(bool hasVehicle) const
 {
 	unsigned int queuingCounts = 0;
-	const std::vector<Lane*>& segLanes = roadSegment->getLanes();
-	std::vector<Lane*>::const_iterator lane = segLanes.begin();
+	const std::vector<const Lane*>& segLanes = roadSegment->getLanes();
+	std::vector<const Lane*>::const_iterator lane = segLanes.begin();
 	while (lane != segLanes.end())
 	{
 		if ((hasVehicle && !(*lane)->isPedestrianLane()) || (!hasVehicle && (*lane)->isPedestrianLane()))
@@ -1055,7 +1074,7 @@ unsigned int SegmentStats::computeExpectedOutputPerTick()
 	{
 		count += i->second->laneParams->getOutputFlowRate() * ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	}
-	return std::floor(count);
+	return std::ceil(count);
 }
 
 void SegmentStats::updateLinkDrivingTimes(double drivingTimeToEndOfLink)
@@ -1067,7 +1086,7 @@ void SegmentStats::updateLinkDrivingTimes(double drivingTimeToEndOfLink)
 		speed = INFINITESIMAL_DOUBLE;
 	}
 
-	for (std::vector<Lane*>::const_iterator lnIt = roadSegment->getLanes().begin(); lnIt != roadSegment->getLanes().end(); lnIt++)
+	for (auto lnIt = roadSegment->getLanes().begin(); lnIt != roadSegment->getLanes().end(); lnIt++)
 	{
 		PersonList& lnAgents = laneStatsMap.find(*lnIt)->second->laneAgents;
 		for (PersonList::const_iterator pIt = lnAgents.begin(); pIt != lnAgents.end(); pIt++)

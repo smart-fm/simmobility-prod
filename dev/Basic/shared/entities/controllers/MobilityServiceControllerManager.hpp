@@ -66,7 +66,8 @@ public:
 	 * @param  scheduleComputationPeriod Schedule computation period of controller
 	 * @return                           Sucess
 	 */
-	bool addMobilityServiceController(MobilityServiceControllerType type, unsigned int scheduleComputationPeriod, unsigned id, std::string tripSupportMode);
+	bool addMobilityServiceController(MobilityServiceControllerType type, unsigned int scheduleComputationPeriod, unsigned id, std::string tripSupportMode,
+                                      unsigned maxAggregatedRequests);
 
 
 	/**

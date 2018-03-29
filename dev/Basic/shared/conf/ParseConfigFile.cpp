@@ -898,6 +898,7 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
 					ParseUnsignedInt(GetNamedAttributeValue(*it, "scheduleComputationPeriod"));
 
 			unsigned int maxFleetSize = ParseUnsignedInt(GetNamedAttributeValue(*it, "maxFleetSize"));
+            unsigned int maxAggregatedRequests = ParseUnsignedInt(GetNamedAttributeValue(*it,"maxAggregatedRequests"));
 
 			if (cfg.mobilityServiceController.enabledControllers.count(key) > 0)
 			{
@@ -914,6 +915,7 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
 				vcc.scheduleComputationPeriod = scheduleComputationPeriod;
 				vcc.maxFleetSize=maxFleetSize;
 				vcc.tripSupportMode = tripSupportMode;
+                vcc.maxAggregatedRequests = maxAggregatedRequests;
 				cfg.mobilityServiceController.enabledControllers[key] = vcc;
 			}
 		}

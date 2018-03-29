@@ -47,8 +47,9 @@ protected:
 	// (see https://stackoverflow.com/a/121163/2110769)
 	// The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
 	explicit MobilityServiceController(const MutexStrategy &mtxStrat,
-	                                   MobilityServiceControllerType type_, unsigned id_, std::string tripSupportMode_)
-			: Agent(mtxStrat, id_), controllerServiceType(type_), controllerId(id_), tripSupportMode(tripSupportMode_)
+	                                   MobilityServiceControllerType type_, unsigned id_, std::string tripSupportMode_,
+                                       unsigned maxAggregatedRequests_)
+			: Agent(mtxStrat, id_), controllerServiceType(type_), controllerId(id_), tripSupportMode(tripSupportMode_), maxAggregatedRequests(maxAggregatedRequests_)
 	{
 #ifndef NDEBUG
 		sim_mob::consistencyChecks(type_);
@@ -94,7 +95,7 @@ public:
 	/**
 	 * Maximum number of people we can put together in a single vehicle
 	 */
-	static const unsigned maxAggregatedRequests;
+	unsigned maxAggregatedRequests;
 
 	/**
 	 * Inherited from base class agent to initialize parameters

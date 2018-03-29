@@ -15,9 +15,9 @@ namespace sim_mob {
 class ProximityBased: public OnCallController
 {
 	public:	ProximityBased(const MutexStrategy &mtxStrat, unsigned int computationPeriod, unsigned id, std::string tripSupportMode_,
-            TT_EstimateType ttEstimateType) : OnCallController(mtxStrat, computationPeriod,
+            TT_EstimateType ttEstimateType, unsigned maxAggregatedRequests_) : OnCallController(mtxStrat, computationPeriod,
                                                                MobilityServiceControllerType::SERVICE_CONTROLLER_PROXIMITY,
-                                                               id,  tripSupportMode_,ttEstimateType)
+                                                               id,  tripSupportMode_,ttEstimateType,maxAggregatedRequests_)
 	{}
 
 		virtual ~ProximityBased(){};

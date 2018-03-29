@@ -80,14 +80,20 @@ void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, con
 	{
 		const SchedulePropositionMessage &msg = MSG_CAST(SchedulePropositionMessage, message);
 		const Schedule &updatedSchedule = msg.getSchedule();
+        //keep current Schedule item before updating the schedule
+        ScheduleItem itemInProgress = *(driverSchedule.getCurrScheduleItem());
 
-		//As this is an updated schedule, this will be a partial schedule. It contains only items that the controller
+
+        //As this is an updated schedule, this will be a partial schedule. It contains only items that the controller
 		//knows the driver has not completed. So, we check if the item we are performing currently has been
 		//re-scheduled. If so, we must discontinue it and start performing the new sequence. Else, we continue
 		//whatever we were doing. In either case, we must update the schedule
 		if(currentItemRescheduled(updatedSchedule))
 		{
 			driverSchedule.setSchedule(updatedSchedule);
+            ControllerLog()<<"*****Current Scedule Item  [ "<< itemInProgress << " ] of Driver "<<this->getParent()->getDatabaseId() <<" found in Updated Schedule { " << updatedSchedule
+                           <<" }.So it would be rescheduled mean it will pause and driver will now start to follow new Updated schedule. "<< endl;
+
 
 			//Set the schedule updated to true, so that we perform the schedule item during the
 			//frame tick
@@ -410,7 +416,13 @@ void OnCallDriver::dropoffPassenger()
 
 			dropOffAnotherPerson = nxtItem->scheduleItemType == DROPOFF
 			                       && currItem->tripRequest.destinationNode == nxtItem->tripRequest.destinationNode;
-		}
+            if (dropOffAnotherPerson)
+            {
+                ControllerLog() << "These persons will be dropped off at same node :(" << passengerId << " |" <<
+                                nxtItem->tripRequest.userId << ") by driver " << parent->getDatabaseId() << " to Node " <<
+                                currItem->tripRequest.destinationNode->getNodeId() << endl;
+            }
+        }
 		else
 		{
 			dropOffAnotherPerson = false;
@@ -442,3 +454,25 @@ void OnCallDriver::endShift()
 	                << parent->getDatabaseId() << ": Shift ended"  << endl;
 }
 
+std::string OnCallDriver::getPassengersId() const
+{
+    std::string passengerID = "";
+    if (passengers.empty())
+    {
+        passengerID = "No Passenger";
+    }
+    else
+    {
+        for (std::unordered_map<std::string, Passenger *>::const_iterator it = passengers.begin(); it != passengers.end(); ++it)
+        {
+            if (it != passengers.begin())
+            {
+                passengerID.append("|");
+            }
+
+            passengerID.append(it->first);
+        }
+
+    }
+    return passengerID;
+}

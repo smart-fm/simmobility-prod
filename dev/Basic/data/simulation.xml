@@ -64,9 +64,9 @@
     <!-- Reasonable values for MidTerm -->
     <base_granularity   value="5"   units="seconds"/>
 
-    <total_runtime      value="180"      units="minutes" />
+    <total_runtime      value="10"      units="minutes" />
     <total_warmup       value="1"    units="minutes" />
-    <start_time         value="05:00:00"/>
+    <start_time         value="07:00:00"/>
 
     <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->
     <in_simulation_travel_time_usage value="0"/>
@@ -113,8 +113,8 @@ Note: Controller id indicates the subscribed_controller field specified in the t
     <!-- Trip Support Modes available
     "Rail_SMS_Pool" "AMOD_Pool" "Rail_SMS" "SMS_Pool" "SMS" "AMOD"
     -->
-    <controller id="2" type="7" tripSupportMode = "|AMOD|AMOD_Pool|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="10000"/> -->
-    <controller id="4" type="3" tripSupportMode = "|SMS|SMS_Pool|Rail_SMS|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="2000"/>
+    <controller id="5" type="7" tripSupportMode = "|AMOD|SMS|AMOD_Pool|SMS_Pool||Rail_SMS|Rail_SMS_Pool|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="10000" maxAggregatedRequests="2"/>
+    <!--<controller id="4" type="1" tripSupportMode = "|Taxi|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="2000"/>-->
 </mobilityServiceController>
 
 <merge_log_files value="true"/>

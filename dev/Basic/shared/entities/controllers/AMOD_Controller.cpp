@@ -8,8 +8,8 @@ using namespace sim_mob;
 using namespace std;
 
 AMOD_Controller::AMOD_Controller(const MutexStrategy &mtx, unsigned int computationPeriod, unsigned int id, std::string tripSupportMode_,
-                                 TT_EstimateType tt_estType) : OnCallController(mtx, computationPeriod,
-                                                                                SERVICE_CONTROLLER_AMOD, id, tripSupportMode_,tt_estType)
+                                 TT_EstimateType tt_estType, unsigned maxAggregatedRequests_) : OnCallController(mtx, computationPeriod,
+                                                                                SERVICE_CONTROLLER_AMOD, id, tripSupportMode_,tt_estType,maxAggregatedRequests_)
 {}
 
 void AMOD_Controller::computeSchedules()
@@ -122,7 +122,7 @@ void AMOD_Controller::separateSharedAndSingleRequests()
 void AMOD_Controller::matchDriversServingSharedReq()
 {
 	{
-		unsigned maxAggRequests = maxAggregatedRequests - 1;
+        unsigned maxAggRequests = maxAggregatedRequests- 1;
 
 		//This will contain the constructed schedule for every driver
 		std::unordered_map<const Person *, Schedule> schedulesComputedSoFar;
@@ -229,9 +229,7 @@ void AMOD_Controller::matchSingleRiderReq()
 				const ScheduleItem parkScheduleItem(PARK, parking);
 				schedule.push_back(parkScheduleItem);
 			}
-
-			assignSchedule(bestDriver, schedule);
-
+            assignSchedule(bestDriver, schedule);
 #ifndef NDEBUG
 			if (currTick < request->timeOfRequest)
 			{
@@ -334,6 +332,5 @@ Schedule AMOD_Controller::buildSchedule(unsigned int maxAggregatedRequests, cons
 	}
 
 	// Now we are done with this driver.
-
 	return schedule;
 }

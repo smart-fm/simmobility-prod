@@ -126,7 +126,8 @@ protected:
 	// (see https://stackoverflow.com/a/121163/2110769).
 	// The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
 	explicit OnCallController(const MutexStrategy& mtxStrat, unsigned int computationPeriod,
-			MobilityServiceControllerType type_, unsigned id, std::string tripSupportMode_,TT_EstimateType ttEstimateType);
+			MobilityServiceControllerType type_, unsigned id, std::string tripSupportMode_,TT_EstimateType ttEstimateType,
+                              unsigned maxAggregatedRequests_);
 
 public:
 	virtual ~OnCallController();
@@ -172,6 +173,7 @@ protected:
 	/**List of drivers who have been assigned a schedule, but are carrying only 1 passenger,
 	 * so they can potentially serve 1 more request (used by incremental controller)*/
 	std::set<const Person *> partiallyAvailableDrivers;
+    std::set<const Person *> driverServingSharedRequests;
 
 	/** Keeps track of current local tick */
 	unsigned int localTick = 0;

@@ -17,8 +17,8 @@ using namespace messaging;
 using namespace std;
 
 OnCallController::OnCallController(const MutexStrategy &mtxStrat, unsigned int computationPeriod,
-                                   MobilityServiceControllerType type_, unsigned id, std::string tripSupportMode_, TT_EstimateType ttEstimateType_)
-		: MobilityServiceController(mtxStrat, type_, id, tripSupportMode_), scheduleComputationPeriod(computationPeriod),
+                                   MobilityServiceControllerType type_, unsigned id, std::string tripSupportMode_, TT_EstimateType ttEstimateType_,unsigned maxAggregatedRequests_)
+		: MobilityServiceController(mtxStrat, type_, id, tripSupportMode_,maxAggregatedRequests_), scheduleComputationPeriod(computationPeriod),
 		  ttEstimateType(ttEstimateType_)
 {
 	rebalancer = new LazyRebalancer(this); //jo SimpleRebalancer(this);
@@ -86,6 +86,7 @@ void OnCallController::unsubscribeDriver(Person *driver)
 
 	availableDrivers.erase(driver);
 	partiallyAvailableDrivers.erase(driver);
+    driverServingSharedRequests.erase(driver);
 
 #ifndef NDEBUG
 	consistencyChecks("unsubscribeDriver: end");
@@ -118,6 +119,7 @@ void OnCallController::driverAvailable(const Person *driver)
 
 	//Remove from the partially available drivers
 	partiallyAvailableDrivers.erase(driver);
+    driverServingSharedRequests.erase(driver);
 
 #ifndef NDEBUG
 	consistencyChecks("driverAvailable: end");
@@ -194,15 +196,16 @@ Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
 		}
 		isComputingSchedules = true;
 #endif
-
 		ControllerLog() << "Computing schedule: " << requestQueue.size() << " requests are in the queue, available drivers "
 		                << availableDrivers.size() <<", partiallyAvailableDrivers.size()="<< partiallyAvailableDrivers.size()
+                << ", driverServingSharedRequests.size() "<<driverServingSharedRequests.size() <<" , "<< currTick
 						<< std::endl;
+
 		computeSchedules();
 		ControllerLog() << "Computation schedule done: now " << requestQueue.size() << " requests are in the queue, available drivers "
 		                << availableDrivers.size() <<", partiallyAvailableDrivers.size()="<< partiallyAvailableDrivers.size()
+                << ", driverServingSharedRequests.size() "<<driverServingSharedRequests.size() <<" , "<<currTick
 						<< std::endl;
-
 #ifndef NDEBUG
 		isComputingSchedules = false;
 #endif
@@ -396,7 +399,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	// from modifying the scheduleItem that the driver is currently executing. Therefore, we give the 
 	// controller the visibility only of the part of the schedule that the controller can modify, namely the entire
 	// schedule minus the first schedule item
-	Schedule controllersCopy = schedule;
+    Schedule controllersCopy = schedule;
 	controllersCopy.erase(controllersCopy.begin());
 
 
@@ -407,6 +410,18 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 
 	//If this schedule only caters to 1 person, the add the driver to the list of partially available drivers
 	//Schedule size 3 indicates a schedule for 1 person: pick-up, drop-off and park
+    if (driverSchedules[driver].begin()->tripRequest.requestType == RequestType::TRIP_REQUEST_SHARED &&
+        this->controllerServiceType == MobilityServiceControllerType::SERVICE_CONTROLLER_AMOD )
+    {
+        if (schedule.size() <= 3 && driverServingSharedRequests.count(driver) == 0)
+        {
+            driverServingSharedRequests.insert(driver);
+        }
+        else
+        {
+            driverServingSharedRequests.erase(driver);
+        }
+    }
 
     if (driverSchedules[driver].begin()->tripRequest.requestType == RequestType::TRIP_REQUEST_SHARED &&
         this->controllerServiceType != MobilityServiceControllerType::SERVICE_CONTROLLER_AMOD )

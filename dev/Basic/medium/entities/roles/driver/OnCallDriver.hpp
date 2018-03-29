@@ -10,7 +10,7 @@
 #include "entities/mobilityServiceDriver/MobilityServiceDriver.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "OnCallDriverFacets.hpp"
-
+using namespace std;
 namespace sim_mob
 {
 namespace medium
@@ -223,6 +223,8 @@ public:
 
 	friend class OnCallDriverMovement;
 	friend class OnCallDriverBehaviour;
+
+    string getPassengersId() const;
 };
 
 }

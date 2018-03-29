@@ -59,11 +59,12 @@
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
             <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
 	    <!-- Demand Related stored procedures-->
-            <mapping name="day_activity_schedule" procedure="get_persons_between_tripsupportmode_testing"/>
-            <!--<mapping name="freight_trips" procedure="get_freight_between"/>-->
+            <mapping name="day_activity_schedule" procedure="get_persons_between_simon_testing"/>
+            <!--<mapping name="freight_trips" procedure="get_freight_between"/>
+get_persons_between_pan_amod_testing_withoutonhailtaxi-->
 
             <!-- Smart Mobility Controller related stored procedures -->
-            <mapping name="taxi_fleet" procedure="get_taxi_fleet_all_aditi"/>
+            <mapping name="taxi_fleet" procedure="get_taxi_fleet_on_call_test_simon"/>
             <mapping name="sms_parking" procedure="get_all_parking()"/>
             <mapping name="taxi_stands" procedure="get_taxi_stands()"/>
             <mapping name="rail_sms_pathset" procedure="get_pt_pathset_tr_sms_mrt"/>
@@ -150,7 +151,7 @@
 <!-- granularity of each component must be a multiple of the "base" granularity -->
     <!-- default value "base" granularity for mid-term is 5 seconds-->
 <workers>
-        <person count="10" granularity="5 seconds"/> <!-- Person agents (with Roles) with count for threads as person count in Mid-Term Supply. -->
+        <person count="2" granularity="5 seconds"/> <!-- Person agents (with Roles) with count for threads as person count in Mid-Term Supply. -->
 </workers>
 
 <incidentsData enabled="false">
@@ -184,7 +185,7 @@
 <!-- 2. "pt_bus_routes" -->
 <!-- 3. "pt_bus_stops" -->
 <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-<busController enabled="true" busline_control_type="headway_based"/>
+<busController enabled="false" busline_control_type="headway_based"/>
 
     <!-- enable this only to generate the bus routes based on stops data for each line -->
     <generateBusRoutes enabled="false" />

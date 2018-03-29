@@ -310,6 +310,7 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 		if(currLink->getToNode() == pickupNode)
 		{
 			canPickPaxImmediately = true;
+            ControllerLog()<<"driver "<<parent->getDatabaseId()<<" is at same node "<<pickupNode->getNodeId()<<endl;
 		}
 	}
 	else if(onCallDriver->getDriverStatus() == PARKED)
@@ -322,6 +323,7 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 			//In case the driver was parked, if the pickup location is the same as that of
 			//the parking node then we can pick up the passenger at this point
 			canPickPaxImmediately = true;
+            ControllerLog()<<"Driver "<<parent->getDatabaseId()<<" is at Parking and at same node "<<pickupNode->getNodeId()<<endl;
 		}
 	}
 
@@ -329,6 +331,7 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	{
 		onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_ON_CALL);
 		onCallDriver->sendScheduleAckMessage(true);
+        ControllerLog()<< "Driver will immediately pickup passenger."<<std::endl;
 		onCallDriver->pickupPassenger();
 		performScheduleItem();
 		return;
@@ -368,10 +371,10 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_ON_CALL);
 	onCallDriver->sendScheduleAckMessage(true);
 
-	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
-	                << parent->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s) from node "
-	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-	                << " to pickup node " << pickupNode->getNodeId() << endl;
+    ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
+                    << parent->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s) (" <<onCallDriver->getPassengersId()<< ") from node "
+                    << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
+                    << " to pickup node " << pickupNode->getNodeId()<<endl;
 
 	//Set vehicle to moving
 	onCallDriver->getResource()->setMoving(true);
@@ -447,9 +450,9 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 	onCallDriver->getResource()->setMoving(true);
 
 	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
-	                << parent->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s) from node "
+	                << parent->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s)(" <<onCallDriver->getPassengersId()<< ") from node "
 	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-	                << " to drop off node " << dropOffNode->getNodeId() << endl;
+	                << " to drop off node " << dropOffNode->getNodeId() <<endl;
 
 	//If we're exiting a parking, this flag would be true. We need to set current lane to lane infinity
 	//and also set the current segment based on the updated path

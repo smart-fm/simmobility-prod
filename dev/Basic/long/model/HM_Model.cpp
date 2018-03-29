@@ -1787,7 +1787,7 @@ void HM_Model::startImpl()
 		//These households with tenure_status 3 are considered to be occupied by foreign workers
 		const int FROZEN_HH = 3;
 		//school assignment model and foreign job assignment needs foriegn households as well.
-		if(!config.ltParams.schoolAssignmentModel.enabled || !config.ltParams.jobAssignmentModel.foreignWorkers)
+		if(!config.ltParams.schoolAssignmentModel.enabled && !config.ltParams.jobAssignmentModel.foreignWorkers)
 		{
 			if( household->getTenureStatus() == FROZEN_HH )
 				continue;

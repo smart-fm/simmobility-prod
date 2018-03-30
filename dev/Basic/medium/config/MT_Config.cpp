@@ -130,9 +130,13 @@ void MT_Config::setNumPredayThreads(unsigned numPredayThreads)
 }
 
 const unsigned int MT_Config::getThreadsNumInPersonLoader() const
-	return threadsNumInPersonLoader;
+{
+    return threadsNumInPersonLoader;
+}
 void MT_Config::setThreadsNumInPersonLoader(unsigned int number)
-		threadsNumInPersonLoader = number;
+{
+    threadsNumInPersonLoader = number;
+}
 
 void MT_Config::sealConfig()
 {

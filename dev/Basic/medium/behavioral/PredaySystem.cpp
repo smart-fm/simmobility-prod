@@ -1650,7 +1650,6 @@ void sim_mob::medium::PredaySystem::computeLogsums()
         constructTourModeParams(tmParams, personParams.getFixedWorkLocation(), cfg.getActivityTypeId("Work"));
         PredayLuaProvider::getPredayModel().computeTourModeLogsumWork(personParams, activityTypeConfigMap, tmParams);
 	}
-    TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, numModes, unavailableODs);
 	if(personParams.isStudent())
     PredayLuaProvider::getPredayModel().initializeLogsums(personParams, activityTypeConfigMap);
     PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, activityTypeConfigMap, tmdParams, zoneMap.size());

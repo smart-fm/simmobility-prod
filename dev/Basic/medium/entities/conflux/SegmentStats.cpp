@@ -562,25 +562,6 @@ double LaneStats::getDensity()
 	return density;
 }
 
-//density will be computed in vehicles/meter-lane for the moving part of the lane
-double LaneStats::getDensity()
-{
-	double density = 0.0;
-	double queueLength = getQueueLength();
-	double movingPartLength = length - queueLength;
-	double movingPCUs = getMovingLength() / PASSENGER_CAR_UNIT;
-
-	if (movingPartLength > PASSENGER_CAR_UNIT)
-	{
-		density = movingPCUs / movingPartLength;
-	}
-	else
-	{
-		density = 1 / PASSENGER_CAR_UNIT;
-	}
-	return density;
-}
-
 //density will be computed in vehicles/lane-km for the full segment
 double SegmentStats::getTotalDensity(bool hasVehicle)
 {

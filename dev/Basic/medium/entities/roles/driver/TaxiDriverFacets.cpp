@@ -144,10 +144,10 @@ TaxiDriverMovement::getBestTargetLane(const SegmentStats *nextSegStats, const Se
 		double que = 0.0;
 		double total = 0.0;
 		const Link *nextLink = getNextLinkForLaneChoice(nextSegStats);
-		const std::vector<Lane *> &lanes = nextSegStats->getRoadSegment()->getLanes();
+		const std::vector<const sim_mob::Lane *> &lanes = nextSegStats->getRoadSegment()->getLanes();
 		if (!minLane)
 		{
-			for (vector<Lane *>::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
+			for (vector<const sim_mob::Lane *>::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 			{
 				if (!((*lnIt)->isPedestrianLane()))
 				{
@@ -666,9 +666,9 @@ void TaxiDriverMovement::selectNextLinkWhileCruising()
 				std::map<const Lane *, const TurningPath *> mapOfLaneTurningPath = turningPathsLaneitr->second;
 				const std::vector<RoadSegment *> &rdSegments = link->getRoadSegments();
 				const RoadSegment *rdSegment = rdSegments.front();
-				const std::vector<Lane *> &segLanes = rdSegment->getLanes();
+				const std::vector<const sim_mob::Lane *> &segLanes = rdSegment->getLanes();
 				bool foundTurningPath = false;
-				for (std::vector<Lane *>::const_iterator laneItr = segLanes.begin(); laneItr != segLanes.end();
+				for (std::vector<const sim_mob::Lane *>::const_iterator laneItr = segLanes.begin(); laneItr != segLanes.end();
 				     laneItr++)
 				{
 					if (mapOfLaneTurningPath.find(*laneItr) != mapOfLaneTurningPath.end())

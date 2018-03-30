@@ -1717,10 +1717,17 @@ void Conflux::incrementSegmentFlow(const RoadSegment* rdSeg, uint16_t statsNum)
 }
 
 void Conflux::updateBusStopAgents()
-	for (UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin(); upStrmSegMapIt != upstreamSegStatsMap.end(); upStrmSegMapIt++)
-		for (std::vector<SegmentStats*>::const_iterator segStatsIt = upStrmSegMapIt->second.begin(); segStatsIt != upStrmSegMapIt->second.end(); segStatsIt++)
-			(*segStatsIt)->updateBusStopAgents(currFrame);
-void Conflux::updateParkingAgents()
+{
+    for (UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin();upStrmSegMapIt != upstreamSegStatsMap.end(); upStrmSegMapIt++)
+    {
+        for (std::vector<SegmentStats *>::const_iterator segStatsIt = upStrmSegMapIt->second.begin();
+             segStatsIt != upStrmSegMapIt->second.end(); segStatsIt++)
+        {
+            (*segStatsIt)->updateBusStopAgents(currFrame);
+        }
+    }
+}
+    void Conflux::updateParkingAgents()
 {
 	for(auto agent : parkingAgents)
 	{

@@ -453,6 +453,136 @@ namespace sim_mob
 
 			return V;
 		}
+
+		double WillingnessToPaySubModel::calculateResidentialWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e, double day, HM_Model *model)
+		{
+			double willingnessToPay;
+			int unitTypeId = unit->getUnitType();
+			const ResidentialWTP_Coefs *wtpCoeffs = nullptr;
+			if( (unitTypeId == 1) || (unitTypeId == 2) || (unitTypeId == 3))
+			{
+				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_123");
+			}
+			else if(unitTypeId == 4)
+			{
+				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_4");
+			}
+			else if(unitTypeId == 5)
+			{
+				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_5");
+			}
+			else
+			{
+				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("private");
+			} //TODO::add other hdb and private unit ids
+
+			Postcode *unitPostcode = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
+			double logsumTaz = model->ComputeHedonicPriceLogsumFromDatabase( unitPostcode->getTazId() );
+			double missingAge = 0;
+			double ageOfUnit = 0;
+			double carDummy = 0;
+			if(household->getVehicleOwnershipOptionId() > 0)
+			{
+				carDummy = 1;
+			}
+			if( (unit->getOccupancyFromDate().tm_year == 9999)|| (unit->getOccupancyFromDate().tm_year == 0))
+			{
+				missingAge = 1;
+			}
+			else
+			{
+				ageOfUnit= HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
+			}
+
+			const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( model->getUnitSlaAddressId( unit->getId() ) );
+			double distanceMall = pcAmenities->getDistanceToMall();
+			//Chetan. 3 July 2017.
+			//Temp fix cos XiaoHu added some distanceToMall in meters
+			if(distanceMall > 100 )
+				distanceMall = distanceMall / 1000;
+
+			double distanceToMRT = pcAmenities->getDistanceToMRT();
+			double isMRT_2_400m = 0;
+			if( (distanceToMRT > 0.200) && (distanceToMRT < 0.400))
+			{
+				isMRT_2_400m = 1;
+			}
+
+			double freeholdApartment = 0;
+			double freeholdCondo = 0;
+			double freeholdTerrace = 0;
+			double freeholdDetached = 0;
+
+			if(unitTypeId >=7 && unitTypeId <=11)
+			{
+				freeholdApartment = 1;
+			}
+			else if(unitTypeId >=12 && unitTypeId <= 16)
+			{
+				freeholdCondo = 1;
+			}
+			else if(unitTypeId >= 17 && unitTypeId <= 21)
+			{
+				freeholdTerrace = 1;
+			}
+			else if(unitTypeId >=27 && unitTypeId <=31)
+			{
+				freeholdDetached = 1;
+			}
+
+			double bus200_400m = 0;
+			if(pcAmenities->getDistanceToBus() >= 0.200 && pcAmenities->getDistanceToBus() <= 0.400)
+			{
+				bus200_400m = 1;
+			}
+
+			double fullTimeWorkers = household->getWorkers();
+			double oneTwoFullTimeWorkers = 0;
+			double twoFullTimeWorkers = 0;
+
+			if(fullTimeWorkers >=2)
+			{
+				twoFullTimeWorkers = 1;
+			}
+			if(fullTimeWorkers == 1 || fullTimeWorkers == 2)
+			{
+				oneTwoFullTimeWorkers = 1;
+			}
+
+			double logArea = log(unit->getFloorArea());
+			double hhSizeWorkersDiff = abs(household->getSize()- household->getWorkers());
+
+			willingnessToPay = wtpCoeffs->getM2() + wtpCoeffs->getS2() + wtpCoeffs->getConstant() +
+								wtpCoeffs->getLogArea() * logArea
+								+ wtpCoeffs->getLogsumTaz() * logsumTaz
+								+ wtpCoeffs->getAge() * ageOfUnit + wtpCoeffs->getAgeSquared() * (ageOfUnit * ageOfUnit)
+								+ wtpCoeffs->getCarDummy() * carDummy + wtpCoeffs->getCarIntoLogsumTaz() * carDummy * logsumTaz
+								+ wtpCoeffs->getDistanceMall() * distanceMall
+								+ wtpCoeffs->getMrt200m400m() * isMRT_2_400m
+								//TODO::add mature + wtpCoeffs->getMatureDummy() + wtpCoeffs->getMatureOtherDummy();
+								+ wtpCoeffs->getFloorNumber() * unit->getStorey()
+								+ wtpCoeffs->getLogIncome() * log(household->getIncome())
+								+ wtpCoeffs->getLogIncomeIntoLogArea() * log(household->getIncome()) * logArea
+								+ wtpCoeffs->getFreeholdApartment() * freeholdApartment
+								+ wtpCoeffs->getFreeholdCondo() * freeholdCondo
+								+ wtpCoeffs->getFreeholdTerrace() * freeholdTerrace
+								+ wtpCoeffs->getFreeholdDetached() * freeholdDetached
+								+ wtpCoeffs->getBus200m400mDummy() * bus200_400m
+								+ wtpCoeffs->getOneTwoFullTimeWorkerDummy() * oneTwoFullTimeWorkers
+								+ wtpCoeffs->getFullTimeWorkersTwoIntoLogArea() * twoFullTimeWorkers * logArea
+								+ wtpCoeffs->getHhSizeworkersDiff() * hhSizeWorkersDiff;
+
+				boost::mt19937 rng( clock() );
+				boost::normal_distribution<> nd( 0.0, wtpCoeffs->getSde());
+				boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, nd);
+				wtp_e  = var_nor();
+
+				//needed when wtp model is expressed as log wtp
+				willingnessToPay = exp(willingnessToPay);
+
+				return willingnessToPay;
+
+		}
 	}
 
 }

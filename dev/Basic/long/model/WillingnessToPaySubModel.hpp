@@ -28,6 +28,7 @@ namespace sim_mob
 			virtual ~WillingnessToPaySubModel();
 
 			double CalculateWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e, double day, HM_Model *model);
+			double calculateResidentialWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e, double day, HM_Model *model);
 
 			void FindHDBType( int unitType);
 			void FindHouseholdSize(const Household* household);

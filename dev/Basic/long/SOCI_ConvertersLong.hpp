@@ -355,7 +355,7 @@ struct type_conversion<sim_mob::long_term::ResidentialWTP_Coefs>
     static void
     from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::ResidentialWTP_Coefs& wtpCoeffs)
     {
-    	wtpCoeffs.setId(values.get<BigSerial>("id",0));
+    	wtpCoeffs.setId(values.get<int>("id",0));
     	wtpCoeffs.setPropertyType(values.get<std::string>("property_type",std::string()));
     	wtpCoeffs.setSde(values.get<double>("sde",0));
     	wtpCoeffs.setM2(values.get<double>("m2",0));
@@ -367,7 +367,7 @@ struct type_conversion<sim_mob::long_term::ResidentialWTP_Coefs>
     	wtpCoeffs.setAgeSquared(values.get<double>("age_squared",0));
     	wtpCoeffs.setMissingAgeDummy(values.get<double>("missing_age_dummy",0));
     	wtpCoeffs.setCarDummy(values.get<double>("car_dummy",0));
-    	wtpCoeffs.setCarIntoLogsumTaz(values.get<double>("car_into_logsium_taz",0));
+    	wtpCoeffs.setCarIntoLogsumTaz(values.get<double>("car_into_logsum_taz",0));
     	wtpCoeffs.setDistanceMall(values.get<double>("distance_mall",0));
     	wtpCoeffs.setMrt200m400m(values.get<double>("mrt_200_400m_dummy",0));
     	wtpCoeffs.setMatureDummy(values.get<double>("mature_dummy",0));

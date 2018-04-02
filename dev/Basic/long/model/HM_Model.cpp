@@ -1469,7 +1469,7 @@ void HM_Model::startImpl()
 	conn.setSchema(config.schemas.main_schema);
 	//if(config.ltParams.outputHouseholdLogsums.enabled)
 	//{
-		PredayLT_LogsumManager::getInstance();
+	//	PredayLT_LogsumManager::getInstance();
 	//}
 
 	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
@@ -1486,6 +1486,7 @@ void HM_Model::startImpl()
 	{
 		loadLTVersion(conn);
 		loadStudyAreas(conn);
+		loadResidentialWTP_Coeffs(conn_calibration);
 
 		if(config.ltParams.schoolAssignmentModel.enabled)
 		{
@@ -2382,6 +2383,27 @@ void HM_Model::loadTravelTime(DB_Connection &conn)
 
 }
 
+void HM_Model::loadResidentialWTP_Coeffs(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string storedProc = "residential_willingness_to_pay_coefficients";
+
+	//SQL statement
+	soci::rowset<ResidentialWTP_Coefs> residentialWTP_Coeffs = (sql.prepare << "select * from " + conn.getSchema() + storedProc);
+
+	for (soci::rowset<ResidentialWTP_Coefs>::const_iterator itWtpCoeffs = residentialWTP_Coeffs.begin(); itWtpCoeffs != residentialWTP_Coeffs.end(); ++itWtpCoeffs)
+	{
+		ResidentialWTP_Coefs* wtpCoeffs = new ResidentialWTP_Coefs(*itWtpCoeffs);
+		resWTP_Coeffs.push_back(wtpCoeffs);
+		resWTP_CeoffsByPropertyType.insert(std::make_pair(wtpCoeffs->getPropertyType(), wtpCoeffs));
+	}
+
+	PrintOutV("Number of residential wtp coeffs rows: " << resWTP_Coeffs.size() << std::endl );
+
+}
+
 const TravelTime* HM_Model::getTravelTimeByOriginDestTaz(BigSerial originTaz, BigSerial destTaz)
 {
 	HM_Model::OriginDestKey originDestKey= make_pair(originTaz, destTaz);
@@ -2396,6 +2418,18 @@ const TravelTime* HM_Model::getTravelTimeByOriginDestTaz(BigSerial originTaz, Bi
 		const TravelTime* travelTime = range.first->second;
 		return travelTime;
 	}
+
+}
+
+const ResidentialWTP_Coefs* HM_Model::getResidentialWTP_CoefsByPropertyType(string propertyType)
+{
+	HM_Model::ResidentialWTP_CoeffsMap::const_iterator itr = resWTP_CeoffsByPropertyType.find(propertyType);
+
+	if (itr != resWTP_CeoffsByPropertyType.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
 
 }
 

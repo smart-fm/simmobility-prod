@@ -63,6 +63,7 @@
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
+#include "database/entity/ResidentialWTP_Coefs.hpp"
 
 namespace sim_mob
 {
@@ -229,6 +230,9 @@ namespace sim_mob
 
             typedef pair<BigSerial, int> TazAndIndustryTypeKey;
             typedef std::multimap<TazAndIndustryTypeKey, JobsWithIndustryTypeAndTazId*> JobsWithTazAndIndustryTypeMap;
+
+            typedef std::vector<ResidentialWTP_Coefs*> ResidentialWTP_CoeffsList;
+            typedef boost::unordered_map<string, ResidentialWTP_Coefs*> ResidentialWTP_CoeffsMap;
 
             /**
              * Taz statistics
@@ -518,7 +522,9 @@ namespace sim_mob
             void loadPrimarySchools(DB_Connection &conn);
             void loadPreSchools(DB_Connection &conn);
             void loadTravelTime(DB_Connection &conn);
+            void loadResidentialWTP_Coeffs(DB_Connection &conn);
             const TravelTime* getTravelTimeByOriginDestTaz(BigSerial originTaz, BigSerial destTaz);
+            const ResidentialWTP_Coefs* getResidentialWTP_CoefsByPropertyType(string propertyType);
             void incrementPrimarySchoolAssignIndividualCount();
             int getPrimaySchoolAssignIndividualCount();
             void incrementPreSchoolAssignIndividualCount();
@@ -749,6 +755,9 @@ namespace sim_mob
 
 			int jobAssignIndCount;
 			bool isConnected;
+
+			ResidentialWTP_CoeffsList resWTP_Coeffs;
+			ResidentialWTP_CoeffsMap resWTP_CeoffsByPropertyType;
         };
     }
 }

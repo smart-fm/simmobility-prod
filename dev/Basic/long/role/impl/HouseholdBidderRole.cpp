@@ -598,7 +598,7 @@ void HouseholdBidderRole::calculateMaxSurplusEntry(const HousingMarket::Entry* e
 
 			//The willingness to pay is in millions of dollars
 			WillingnessToPaySubModel wtp_m;
-			double wp = wtp_m.CalculateWillingnessToPay(unit, household, wtp_e,day, model);
+			double wp = wtp_m.calculateResidentialWillingnessToPay(unit, household, wtp_e,day, model);
 			{
 				int unit_type = unit->getUnitType();
 

@@ -25,6 +25,7 @@
 #include "database/entity/TAOByUnitType.hpp"
 #include "database/entity/StudyArea.hpp"
 #include "database/entity/JobsWithIndustryTypeAndTazId.hpp"
+#include "database/entity/ResidentialWTP_Coefs.hpp"
 
 using namespace sim_mob;
 using namespace long_term;
@@ -343,6 +344,47 @@ struct type_conversion<sim_mob::long_term::School>
     	school.setPlanningArea(values.get<std::string>("planning_area",std::string()));
     	school.setTazName(values.get<BigSerial>("taz_name",0));
     	school.setSchoolType(values.get<std::string>("school_type",std::string()));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::ResidentialWTP_Coefs>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::ResidentialWTP_Coefs& wtpCoeffs)
+    {
+    	wtpCoeffs.setId(values.get<BigSerial>("id",0));
+    	wtpCoeffs.setPropertyType(values.get<std::string>("property_type",std::string()));
+    	wtpCoeffs.setSde(values.get<double>("sde",0));
+    	wtpCoeffs.setM2(values.get<double>("m2",0));
+    	wtpCoeffs.setS2(values.get<double>("s2",0));
+    	wtpCoeffs.setConstant(values.get<double>("constant",0));
+    	wtpCoeffs.setLogArea(values.get<double>("log_area",0));
+    	wtpCoeffs.setLogsumTaz(values.get<double>("logsum_taz",0));
+    	wtpCoeffs.setAge(values.get<double>("age",0));
+    	wtpCoeffs.setAgeSquared(values.get<double>("age_squared",0));
+    	wtpCoeffs.setMissingAgeDummy(values.get<double>("missing_age_dummy",0));
+    	wtpCoeffs.setCarDummy(values.get<double>("car_dummy",0));
+    	wtpCoeffs.setCarIntoLogsumTaz(values.get<double>("car_into_logsium_taz",0));
+    	wtpCoeffs.setDistanceMall(values.get<double>("distance_mall",0));
+    	wtpCoeffs.setMrt200m400m(values.get<double>("mrt_200_400m_dummy",0));
+    	wtpCoeffs.setMatureDummy(values.get<double>("mature_dummy",0));
+    	wtpCoeffs.setMatureOtherDummy(values.get<double>("mature_other_dummy",0));
+    	wtpCoeffs.setFloorNumber(values.get<double>("floor_number",0));
+    	wtpCoeffs.setLogIncome(values.get<double>("log_income",0));
+    	wtpCoeffs.setLogIncomeIntoLogArea(values.get<double>("log_income_into_log_area",0));
+    	wtpCoeffs.setFreeholdApartment(values.get<double>("freehold_apartment",0));
+    	wtpCoeffs.setFreeholdCondo(values.get<double>("freehold_condo",0));
+    	wtpCoeffs.setFreeholdTerrace(values.get<double>("freehold_terrace",0));
+    	wtpCoeffs.setFreeholdDetached(values.get<double>("freehold_detached",0));
+    	wtpCoeffs.setBus200m400mDummy(values.get<double>("bus_200_400m_dummy",0));
+    	wtpCoeffs.setOneTwoFullTimeWorkerDummy(values.get<double>("one_two_fulltime_worker_dummy",0));;
+    	wtpCoeffs.setFullTimeWorkersTwoIntoLogArea(values.get<double>("fulltime_workers2_into_log_area",0));
+    	wtpCoeffs.setHhSizeworkersDiff(values.get<double>("hh_size_wrokers_diff",0));
+
+
     }
 };
 

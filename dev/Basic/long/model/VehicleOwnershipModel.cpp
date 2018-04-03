@@ -401,10 +401,10 @@ void VehicleOwnershipModel::reconsiderVehicleOwnershipOption2(Household &househo
 				numWorkers++;
 			}
 
-			if(individual->getTaxiDriver() == 1)
-			{
-				taxiAvailability = true;
-			}
+			//if(individual->getTaxiDriver() == 1)
+			//{
+			//	taxiAvailability = true;
+			//}
 		}
 		household.setNumElderly(numElderly);
 		household.setNumWhiteCollars(numWhiteCollars);

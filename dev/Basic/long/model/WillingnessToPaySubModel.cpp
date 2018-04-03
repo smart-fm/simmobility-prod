@@ -459,7 +459,9 @@ namespace sim_mob
 			double willingnessToPay;
 			int unitTypeId = unit->getUnitType();
 			const ResidentialWTP_Coefs *wtpCoeffs = nullptr;
-			if( (unitTypeId == 1) || (unitTypeId == 2) || (unitTypeId == 3))
+			bool nonHDB = false;
+
+			if( (unitTypeId == 1) || (unitTypeId == 2) || (unitTypeId == 3) || (unitTypeId == 65))
 			{
 				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_123");
 			}
@@ -467,21 +469,23 @@ namespace sim_mob
 			{
 				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_4");
 			}
-			else if(unitTypeId == 5)
+			else if(unitTypeId == 5 || unitTypeId == 6)
 			{
 				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_5");
 			}
 			else
 			{
 				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("private");
-			} //TODO::add other hdb and private unit ids
+				nonHDB = true;
+			}
 
 			Postcode *unitPostcode = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
-			double logsumTaz = model->ComputeHedonicPriceLogsumFromDatabase( unitPostcode->getTazId() );
+			BigSerial tazId = unitPostcode->getTazId();
+			double logsumTaz = model->ComputeHedonicPriceLogsumFromDatabase( tazId );
 			double missingAge = 0;
 			double ageOfUnit = 0;
 			double carDummy = 0;
-			if(household->getVehicleOwnershipOptionId() > 0)
+			if(household->getVehicleCategoryId() > 0)
 			{
 				carDummy = 1;
 			}
@@ -492,6 +496,15 @@ namespace sim_mob
 			else
 			{
 				ageOfUnit= HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
+			}
+
+			if(nonHDB && ageOfUnit > 50)
+			{
+				ageOfUnit = 50;
+			}
+			if(!nonHDB && ageOfUnit > 40)
+			{
+				ageOfUnit = 40;
 			}
 
 			const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( model->getUnitSlaAddressId( unit->getId() ) );
@@ -538,28 +551,34 @@ namespace sim_mob
 
 			double fullTimeWorkers = household->getWorkers();
 			double oneTwoFullTimeWorkers = 0;
-			double twoFullTimeWorkers = 0;
-
-			if(fullTimeWorkers >=2)
-			{
-				twoFullTimeWorkers = 1;
-			}
 			if(fullTimeWorkers == 1 || fullTimeWorkers == 2)
 			{
 				oneTwoFullTimeWorkers = 1;
 			}
 
-			double logArea = log(unit->getFloorArea());
-			double hhSizeWorkersDiff = abs(household->getSize()- household->getWorkers());
+			double logArea = log(unit->getFloorArea()/10);//for the estimation of this coeff, we have to rescale to comparable with other units. - Roberto
+			double hhSizeWorkersDiff = household->getSize()- household->getWorkers();
 
-			willingnessToPay = wtpCoeffs->getM2() + wtpCoeffs->getS2() + wtpCoeffs->getConstant() +
+			Taz *taz = model->getTazById(tazId);
+			double mature = 0;
+			double matureOther = 0;
+			if(taz->getHdbTownType().compare("mature") == 0)
+			{
+				mature = 1;
+			}
+			else if (taz->getHdbTownType().compare("mature") == 0)
+			{
+				matureOther = 1;
+			}
+
+			willingnessToPay =  wtpCoeffs->getConstant() +
 								wtpCoeffs->getLogArea() * logArea
 								+ wtpCoeffs->getLogsumTaz() * logsumTaz
 								+ wtpCoeffs->getAge() * ageOfUnit + wtpCoeffs->getAgeSquared() * (ageOfUnit * ageOfUnit)
 								+ wtpCoeffs->getCarDummy() * carDummy + wtpCoeffs->getCarIntoLogsumTaz() * carDummy * logsumTaz
 								+ wtpCoeffs->getDistanceMall() * distanceMall
 								+ wtpCoeffs->getMrt200m400m() * isMRT_2_400m
-								//TODO::add mature + wtpCoeffs->getMatureDummy() + wtpCoeffs->getMatureOtherDummy();
+								+ wtpCoeffs->getMatureDummy() * mature + wtpCoeffs->getMatureOtherDummy() * matureOther
 								+ wtpCoeffs->getFloorNumber() * unit->getStorey()
 								+ wtpCoeffs->getLogIncome() * log(household->getIncome())
 								+ wtpCoeffs->getLogIncomeIntoLogArea() * log(household->getIncome()) * logArea
@@ -569,11 +588,11 @@ namespace sim_mob
 								+ wtpCoeffs->getFreeholdDetached() * freeholdDetached
 								+ wtpCoeffs->getBus200m400mDummy() * bus200_400m
 								+ wtpCoeffs->getOneTwoFullTimeWorkerDummy() * oneTwoFullTimeWorkers
-								+ wtpCoeffs->getFullTimeWorkersTwoIntoLogArea() * twoFullTimeWorkers * logArea
+								+ wtpCoeffs->getFullTimeWorkersTwoIntoLogArea() * oneTwoFullTimeWorkers * logArea
 								+ wtpCoeffs->getHhSizeworkersDiff() * hhSizeWorkersDiff;
 
 				boost::mt19937 rng( clock() );
-				boost::normal_distribution<> nd( 0.0, wtpCoeffs->getSde());
+				boost::normal_distribution<> nd( 0.0, sde);
 				boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, nd);
 				wtp_e  = var_nor();
 

@@ -17,7 +17,7 @@ namespace sim_mob
 		class School
 		{
 		public:
-			School(BigSerial id = INVALID_ID, BigSerial fmBuildingId = INVALID_ID,double floorArea = 0, int schoolSlot = 0, double centroidX = 0, double centroidY = 0, bool giftedProgram = false, bool sapProgram = false,
+			School(BigSerial id = INVALID_ID, BigSerial fmBuildingId = INVALID_ID,double floorArea = 0, double schoolSlot = 0, double centroidX = 0, double centroidY = 0, bool giftedProgram = false, bool sapProgram = false,
 				   std::string planningArea = std::string(), BigSerial tazName = INVALID_ID, std::string schoolType = std::string(), bool artProgram = false, bool musicProgram = false, bool langProgram = false, bool expressTest = false
 				   ,double studentDensity = 0,int numStudents = 0);
 			virtual ~School();
@@ -61,8 +61,8 @@ namespace sim_mob
 			void setPlanningArea(std::string planningArea);
 			bool isSapProgram() const;
 			void setSapProgram(bool sapProgram);
-			int getSchoolSlot() const;
-			void setSchoolSlot(int schoolSlot);
+			double getSchoolSlot() const;
+			void setSchoolSlot(double schoolSlot);
 			BigSerial getTazName() const;
 			void setTazName(BigSerial tazName);
 			std::string getSchoolType() const;
@@ -101,7 +101,7 @@ namespace sim_mob
 			BigSerial id;
 			BigSerial fmBuildingId;
 			double floorArea;
-			int schoolSlot;
+			double schoolSlot;
 			double centroidX;
 			double centroidY;
 			bool giftedProgram;

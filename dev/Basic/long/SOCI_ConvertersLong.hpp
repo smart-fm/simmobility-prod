@@ -337,7 +337,7 @@ struct type_conversion<sim_mob::long_term::School>
     	school.setId(values.get<BigSerial>("id",0));
     	school.setFmBuildingId(values.get<BigSerial>("fm_building_id",0));
     	school.setFloorArea(values.get<double>("floor_area",0));
-    	school.setSchoolSlot(values.get<int>("school_slot",0));
+    	school.setSchoolSlot(values.get<double>("school_slot",0));
     	school.setCentroidX(values.get<double>("centroid_x",0));
     	school.setCentroidY(values.get<double>("centroid_y",0));
     	school.setGiftedProgram(values.get<int>("gifted_program",0));

@@ -9,7 +9,7 @@
 
 using namespace sim_mob::long_term;
 
-School::School(BigSerial id, BigSerial fmBuildingId ,double floorArea, int schoolSlot, double centroidX, double centroidY, bool giftedProgram, bool sapProgram,
+School::School(BigSerial id, BigSerial fmBuildingId ,double floorArea, double schoolSlot, double centroidX, double centroidY, bool giftedProgram, bool sapProgram,
 			   std::string planningArea, BigSerial tazName, std::string schoolType, bool artProgram, bool musicProgram, bool langProgram, bool expressTest, double studentDensity, int numStudents) : id(id),fmBuildingId(fmBuildingId), floorArea(floorArea), schoolSlot(schoolSlot),centroidX(centroidX),centroidY(centroidY),
 			   giftedProgram(giftedProgram), sapProgram(sapProgram), planningArea(planningArea),tazName(tazName),schoolType(schoolType),artProgram(artProgram),musicProgram(musicProgram),langProgram(langProgram),expressTest(expressTest), studentDensity(studentDensity), numStudents(numStudents){}
 
@@ -95,12 +95,12 @@ void School::setSapProgram(bool sapProgram)
 	this->sapProgram = sapProgram;
 }
 
-int School::getSchoolSlot() const
+double School::getSchoolSlot() const
 {
 	return schoolSlot;
 }
 
-void School::setSchoolSlot(int schoolSlot)
+void School::setSchoolSlot(double schoolSlot)
 {
 	this->schoolSlot = schoolSlot;
 }

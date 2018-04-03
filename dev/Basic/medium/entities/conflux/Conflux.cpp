@@ -1608,7 +1608,10 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 		{
 			personRole->Movement()->frame_tick();
             //Added to get Taxi Trajectory Output
-            personRole->Movement()->frame_tick_output();
+            if(personRole->roleType == Role<Person_MT>::RL_ON_HAIL_DRIVER ||personRole->roleType == Role<Person_MT>::RL_TAXIDRIVER)
+            {
+                personRole->Movement()->frame_tick_output();
+            }
 			if (personRole->roleType == Role<Person_MT>::RL_ACTIVITY)
 			{
 				person->setRemainingTimeThisTick(0.0);

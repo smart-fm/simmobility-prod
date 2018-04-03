@@ -196,16 +196,19 @@ Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
 		}
 		isComputingSchedules = true;
 #endif
-		ControllerLog() << "Computing schedule: " << requestQueue.size() << " requests are in the queue, available drivers "
-		                << availableDrivers.size() <<", partiallyAvailableDrivers.size()="<< partiallyAvailableDrivers.size()
-                << ", driverServingSharedRequests.size() "<<driverServingSharedRequests.size() <<" , "<< currTick
-						<< std::endl;
+        if(!(requestQueue.empty()))
+        {
+            ControllerLog() << "Computing schedule: " << requestQueue.size() << " requests are in the queue, available drivers "
+                            << availableDrivers.size() <<", partiallyAvailableDrivers.size()="<< partiallyAvailableDrivers.size()
+                            << ", driverServingSharedRequests.size() "<<driverServingSharedRequests.size() <<" , "<< currTick
+                            << std::endl;
 
-		computeSchedules();
-		ControllerLog() << "Computation schedule done: now " << requestQueue.size() << " requests are in the queue, available drivers "
-		                << availableDrivers.size() <<", partiallyAvailableDrivers.size()="<< partiallyAvailableDrivers.size()
-                << ", driverServingSharedRequests.size() "<<driverServingSharedRequests.size() <<" , "<<currTick
-						<< std::endl;
+            computeSchedules();
+            ControllerLog() << "Computation schedule done: now " << requestQueue.size() << " requests are in the queue, available drivers "
+                            << availableDrivers.size() <<", partiallyAvailableDrivers.size()="<< partiallyAvailableDrivers.size()
+                            << ", driverServingSharedRequests.size() "<<driverServingSharedRequests.size() <<" , "<<currTick
+                            << std::endl;
+        }
 #ifndef NDEBUG
 		isComputingSchedules = false;
 #endif

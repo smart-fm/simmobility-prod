@@ -534,9 +534,9 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 		std::vector<std::string> buslinesInPath;
 		for (std::vector<PT_NetworkEdge>::const_iterator itEdge = edges.begin(); itEdge != edges.end(); itEdge++)
 		{
-			// Check 2 : No two consecutive walking edges along the path
+			// Check 2 : No two consecutive walking/SMS edges along the path
 			currentEdgeType = itEdge->getType();
-			if (currentEdgeType == sim_mob::WALK_EDGE && prevEdgeType == sim_mob::WALK_EDGE)
+			if ((currentEdgeType == sim_mob::WALK_EDGE && prevEdgeType == sim_mob::WALK_EDGE) || (currentEdgeType == sim_mob::SMS_EDGE && prevEdgeType == sim_mob::SMS_EDGE))
 			{
 				// Infeasible path
 				itPathComp++;

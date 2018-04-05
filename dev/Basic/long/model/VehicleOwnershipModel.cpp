@@ -640,10 +640,6 @@ double VehicleOwnershipModel::getExp2(int unitTypeId,double vehicleOwnershipLogs
 	{
 		value = value + coeffsObj->getHhChild2Plus();
 	}
-	else if ( (household.getChildUnder15()==1) && (household.getChildUnder4()== 1) )
-	{
-		value = value + coeffsObj->getHhChild2Plus();
-	}
 
 	if(household.getTaxiAvailability())
 	{

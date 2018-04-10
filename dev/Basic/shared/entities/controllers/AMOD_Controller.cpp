@@ -229,6 +229,8 @@ void AMOD_Controller::matchSingleRiderReq()
 				const ScheduleItem parkScheduleItem(PARK, parking);
 				schedule.push_back(parkScheduleItem);
 			}
+
+			ControllerLog()<<"SingleRideRequest: Diver "<<bestDriver->getDatabaseId()<<" is serving Single Ride Request [ "<<schedule<<" ] at time "<<currTick<<" ."<<endl;
             assignSchedule(bestDriver, schedule);
 #ifndef NDEBUG
 			if (currTick < request->timeOfRequest)

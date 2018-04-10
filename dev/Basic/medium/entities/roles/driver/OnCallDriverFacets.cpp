@@ -169,6 +169,7 @@ void OnCallDriverMovement::performScheduleItem()
 	{
 		if(onCallDriver->driverSchedule.isScheduleCompleted())
 		{
+			onCallDriver->passengerInteractedDropOff=0;
 			const Node *endOfPathNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
 			continueCruising(endOfPathNode);
 		}
@@ -560,8 +561,13 @@ void OnCallDriverMovement::parkVehicle(DriverUpdateParams &params)
 	pkAgent->addParkedPerson(parent);
 	onCallDriver->setToBeRemovedFromParking(false);
 
+	ControllerLog()<< "Driver "<<onCallDriver->getParent()->getDatabaseId()<<"served total "<<onCallDriver->passengerInteractedDropOff<<" persons from it's last available status till parking ."<<endl;
+	onCallDriver->passengerInteractedDropOff = 0;
+
 	onCallDriver->setDriverStatus(PARKED);
 	onCallDriver->scheduleItemCompleted();
+
+
 
 	//Clear the previous path. We will begin from the node
 	pathMover.eraseFullPath();

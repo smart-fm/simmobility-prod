@@ -14,7 +14,7 @@ OnCallDriver::OnCallDriver(Person_MT *parent, const MutexStrategy &mtx, OnCallDr
                            OnCallDriverMovement *movement, string roleName, Type roleType) :
 		Driver(parent, behaviour, movement, roleName, roleType), movement(movement), behaviour(behaviour),
 		isWaitingForUnsubscribeAck(false), isScheduleUpdated(false), toBeRemovedFromParking(false),
-		isExitingParking(false)
+		isExitingParking(false),passengerInteractedDropOff(0)
 {
 }
 
@@ -195,6 +195,7 @@ void OnCallDriver::scheduleItemCompleted()
 	{
 		//If the shift has ended, we no longer need to send the status message
 		//and the available message. We simply wait for the shift end confirmation
+		passengerInteractedDropOff=0;
 		return;
 	}
 
@@ -202,6 +203,7 @@ void OnCallDriver::scheduleItemCompleted()
 
 	if(driverSchedule.isScheduleCompleted())
 	{
+		passengerInteractedDropOff=0;
 		sendAvailableMessage();
 	}
 }
@@ -398,6 +400,7 @@ void OnCallDriver::dropoffPassenger()
 
 		//Remove passenger from vehicle
 		passengers.erase(itPassengers);
+		++passengerInteractedDropOff;
 
 		ControllerLog() << "Drop-off of user " << person->getDatabaseId() << " at time "
 		                << parent->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()
@@ -448,6 +451,7 @@ void OnCallDriver::endShift()
 		                        MessageBus::MessagePtr(new DriverShiftCompleted(parent)));
 	}
 
+	passengerInteractedDropOff=0;
 	isWaitingForUnsubscribeAck = true;
 
 	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "

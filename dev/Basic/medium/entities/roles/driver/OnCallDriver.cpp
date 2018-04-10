@@ -195,6 +195,7 @@ void OnCallDriver::scheduleItemCompleted()
 	{
 		//If the shift has ended, we no longer need to send the status message
 		//and the available message. We simply wait for the shift end confirmation
+		ControllerLog()<< "Driver "<<getParent()->getDatabaseId()<<"served total "<<passengerInteractedDropOff<<" persons from it's last available status till parking ."<<endl;
 		passengerInteractedDropOff=0;
 		return;
 	}
@@ -203,6 +204,7 @@ void OnCallDriver::scheduleItemCompleted()
 
 	if(driverSchedule.isScheduleCompleted())
 	{
+		ControllerLog()<< "Driver "<<getParent()->getDatabaseId()<<"served total "<<passengerInteractedDropOff<<" persons from it's last available status till parking ."<<endl;
 		passengerInteractedDropOff=0;
 		sendAvailableMessage();
 	}

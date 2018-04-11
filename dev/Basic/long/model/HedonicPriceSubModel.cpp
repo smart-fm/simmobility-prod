@@ -389,6 +389,7 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 	double ZZ_logsum = logsum;
 	double ZZ_bus_gt400m = 0;
 
+	ZZ_freehold = building->getFreehold();
 	double age = ( HITS_SURVEY_YEAR - 1900 ) - unit->getOccupancyFromYear();
 	double misage = 0;
 

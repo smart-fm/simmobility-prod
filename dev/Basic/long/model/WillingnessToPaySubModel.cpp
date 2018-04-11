@@ -507,6 +507,8 @@ namespace sim_mob
 				ageOfUnit = 40;
 			}
 
+			ageOfUnit = ageOfUnit/10.0;// (age of unit is divided by 10 in Roberto's model')
+
 			const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( model->getUnitSlaAddressId( unit->getId() ) );
 			double distanceMall = pcAmenities->getDistanceToMall();
 			//Chetan. 3 July 2017.

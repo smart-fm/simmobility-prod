@@ -126,10 +126,10 @@
 		<occupancyFromDay value = "365"/>
 		<constructionCompletedDay value = "365"/>
     	</developerModel>
-	<outputHouseholdLogsums enabled="true">
+	<outputHouseholdLogsums enabled="false">
 	    <vehicleOwnershipLogsum value ="false"/>
 	    <fixedHomeVariableWork value ="false"/>
-	    <fixedWorkVariableHome value ="true"/>
+	    <fixedWorkVariableHome value ="false"/>
             <hitsRun value = "true" />
 	</outputHouseholdLogsums>
     	<housingModel enabled="true"> 	    

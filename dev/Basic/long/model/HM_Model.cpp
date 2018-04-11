@@ -1953,8 +1953,8 @@ void HM_Model::startImpl()
 	}
 		for (UnitList::const_iterator it = vacanciesVec.begin(); it != vacanciesVec.begin()+vacanciesVec.size()*0.6; it++)
 		{
-			//HedonicPrice_SubModel hpSubmodel(0, this, (*it));
-			//hpSubmodel.computeInitialHedonicPrice((*it)->getId());
+			HedonicPrice_SubModel hpSubmodel(0, this, (*it));
+			hpSubmodel.computeInitialHedonicPrice((*it)->getId());
 
 			boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
 			boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);

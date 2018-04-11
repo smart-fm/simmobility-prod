@@ -252,8 +252,14 @@ void DeveloperModel::startImpl() {
 	createDeveloperAgents(parcelsWithProjectsList,true,false);
 	createDeveloperAgents(parcelsWithDay0Projects,false,true);
 	PrintOutV("Created dev agents"<<std::endl);
-	createBTODeveloperAgents();
-	createPrivatePresaleDeveloperAgents();
+	if(config.ltParams.launchBTO)
+	{
+		createBTODeveloperAgents();
+	}
+	if(config.ltParams.launchPrivatePresale)
+	{
+		createPrivatePresaleDeveloperAgents();
+	}
 	wakeUpDeveloperAgents(getDeveloperAgents());
 	PrintOutV("Wokeup dev agents"<<std::endl);
 

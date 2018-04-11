@@ -506,6 +506,7 @@ void RealEstateSellerRole::notifyWinnerBidders()
 
 void RealEstateSellerRole::calculateUnitExpectations(const Unit& unit)
 {
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	if(unit.isBto())
 	{
 		HM_Model* model = dynamic_cast<RealEstateAgent*>(getParent())->getModel();
@@ -552,9 +553,9 @@ void RealEstateSellerRole::calculateUnitExpectations(const Unit& unit)
 
 		}
 	}
-	else
+	else if(config.ltParams.launchPrivatePresale)
 	{
-		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+
 		unsigned int timeInterval = config.ltParams.housingModel.timeInterval;
 
 		SellingUnitInfo info;

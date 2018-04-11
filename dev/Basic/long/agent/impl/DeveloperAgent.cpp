@@ -194,14 +194,14 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 		}
 
-		if(model->getScenario().compare("ToaPayohScenario") == 0 && model->isToaPayohTaz(tazId))
+		if(model->getScenario().compare("ToaPayohScenario") == 0)
 		{
 			logsum += hedonicLogsumStdDevForTpScenario;
 		}
 
 		if(isEmptyParcel)
 		{
-			unitAge = 0;
+			misAge = 1.0;
 		}
 		else
 		{
@@ -328,7 +328,8 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 			}
 
-			hedonicCoeffObj = model->getHedonicCoeffsByUnitTypeId((*unitsItr).getUnitTypeId());
+			const UnitType *unitType = model->getUnitTypeById((*unitsItr).getUnitTypeId());
+			hedonicCoeffObj = model->getHedonicCoeffsByUnitTypeId(unitType->getAggregatedUnitType());
 		    privateLagTObj = model->getLagPrivateTByUnitTypeId((*unitsItr).getUnitTypeId());
 
 		    HPI = privateLagTObj->getIntercept() + ( privateLagTObj->getT4() * taoValueQ4) + ( privateLagTObj->getT5() * taoValueQ5) + ( privateLagTObj->getT6() * taoValueQ6) + ( privateLagTObj->getT7() * taoValueQ7)
@@ -355,7 +356,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			double distanceToBus = amenities->getDistanceToBus();
 			double distanceToMRT = amenities->getDistanceToMRT();
 
-			if(model->getScenario().compare("ToaPayohScenario") == 0 && model->isToaPayohTaz(tazId))
+			if(model->getScenario().compare("ToaPayohScenario") == 0)
 			{
 				distanceToMall = distanceToMall/2.0;
 				distanceToPMS30 = distanceToPMS30/2.0;
@@ -394,9 +395,10 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			if(hedonicCoeffObj!=nullptr)
 			{
 				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * freehold) +
-	  					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * isDistanceToPMS30) + (hedonicCoeffObj->getDistanceMallKm() * distanceToMall) +
-	  					(hedonicCoeffObj->getMrt200m()* isMRT_200m) + (hedonicCoeffObj->getMrt2400m() *isMRT_2_400m) + (hedonicCoeffObj->getExpress200m() * isExpress_200m) +
-	 -				    (hedonicCoeffObj->getBusGt400m() * isBus_2_400m) + (hedonicCoeffObj->getBusGt400m() * isBusGt_400m) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getAgeSquared() * (ageCapped*ageCapped));
+					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * isDistanceToPMS30) + (hedonicCoeffObj->getDistanceMallKm() * distanceToMall) +
+					(hedonicCoeffObj->getMrt200m()* isMRT_200m) + (hedonicCoeffObj->getMrt2400m() *isMRT_2_400m) + (hedonicCoeffObj->getExpress200m() * isExpress_200m) +
+				    (hedonicCoeffObj->getBus2400m() * isBus_2_400m) + (hedonicCoeffObj->getBusGt400m() * isBusGt_400m) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getAgeSquared() * (ageCapped*ageCapped))
+					+ (hedonicCoeffObj->getMisage() * misAge) ;//TODO::add storey and storey squared to the calculation. - gishara.
 			}
 
 			double revenuePerUnit = exp(revenue+HPI);
@@ -682,69 +684,69 @@ bool DeveloperAgent::onFrameInit(timeslice now) {
 Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-    if (devModel && isActive())
-    {
-    	currentTick = now.ms();
-    	std::tm currentDate = getDateBySimDay(simYear,now.ms());
+	if (devModel && isActive())
+	{
+		currentTick = now.ms();
+		std::tm currentDate = getDateBySimDay(simYear,now.ms());
 
-    	if(!hasBTO && !hasPrivatePresale)
-    	{
-    	if(this->parcel->getStatus()== 0)
-    	{
-    		int quarter = ((currentDate.tm_mon)/4) + 1;
-    		PotentialProject project;
-    		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,currentDate,currentTick);
-    		if(project.getUnits().size()>0)
-    		{
-    			std::vector<PotentialUnit>::iterator unitsItr;
-    			std::vector<PotentialUnit>& potentialUnits = project.getUnits();
-    			int constructionStartDay = config.ltParams.developerModel.constructionStartDay;
-    			int launchDay = config.ltParams.developerModel.saleFromDay;
+		if(!hasBTO && !hasPrivatePresale)
+		{
+			if(this->parcel->getStatus()== 0)
+			{
+				int quarter = ((currentDate.tm_mon)/4) + 1;
+				PotentialProject project;
+				createPotentialProjects(this->parcel->getId(),devModel,project,quarter,currentDate,currentTick);
+				if(project.getUnits().size()>0)
+				{
+					std::vector<PotentialUnit>::iterator unitsItr;
+					std::vector<PotentialUnit>& potentialUnits = project.getUnits();
+					int constructionStartDay = config.ltParams.developerModel.constructionStartDay;
+					int launchDay = config.ltParams.developerModel.saleFromDay;
 
-    			for (unitsItr = potentialUnits.begin(); unitsItr != potentialUnits.end(); ++unitsItr)
-    			{
-    				std::tm constructionStartDate = getDateBySimDay(simYear,(now.ms()+constructionStartDay));
-    				std::tm launchDate = getDateBySimDay(simYear,(now.ms()+launchDay));
-    				boost::shared_ptr <DevelopmentPlan> devPlan(new DevelopmentPlan(this->parcel->getId(),project.getDevTemplate()->getTemplateId(),(*unitsItr).getUnitTypeId(),
-    						(*unitsItr).getNumUnits(),currentDate,constructionStartDate,launchDate));
-    				devModel->addDevelopmentPlans(devPlan);
-    			}
+					for (unitsItr = potentialUnits.begin(); unitsItr != potentialUnits.end(); ++unitsItr)
+					{
+						std::tm constructionStartDate = getDateBySimDay(simYear,(now.ms()+constructionStartDay));
+						std::tm launchDate = getDateBySimDay(simYear,(now.ms()+launchDay));
+						boost::shared_ptr <DevelopmentPlan> devPlan(new DevelopmentPlan(this->parcel->getId(),project.getDevTemplate()->getTemplateId(),(*unitsItr).getUnitTypeId(),
+								(*unitsItr).getNumUnits(),currentDate,constructionStartDate,launchDate));
+						devModel->addDevelopmentPlans(devPlan);
+					}
 
 
-    			BigSerial projectId = devModel->getProjectIdForDeveloperAgent();
-    			createUnitsAndBuildings(project,projectId);
-    			createProject(project,projectId);
-    		}
+					BigSerial projectId = devModel->getProjectIdForDeveloperAgent();
+					createUnitsAndBuildings(project,projectId);
+					createProject(project,projectId);
+				}
 
-    	}
-    	else
-    	{
-    		int currTick = this->fmProject->getCurrTick();
-    		currTick++;
-    		this->fmProject->setCurrTick(currTick);
-    		if(onGoingProjectOnDay0)
-    		{
-    			launchOnGoingUnitsOnDay0();
-    		}
-    		else
-    		{
-    			processExistingProjects();
-    		}
-    	}
-    	}
-    	else if(config.ltParams.launchBTO && hasBTO)
-    	{
-    		launchBTOUnits(currentDate);
-    	}
-    	else if(hasPrivatePresale)
-    	{
-    		launchPrivatePresaleUnits(currentDate);
-    	}
+			}
+			else
+			{
+				int currTick = this->fmProject->getCurrTick();
+				currTick++;
+				this->fmProject->setCurrTick(currTick);
+				if(onGoingProjectOnDay0)
+				{
+					launchOnGoingUnitsOnDay0();
+				}
+				else
+				{
+					processExistingProjects();
+				}
+			}
+		}
+		else if(config.ltParams.launchBTO && hasBTO)
+		{
+			launchBTOUnits(currentDate);
+		}
+		else if(config.ltParams.launchPrivatePresale && hasPrivatePresale)
+		{
+			launchPrivatePresaleUnits(currentDate);
+		}
 
-    }
+	}
 
-    //setActive(false);
-    return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
+	//setActive(false);
+	return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 
 void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial projectId)
@@ -848,10 +850,6 @@ void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectI
 
 }
 
-/*
- * refer the below github issue for a detailed explanation of status changes.
- * https://github.com/smart-fm/lt-data/issues/50
- */
 void DeveloperAgent::processExistingProjects()
 {
 	int projectDuration = this->fmProject->getCurrTick();
@@ -912,13 +910,13 @@ void DeveloperAgent::processExistingProjects()
 				#endif
 
 				//comment this to disable private unit launches by developer model, when running BTO.
-//				for(unitsItr = unitsToSale.begin(); unitsItr != unitsToSale.end(); unitsItr++)
-//				{
-//					(*unitsItr)->setSaleStatus(UNIT_LAUNCHED_BUT_UNSOLD);
-//					(*unitsItr)->setOccupancyStatus(UNIT_READY_FOR_OCCUPANCY_AND_VACANT);
-//					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_NEW_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
-//					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
-//				}
+				for(unitsItr = unitsToSale.begin(); unitsItr != unitsToSale.end(); unitsItr++)
+				{
+					(*unitsItr)->setSaleStatus(UNIT_LAUNCHED_BUT_UNSOLD);
+					(*unitsItr)->setOccupancyStatus(UNIT_READY_FOR_OCCUPANCY_AND_VACANT);
+					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_NEW_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
+					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
+				}
 
 			}
 		break;

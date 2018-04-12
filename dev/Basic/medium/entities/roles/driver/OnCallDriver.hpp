@@ -32,6 +32,10 @@ private:
 	 * (or a drop off node if the parking and pick up nodes were the same)*/
 	bool isExitingParking;
 
+
+	//track how many persons are dropped off by this driver from the time driver available  to till now
+	int passengerInteractedDropOff =0 ;
+
 protected:
 	/**Pointer to the on call driver's movement facet object*/
 	OnCallDriverMovement *movement;

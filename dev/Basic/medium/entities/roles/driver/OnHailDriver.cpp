@@ -194,7 +194,7 @@ void OnHailDriver::alightPassenger()
 	Person_MT *person = passenger->getParent();
 	const SegmentStats *currSegStats = movement->getMesoPathMover().getCurrSegStats();
 	Conflux *conflux = currSegStats->getParentConflux();
-
+	passenger->setFinalPointDriverDistance(this->Movement()->getTravelMetric().distance);
 	conflux->dropOffTraveller(person);
 	passenger = nullptr;
 

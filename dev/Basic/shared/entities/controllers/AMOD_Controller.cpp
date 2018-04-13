@@ -122,26 +122,28 @@ void AMOD_Controller::separateSharedAndSingleRequests()
 void AMOD_Controller::matchDriversServingSharedReq()
 {
 	{
-        unsigned maxAggRequests = maxAggregatedRequests- 1;
+		unsigned maxAggRequests = maxAggregatedRequests- 1;
 
 		//This will contain the constructed schedule for every driver
 		std::unordered_map<const Person *, Schedule> schedulesComputedSoFar;
 
-		for (const Person *driver : driversServingSharedReq)
+		auto driver_Iter = driversServingSharedReq.begin();
+		while (driver_Iter!=driversServingSharedReq.end())
 		{
+			const Person* driver = *driver_Iter;
 			//The node in which the driver is currently located
 			const Node *driverNode = driver->exportServiceDriver()->getCurrentNode();
 
 #ifndef NDEBUG
 			ControllerLog() << "matchDriversServingSharedReq(): driverSchedules.size() = "
-			                << driverSchedules.size() << endl;
+                           << driverSchedules.size() << endl;
 #endif
 			//Get the schedule assigned to the driver
 			Schedule orgSchedule = driverSchedules[driver];
 
 #ifndef NDEBUG
 			ControllerLog() << "matchDriversServingSharedReq(): driverSchedules.size() = "
-			                << driverSchedules.size() << endl;
+                           << driverSchedules.size() << endl;
 #endif
 
 			if(!orgSchedule.empty() && orgSchedule.back().scheduleItemType == PARK)
@@ -152,6 +154,7 @@ void AMOD_Controller::matchDriversServingSharedReq()
 
 			if(orgSchedule.empty())
 			{
+				++driver_Iter;
 				continue;
 			}
 
@@ -162,14 +165,14 @@ void AMOD_Controller::matchDriversServingSharedReq()
 
 #ifndef NDEBUG
 			if (aggregatedRequests > (maxAggregatedRequests + 1))
-			{
-				throw std::runtime_error("The number of aggregated requests is incorrect");
-			}
+           {
+               throw std::runtime_error("The number of aggregated requests is incorrect");
+           }
 
-			if (schedulesComputedSoFar.find(driver) != schedulesComputedSoFar.end())
-			{
-				throw std::runtime_error("Trying to assign more than one schedule to a single driver");
-			}
+           if (schedulesComputedSoFar.find(driver) != schedulesComputedSoFar.end())
+           {
+               throw std::runtime_error("Trying to assign more than one schedule to a single driver");
+           }
 #endif
 
 			if (schedule.size() != orgSchedule.size() && !schedule.empty())
@@ -178,22 +181,26 @@ void AMOD_Controller::matchDriversServingSharedReq()
 
 				//Remove the driver from the set of drivers serving shared requests that can take
 				//additional passengers, as this drivers capacity is full
-				driversServingSharedReq.erase(driver);
+				driversServingSharedReq.erase(driver_Iter++);
+			}
+			else
+			{
+				++driver_Iter;
 			}
 		}
 
 #ifndef NDEBUG
 		for (const std::pair<const Person *, Schedule> &s : schedulesComputedSoFar)
-		{
-			const Person *driver = s.first;
-			if (driverSchedules.find(driver) == driverSchedules.end())
-			{
-				stringstream msg;
-				msg << "Trying to assign a schedule to a driver that is already occupied as it "
-					<< "has a non-empty schedule";
-				throw std::runtime_error(msg.str());
-			}
-		}
+       {
+           const Person *driver = s.first;
+           if (driverSchedules.find(driver) == driverSchedules.end())
+           {
+               stringstream msg;
+               msg << "Trying to assign a schedule to a driver that is already occupied as it "
+                   << "has a non-empty schedule";
+               throw std::runtime_error(msg.str());
+           }
+       }
 #endif
 
 		assignSchedules(schedulesComputedSoFar, true);

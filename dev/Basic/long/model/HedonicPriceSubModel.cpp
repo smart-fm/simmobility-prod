@@ -297,28 +297,50 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Buildi
 	double ZZ_dis_mall = amenities->getDistanceToMall();
 
 
-	if( amenities->hasPms_1km() == true )
+	float distancePMS = amenities->getDistanceToPMS30();
+	if(distancePMS > 100)
+	{
+		distancePMS = distancePMS/1000.0;
+	}
+
+	if( distancePMS <= 1 )
 		ZZ_pms1km = 1;
 
 
-	if( amenities->hasMRT_200m() == true )
+	float distanceMRT = amenities->getDistanceToMRT();
+	if(distanceMRT > 100)
+	{
+		distanceMRT = distanceMRT/1000.0;
+	}
+
+	if( distanceMRT <= 0.2)
+	{
 		ZZ_mrt_200m = 1;
-
-
-	if( amenities->hasMRT_400m() == true )
+	}
+	else if(distanceMRT <=0.4)
+	{
 		ZZ_mrt_400m = 1;
+	}
 
+	float distanceExpress = amenities->getDistanceToExpress();
+	if(distanceExpress > 100)
+	{
+		distanceExpress = distanceExpress/1000.0;
+	}
 
-	if( amenities->hasExpress_200m() == true )
+	if( distanceExpress <= 0.2 )
 		ZZ_express_200m = 1;
 
+	float distanceBus = amenities->getDistanceToBus();
 
-	if( amenities->hasBus_200m() == true )
+	if( distanceBus <= 0.2 )
+	{
 		ZZ_bus_200m = 1;
-
-
-	if( amenities->hasBus_400m() == true)
+	}
+	else if(distanceBus <= 0.4)
+	{
 		ZZ_bus_400m = 1;
+	}
 
 
 	UnitType *unitType = hmModel->getUnitTypeById(unit->getUnitType());

@@ -1467,10 +1467,8 @@ void HM_Model::startImpl()
 	conn.connect();
 	resume = config.ltParams.resume;
 	conn.setSchema(config.schemas.main_schema);
-	//if(config.ltParams.outputHouseholdLogsums.enabled)
-	//{
-	//	PredayLT_LogsumManager::getInstance();
-	//}
+	PredayLT_LogsumManager::getInstance();
+
 
 	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
 	conn_calibration.connect();

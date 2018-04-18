@@ -267,20 +267,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     	household->updateTimeOffMarket();
     }
 
-//    if(config.ltParams.schoolAssignmentModel.enabled)
-//    {
-//    	if( getId() < model->FAKE_IDS_START)
-//    	{
-//    		SchoolAssignmentSubModel schoolAssignmentModel(model);
-//    		int secondSimDay = (startDay + 1);
-//    		if(day == secondSimDay)
-//    		{
-//    			schoolAssignmentModel.setStudentLimitInPrimarySchool();
-//    		}
-//
-//    	}
-//    }
-
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 

@@ -489,7 +489,7 @@ namespace sim_mob
 			{
 				carDummy = 1;
 			}
-			if( (unit->getOccupancyFromDate().tm_year == 9999)|| (unit->getOccupancyFromDate().tm_year == 0))
+			if( (unit->getOccupancyFromDate().tm_year == 8099)|| (unit->getOccupancyFromDate().tm_year == 0))
 			{
 				missingAge = 1;
 			}
@@ -600,6 +600,10 @@ namespace sim_mob
 
 				//needed when wtp model is expressed as log wtp
 				willingnessToPay = exp(willingnessToPay);
+				if(isinf(willingnessToPay) )
+				{
+					PrintOutV("wtp is inf for"<< unit->getId()<<std::endl);
+				}
 
 				return willingnessToPay;
 

@@ -65,8 +65,13 @@ namespace
 
         //print bid.
         if( response != NOT_AVAILABLE )
+        {
         	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
-
+        	if(bid.getHedonicPrice() == 0)
+        	{
+        		PrintOutV("hedonic price is 0 for bid"<<bid.getBidId()<<std::endl);
+        	}
+        }
         if(response != NOT_AVAILABLE)
         {
         	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();

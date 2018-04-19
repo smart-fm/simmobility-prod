@@ -412,8 +412,19 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 	double ZZ_bus_gt400m = 0;
 
 	ZZ_freehold = building->getFreehold();
-	double age = ( HITS_SURVEY_YEAR - 1900 ) - unit->getOccupancyFromYear();
+
 	double misage = 0;
+	double age  = 0;
+
+	if( (unit->getOccupancyFromDate().tm_year == 8099)|| (unit->getOccupancyFromDate().tm_year == 0))
+	{
+		misage = 1;
+	}
+	else
+	{
+		age= HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
+	}
+
 
 	if( age > 50 )
 	{
@@ -613,6 +624,10 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 
 
     hedonicPrice = exp( hedonicPrice ) / 1000000.0;
+    if(hedonicPrice == 0)
+    {
+    	PrintOutV("hedonic price is 0 for"<< unit->getId()<<std::endl);
+    }
 
     if (hedonicPrice > 0)
     {

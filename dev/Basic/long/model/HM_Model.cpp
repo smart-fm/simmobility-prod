@@ -1467,7 +1467,7 @@ void HM_Model::startImpl()
 	conn.connect();
 	resume = config.ltParams.resume;
 	conn.setSchema(config.schemas.main_schema);
-	PredayLT_LogsumManager::getInstance();
+	//PredayLT_LogsumManager::getInstance();
 
 
 	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
@@ -1949,7 +1949,7 @@ void HM_Model::startImpl()
 			}
 		}
 	}
-		for (UnitList::const_iterator it = vacanciesVec.begin(); it != vacanciesVec.begin()+vacanciesVec.size()*0.6; it++)
+		for (UnitList::const_iterator it = vacanciesVec.begin(); it != vacanciesVec.end(); it++)
 		{
 			HedonicPrice_SubModel hpSubmodel(0, this, (*it));
 			hpSubmodel.computeInitialHedonicPrice((*it)->getId());
@@ -1993,7 +1993,7 @@ void HM_Model::startImpl()
 
 				writeUnitTimesToFile((*it)->getId(),(*it)->getTimeOnMarket(), (*it)->getTimeOffMarket(), (*it)->getbiddingMarketEntryDay());
 			}
-				if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->isBto() == false )
+				if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->getTenureStatus()!= 0)
 				{
 					if(!resume)
 					{

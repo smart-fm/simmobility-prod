@@ -340,6 +340,7 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 				sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
 				if (passenger)
 				{
+					waitingRole->setBusLineForBoardingPassenger(busDriver->getBusLineID());
 					busDriver->addPassenger(passenger);
 					passenger->setStartPoint(WayPoint(busStop));
 					passenger->Movement()->startTravelTimeMetric();

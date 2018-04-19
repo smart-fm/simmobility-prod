@@ -80,6 +80,11 @@ const std::string sim_mob::medium::WaitBusActivity::getBusLines() const
 	return parent->currSubTrip->getBusLineID();
 }
 
+void  sim_mob::medium::WaitBusActivity::setBusLineForBoardingPassenger(const std::string busLineId) const
+{
+	parent->currSubTrip->serviceLine = busLineId;    // This service Line would be set for passenger who is barding Bus.
+}
+
 void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver)
 {
 	const std::vector<const sim_mob::BusStop*>* stopsVec = driver->getBusStopsVector();

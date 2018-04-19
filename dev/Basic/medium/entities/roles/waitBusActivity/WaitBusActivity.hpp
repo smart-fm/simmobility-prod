@@ -74,6 +74,9 @@ public:
 
 	const std::string getBusLines() const;
 
+	// This is to set the bus line of Passenger to same as Busline of driver when it board the bus
+	void setBusLineForBoardingPassenger(const std::string busLineId) const;
+
 	void setStop(const sim_mob::BusStop* busStop)
 	{
 		stop = busStop;

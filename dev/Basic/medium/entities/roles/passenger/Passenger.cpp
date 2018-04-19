@@ -162,9 +162,21 @@ void sim_mob::medium::Passenger::collectTravelTime()
 		{
 			personTravelTime.mode = "ON_AMOD_Pool_Veh";
 		}
-		else
+		else if((*(parent->currSubTrip)).travelMode == "Rail_SMS_Taxi")
 		{
 			personTravelTime.mode = "ON_RAIL_SMS_Veh";
+		}
+		else if((*(parent->currSubTrip)).travelMode == "Rail_SMS_Pool_Taxi")
+		{
+			personTravelTime.mode = "ON_RAIL_SMS_Pool_Veh";
+		}
+		else if((*(parent->currSubTrip)).travelMode == "Rail_AMOD_Taxi")
+		{
+			personTravelTime.mode = "ON_RAIL_AMOD_Veh";
+		}
+		else if((*(parent->currSubTrip)).travelMode == "Rail_AMOD_Pool_Taxi")
+		{
+			personTravelTime.mode = "ON_RAIL_AMOD_Pool_Veh";
 		}
 	}
 	else

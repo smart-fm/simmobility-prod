@@ -3,6 +3,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <soci/soci.h>
+#include <conf/ConfigManager.hpp>
 #include "entities/Person.hpp"
 #include "geospatial/network/Link.hpp"
 #include "PathSetParam.hpp"
@@ -327,7 +328,7 @@ private:
 	boost::shared_mutex mutexExclusion;
 
 	/**	stores the name of database's function operating on the pathset and singlepath tables */
-	const std::string psRetrieval;
+	std::string psRetrieval;
 
 	/**	stores the name of database's function operating on the pathset and singlepath tables */
 	const std::string psRetrievalWithoutRestrictedRegion;

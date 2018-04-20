@@ -151,6 +151,8 @@ private:
 	 */
 	void loadSurveillanceStns(const std::string& storedProc);
 
+	void populateStudyArea();
+
 public:
 	virtual ~NetworkLoader();
 

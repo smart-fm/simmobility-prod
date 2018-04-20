@@ -138,5 +138,8 @@ public:
 	unsigned int getTazId()const;
 	void setTazId(unsigned int tazId_);
 	//aa}
+
+	const std::string printIfNodeIsInStudyArea() const ;
+
 };
 }

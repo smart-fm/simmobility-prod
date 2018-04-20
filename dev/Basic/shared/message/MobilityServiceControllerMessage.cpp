@@ -257,8 +257,8 @@ short Schedule::getPassengerCount() const
 std::ostream &operator<<(std::ostream &strm, const sim_mob::TripRequestMessage &request)
 {
 	return strm << "request issued by " << " person  "<<request.person->getDatabaseId()<<"("<< request.person<<")" <<" at " << request.timeOfRequest <<
-	            " to go from node " << request.startNode->getNodeId() <<
-	            ", to node " << request.destinationNode->getNodeId();
+	            " to go from node " << request.startNode->getNodeId() <<" ("<<request.startNode->printIfNodeIsInStudyArea()<<") " <<
+	            ", to node " << request.destinationNode->getNodeId()<<" ("<<request.destinationNode->printIfNodeIsInStudyArea()<<") ";
 }
 
 std::ostream &operator<<(std::ostream &strm, const sim_mob::ScheduleItem &item)
@@ -314,3 +314,4 @@ bool operator==(sim_mob::TripRequestMessage r1, const sim_mob::TripRequestMessag
 {
 	return r1.operator==(r2);
 }
+

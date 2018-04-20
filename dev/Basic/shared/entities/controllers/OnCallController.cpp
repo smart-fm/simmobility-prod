@@ -1062,6 +1062,10 @@ void OnCallController::assignSchedules(const unordered_map<const Person *, Sched
 			const ScheduleItem parkingSchedule(PARK, parking);
 			schedule.push_back(parkingSchedule);
 		}
+		else
+		{
+			ControllerLog()<<"Parking is not found near dropOff node "<<finalDropOffNode->getNodeId()<<" . trip is with Driver "<<driver->getDatabaseId()<<" and schedule is { "<<p.second<<" }"<<endl;
+		}
 
 		assignSchedule(driver, schedule, isUpdatedSchedule);
 	}

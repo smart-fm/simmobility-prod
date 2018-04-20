@@ -113,6 +113,15 @@ public:
 	{
 		return currNode;
 	}
+	/**
+     * This method to check if the node is one of the blackListed nodes
+     * @return
+     */
+	bool ifNodeBlackListed(unsigned int thisNodeId);
+
+    //BlackListedNodes:: On the base of  expressway inclusion (and some more which need to check TBD)
+	const std::unordered_set<unsigned int>  blackListedNodes={16657,17515,23180,17517,23182,15035,23184,23185,18530,13691,11340,17593,17704,11341,11741,13280,23190,23191,10076,11986,14576,20277,13280,17078,23183,23189,13514,20657,14348,10917,13392,20659
+			,18938,10549,19690,11506,20401,21067,21636,21893,15942,1380011881,15492,20421,21058,13911,16169,10932,14056,21084,22267,13362,23127,1380012966};
 };
 
 class OnCallDriverBehaviour : public DriverBehavior
@@ -144,6 +153,12 @@ public:
 	 * @return
 	 */
 	const Node *chooseRandomNode() const;
+
+	/**
+	 * This method chooses a random node from Study Area
+	 * @return
+	 */
+	const Node *chooseRandomNodeFromStudyAreaRegion() const;
 
 	/**
 	 * Checks if the driver's shift has ended

@@ -819,6 +819,11 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		//Close the connection
 		sql.close();
 
+		if(sim_mob::ConfigManager::GetInstance().FullConfig().isStudyAreaEnabled())
+		{
+			populateStudyArea();
+		}
+
 		isNetworkLoaded = true;
 
 		Print() << "\nSimMobility Road Network loaded from database\n";
@@ -861,4 +866,9 @@ NetworkLoader* NetworkLoader::getInstance()
 void NetworkLoader::deleteInstance()
 {
 	safe_delete_item(networkLoader);
+}
+
+void NetworkLoader::populateStudyArea()
+{
+	roadNetwork->populateStudyArea();
 }

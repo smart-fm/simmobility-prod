@@ -267,6 +267,9 @@ private:
 	/**link travel time file name*/
 	std::string linkTravelTimesFile;
 
+	///	is study area  enforced
+	bool studyAreaEnabled;
+
 public:
 	/////////////////////////////////////////////////////////////////////////////////////
     /// These are helper functions, to make compatibility between old/new parsing easier.
@@ -404,6 +407,15 @@ public:
     bool isPublicTransitEnabled() const;
 
     void setPublicTransitEnabled(bool value);
+
+	/**
+    * Checks whether study Area (Mount Pleasant Area )enforced
+	*
+	* @return true if study area enforced, else false
+	*/
+	bool isStudyAreaEnabled() const;
+
+	void setStudyAreaEnabled(bool value);
 
     bool isEnabledEdgeTravelTime() const;
 

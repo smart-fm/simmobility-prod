@@ -1,5 +1,6 @@
-#include "PathSetManager.hpp"
 
+//#include <config/MT_Config.hpp>
+#include "PathSetManager.hpp"
 #include <algorithm>
 #include <cmath>
 #include <boost/algorithm/string.hpp>
@@ -548,6 +549,8 @@ void sim_mob::PrivatePathsetGenerator::onGeneratePathSet(boost::shared_ptr<PathS
 
 double sim_mob::PrivateTrafficRouteChoice::getOD_TravelTime(unsigned int origin, unsigned int destination, const sim_mob::DailyTime& curTime)
 {
+	const ConfigParams& config = sim_mob::ConfigManager::GetInstance().FullConfig();
+	const RoadNetwork* rdnw = RoadNetwork::getInstance();
 	double shortestPathTravelTime = 0.0;
 	if (origin == destination) { return 0.0; }
 	std::string fromToID = getFromToString(origin, destination);
@@ -566,7 +569,24 @@ double sim_mob::PrivateTrafficRouteChoice::getOD_TravelTime(unsigned int origin,
 		sim_mob::PathSet* tmpPathset = new sim_mob::PathSet();
 		pathset.reset(tmpPathset);
 		pathset->id = fromToID;
-		pathsetRetrievalStatus = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval);
+		if(config.isStudyAreaEnabled() && rdnw->IsMovementInStudyArea(origin,destination))
+		{
+
+			int count = config.getDatabaseProcMappings().procedureMappings.count("studyArea_pvt_pathset");
+			if(count)
+			{
+				std::string psRetrievalForStudyArea = config.getDatabaseProcMappings().procedureMappings.find("studyArea_pvt_pathset")->second;
+				pathsetRetrievalStatus = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrievalForStudyArea);
+			}
+			else
+			{
+				throw std::runtime_error("Study Area Pathset Procedure Not present in configuration file");
+			}
+		}
+		else
+		{
+			pathsetRetrievalStatus = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval);
+		}
 		if(pathsetRetrievalStatus == PSM_HASPATH)
 		{
 			for (sim_mob::SinglePath* sp : pathset->pathChoices)
@@ -650,10 +670,10 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoi
 		const sim_mob::Link* approach, bool useInSimulationTT)
 {
 	res.clear();
-
+	const ConfigParams& config = sim_mob::ConfigManager::GetInstance().FullConfig();
 	//take care of partially excluded and blacklisted segments here
 	const std::set<const sim_mob::Link*>& partial = (usePartialExclusion ? this->partialExclusions : std::set<const sim_mob::Link*>());
-
+	const RoadNetwork* rdnw = RoadNetwork::getInstance();
 	const sim_mob::Node* fromNode = st.origin.node;
 	const sim_mob::Node* toNode = st.destination.node;
 	if (!toNode || !fromNode)
@@ -704,7 +724,23 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoi
 	}
 	else
 	{
-		hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval, blackListedLinks);
+		if(config.isStudyAreaEnabled() && rdnw->IsMovementInStudyArea(fromNode->getNodeId(), toNode->getNodeId()))
+		{
+			int count = config.getDatabaseProcMappings().procedureMappings.count("studyArea_pvt_pathset");
+			if(count)
+			{
+				std::string psRetrievalForStudyArea = config.getDatabaseProcMappings().procedureMappings.find("studyArea_pvt_pathset")->second;
+				hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrievalForStudyArea, blackListedLinks);
+			}
+			else
+			{
+				throw std::runtime_error("Study Area Pathset Procedure Not present in configuration file");
+			}
+		}
+		else
+		{
+			hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval, blackListedLinks);
+		}
 	}
 	switch (hasPath)
 	{
@@ -774,12 +810,14 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathToLink(std::vector<sim_mob::
                                                            bool useInSimulationTT)
 {
 	res.clear();
-
+	const ConfigParams& config = sim_mob::ConfigManager::GetInstance().FullConfig();
 	//take care of partially excluded and blacklisted segments here
 	const std::set<const sim_mob::Link*>& partial = (usePartialExclusion ? this->partialExclusions : std::set<const sim_mob::Link*>());
 
 	const sim_mob::Node* fromNode = st.origin.node;
 	const sim_mob::Node* toNode = st.destination.node;
+	const RoadNetwork* rdnw = RoadNetwork::getInstance();
+
 	if (!toNode || !fromNode)
 	{
 		return false;
@@ -829,7 +867,23 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathToLink(std::vector<sim_mob::
 	}
 	else
 	{
-		hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval, blackListedLinks);
+		if(config.isStudyAreaEnabled() && rdnw->IsMovementInStudyArea(fromNode->getNodeId(), toNode->getNodeId()))
+		{
+			int count = config.getDatabaseProcMappings().procedureMappings.count("studyArea_pvt_pathset");
+			if(count)
+			{
+				std::string psRetrievalForStudyArea = config.getDatabaseProcMappings().procedureMappings.find("studyArea_pvt_pathset")->second;
+				hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrievalForStudyArea, blackListedLinks);
+			}
+			else
+			{
+				throw std::runtime_error("Study Area Pathset Procedure Not present in configuration file");
+			}
+		}
+		else
+		{
+			hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval, blackListedLinks);
+		}
 	}
 	switch (hasPath)
 	{

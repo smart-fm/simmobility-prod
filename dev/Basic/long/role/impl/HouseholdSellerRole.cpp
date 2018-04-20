@@ -67,7 +67,7 @@ namespace
         if( response != NOT_AVAILABLE )
         {
         	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
-        	if(bid.getHedonicPrice() == 0)
+        	if(entry.hedonicPrice == 0)
         	{
         		PrintOutV("hedonic price is 0 for bid"<<bid.getBidId()<<std::endl);
         	}
@@ -507,7 +507,8 @@ void HouseholdSellerRole::notifyWinnerBidders()
     {
         Bid& maxBidOfDay = itr->second;
         ExpectationEntry entry;
-        getCurrentExpectation(maxBidOfDay.getNewUnitId(), entry);
+        if (!getCurrentExpectation(maxBidOfDay.getNewUnitId(), entry))
+        	continue;
 
         if(decide(maxBidOfDay, entry) == false)
         	continue;

@@ -91,7 +91,7 @@ unsigned Conflux::updateInterval = 0;
 int Conflux::currentframenumber =-1;
 boost::mutex Conflux::activeAgentsLock;
 
-std::map<const Node *,Conflux *> Conflux::nodeConfluxMap;
+std::unordered_map<const Node *,Conflux *> Conflux::nodeConfluxMap;
 Conflux::Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id, bool isLoader) :
 		Agent(mtxStrat, id), confluxNode(confluxNode), parentWorkerAssigned(false), currFrame(0, 0), isLoader(isLoader), numUpdatesThisTick(0),
 		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond()), evadeVQ_Bounds(false), segStatsOutput(std::string()),
@@ -107,7 +107,7 @@ Conflux::Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id, bool 
 
 Conflux *  Conflux::getConfluxFromNode(const Node * node)
 {
-	std::map<const Node *,Conflux *>::const_iterator itr = nodeConfluxMap.find(node);
+	std::unordered_map<const Node *,Conflux *>::const_iterator itr = nodeConfluxMap.find(node);
 	return itr->second;
 }
 

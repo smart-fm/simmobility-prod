@@ -706,11 +706,13 @@ void ParseMidTermConfigFile::processTrainControllerNode(xercesc::DOMElement *nod
 {
 	cfg.trainController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 	cfg.trainController.trainControlType = ParseString(GetNamedAttributeValue(node, "train_control_type"), "");
-
-	DOMElement *child = GetSingleElementByName(node, "output_enabled", true);
-	cfg.trainController.outputEnabled = ParseBoolean(GetNamedAttributeValue(child, "value"), false);
-	child = GetSingleElementByName(node, "distance_arriving_at_platform", true);
-	cfg.trainController.distanceArrivingAtPlatform = ParseFloat(GetNamedAttributeValue(child, "value"));
+    if(cfg.trainController.enabled)
+    {
+        DOMElement *child = GetSingleElementByName(node, "output_enabled", true);
+        cfg.trainController.outputEnabled = ParseBoolean(GetNamedAttributeValue(child, "value"), false);
+        child = GetSingleElementByName(node, "distance_arriving_at_platform", true);
+        cfg.trainController.distanceArrivingAtPlatform = ParseFloat(GetNamedAttributeValue(child, "value"));
+    }
 }
 
 void ParseMidTermConfigFile::processPathSetFileName(xercesc::DOMElement* node)

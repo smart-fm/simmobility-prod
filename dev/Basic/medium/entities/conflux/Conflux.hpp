@@ -72,14 +72,14 @@ private:
 	//typedefs
 	typedef std::deque<Person_MT*> PersonList;
 	typedef std::vector<SegmentStats*> SegmentStatsList;
-	typedef std::map<const Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
-	typedef std::map<const Link*, PersonList> VirtualQueueMap;
-	typedef std::map<const RoadSegment*, SegmentStatsList> SegmentStatsMap;
+	typedef std::unordered_map<const Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
+	typedef std::unordered_map<const Link*, PersonList> VirtualQueueMap;
+	typedef std::unordered_map<const RoadSegment*, SegmentStatsList> SegmentStatsMap;
 
 	bool isServiceControllerInvoked=false;
 	static int currentframenumber;
-	typedef std::map<const Link*, LinkStats> LinkStatsMap;
-static std::map<const Node *,Conflux *> nodeConfluxMap;
+	typedef std::unordered_map<const Link*, LinkStats> LinkStatsMap;
+static std::unordered_map<const Node *,Conflux *> nodeConfluxMap;
 	/**
 	 * helper to capture the status of a person before and after update
 	 */

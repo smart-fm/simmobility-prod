@@ -880,45 +880,49 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
     if (node)
     {
     	cfg.mobilityServiceController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
-		std::vector<DOMElement*> controllers = GetElementsByName(node, "controller");
+        if(cfg.mobilityServiceController.enabled)
+        {
+            std::vector<DOMElement *> controllers = GetElementsByName(node, "controller");
 
-		for (std::vector<DOMElement*>::const_iterator it = controllers.begin(); it != controllers.end(); ++it)
-		{
-			unsigned int key =
-					ParseUnsignedInt(GetNamedAttributeValue(*it, "id"), static_cast<unsigned int>(0));
+            for (std::vector<DOMElement *>::const_iterator it = controllers.begin(); it != controllers.end(); ++it)
+            {
+                unsigned int key =
+                        ParseUnsignedInt(GetNamedAttributeValue(*it, "id"), static_cast<unsigned int>(0));
 
-			MobilityServiceControllerType type =
-					(MobilityServiceControllerType)ParseUnsignedInt(GetNamedAttributeValue(*it, "type"));
+                MobilityServiceControllerType type =
+                        (MobilityServiceControllerType) ParseUnsignedInt(GetNamedAttributeValue(*it, "type"));
 
-			std::string tripSupportMode = "";
-			tripSupportMode =
-					ParseString(GetNamedAttributeValue(*it, "tripSupportMode"), "");
+                std::string tripSupportMode = "";
+                tripSupportMode =
+                        ParseString(GetNamedAttributeValue(*it, "tripSupportMode"), "");
 
-			unsigned int scheduleComputationPeriod =
-					ParseUnsignedInt(GetNamedAttributeValue(*it, "scheduleComputationPeriod"));
+                unsigned int scheduleComputationPeriod =
+                        ParseUnsignedInt(GetNamedAttributeValue(*it, "scheduleComputationPeriod"));
 
-			unsigned int maxFleetSize = ParseUnsignedInt(GetNamedAttributeValue(*it, "maxFleetSize"));
-            unsigned int maxAggregatedRequests = ParseUnsignedInt(GetNamedAttributeValue(*it,"maxAggregatedRequests"));
+                unsigned int maxFleetSize = ParseUnsignedInt(GetNamedAttributeValue(*it, "maxFleetSize"));
+                unsigned int maxAggregatedRequests = ParseUnsignedInt(
+                        GetNamedAttributeValue(*it, "maxAggregatedRequests"));
 
-			if (cfg.mobilityServiceController.enabledControllers.count(key) > 0)
-			{
-				stringstream msg;
-				msg << "Duplicate value for <controller id=\"" << key
-					<< "\">. Expected: Unique id for controller";
-				throw runtime_error(msg.str());
-			}
+                if (cfg.mobilityServiceController.enabledControllers.count(key) > 0)
+                {
+                    stringstream msg;
+                    msg << "Duplicate value for <controller id=\"" << key
+                        << "\">. Expected: Unique id for controller";
+                    throw runtime_error(msg.str());
+                }
 
-			if (key != 0)
-			{
-				MobilityServiceControllerConfig vcc;
-				vcc.type = type;
-				vcc.scheduleComputationPeriod = scheduleComputationPeriod;
-				vcc.maxFleetSize=maxFleetSize;
-				vcc.tripSupportMode = tripSupportMode;
-                vcc.maxAggregatedRequests = maxAggregatedRequests;
-				cfg.mobilityServiceController.enabledControllers[key] = vcc;
-			}
-		}
+                if (key != 0)
+                {
+                    MobilityServiceControllerConfig vcc;
+                    vcc.type = type;
+                    vcc.scheduleComputationPeriod = scheduleComputationPeriod;
+                    vcc.maxFleetSize = maxFleetSize;
+                    vcc.tripSupportMode = tripSupportMode;
+                    vcc.maxAggregatedRequests = maxAggregatedRequests;
+                    cfg.mobilityServiceController.enabledControllers[key] = vcc;
+                }
+            }
+        }
     }
 }
 

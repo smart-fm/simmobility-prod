@@ -581,7 +581,10 @@ std::vector<sim_mob::OD_Trip>  Person_MT::splitMrtTrips(std::vector<std::string>
 	while(it != railPath.end())
 	{
 		/** hardcoding the line now since all lines are not implemented */
-		if((*it).find("NE") != std::string::npos || (*it).find("EW") !=  std::string::npos||(*it).find("CG") !=  std::string::npos)
+		if((*it).find("NE") != std::string::npos || (*it).find("EW") !=  std::string::npos||(*it).find("CG") !=  std::string::npos||(*it).find("SE") !=  std::string::npos
+           ||(*it).find("BP") !=  std::string::npos ||(*it).find("CC") !=  std::string::npos ||(*it).find("CE") !=  std::string::npos ||(*it).find("DT") !=  std::string::npos
+           ||(*it).find("NS") !=  std::string::npos ||(*it).find("PE") !=  std::string::npos ||(*it).find("PW") !=  std::string::npos ||(*it).find("SW") !=  std::string::npos
+           ||(*it).find("TE") !=  std::string::npos ||(*it).find("PTC") !=  std::string::npos||(*it).find("STC") !=  std::string::npos)
 		{
 			if( !boost::iequals(prev, "") )
 			{

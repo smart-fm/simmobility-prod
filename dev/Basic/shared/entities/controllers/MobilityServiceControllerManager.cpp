@@ -119,7 +119,6 @@ bool MobilityServiceControllerManager::addMobilityServiceController(MobilityServ
 	controllers.insert(controller);
 
 #ifndef NDEBUG
-	controller->consistencyChecks();
 	consistencyChecks();
 #endif
 

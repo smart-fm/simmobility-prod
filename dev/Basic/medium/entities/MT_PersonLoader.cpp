@@ -307,14 +307,14 @@ public:
 		}
 	}
 
-	static int load(std::map<std::string, std::vector<TripChainItem*> >& tripChainMap, std::vector<Person_MT*>& outPersonsLoaded)
+	static int load(std::unordered_map<std::string, std::vector<TripChainItem*> >& tripChainMap, std::vector<Person_MT*>& outPersonsLoaded)
 	{
 		unsigned int numThreads = MT_Config::getInstance().getThreadsNumInPersonLoader();
 		int personsPerThread = tripChainMap.size() / numThreads;
 		CellLoader thread[numThreads];
 		boost::thread_group threadGroup;
 		int thIdx = 0;
-		for(std::map<std::string, std::vector<TripChainItem*> >::iterator tcMapIt=tripChainMap.begin(); tcMapIt!=tripChainMap.end(); tcMapIt++, thIdx=(thIdx+1)%numThreads)
+		for(std::unordered_map<std::string, std::vector<TripChainItem*> >::iterator tcMapIt=tripChainMap.begin(); tcMapIt!=tripChainMap.end(); tcMapIt++, thIdx=(thIdx+1)%numThreads)
 		{
 			thread[thIdx].tripChainList.push_back(tcMapIt->second);
 		}
@@ -477,7 +477,7 @@ void MT_PersonLoader::loadMRT_Demand()
 	CSV_Reader variablesReader(filename, true);
 	boost::unordered_map<std::string, std::string> variableRow;
 	variablesReader.getNextRow(variableRow, false);
-	map<string, vector<TripChainItem*> > tripchains;
+	unordered_map<string, vector<TripChainItem*> > tripchains;
 	TrainController<Person_MT>* trainController = TrainController<Person_MT>::getInstance();
 	while (!variableRow.empty())
 	{
@@ -558,19 +558,15 @@ void MT_PersonLoader::loadPersonDemand()
 		loadMRT_Demand();
 		return;
 	}
-	//Our SQL statement
+    //Our SQL statement
 	stringstream query;
+    ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	double end = nextLoadStart + DEFAULT_LOAD_INTERVAL;
 	query << "select * from " << storedProcName << "(" << nextLoadStart << "," << end << ")";
-	std::string sql_str = query.str();
-	soci::session sql_(soci::postgresql, ConfigManager::GetInstanceRW().FullConfig().getDatabaseConnectionString(false));
+	soci::session sql_(soci::postgresql, cfg.getDatabaseConnectionString(false));
 
-	soci::rowset<soci::row> rs = (sql_.prepare << sql_str);
-	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-	map<string, vector<TripChainItem*> > tripchains;
-
-	ConfigParams &configParams = ConfigManager::GetInstanceRW().FullConfig();
-
+	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
+	unordered_map<string, vector<TripChainItem*> > tripchains;
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row &r = (*it);
@@ -587,11 +583,11 @@ void MT_PersonLoader::loadPersonDemand()
 			personTripChain.push_back(constructedTrip);
 
 			//Record the number of trips loaded
-			configParams.numTripsLoaded++;
+            cfg.numTripsLoaded++;
 		}
 		else
 		{
-			configParams.numTripsNotLoaded++;
+            cfg.numTripsNotLoaded++;
 			continue;
 		}
 
@@ -602,7 +598,7 @@ void MT_PersonLoader::loadPersonDemand()
 	}
 
 	//Record the total number of persons loaded from the day activity schedule
-	configParams.numPersonsLoaded += tripchains.size();
+    cfg.numPersonsLoaded += tripchains.size();
 
 	if (!freightStoredProcName.empty())
 	{

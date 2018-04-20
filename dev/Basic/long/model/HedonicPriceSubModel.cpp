@@ -379,6 +379,10 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Buildi
 
 
 	hedonicPrice = hedonicPrice + lagCoefficient;
+	if(hedonicPrice == 0)
+	{
+		PrintOutV("hedonic price is 0 for"<< unit->getId()<<std::endl);
+	}
 
     return hedonicPrice;
 }
@@ -494,6 +498,10 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 
 
 	hedonicPrice = hedonicPrice + lagCoefficient;
+	if(hedonicPrice == 0)
+	{
+		PrintOutV("hedonic price is 0 for"<< unit->getId()<<std::endl);
+	}
 
 	return hedonicPrice;
 }

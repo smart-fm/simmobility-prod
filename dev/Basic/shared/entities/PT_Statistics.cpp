@@ -85,6 +85,12 @@ void PT_Statistics::HandleMessage(Message::MessageType type, const Message& mess
 		waitingCounts.push_back(msg.waitingCnt);
 		break;
 	}
+	case STORE_PERSON_ALIGHTING:
+	{
+		const PT_PassengerAlightInfoMessage& msg = MSG_CAST(PT_PassengerAlightInfoMessage, message);
+		stopStatsMgr.addStopStats(msg.personAlightTimeInfo);
+	break;
+	}
 	default:
 	{
 		break;
@@ -263,14 +269,15 @@ std::string WaitingCount::getCSV() const
 std::string StopStats::getCSV() const
 {
 	char csvArray[100];
-	sprintf(csvArray, "%u,%s,%s,%.2f,%.2f,%.2f,%.2f\n",
+	sprintf(csvArray, "%u,%s,%s,%.2f,%.2f,%.2f,%.2f,%.2f\n",
 			interval,
 			stopCode.c_str(),
 			serviceLine.c_str(),
 			((waitingCount<=0)? 0 : (waitingTime / waitingCount)),
 			((numArrivals<=0)? 0 : (dwellTime / numArrivals)),
 			numArrivals,
-			numBoarding);
+			numBoarding,
+			numAlighting);
 	return std::string(csvArray);
 }
 
@@ -296,6 +303,21 @@ void StopStatsManager::addStopStats(const PT_ArrivalTime& arrivalInfo)
 	}
 	stats.numArrivals++;
 	stats.dwellTime = stats.dwellTime + arrivalInfo.dwellTimeSecs;
+}
+
+
+void StopStatsManager::addStopStats(const PT_PassengerAlightInfo& personAlightTimeInfo)
+{
+	unsigned int interval = getTimeInSecs(personAlightTimeInfo.alightTime) / intervalWidth;
+	StopStats& stats = stopStatsMap[interval][personAlightTimeInfo.stopNo][personAlightTimeInfo.serviceLine]; //an entry to be created if not in the map already
+	if(stats.needsInitialization)
+	{
+		stats.interval = interval;
+		stats.stopCode = personAlightTimeInfo.stopNo;
+		stats.serviceLine = personAlightTimeInfo.serviceLine;
+		stats.needsInitialization = false;
+	}
+	stats.numAlighting++;
 }
 
 void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)

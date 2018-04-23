@@ -38,6 +38,7 @@
 #include "database/entity/HedonicLogsums.hpp"
 #include "database/entity/TAOByUnitType.hpp"
 #include "database/entity/LagPrivate_TByUnitType.hpp"
+#include "database/entity/Postcode.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
@@ -77,6 +78,7 @@ namespace sim_mob {
             typedef std::vector<LagPrivateT*>LagPrivateTList;
             typedef std::vector<HedonicLogsums*>HedonicLogsumsList;
             typedef std::vector<LagPrivate_TByUnitType*>LagPrivateTByUTList;
+            typedef std::vector<Postcode*>PostcodeList;
 
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
@@ -98,6 +100,7 @@ namespace sim_mob {
             typedef boost::unordered_map<BigSerial,LagPrivateT*>LagPrivateTMap;
             typedef boost::unordered_map<BigSerial,HedonicLogsums*>HedonicLogsumsMap;
             typedef boost::unordered_map<BigSerial,LagPrivate_TByUnitType*>LagPrivateTByUTMap;
+            typedef boost::unordered_map<BigSerial,Postcode*>PostcodeByTazMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -325,6 +328,8 @@ namespace sim_mob {
 
             bool isToaPayohTaz(BigSerial tazId);
 
+            const Postcode* getPostcodeByTaz(BigSerial tazId);
+
 
         protected:
             /**
@@ -430,6 +435,8 @@ namespace sim_mob {
             TAOByIdMap taoUTById;
             LagPrivateTByUTList lagPrivateTByUTList;
             LagPrivateTByUTMap ptivateLagsByUnitTypeId;
+            PostcodeList postcodes;
+            PostcodeByTazMap postcodeByTaz;
 
         };
     }

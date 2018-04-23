@@ -236,7 +236,16 @@ void RealEstateSellerRole::update(timeslice now)
             	continue;
             }
 
-            BigSerial tazId = model->getUnitTazId(unitId);
+            BigSerial tazId = 0;
+            if(unit->isUnitByDevModel())
+            {
+            	tazId = unit->getTazIdByDevModel();
+            }
+            else
+            {
+            	tazId = model->getUnitTazId(unitId);;
+            }
+
             calculateUnitExpectations(*unit);
 
             //get first expectation to add the entry on market.
@@ -553,7 +562,7 @@ void RealEstateSellerRole::calculateUnitExpectations(const Unit& unit)
 
 		}
 	}
-	else if(config.ltParams.launchPrivatePresale)
+	else
 	{
 
 		unsigned int timeInterval = config.ltParams.housingModel.timeInterval;

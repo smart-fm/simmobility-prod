@@ -191,7 +191,18 @@ void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector
 {
 	const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
 
-	BigSerial tazId = hmModel->getUnitTazId( unit->getId() );
+	BigSerial tazId = 0;
+	BigSerial addressId = 0;
+	if(unit->isUnitByDevModel())
+	{
+		tazId = unit->getTazIdByDevModel();
+		addressId = devModel->getPostcodeByTaz(tazId)->getAddressId();
+	}
+	else
+	{
+		tazId = hmModel->getUnitTazId( unit->getId() );
+		addressId = hmModel->getUnitSlaAddressId( unit->getId() );
+	}
 
 	double logsum = hmModel->ComputeHedonicPriceLogsumFromDatabase(tazId);
 
@@ -201,8 +212,6 @@ void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector
 		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "LOGSUM FOR UNIT %1% is 0.") %  unit->getId()).str());
 
 	const Building *building = DataManagerSingleton::getInstance().getBuildingById(unit->getBuildingId());
-
-	BigSerial addressId = hmModel->getUnitSlaAddressId( unit->getId() );
 
 	const Postcode *postcode = DataManagerSingleton::getInstance().getPostcodeById(addressId);
 

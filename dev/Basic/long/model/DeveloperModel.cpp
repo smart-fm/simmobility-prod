@@ -46,6 +46,7 @@
 #include "database/dao/ProjectDao.hpp"
 #include "database/dao/BuildingAvgAgePerParcelDao.hpp"
 #include "database/dao/ROILimitsDao.hpp"
+#include "database/dao/PostcodeDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/SharedFunctions.hpp"
@@ -135,6 +136,11 @@ void DeveloperModel::startImpl() {
 			freeholdParcelsById.insert(std::make_pair((*it)->getId(), *it));
 		}
 
+		PostcodeDao postcodeDao(conn);
+		postcodes = postcodeDao.getPostcodeByTaz();
+		for (PostcodeList::iterator it = postcodes.begin(); it != postcodes.end(); it++) {
+			postcodeByTaz.insert(std::make_pair((*it)->getTazId(), *it));
+		}
 		//load DevelopmentType-Templates
 		loadData<DevelopmentTypeTemplateDao>(conn, developmentTypeTemplates);
 		//load Template - UnitType
@@ -1240,5 +1246,16 @@ bool DeveloperModel::isToaPayohTaz(BigSerial tazId)
 			isToaPayohTaz = true;
 	}
 	return isToaPayohTaz;
+
+}
+
+const Postcode* DeveloperModel::getPostcodeByTaz(BigSerial tazId)
+{
+	PostcodeByTazMap::const_iterator itr = postcodeByTaz.find(tazId);
+	if (itr != postcodeByTaz.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
 
 }

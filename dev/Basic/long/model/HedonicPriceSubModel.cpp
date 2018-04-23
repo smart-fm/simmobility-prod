@@ -196,7 +196,16 @@ void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector
 	if(unit->isUnitByDevModel())
 	{
 		tazId = unit->getTazIdByDevModel();
-		addressId = devModel->getPostcodeByTaz(tazId)->getAddressId();
+		Taz *taz = devModel->getPostcodeByTaz(tazId);
+		if(taz != nullptr)
+		{
+			addressId = devModel->getPostcodeByTaz(tazId)->getAddressId();
+		}
+		else
+		{
+			return;
+		}
+
 	}
 	else
 	{

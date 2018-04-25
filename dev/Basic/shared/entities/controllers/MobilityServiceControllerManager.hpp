@@ -67,7 +67,7 @@ public:
 	 * @return                           Sucess
 	 */
 	bool addMobilityServiceController(MobilityServiceControllerType type, unsigned int scheduleComputationPeriod, unsigned id, std::string tripSupportMode,
-                                      unsigned maxAggregatedRequests);
+                                      unsigned maxAggregatedRequests,bool studyAreaEnabledController);
 
 
 	/**

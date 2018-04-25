@@ -678,9 +678,10 @@ struct MobilityServiceControllerConfig
 	std::string tripSupportMode;
 	unsigned int maxFleetSize;
     unsigned int maxAggregatedRequests;
+	bool studyAreaEnabledController;
 
 
-	MobilityServiceControllerConfig() : type(SERVICE_CONTROLLER_UNKNOWN), scheduleComputationPeriod(0), tripSupportMode(""),maxAggregatedRequests(0) {}
+	MobilityServiceControllerConfig() : type(SERVICE_CONTROLLER_UNKNOWN), scheduleComputationPeriod(0), tripSupportMode(""),maxAggregatedRequests(0),studyAreaEnabledController(false) {}
 };
 
 /**

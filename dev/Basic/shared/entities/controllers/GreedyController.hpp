@@ -20,10 +20,10 @@ class GreedyController : public OnCallController
 public:
 	GreedyController
 			(const MutexStrategy &mtxStrat, unsigned int computationPeriod, unsigned id, std::string tripSupportMode_ ,TT_EstimateType ttEstimateType,
-             unsigned maxAggregatedRequests_)
+             unsigned maxAggregatedRequests_, bool studyAreaEnabledController_)
 			:
 			OnCallController(mtxStrat, computationPeriod, MobilityServiceControllerType::SERVICE_CONTROLLER_GREEDY, id, tripSupportMode_,
-			                 ttEstimateType,maxAggregatedRequests_)
+			                 ttEstimateType,maxAggregatedRequests_,studyAreaEnabledController_)
 	{
 	}
 

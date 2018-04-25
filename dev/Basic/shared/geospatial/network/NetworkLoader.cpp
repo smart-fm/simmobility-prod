@@ -871,4 +871,5 @@ void NetworkLoader::deleteInstance()
 void NetworkLoader::populateStudyArea()
 {
 	roadNetwork->populateStudyArea();
+	roadNetwork->loadStudyAreaBlackListedNodes();
 }

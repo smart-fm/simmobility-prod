@@ -373,8 +373,19 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 	}
 
 	//Get route to the taxi stand
-	auto route = PrivateTrafficRouteChoice::getInstance()->getPathToLink(subTrip, false, currLink, nullptr,
-	                                                                     taxiStandLink, useInSimulationTT);
+	std::vector<WayPoint> route = {};
+	if(onHailDriver->isDriverControllerStudyAreaEnabled())
+	{
+		bool driverControllerStudyAreaEnabled = true;
+		route = PrivateTrafficRouteChoice::getInstance()->getPathToLink(subTrip, false, currLink, nullptr,
+																		taxiStandLink, useInSimulationTT,driverControllerStudyAreaEnabled);
+
+	}
+	else
+	{
+		route = PrivateTrafficRouteChoice::getInstance()->getPathToLink(subTrip, false, currLink, nullptr,
+																		taxiStandLink, useInSimulationTT);
+	}
 
 	//Get shortest path if path is not found in the path-set
 	if(route.empty())

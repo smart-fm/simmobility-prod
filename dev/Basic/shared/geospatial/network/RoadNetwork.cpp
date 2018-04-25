@@ -135,6 +135,11 @@ const std::map<unsigned int, Link*>& RoadNetwork::getMapOfStudyAreaLinks() const
 	return mapOfStudyAreaLinks;
 }
 
+const std::unordered_set<unsigned int>& RoadNetwork::getSetOfStudyAreaBlackListedNodes() const
+{
+	return setOfStudyAreaBlackListedNodes;
+}
+
 void RoadNetwork::addLane(Lane* lane)
 {
 	//Find the segment to which the lane belongs
@@ -834,8 +839,7 @@ void RoadNetwork::populateStudyArea() {
 	soci::rowset<soci::row> rs = (sql_.prepare << "select * from " + spIt->second);
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it) {
 		const soci::row &r = (*it);
-		unsigned int nodeID = r.get < unsigned
-		int > (0);
+		unsigned int nodeID = r.get < unsigned int > (0);
 		Node *thisNode = mapOfIdvsNodes[nodeID];
 		mapOfStudyAreaNodes[nodeID] = thisNode;
 
@@ -849,8 +853,7 @@ void RoadNetwork::populateStudyArea() {
 	rs = (sql_.prepare << "select * from " + spIt->second);
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it) {
 		const soci::row &r = (*it);
-		unsigned int linkID = r.get < unsigned
-		int > (0);
+		unsigned int linkID = r.get < unsigned int > (0);
 		Link *thisLink = mapOfIdVsLinks[linkID];
 		mapOfStudyAreaLinks[linkID] = thisLink;
 
@@ -882,6 +885,24 @@ bool RoadNetwork::IsMovementInStudyArea(unsigned int sourceNodeId, unsigned int 
 
 	return ((isFromNodePresentInStudyArea && isToNodePresentInStudyArea)?true:false);
 
+}
+
+void RoadNetwork::loadStudyAreaBlackListedNodes()
+{
+	ConfigParams &cfg = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+	soci::session sql_(soci::postgresql, cfg.getDatabaseConnectionString(false));
+	const std::map<std::string, std::string> &storedProcs = cfg.getDatabaseProcMappings().procedureMappings;
+	std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("studyArea_blackListNodes");
+
+	if (spIt == storedProcs.end()) {
+		return;
+	}
+	soci::rowset<soci::row> rs = (sql_.prepare << "select * from " + spIt->second);
+	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it) {
+		const soci::row &r = (*it);
+		unsigned int nodeID = r.get < unsigned int > (0);
+		setOfStudyAreaBlackListedNodes.insert(nodeID);
+	}
 }
 
 

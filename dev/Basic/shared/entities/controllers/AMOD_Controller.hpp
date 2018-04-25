@@ -55,7 +55,7 @@ protected:
 
 public:
 	AMOD_Controller(const MutexStrategy &mtx, unsigned int computationPeriod, unsigned int id, std::string tripSupportMode_,
-	                TT_EstimateType tt_estType,unsigned maxAggregatedRequests_);
+	                TT_EstimateType tt_estType,unsigned maxAggregatedRequests_,bool studyAreaEnabledController_);
 };
 
 }

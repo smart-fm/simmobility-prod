@@ -274,7 +274,18 @@ void OnCallDriverMovement::beginCruising(const Node *node)
 	}
 
 	//Get route to the node
-	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+	std::vector<WayPoint> route = {};
+	if(onCallDriver->isDriverControllerStudyAreaEnabled())
+	{
+	    bool driverControllerStudyAreaEnabled = true;
+		route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT,driverControllerStudyAreaEnabled);
+
+	}
+	else
+	{
+		route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+	}
+
 
 	//Get shortest path if path is not found in the path-set
 	if(route.empty())
@@ -618,23 +629,11 @@ void OnCallDriverMovement::resetDriverLaneAndSegment()
 
 const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) const
 {
-	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const RoadNetwork *rdNetwork = RoadNetwork::getInstance();
 	auto downstreamLinks = rdNetwork->getDownstreamLinks(fromNode->getNodeId());
 	const MesoPathMover &pathMover = onCallDriver->movement->getMesoPathMover();
 	const Lane *currLane = onCallDriver->movement->getCurrentlane();
 	vector<const Node *> reachableNodes;
-	std::vector<MobilityServiceController *> driverSubscribedToControllers = onCallDriver->getSubscribedControllers();
-	bool amodControllerForStudyArea = false;
-	for(auto thisDriverController : driverSubscribedToControllers)
-	{
-		if(thisDriverController->controllerServiceType == MobilityServiceControllerType::SERVICE_CONTROLLER_AMOD) // && studyArea.enable()) //TBD
-		{
-			amodControllerForStudyArea = true;
-			break;
-		}
-	}
-
 	//If we are continuing from an existing path, we need to check for connectivity
 	//from the current lane
 	if(pathMover.isDrivingPathSet() && currLane)
@@ -655,13 +654,17 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 		for (auto it = itTurningsFromCurrLane->second.begin(); it != itTurningsFromCurrLane->second.end(); ++it)
 		{
 			const Node * thisNode = it->second->getToLane()->getParentSegment()->getParentLink()->getToNode();
-			if(onCallDriver->movement->ifNodeBlackListed(thisNode->getNodeId()))
+			if(thisNode->getNodeType()==SOURCE_OR_SINK_NODE)
 			{
 				continue;
 			}
-			if(config.isStudyAreaEnabled() && amodControllerForStudyArea)
+			if(onCallDriver->isDriverControllerStudyAreaEnabled())
 			{
-				auto studyAreaNodeMap = RoadNetwork::getInstance()->getMapOfStudyAreaNodes();
+				if(onCallDriver->movement->ifNodeBlackListed(thisNode->getNodeId()))
+				{
+					continue;
+				}
+						auto studyAreaNodeMap = RoadNetwork::getInstance()->getMapOfStudyAreaNodes();
 				auto itr = studyAreaNodeMap.find(thisNode->getNodeId());
 				if (itr!= studyAreaNodeMap.end())
 				{
@@ -670,7 +673,6 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 			}
 			else
 			{
-
 				reachableNodes.push_back(thisNode);
 			}
 		}
@@ -682,12 +684,16 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 		//reachable
 		for(auto link : downstreamLinks)
 		{
-			if(onCallDriver->movement->ifNodeBlackListed(link->getToNode()->getNodeId()))
+			if(link->getToNode()->getNodeType()==SOURCE_OR_SINK_NODE)
 			{
 				continue;
 			}
-			if(config.isStudyAreaEnabled() && amodControllerForStudyArea)
+			if(onCallDriver->isDriverControllerStudyAreaEnabled())
 			{
+				if(onCallDriver->movement->ifNodeBlackListed(link->getToNode()->getNodeId()))
+				{
+					continue;
+				}
 				auto studyAreaNodeMap = RoadNetwork::getInstance()->getMapOfStudyAreaNodes();
 				auto itr = studyAreaNodeMap.find(link->getToNode()->getNodeId());
 				if (itr!= studyAreaNodeMap.end())
@@ -702,33 +708,12 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 		}
 
 	}
-
-	if(reachableNodes.empty() && config.isStudyAreaEnabled() && amodControllerForStudyArea)
+	//Managing to get some Node in Case of StudyArea Case. Since it is cruising So we have flexibility to do so
+	//TBD: for even normal case we can do similar rather than reflecting error "No DownStream Node" : Will discussed this point later
+	if(reachableNodes.empty() && onCallDriver->isDriverControllerStudyAreaEnabled())
 	{
 		reachableNodes.push_back(chooseRandomNodeFromStudyAreaRegion());
 	}
-
-/*
-	if(reachableNodes.empty() && amodControllerForStudyArea)
-	{
-        //Trying to get reachableNode from UpStream
-		auto upstreamLinks = rdNetwork->getUpstreamLinks(fromNode->getNodeId());
-		int reachableNodeVectorSize = reachableNodes.size();
-		for (auto link : upstreamLinks)
-		{
-			auto studyAreaNodeMap = RoadNetwork::getInstance()->getMapOfStudyAreaNodes();
-			auto itr = studyAreaNodeMap.find(link->getToNode()->getNodeId());
-			if (itr != studyAreaNodeMap.end())
-			{
-				reachableNodes.push_back(link->getToNode());
-			}
-		}
-		if(amodControllerForStudyArea && (reachableNodes.size()== reachableNodeVectorSize))
-		{
-			Print()<<"Not inserted any node in reachableNode Vectror for UpStreamLink case for node : "<<fromNode->getNodeId()<<endl;
-		}
-	}
- */
 
 #ifndef NDEBUG
 	if(reachableNodes.empty())
@@ -751,7 +736,7 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 	{
 		//Choose a random node anywhere in the network
 		//
-		if(config.isStudyAreaEnabled() && amodControllerForStudyArea)
+		if(onCallDriver->isDriverControllerStudyAreaEnabled())
 		{
 			selectedNode = chooseRandomNodeFromStudyAreaRegion();
 		}
@@ -806,10 +791,11 @@ const Node* OnCallDriverBehaviour::chooseRandomNodeFromStudyAreaRegion() const
 
 bool OnCallDriverMovement::ifNodeBlackListed(unsigned int thisNodeId)
 {
+	auto studyAreablackListedNodesSet = RoadNetwork::getInstance()->getSetOfStudyAreaBlackListedNodes();
 	bool found = false;
 	std::unordered_set<unsigned int>::const_iterator blackListedItr;
-	blackListedItr = blackListedNodes.find(thisNodeId);
-	if (blackListedItr != blackListedNodes.end())
+	blackListedItr = studyAreablackListedNodesSet.find(thisNodeId);
+	if (blackListedItr != studyAreablackListedNodesSet.end())
 	{
 		found = true;
 	}

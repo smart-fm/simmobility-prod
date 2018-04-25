@@ -473,6 +473,50 @@ std::vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPathToLink(const si
 	return res;
 }
 
+std::vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPathToLink(const sim_mob::SubTrip &subTrip, bool enRoute,
+																		const sim_mob::Link *approach, const Lane *lane,
+																		const Link *last, bool useInSimulationTT, bool driverControllerStudyAreaEnabled)
+{
+	vector<WayPoint> res = vector<WayPoint>();
+	//Restricted area logic
+	bool fromLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.origin);
+	bool toLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.destination);
+	boost::shared_ptr<sim_mob::PathSet> fullpathset;
+	if (regionRestrictonEnabled)
+	{
+		// case-1: Both O and D are outside restricted region
+		if (!toLocationInRestrictedRegion && !fromLocationInRestrictedRegion)
+		{
+
+			getBestPathToLink(res, subTrip, true, std::set<const sim_mob::Link *>(), false, true, enRoute, approach,
+							  fullpathset, lane, last, useInSimulationTT,driverControllerStudyAreaEnabled);
+		}
+		else // case-2:  Either O or D is inside restricted region
+		{
+			getBestPathToLink(res, subTrip, true, std::set<const sim_mob::Link *>(), false, false, enRoute, approach,
+							  fullpathset, lane, last, useInSimulationTT,driverControllerStudyAreaEnabled);
+		}
+	}
+	else
+	{
+		getBestPathToLink(res, subTrip, true, std::set<const sim_mob::Link *>(), false, false, enRoute, approach,
+						  fullpathset, lane, last, useInSimulationTT,driverControllerStudyAreaEnabled);
+
+		if(res.empty())
+		{
+			if(approach)
+			{
+				res = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Link>(*approach, *last);
+			}
+			else
+			{
+				res = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Link>(*subTrip.origin.node, *last);
+			}
+		}
+	}
+	return res;
+}
+
 vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubTrip& subTrip, bool enRoute, const sim_mob::Link *approach, bool useInSimulationTT)
 {
 	vector<WayPoint> res = vector<WayPoint>();
@@ -511,7 +555,44 @@ vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubT
 	}
 	return res;
 }
+vector<WayPoint> sim_mob::PrivateTrafficRouteChoice::getPath(const sim_mob::SubTrip& subTrip, bool enRoute, const sim_mob::Link *approach, bool useInSimulationTT,bool driverControllerStudyAreaEnabled)
+{
+	vector<WayPoint> res = vector<WayPoint>();
 
+	//Restricted area logic
+	bool fromLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.origin);
+	bool toLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.destination);
+
+	if (regionRestrictonEnabled)
+	{
+		// case-1: Both O and D are outside restricted region
+		if (!toLocationInRestrictedRegion && !fromLocationInRestrictedRegion)
+		{
+			getBestPath(res, subTrip, true, std::set<const sim_mob::Link*>(), false, true, enRoute, approach, useInSimulationTT,driverControllerStudyAreaEnabled);
+		}
+		else // case-2:  Either O or D is inside restricted region
+		{
+			getBestPath(res, subTrip, true, std::set<const sim_mob::Link*>(), false, false, enRoute, approach, useInSimulationTT,driverControllerStudyAreaEnabled);
+		}
+	}
+	else
+	{
+		getBestPath(res, subTrip, true, std::set<const sim_mob::Link*>(), false, false, enRoute, approach, useInSimulationTT,driverControllerStudyAreaEnabled);
+
+		if(res.empty())
+		{
+			if(approach)
+			{
+				res = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*approach, *(subTrip.destination.node));
+			}
+			else
+			{
+				res = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*subTrip.origin.node, *(subTrip.destination.node));
+			}
+		}
+	}
+	return res;
+}
 void sim_mob::PrivateTrafficRouteChoice::onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool enRoute, bool useInSimulationTT)
 {
 	//step-1 time dependent calculations
@@ -546,8 +627,57 @@ void sim_mob::PrivatePathsetGenerator::onGeneratePathSet(boost::shared_ptr<PathS
 		pathSetParam->storeSinglePath(ps->pathChoices);
 	}
 }
-
 double sim_mob::PrivateTrafficRouteChoice::getOD_TravelTime(unsigned int origin, unsigned int destination, const sim_mob::DailyTime& curTime)
+{
+	double shortestPathTravelTime = 0.0;
+	if (origin == destination) { return 0.0; }
+	std::string fromToID = getFromToString(origin, destination);
+	if (noPathODs.find(fromToID)) {	return 0.0; }
+
+	sim_mob::SinglePath* shortestPath = nullptr;
+	boost::shared_ptr<sim_mob::PathSet> pathset;
+	bool pathsetFound = findCachedPathSet(fromToID, pathset);
+	if(pathsetFound)
+	{
+		shortestPath = pathset->oriPath;
+	}
+	else
+	{
+		sim_mob::HasPath pathsetRetrievalStatus = PSM_UNKNOWN;
+		sim_mob::PathSet* tmpPathset = new sim_mob::PathSet();
+		pathset.reset(tmpPathset);
+		pathset->id = fromToID;
+		pathsetRetrievalStatus = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval);
+		if(pathsetRetrievalStatus == PSM_HASPATH)
+		{
+			for (sim_mob::SinglePath* sp : pathset->pathChoices)
+			{
+				if (sp->shortestPath)
+				{
+					shortestPath = sp;
+					break;
+				}
+			}
+		}
+		else
+		{
+			noPathODs.insert(fromToID); //note pathset unavailability
+		}
+	}
+
+	if(shortestPath)
+	{
+		bool useInSimulationTravelTime = true;
+		shortestPathTravelTime = getPathTravelTime(shortestPath, curTime, false, useInSimulationTravelTime);
+	}
+	else
+	{
+		shortestPathTravelTime = -1; //invalid travel time value is returned to indicate pathset unavailability
+	}
+	return shortestPathTravelTime;
+}
+
+double sim_mob::PrivateTrafficRouteChoice::getOD_TravelTime_StudyArea(unsigned int origin, unsigned int destination, const sim_mob::DailyTime& curTime)
 {
 	const ConfigParams& config = sim_mob::ConfigManager::GetInstance().FullConfig();
 	const RoadNetwork* rdnw = RoadNetwork::getInstance();
@@ -569,7 +699,7 @@ double sim_mob::PrivateTrafficRouteChoice::getOD_TravelTime(unsigned int origin,
 		sim_mob::PathSet* tmpPathset = new sim_mob::PathSet();
 		pathset.reset(tmpPathset);
 		pathset->id = fromToID;
-		if(config.isStudyAreaEnabled() && rdnw->IsMovementInStudyArea(origin,destination))
+		if(rdnw->IsMovementInStudyArea(origin,destination))
 		{
 
 			int count = config.getDatabaseProcMappings().procedureMappings.count("studyArea_pvt_pathset");
@@ -585,7 +715,8 @@ double sim_mob::PrivateTrafficRouteChoice::getOD_TravelTime(unsigned int origin,
 		}
 		else
 		{
-			pathsetRetrievalStatus = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval);
+			throw std::runtime_error("Both origin/destination should be in study Area for OD_StudyArea travelTime Estimation");
+			//pathsetRetrievalStatus = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval);
 		}
 		if(pathsetRetrievalStatus == PSM_HASPATH)
 		{
@@ -724,23 +855,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoi
 	}
 	else
 	{
-		if(config.isStudyAreaEnabled() && rdnw->IsMovementInStudyArea(fromNode->getNodeId(), toNode->getNodeId()))
-		{
-			int count = config.getDatabaseProcMappings().procedureMappings.count("studyArea_pvt_pathset");
-			if(count)
-			{
-				std::string psRetrievalForStudyArea = config.getDatabaseProcMappings().procedureMappings.find("studyArea_pvt_pathset")->second;
-				hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrievalForStudyArea, blackListedLinks);
-			}
-			else
-			{
-				throw std::runtime_error("Study Area Pathset Procedure Not present in configuration file");
-			}
-		}
-		else
-		{
-			hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval, blackListedLinks);
-		}
+		hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval, blackListedLinks);
 	}
 	switch (hasPath)
 	{
@@ -777,6 +892,123 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoi
 		noPathODs.insert(fromToID); //note pathset unavailability
 		break;
 	}
+	};
+
+	return false;
+}
+
+bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoint>& res, const sim_mob::SubTrip& st, bool useCache, std::set<const sim_mob::Link*> blackListedLinks, bool usePartialExclusion, bool nonCBD_OD, bool enRoute,
+													 const sim_mob::Link* approach, bool useInSimulationTT, bool driverControllerStudyAreaEnabled)
+{
+	res.clear();
+	const ConfigParams& config = sim_mob::ConfigManager::GetInstance().FullConfig();
+	//take care of partially excluded and blacklisted segments here
+	const std::set<const sim_mob::Link*>& partial = (usePartialExclusion ? this->partialExclusions : std::set<const sim_mob::Link*>());
+	const RoadNetwork* rdnw = RoadNetwork::getInstance();
+	const sim_mob::Node* fromNode = st.origin.node;
+	const sim_mob::Node* toNode = st.destination.node;
+	if (!toNode || !fromNode)
+	{
+		return false;
+	}
+	if (toNode->getNodeId() == fromNode->getNodeId())
+	{
+		return false;
+	}
+	std::string fromToID = getFromToString(fromNode->getNodeId(), toNode->getNodeId());
+	if (noPathODs.find(fromToID))
+	{
+		return false;
+	}
+
+	boost::shared_ptr<sim_mob::PathSet> pathset;
+
+	//Step-1 Check Cache
+	/*
+	 * supply only the temporary blacklist, because with the current implementation,
+	 * cache should never be filled with paths containing permanent black listed segments
+	 */
+	std::set<const sim_mob::Link*> emptyBlkLst = std::set<const sim_mob::Link*>(); //sometimes you don't need a black list at all!
+	if (useCache && findCachedPathSet(fromToID, pathset))
+	{
+		pathset->subTrip = st; //at least for the travel start time, subtrip is needed
+		onPathSetRetrieval(pathset, enRoute, useInSimulationTT);
+		//no need to supply permanent blacklist
+		bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
+		if (pathChosen)
+		{
+			res = *(pathset->bestPath);
+			return true;
+		}
+	}
+
+	//step-2:check  DB
+	sim_mob::HasPath hasPath = PSM_UNKNOWN;
+	pathset.reset(new sim_mob::PathSet());
+	pathset->subTrip = st;
+	pathset->id = fromToID;
+	pathset->scenario = scenarioName;
+	pathset->nonCDB_OD = nonCBD_OD;
+	if (nonCBD_OD)
+	{
+		hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrievalWithoutRestrictedRegion, blackListedLinks);
+	}
+	else
+	{
+		if(driverControllerStudyAreaEnabled && rdnw->IsMovementInStudyArea(fromNode->getNodeId(), toNode->getNodeId()))
+		{
+			int count = config.getDatabaseProcMappings().procedureMappings.count("studyArea_pvt_pathset");
+			if(count)
+			{
+				std::string psRetrievalForStudyArea = config.getDatabaseProcMappings().procedureMappings.find("studyArea_pvt_pathset")->second;
+				hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrievalForStudyArea, blackListedLinks);
+			}
+			else
+			{
+				throw std::runtime_error("Study Area Pathset Procedure Not present in configuration file");
+			}
+		}
+		else
+		{
+			throw std::runtime_error("driver Controller is restricted to study area but schedule for outside Area");
+			//hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval, blackListedLinks);
+		}
+	}
+	switch (hasPath)
+	{
+		case PSM_HASPATH:
+		{
+			pathset->oriPath = nullptr;
+			for (sim_mob::SinglePath* sp : pathset->pathChoices)
+			{
+				if (sp->shortestPath)
+				{
+					pathset->oriPath = sp;
+					break;
+				}
+			}
+			//	no need of processing and storing blacklisted paths
+			onPathSetRetrieval(pathset, enRoute);
+			bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
+			if (pathChosen)
+			{
+				res = *(pathset->bestPath);
+				//cache
+				if (useCache)
+				{
+					cachePathSet(pathset);
+				}
+				return true;
+			}
+			break;
+		}
+		case PSM_NOTFOUND: //if not found,
+		case PSM_NOGOODPATH: // or if no good path available
+		default: // or if anything else
+		{
+			noPathODs.insert(fromToID); //note pathset unavailability
+			break;
+		}
 	};
 
 	return false;
@@ -867,23 +1099,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathToLink(std::vector<sim_mob::
 	}
 	else
 	{
-		if(config.isStudyAreaEnabled() && rdnw->IsMovementInStudyArea(fromNode->getNodeId(), toNode->getNodeId()))
-		{
-			int count = config.getDatabaseProcMappings().procedureMappings.count("studyArea_pvt_pathset");
-			if(count)
-			{
-				std::string psRetrievalForStudyArea = config.getDatabaseProcMappings().procedureMappings.find("studyArea_pvt_pathset")->second;
-				hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrievalForStudyArea, blackListedLinks);
-			}
-			else
-			{
-				throw std::runtime_error("Study Area Pathset Procedure Not present in configuration file");
-			}
-		}
-		else
-		{
-			hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval, blackListedLinks);
-		}
+		hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval, blackListedLinks);
 	}
 	switch (hasPath)
 	{
@@ -921,6 +1137,133 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathToLink(std::vector<sim_mob::
 		noPathODs.insert(fromToID); //note pathset unavailability
 		break;
 	}
+	};
+
+	return false;
+}
+
+bool sim_mob::PrivateTrafficRouteChoice::getBestPathToLink(std::vector<sim_mob::WayPoint> &res,
+														   const sim_mob::SubTrip &st, bool useCache,
+														   const set<const Link *> blackListedLinks,
+														   bool usePartialExclusion, bool nonCBD_OD, bool enRoute,
+														   const sim_mob::Link *approach,
+														   boost::shared_ptr<sim_mob::PathSet> &pathset,
+														   const Lane *currLane, const Link *last,
+														   bool useInSimulationTT, bool driverControllerStudyAreaEnabled)
+{
+	res.clear();
+	const ConfigParams& config = sim_mob::ConfigManager::GetInstance().FullConfig();
+	//take care of partially excluded and blacklisted segments here
+	const std::set<const sim_mob::Link*>& partial = (usePartialExclusion ? this->partialExclusions : std::set<const sim_mob::Link*>());
+
+	const sim_mob::Node* fromNode = st.origin.node;
+	const sim_mob::Node* toNode = st.destination.node;
+	const RoadNetwork* rdnw = RoadNetwork::getInstance();
+
+	if (!toNode || !fromNode)
+	{
+		return false;
+	}
+	if (toNode->getNodeId() == fromNode->getNodeId())
+	{
+		return false;
+	}
+	std::string fromToID = getFromToString(fromNode->getNodeId(), toNode->getNodeId());
+	if (noPathODs.find(fromToID))
+	{
+		return false;
+	}
+
+	//boost::shared_ptr<sim_mob::PathSet> pathset;
+
+	//Step-1 Check Cache
+	/*
+	 * supply only the temporary blacklist, because with the current implementation,
+	 * cache should never be filled with paths containing permanent black listed segments
+	 */
+	std::set<const sim_mob::Link*> emptyBlkLst = std::set<const sim_mob::Link*>(); //sometimes you don't need a black list at all!
+	if (useCache && findCachedPathSet(fromToID, pathset))
+	{
+		pathset->subTrip = st; //at least for the travel start time, subtrip is needed
+		onPathSetRetrieval(pathset, enRoute, useInSimulationTT);
+		//no need to supply permanent blacklist
+		filterPathsetsByLastLink(pathset, last);
+		bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
+		if (pathChosen)
+		{
+			res = *(pathset->bestPath);
+			return true;
+		}
+	}
+
+	//step-2:check  DB
+	sim_mob::HasPath hasPath = PSM_UNKNOWN;
+	pathset.reset(new sim_mob::PathSet());
+	pathset->subTrip = st;
+	pathset->id = fromToID;
+	pathset->scenario = scenarioName;
+	pathset->nonCDB_OD = nonCBD_OD;
+	if (nonCBD_OD)
+	{
+		hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrievalWithoutRestrictedRegion, blackListedLinks);
+	}
+	else
+	{
+		if(driverControllerStudyAreaEnabled && rdnw->IsMovementInStudyArea(fromNode->getNodeId(), toNode->getNodeId()))
+		{
+			int count = config.getDatabaseProcMappings().procedureMappings.count("studyArea_pvt_pathset");
+			if(count)
+			{
+				std::string psRetrievalForStudyArea = config.getDatabaseProcMappings().procedureMappings.find("studyArea_pvt_pathset")->second;
+				hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrievalForStudyArea, blackListedLinks);
+			}
+			else
+			{
+				throw std::runtime_error("Study Area Pathset Procedure Not present in configuration file");
+			}
+		}
+		else
+		{
+			throw std::runtime_error("driver Controller is restricted to study area but it tries to move outside");
+			//hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval, blackListedLinks);
+		}
+	}
+	switch (hasPath)
+	{
+		case PSM_HASPATH:
+		{
+			pathset->oriPath = nullptr;
+			for (sim_mob::SinglePath* sp : pathset->pathChoices)
+			{
+				if (sp->shortestPath)
+				{
+					pathset->oriPath = sp;
+					break;
+				}
+			}
+			//	no need of processing and storing blacklisted paths
+			onPathSetRetrieval(pathset, enRoute);
+			filterPathsetsByLastLink(pathset, last);
+			bool pathChosen = PrivateRouteChoiceProvider::getPvtRouteChoiceModel()->getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
+			if (pathChosen)
+			{
+				res = *(pathset->bestPath);
+				//cache
+				if (useCache)
+				{
+					cachePathSet(pathset);
+				}
+				return true;
+			}
+			break;
+		}
+		case PSM_NOTFOUND: //if not found,
+		case PSM_NOGOODPATH: // or if no good path available
+		default: // or if anything else
+		{
+			noPathODs.insert(fromToID); //note pathset unavailability
+			break;
+		}
 	};
 
 	return false;

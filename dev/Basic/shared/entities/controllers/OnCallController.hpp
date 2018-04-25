@@ -127,7 +127,7 @@ protected:
 	// The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
 	explicit OnCallController(const MutexStrategy& mtxStrat, unsigned int computationPeriod,
 			MobilityServiceControllerType type_, unsigned id, std::string tripSupportMode_,TT_EstimateType ttEstimateType,
-                              unsigned maxAggregatedRequests_);
+                              unsigned maxAggregatedRequests_, bool studyAreaEnabledController_);
 
 public:
 	virtual ~OnCallController();
@@ -183,6 +183,8 @@ protected:
 	unsigned int scheduleComputationPeriod;
 
 	std::string tripSupportMode;
+
+	bool studyAreaEnabledController;
 
 	//jo
 	/** Keeps track of when to rebalance */

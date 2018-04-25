@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <unordered_set>
 
 #include "PT_Stop.hpp"
 #include "NetworkLoader.hpp"
@@ -90,6 +91,10 @@ private:
 	/***Set for StudyArea Links*/
 	std::map<unsigned int, Link *> mapOfStudyAreaLinks;
 
+	/***Set for StudyArea Black Listed Nodes*/
+	std::unordered_set<unsigned int> setOfStudyAreaBlackListedNodes;
+
+
 
 	/**Private constructor as the class is a singleton*/
 	RoadNetwork();
@@ -141,6 +146,8 @@ public:
 	const std::map<unsigned int, Node *>& getMapOfStudyAreaNodes() const;
 
 	const std::map<unsigned int, Link *>& getMapOfStudyAreaLinks() const ;
+
+	const std::unordered_set<unsigned int>& getSetOfStudyAreaBlackListedNodes() const ;
 
 
 	/**
@@ -259,6 +266,8 @@ public:
 	bool isNodePresentInStudyArea(unsigned int thisNodeId);
 
 	bool IsMovementInStudyArea(unsigned int sourceNodeId, unsigned int destinationNodeId ) const;
+
+	void loadStudyAreaBlackListedNodes();
 
 
 	const Node *getNodeById(int id) const;

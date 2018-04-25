@@ -87,8 +87,10 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 		processRegionRestrictionNode(GetSingleElementByName(rootNode, "region_restriction"));
 		processPathSetFileName(GetSingleElementByName(rootNode, "pathset_config_file", true));
 		processTripChainOutputNode(GetSingleElementByName(rootNode, "trip_chain_output"));
-    processActivityTypesNode(GetSingleElementByName(rootNode, "activity_types", true));
-    processTravelModesNode(GetSingleElementByName(rootNode, "travel_modes", true));
+    	processActivityTypesNode(GetSingleElementByName(rootNode, "activity_types", true));
+    	processTravelModesNode(GetSingleElementByName(rootNode, "travel_modes", true));
+		processOnCallTaxiTrajectoryNode(GetSingleElementByName(rootNode, "onCallTaxiTrajectory"));
+		processOnHailTaxiTrajectoryNode(GetSingleElementByName(rootNode, "onHailTaxiTrajectory"));
 
 		if (mtCfg.RunningMidSupply())
 		{
@@ -809,6 +811,32 @@ void ParseMidTermConfigFile::processActivityTypesNode(DOMElement *node)
     }
 
 }
+
+void ParseMidTermConfigFile::processOnCallTaxiTrajectoryNode(xercesc::DOMElement* node)
+{
+	if (!node)
+	{
+		cfg.setOnCallTaxiTrajectoryEnabled(false);
+	}
+	else
+	{
+		cfg.setOnCallTaxiTrajectoryEnabled(ParseBoolean(GetNamedAttributeValue(node, "enabled"), false));
+
+	}
+}
+
+ void ParseMidTermConfigFile::processOnHailTaxiTrajectoryNode(xercesc::DOMElement* node)
+ {
+     if (!node)
+     {
+         cfg.setOnHailTaxiTrajectoryEnabled(false);
+     }
+     else
+     {
+         cfg.setOnHailTaxiTrajectoryEnabled(ParseBoolean(GetNamedAttributeValue(node, "enabled"), false));
+
+     }
+ }
 }
 
 

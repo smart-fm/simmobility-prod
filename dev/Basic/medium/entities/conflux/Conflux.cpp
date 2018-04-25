@@ -1567,7 +1567,8 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 
 Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* person)
 {
-	const MT_Config& mtCfg = MT_Config::getInstance();
+	//const MT_Config& mtCfg = MT_Config::getInstance();
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	Role<Person_MT>* personRole = person->getRole();
 	if (person->isResetParamsRequired())
 	{
@@ -1608,7 +1609,9 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 		{
 			personRole->Movement()->frame_tick();
             //Added to get Taxi Trajectory Output
-            if(personRole->roleType == Role<Person_MT>::RL_ON_HAIL_DRIVER ||personRole->roleType == Role<Person_MT>::RL_TAXIDRIVER)
+            if((personRole->roleType == Role<Person_MT>::RL_ON_CALL_DRIVER && config.isOnCallTaxiTrajectoryEnabled())
+			   ||(personRole->roleType == Role<Person_MT>::RL_ON_HAIL_DRIVER && config.isOnHailTaxiTrajectoryEnabled())
+			   		||personRole->roleType == Role<Person_MT>::RL_TAXIDRIVER)
             {
                 personRole->Movement()->frame_tick_output();
             }

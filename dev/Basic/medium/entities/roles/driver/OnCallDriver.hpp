@@ -172,6 +172,8 @@ public:
 	 */
 	virtual const Node* getCurrentNode() const;
 
+	void  setCurrentNode(const Node* thsNode);
+
 	/**
 	 * @return vector of controllers that the driver has subscribed to
 	 */

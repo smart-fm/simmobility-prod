@@ -2,6 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#include <conf/ConfigManager.hpp>
 #include "OnCallDriverFacets.hpp"
 
 #include "entities/controllers/MobilityServiceControllerManager.hpp"
@@ -15,6 +16,8 @@
 using namespace sim_mob;
 using namespace medium;
 using namespace std;
+
+sim_mob::BasicLogger& onCallTrajectoryLogger  = sim_mob::Logger::log("onCall_taxi_trajectory.csv");
 
 OnCallDriverMovement::OnCallDriverMovement() : currNode(nullptr)
 {
@@ -51,6 +54,7 @@ void OnCallDriverMovement::frame_init()
 	performScheduleItem();
 
 	onCallDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
+	serviceVehicle = onCallDriver->getParent()->getServiceVehicle();
 
 	onCallDriver->sendWakeUpShiftEndMsg();
 }
@@ -107,7 +111,52 @@ void OnCallDriverMovement::frame_tick()
 
 std::string OnCallDriverMovement::frame_tick_output()
 {
-	return std::string();
+	const DriverUpdateParams &params = parentDriver->getParams();
+	//if (pathMover.isPathCompleted() || ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
+	if (ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
+	{
+		return std::string();
+	}
+
+	std::ostringstream out(" ");
+
+	if ((*(onCallDriver->getParent()->currTripChainItem))->origin.node == currNode && params.now.ms() == (uint32_t) 0)
+	{
+		out << getCurrentFleetItem().vehicleNo << "," << onCallDriver->getParent()->getDatabaseId() << ","
+		<< currNode->getNodeId() << "," << DailyTime(serviceVehicle.startTime * 1000).getStrRepr()
+		<< ",NULL,NULL," << onCallDriver->getDriverStatusStr()
+		<< ", 0"
+		<< ",No Passenger"
+		<< std::endl;
+	}
+	else
+	{
+
+		//const Link * thisLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+		const std::string driverId = onCallDriver->getParent()->getDatabaseId();
+		const unsigned int nodeId = currNode->getNodeId();
+		const unsigned int roadSegmentId = (parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId());
+		const Lane *currLane = parentDriver->getParent()->getCurrLane();
+		const unsigned int currLaneId = (currLane ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0);
+		const std::string driverStatusStr = onCallDriver->getDriverStatusStr();
+		const string timeStr = (DailyTime(params.now.ms()) + DailyTime(
+				ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
+
+		out << getCurrentFleetItem().vehicleNo << "," << driverId << ","
+		<< nodeId << ","
+		<< timeStr << ","
+		<< roadSegmentId << ","
+		<< currLaneId
+		<< "," << driverStatusStr
+		<< ","<< onCallDriver->getPassengerCount()
+		<<"," << onCallDriver->getPassengersId()
+		<< std::endl;
+	}
+	/* for Debug Purpose Only : to print details in Console
+    	Print() << out.str();
+    */
+	onCallTrajectoryLogger << out.str();
+	return out.str();
 }
 
 bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)

@@ -267,6 +267,12 @@ private:
 	/**link travel time file name*/
 	std::string linkTravelTimesFile;
 
+	/** Taxi Trajectory enable/disable*/
+	bool onCallTaxiTrajectoryEnabled;
+	bool onHailTaxiTrajectoryEnabled;
+
+
+
 public:
 	/////////////////////////////////////////////////////////////////////////////////////
     /// These are helper functions, to make compatibility between old/new parsing easier.
@@ -518,6 +524,15 @@ public:
 	 * @param linkTravelTimesFile filename to be set
 	 */
 	void setLinkTravelTimesFile(const std::string &linkTravelTimesFile);
+
+	//Taxi Trajectory Enable/Disable: related Functions
+	void setOnCallTaxiTrajectoryEnabled(bool value);
+	void setOnHailTaxiTrajectoryEnabled(bool value);
+
+	bool isOnCallTaxiTrajectoryEnabled() const;
+	bool isOnHailTaxiTrajectoryEnabled() const;
+
+
 };
 
 

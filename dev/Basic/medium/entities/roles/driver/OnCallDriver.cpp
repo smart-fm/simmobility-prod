@@ -138,6 +138,11 @@ const Node* OnCallDriver::getCurrentNode() const
 	return movement->getCurrentNode();
 }
 
+void  OnCallDriver::setCurrentNode(const Node* thisNode)
+{
+	movement->setCurrentNode(thisNode);
+}
+
 const vector<MobilityServiceController *>& OnCallDriver::getSubscribedControllers() const
 {
 	return subscribedControllers;
@@ -334,6 +339,7 @@ void OnCallDriver::pickupPassenger()
 		//Add the passenger
 		passengers[passengerId] = passenger;
 		passenger->setDriver(this);
+		setCurrentNode(conflux->getConfluxNode());
 		passenger->setStartPoint(personPickedUp->currSubTrip->origin);
 		passenger->setStartPointDriverDistance(movement->getTravelMetric().distance);
 		passenger->setEndPoint(personPickedUp->currSubTrip->destination);
@@ -396,13 +402,14 @@ void OnCallDriver::dropoffPassenger()
 
 		MesoPathMover &pathMover = movement->getMesoPathMover();
 		const SegmentStats *segStats = pathMover.getCurrSegStats();
-		Conflux *conflux = segStats->getParentConflux();
+		medium::Conflux *conflux = segStats->getParentConflux();
 		passengerToBeDroppedOff->setFinalPointDriverDistance(movement->getTravelMetric().distance);
 		conflux->dropOffTraveller(person);
 
 		//Remove passenger from vehicle
 		passengers.erase(itPassengers);
 		++passengerInteractedDropOff;
+		setCurrentNode(conflux->getConfluxNode());
 
 		ControllerLog() << "Drop-off of user " << person->getDatabaseId() << " at time "
 		                << parent->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()

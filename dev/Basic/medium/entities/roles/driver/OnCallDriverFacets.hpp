@@ -113,6 +113,19 @@ public:
 	{
 		return currNode;
 	}
+
+	void setCurrentNode(const Node* thisNode)
+	{
+		currNode = thisNode;
+	}
+
+	/**The current fleet item*/
+	FleetController::FleetItem serviceVehicle;
+
+	const FleetController::FleetItem &getCurrentFleetItem() const
+	{
+		return serviceVehicle;
+	}
 };
 
 class OnCallDriverBehaviour : public DriverBehavior

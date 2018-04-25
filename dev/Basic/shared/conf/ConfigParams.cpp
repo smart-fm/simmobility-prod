@@ -411,3 +411,23 @@ const std::unordered_map<StopType, ActivityTypeConfig> &ConfigParams::getActivit
 {
     return activityTypeIdConfigMap;
 }
+
+void ConfigParams::setOnCallTaxiTrajectoryEnabled(bool value)
+{
+	onCallTaxiTrajectoryEnabled = value;
+}
+
+void ConfigParams::setOnHailTaxiTrajectoryEnabled(bool value)
+{
+	onHailTaxiTrajectoryEnabled = value;
+}
+
+bool ConfigParams::isOnCallTaxiTrajectoryEnabled() const
+{
+	return onCallTaxiTrajectoryEnabled;
+}
+
+bool ConfigParams::isOnHailTaxiTrajectoryEnabled() const
+{
+	return onHailTaxiTrajectoryEnabled;
+}

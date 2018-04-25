@@ -260,6 +260,15 @@ private:
      */
     void processActivityTypesNode(xercesc::DOMElement* node);
 
+	/**
+ 	* Processes the OnHail and OnCall Taxi Trajectory  element in config xml
+ 	*
+ 	* @param node node corresponding to respectively Taxi Trajectory  types element inside xml file
+ 	*/
+	void processOnCallTaxiTrajectoryNode(xercesc::DOMElement* node);
+	void processOnHailTaxiTrajectoryNode(xercesc::DOMElement* node);
+
+
 	/// The config we are currently loading
 	MT_Config& mtCfg;
 

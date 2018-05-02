@@ -17,8 +17,9 @@ namespace sim_mob
 		class School
 		{
 		public:
-			School(BigSerial id = INVALID_ID, BigSerial fmBuildingId = INVALID_ID,double floorArea = 0, int schoolSlot = 0, double centroidX = 0, double centroidY = 0, bool giftedProgram = false, bool sapProgram = false,
-				   std::string planningArea = std::string(), BigSerial tazName = INVALID_ID, std::string schoolType = std::string());
+			School(BigSerial id = INVALID_ID, BigSerial fmBuildingId = INVALID_ID,double floorArea = 0, double schoolSlot = 0, double centroidX = 0, double centroidY = 0, bool giftedProgram = false, bool sapProgram = false,
+				   std::string planningArea = std::string(), BigSerial tazName = INVALID_ID, std::string schoolType = std::string(), bool artProgram = false, bool musicProgram = false, bool langProgram = false, bool expressTest = false
+				   ,double studentDensity = 0,int numStudents = 0);
 			virtual ~School();
 
 			struct DistanceIndividual
@@ -60,8 +61,8 @@ namespace sim_mob
 			void setPlanningArea(std::string planningArea);
 			bool isSapProgram() const;
 			void setSapProgram(bool sapProgram);
-			int getSchoolSlot() const;
-			void setSchoolSlot(int schoolSlot);
+			double getSchoolSlot() const;
+			void setSchoolSlot(double schoolSlot);
 			BigSerial getTazName() const;
 			void setTazName(BigSerial tazName);
 			std::string getSchoolType() const;
@@ -76,6 +77,19 @@ namespace sim_mob
 			double getReAllocationProb();
 			int getNumOfSelectedStudents();
 			std::vector<School*> getSortedProbSchoolList(std::vector<School*> studentsWithProb);
+			bool isArtProgram() const;
+			void setArtProgram(bool artProgram);
+			bool isLangProgram() const;
+			void setLangProgram(bool langProgram);
+			bool isMusicProgram() const ;
+			void setMusicProgram(bool musicProgram);
+			bool isExpressTest() const;
+			void setExpressTest(bool expressTest);
+			int getStudentLimit() const;
+			void setStudentLimit(int studentLimit);
+			double getStudentDensity() const;
+			void setStudentDensity(double studentDensity);
+
 
 			void addStudent(BigSerial studentId);
 			void addIndividualDistance(DistanceIndividual &distanceIndividual);
@@ -87,7 +101,7 @@ namespace sim_mob
 			BigSerial id;
 			BigSerial fmBuildingId;
 			double floorArea;
-			int schoolSlot;
+			double schoolSlot;
 			double centroidX;
 			double centroidY;
 			bool giftedProgram;
@@ -95,6 +109,11 @@ namespace sim_mob
 			std::string planningArea;
 			BigSerial tazName;
 			std::string schoolType;
+			bool artProgram;
+			bool musicProgram;
+			bool langProgram;
+			bool expressTest;
+			double studentDensity;
 
 			int numStudents;
 			std::vector<BigSerial> students;
@@ -102,7 +121,6 @@ namespace sim_mob
 			std::vector<School::DistanceIndividual> distanceIndList;
 			int numStudentsCanBeAssigned;
 			double reAllocationProb;
-
 
 		};
 	}

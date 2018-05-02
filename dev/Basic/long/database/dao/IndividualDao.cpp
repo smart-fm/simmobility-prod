@@ -55,23 +55,19 @@ void IndividualDao::toRow(Individual& data, Parameters& outParams, bool update) 
 
 std::vector<Individual*> IndividualDao::getPrimarySchoolIndividual(std::tm currentSimYear)
 {
-	//const std::string DB_GETALL_PRIMARY_SCHOOL_INDIVIDUALS = "SELECT * FROM " + APPLY_SCHEMA( MAIN_SCHEMA, "individual") + " WHERE (date_part('year'::text, age(timestamp :v1, date_of_birth::timestamp with time zone))  >= 7 and date_part('year'::text, age(timestamp :v2, date_of_birth::timestamp with time zone)) <=12);";
 	db::Parameters params;
 	params.push_back(currentSimYear);
-	//params.push_back(currentSimYear);
 	std::vector<Individual*> primarySchoolIndList;
-	getByQueryId("SELECT * FROM " + connection.getSchema() + "getPrimarySchoolIndivduals(:simstartdate)",params,primarySchoolIndList);
+	getByQuery("SELECT * FROM " + connection.getSchema() + "individual where education_id = 2",primarySchoolIndList);
 	return primarySchoolIndList;
 }
 
 std::vector<Individual*> IndividualDao::getPreSchoolIndividual(std::tm currentSimYear)
 {
-	//const std::string DB_GETALL_PRE_SCHOOL_INDIVIDUALS = "SELECT * FROM " + APPLY_SCHEMA( MAIN_SCHEMA, "individual") + " WHERE date_part('year'::text, age(timestamp :v1, date_of_birth::timestamp with time zone))  >= 4 and date_part('year'::text, age(timestamp :v2, date_of_birth::timestamp with time zone)) <=6);";
 	db::Parameters params;
 	params.push_back(currentSimYear);
-	//params.push_back(currentSimYear);
 	std::vector<Individual*> preSchoolIndList;
-	getByQueryId("SELECT * FROM " + connection.getSchema() + "getPreschoolIndivduals(:simstartdate)",params,preSchoolIndList);
+	getByQuery("SELECT * FROM " + connection.getSchema() + "individual where education_id = 1",preSchoolIndList);
 	return preSchoolIndList;
 
 }

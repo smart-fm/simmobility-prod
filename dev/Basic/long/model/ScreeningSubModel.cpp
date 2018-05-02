@@ -28,6 +28,11 @@ namespace sim_mob
 		BigSerial ScreeningSubModel::ComputeWorkPlanningArea(PlanningArea *planningAreaWork)
 		{
 				Job  *headOfHhJob = model->getJobById( (headOfHousehold)->getJobId());
+				if(headOfHousehold->getJobId() == 0)
+				{
+					AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "Job Id 0 for head of household  %1%.") %  headOfHousehold->getId()).str());
+					return 0;
+				}
 				Establishment *headOfHhEstablishment = model->getEstablishmentById(headOfHhJob->getEstablishmentId());
 
 				BigSerial establishmentSlaAddressId = model->getEstablishmentSlaAddressId(headOfHhJob->getEstablishmentId());

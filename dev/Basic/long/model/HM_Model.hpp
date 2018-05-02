@@ -61,6 +61,7 @@
 #include "database/entity/JobsWithIndustryTypeAndTazId.hpp"
 #include "database/entity/EzLinkStop.hpp"
 #include "database/entity/StudentStop.hpp"
+#include "database/entity/SchoolDesk.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
@@ -236,7 +237,8 @@ namespace sim_mob
             typedef boost::unordered_map<BigSerial, EzLinkStop*> EzLinkStopMap;
 
             typedef std::vector<StudentStop*> StudentStopList;
-            //typedef boost::unordered_map<BigSerial, EzLinkStop*> EzLinkStopMap;
+
+            typedef std::multimap<BigSerial, SchoolDesk*> SchoolDeskMultiMap;
 
             /**
              * Taz statistics
@@ -462,17 +464,12 @@ namespace sim_mob
             SchoolAssignmentCoefficientsList getSchoolAssignmentCoefficientsList() const;
             SchoolAssignmentCoefficients* getSchoolAssignmentCoefficientsById( BigSerial id) const;
             SchoolList getPrimarySchoolList() const;
-            School* getPrimarySchoolById( BigSerial id) const;
             HHCoordinatesList getHHCoordinatesList() const;
             HHCoordinates* getHHCoordinateByHHId(BigSerial houseHoldId) const;
             SchoolList getPreSchoolList() const;
-            School* getPreSchoolById( BigSerial id) const;
             SchoolList getSecondarySchoolList() const;
-            School* getSecondarySchoolById( BigSerial id) const;
             SchoolList getUniversityList() const;
-            School* getUniversityById( BigSerial id) const;
             SchoolList getPolytechnicList() const;
-            School* getPolytechnicById( BigSerial id) const;
             StudentStopList getStudentStops();
             EzLinkStopList getEzLinkStops();
             EzLinkStop* getEzLinkStopsWithNearestUniById(BigSerial id) const;
@@ -484,6 +481,7 @@ namespace sim_mob
             EzLinkStopList getEzLinkStopsWithNearsetPolytech();
             StudentStopList getStudentStopsWithNearestPolytech();
             EzLinkStop* getEzLinkStopsWithNearestPolytechById(BigSerial id) const;
+            School* getSchoolById(BigSerial schoolId) const;
 
 
             OwnerTenantMovingRate* getOwnerTenantMovingRates(int index);
@@ -536,14 +534,12 @@ namespace sim_mob
             int getJobAssignIndividualCount();
             void incrementJobAssignIndividualCount();
 
-            void loadPrimarySchools(DB_Connection &conn);
-            void loadPreSchools(DB_Connection &conn);
-            void loadSecondarySchools(DB_Connection &conn);
-            void loadUniversities(DB_Connection &conn);
-            void loadPolyTechnics(DB_Connection &conn);
             void loadEzLinkStops(DB_Connection &conn);
             void loadStudentStops(DB_Connection &conn);
             void loadTravelTime(DB_Connection &conn);
+            void loadSchoolDesks(DB_Connection &conn);
+            void loadSchools(DB_Connection &conn);
+
             const TravelTime* getTravelTimeByOriginDestTaz(BigSerial originTaz, BigSerial destTaz);
             void incrementPrimarySchoolAssignIndividualCount();
             int getPrimaySchoolAssignIndividualCount();
@@ -554,6 +550,9 @@ namespace sim_mob
             void addStudentToSecondarychool(BigSerial individualId, int schoolId);
             void addStudentToUniversity(BigSerial individualId, int schoolId);
             void addStudentToPolytechnic(BigSerial individualId, int schoolId);
+            bool checkForSchoolSlots(BigSerial schoolId);
+            void addSchoolDeskToStudent(BigSerial individualId, int schoolId);
+
 
 
         protected:
@@ -651,7 +650,8 @@ namespace sim_mob
             boost::mutex mtx6;
             boost::mutex idLock;
             boost::mutex DBLock;
-            boost::shared_mutex sharedMtx;
+            boost::shared_mutex sharedMtx1;
+            boost::shared_mutex sharedMtx2;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
 
@@ -741,8 +741,10 @@ namespace sim_mob
             SchoolMap secondarySchoolById;
             SchoolList universities;
             SchoolList polyTechnics;
+            SchoolList schools;
             SchoolMap universityById;
             SchoolMap polyTechnicById;
+            SchoolMap schoolById;
             bool resume ;
             bool initialLoading;
             IndvidualEmpSecList indEmpSecList;
@@ -755,6 +757,7 @@ namespace sim_mob
             EzLinkStopList ezLinkStopsWithNearestPolyTech;
             StudentStopList studentStopsWithNearestPolyTech;
             EzLinkStopMap ezLinkStopsWithNearestPolytechById;
+            SchoolDeskMultiMap schoolDesksBySchoolId;
 
             LtVersionList ltVersionList;
             LtVersionMap ltVersionById;

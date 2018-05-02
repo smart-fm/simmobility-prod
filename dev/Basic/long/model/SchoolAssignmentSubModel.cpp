@@ -30,7 +30,7 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 	HHCoordinates *hhCoords = model->getHHCoordinateByHHId(household->getId());
 	for(schoolsItr = primarySchools.begin(); schoolsItr != primarySchools.end(); ++schoolsItr )
 	{
-		if((*schoolsItr)->getNumStudents() < (*schoolsItr)->getSchoolSlot())
+		if( model->checkForSchoolSlots((*schoolsItr)->getId()))
 		{
 		double valueSchool = 0;
 		HouseholdPlanningArea *hhPlanningArea = model->getHouseholdPlanningAreaByHHId(household->getId());
@@ -123,136 +123,7 @@ void SchoolAssignmentSubModel::assignPrimarySchool(const Household *household,Bi
 
 }
 
-void SchoolAssignmentSubModel::setStudentLimitInPrimarySchool()
-{
-	static bool wasExecuted = false;
-	if (wasExecuted)
-	{
-		return;
-	}
-	wasExecuted = true;
-	HM_Model::SchoolList primarySchools = model->getPrimarySchoolList();
-	std::size_t const studentLimitPerSchool = 3000;
-	for (School *priSchool:primarySchools )
-	{
-		if(priSchool->getNumStudents() > studentLimitPerSchool)
-		{
-			//sort the individuals by distance to school
-			std::vector<School::DistanceIndividual> distanceIndividualList = priSchool->getSortedDistanceIndList();
-			//select the top 3000 students
-			std::vector<School::DistanceIndividual> distIndWithinLimit(distanceIndividualList.begin(), distanceIndividualList.begin() + studentLimitPerSchool);
-			//the rest of the students need to be reallocated
-			std::vector<School::DistanceIndividual> disIndToReallocate(distanceIndividualList.begin() + studentLimitPerSchool, distanceIndividualList.end());
-			std::vector<BigSerial> selectedStudents;
-			for(School::DistanceIndividual distInd:distIndWithinLimit )
-			{
-				BigSerial schoolId = priSchool->getId();
-				priSchool->addSelectedStudent(distInd.individualId);
-			}
-
-			//reallocate the rest of the students among schools within 5km and still have positions
-			for(School::DistanceIndividual distInd:disIndToReallocate )
-			{
-				reAllocatePrimarySchoolStudents(distInd.individualId);
-			}
-
-			distanceIndividualList.clear();
-			distIndWithinLimit.clear();
-			disIndToReallocate.clear();
-
-		}
-		else
-		{
-			std::vector<BigSerial> students = priSchool->getStudents();
-			for(BigSerial individualId : students)
-			{
-				priSchool->addSelectedStudent(individualId);
-			}
-		}
-	}
-
-	for (School *priSchool:primarySchools )
-	{
-		std::vector<BigSerial> students = priSchool->getSelectedStudents();
-		for(BigSerial individualId : students)
-		{
-			Individual *individual = model->getIndividualById(individualId);
-			BigSerial studentId = individual->getStudentId();
-			BigSerial schoolId = priSchool->getId();
-			writePrimarySchoolAssignmentsToFile(individualId,schoolId);
-		}
-		students.clear();
-	}
-}
-
-void SchoolAssignmentSubModel::reAllocatePrimarySchoolStudents(BigSerial individualId)
-{
-	HM_Model::SchoolList primarySchools = model->getPrimarySchoolList();
-	Individual *individual = model->getIndividualById(individualId);
-	if(individual != nullptr)
-	{
-		double totalStudentLimitDif = 0;
-		int numStudentsCanBeAssigned = 0;
-		for(School *primaryScool : primarySchools)
-		{
-			if(individual->getIsPrimarySchoolWithin5Km(primaryScool->getId()))
-			{
-				int numSelectedStudents = primaryScool->getNumSelectedStudents();
-				std::size_t const studentLimitPerSchool = primaryScool->getSchoolSlot();
-				if(numSelectedStudents < studentLimitPerSchool)
-				{
-					totalStudentLimitDif = totalStudentLimitDif + (studentLimitPerSchool - numSelectedStudents);
-					numStudentsCanBeAssigned = studentLimitPerSchool - numSelectedStudents;
-					primaryScool->setNumStudentsCanBeAssigned(numStudentsCanBeAssigned);
-				}
-			}
-		}
-
-		std::map<BigSerial,double> probSchoolMap;
-		HM_Model::SchoolList schoolsWithProb;
-		for(School *priSchool : primarySchools)
-		{
-			if(individual->getIsPrimarySchoolWithin5Km(priSchool->getId()))
-			{
-				int numSelectedStudents = priSchool->getNumSelectedStudents();
-				std::size_t const studentLimitPerSchool = priSchool->getSchoolSlot();
-				if(priSchool->getNumOfSelectedStudents() < priSchool->getSchoolSlot())
-				{
-					double probSchool = (studentLimitPerSchool - numSelectedStudents) / totalStudentLimitDif;
-					priSchool->setReAllocationProb(probSchool);
-					schoolsWithProb.push_back(priSchool);
-					probSchoolMap.insert(std::pair<BigSerial, double>( priSchool->getId(), probSchool));
-				}
-			}
-		}
-
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_real_distribution<> dis(0.0, 1.0);
-		double randomNum =  dis(gen);
-		double pTemp = 0;
-		BigSerial selectedSchoolId = 0;
-		std::map<BigSerial,double>::const_iterator probSchoolItr;
-		for(probSchoolItr = probSchoolMap.begin(); probSchoolItr != probSchoolMap.end(); ++probSchoolItr)
-		{
-			if ((pTemp < randomNum) && (randomNum < (pTemp + (*probSchoolItr).second)))
-			{
-				selectedSchoolId = probSchoolItr->first;
-				School *priSchool = model->getPrimarySchoolById(selectedSchoolId);
-				priSchool->addSelectedStudent(individualId);
-				break;
-			}
-			else
-			{
-				pTemp = pTemp + (*probSchoolItr).second;
-			}
-		}
-		schoolsWithProb.clear();
-		probSchoolMap.clear();
-	}
-}
-
-void SchoolAssignmentSubModel::assignPreSchool(const Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day)
+void SchoolAssignmentSubModel::assignPreSchool(Household *household,BigSerial individualId, HouseholdAgent *hhAgent, int day)
 {
 	HM_Model::SchoolList preSchools = model->getPreSchoolList();
 	HM_Model::SchoolList::iterator preSchoolsItr;
@@ -263,7 +134,7 @@ void SchoolAssignmentSubModel::assignPreSchool(const Household *household,BigSer
 	BigSerial selectedPreSchoolId = preSchools.at(0)->getId();
 	for(preSchoolsItr = preSchools.begin(); preSchoolsItr != preSchools.end(); ++preSchoolsItr )
 	{
-		if((*preSchoolsItr)->getNumStudents() < (*preSchoolsItr)->getSchoolSlot())
+		if(model->checkForSchoolSlots((*preSchoolsItr)->getId()))
 		{
 			double distanceFromHomeToSchool = distanceCalculateEuclidean((*preSchoolsItr)->getCentroidX(),(*preSchoolsItr)->getCentroidY(),hhCentroidX,hhCentroidY);
 			if(distanceFromHomeToSchool < minDistance)
@@ -288,7 +159,7 @@ void SchoolAssignmentSubModel::assignSecondarySchool(const Household *household,
 	for(schoolsItr = secondarySchools.begin(); schoolsItr != secondarySchools.end(); ++schoolsItr )
 	{
 		//assign students only to schools with free slots.
-		if((*schoolsItr)->getSchoolSlot() > (*schoolsItr)->getNumStudents())
+		if(model->checkForSchoolSlots((*schoolsItr)->getId()))
 		{
 			double valueSchool = 0;
 			HouseholdPlanningArea *hhPlanningArea = model->getHouseholdPlanningAreaByHHId(household->getId());
@@ -416,8 +287,8 @@ void SchoolAssignmentSubModel::assignUniversity( const Household *household,BigS
 		BigSerial nearestSchoolId = ezLinkStop->getNearestUniversityId();
 		if(nearestSchoolId != 0 )
 		{
-			School *school = model->getUniversityById(nearestSchoolId);
-			if ((distanceFromEzLinkStopToHome < 1000) && (school->getNumStudents() < school->getSchoolSlot()))
+			School *school = model->getSchoolById(nearestSchoolId);
+			if (distanceFromEzLinkStopToHome < 1000) /*&& ( model->checkForSchoolSlots(school->getId())))*/
 			{
 				nearbyEzLinkStopsById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
 			}
@@ -425,7 +296,7 @@ void SchoolAssignmentSubModel::assignUniversity( const Household *household,BigS
 		}
 	}
 
-	//Create a list of student_university_od_temp from student_od where student_od$home_stop is in the stop_temp.
+	//Create a list of student_university_od_temp from student_od where student_od$home_stop is in the stop_temp. (get student stops relevant to ezlink stops)
 	HM_Model::StudentStopList studentStops = model->getStudentStopsWithNearestUni();
 	HM_Model::StudentStopList nearByStudentStops;
 	for(StudentStop *studentStop : studentStops)
@@ -434,7 +305,13 @@ void SchoolAssignmentSubModel::assignUniversity( const Household *household,BigS
 
 		if (itr != nearbyEzLinkStopsById.end())
 		{
-			nearByStudentStops.push_back(studentStop);
+			BigSerial ezLinkStopId = studentStop->getSchoolStopEzLinkId();
+			BigSerial uniId = model->getEzLinkStopsWithNearestUniById(ezLinkStopId)->getNearestUniversityId();
+			School *uni = model->getSchoolById(uniId);
+			if( model->checkForSchoolSlots(uni->getId()))
+			{
+				nearByStudentStops.push_back(studentStop);
+			}
 		}
 	}
 
@@ -461,8 +338,8 @@ void SchoolAssignmentSubModel::assignUniversity( const Household *household,BigS
 				{
 					BigSerial ezLinkStopId = studentStop->getSchoolStopEzLinkId();
 					BigSerial uniId = model->getEzLinkStopsWithNearestUniById(ezLinkStopId)->getNearestUniversityId();
-					School *uni = model->getUniversityById(uniId);
-					if(uni->getNumStudents() < uni->getSchoolSlot())
+					School *uni = model->getSchoolById(uniId);
+					if( model->checkForSchoolSlots(uni->getId()))
 					{
 						nearByStudentStops.push_back(studentStop);
 					}
@@ -480,9 +357,9 @@ void SchoolAssignmentSubModel::assignUniversity( const Household *household,BigS
 		HM_Model::SchoolList universitiesWithSlots;
 		for(School *school : model->getUniversityList())
 		{
-			if(school->getNumStudents() < school->getSchoolSlot())
+			if(model->checkForSchoolSlots(school->getId()))
 			{
-				totalStudentLimitDif = totalStudentLimitDif + (school->getSchoolSlot() - school->getNumStudents());
+				totalStudentLimitDif = totalStudentLimitDif + (school->getSchoolSlot() - (school->getNumStudents()));
 				universitiesWithSlots.push_back(school);
 			}
 		}
@@ -573,8 +450,8 @@ void SchoolAssignmentSubModel::assignPolyTechnic(const Household *household,BigS
 		BigSerial nearestSchoolId = ezLinkStop->getNearestPolytechnicId();
 		if(nearestSchoolId != 0 )
 		{
-			School *school = model->getPolytechnicById(nearestSchoolId);
-			if ((distanceFromEzLinkStopToHome < 1000) && (school->getNumStudents() < school->getSchoolSlot()))
+			School *school = model->getSchoolById(nearestSchoolId);
+			if (distanceFromEzLinkStopToHome < 1000)
 			{
 				nearbyEzLinkStopsById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
 
@@ -591,7 +468,13 @@ void SchoolAssignmentSubModel::assignPolyTechnic(const Household *household,BigS
 
 		if (itr != nearbyEzLinkStopsById.end())
 		{
-			nearByStudentStops.push_back(studentStop);
+			BigSerial schoolStopId = studentStop->getSchoolStopEzLinkId();
+			BigSerial polytechId = model->getEzLinkStopsWithNearestPolytechById(schoolStopId)->getNearestPolytechnicId();
+			School *poly = model->getSchoolById(polytechId);
+			if(model->checkForSchoolSlots(poly->getId()))
+			{
+				nearByStudentStops.push_back(studentStop);
+			}
 		}
 	}
 
@@ -617,8 +500,8 @@ void SchoolAssignmentSubModel::assignPolyTechnic(const Household *household,BigS
 				{
 					BigSerial schoolStopId = studentStop->getSchoolStopEzLinkId();
 					BigSerial polytechId = model->getEzLinkStopsWithNearestPolytechById(schoolStopId)->getNearestPolytechnicId();
-					School *poly = model->getPolytechnicById(polytechId);
-					if(poly->getNumStudents() < poly->getSchoolSlot())
+					School *poly = model->getSchoolById(polytechId);
+					if(model->checkForSchoolSlots(poly->getId()))
 					{
 
 						nearByStudentStops.push_back(studentStop);
@@ -637,15 +520,15 @@ void SchoolAssignmentSubModel::assignPolyTechnic(const Household *household,BigS
 		HM_Model::SchoolList polytechnicsWithSlots;
 		for(School *school : model->getPolytechnicList())
 		{
-			if(school->getNumStudents() < school->getSchoolSlot())
+			if(model->checkForSchoolSlots(school->getId()))
 			{
-				totalStudentLimitDif = totalStudentLimitDif + (school->getSchoolSlot() - school->getNumStudents());
+				totalStudentLimitDif = totalStudentLimitDif + (school->getSchoolSlot() - (school->getNumStudents()));
 				polytechnicsWithSlots.push_back(school);
 			}
 		}
 		for(School *school : polytechnicsWithSlots)
 		{
-			double probSchool = (school->getSchoolSlot() - school->getNumStudents()) / totalStudentLimitDif;
+			double probSchool = (school->getSchoolSlot() - (school->getNumStudents())) / totalStudentLimitDif;
 			probSchoolMap.insert(std::pair<BigSerial, double>( school->getId(), probSchool));
 		}
 

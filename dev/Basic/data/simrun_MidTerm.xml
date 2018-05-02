@@ -4,7 +4,7 @@
 
 <config>
     <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
-    <!-- Admissible values are "preday", "withinday" and "supply". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.-->
+    <!-- Admissible values are "preday", "withinday", "supply", and "full". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.-->
     <mid_term_run_mode value="preday"/>
 
     <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
@@ -248,10 +248,10 @@
             <waiting_count file="waitingcount.csv"/>
             <travel_time file="traveltime.csv"/>
             <pt_stop_stats file="ptstopstats.csv"/>
-            <subtrip_metrics file="subtrip_metrics.csv" enabled="true"/>
+            <subtrip_metrics file="subtrip_metrics.csv" enabled="true" feedback="false"/>
             <screen_line_count file="screen_line_count.csv" enabled="true" interval="900"/>
             <pt_reroute file=""/>
-            <link_travel_time file="link_travel_time.csv"/>
+            <link_travel_time file="link_travel_time.csv" feedback="false" alpha="0.5"/>
         </output_statistics>  
         
         <!-- parameters used in speed density function -->
@@ -291,6 +291,8 @@
         <console_output enabled="true"/>
         <!-- table containing logsums for each individual in the population. NOTE:  -->
         <logsum_table name="demand.preday_logsum"/>
+        <!-- table containing activity schedule of each individual in the population. -->
+        <activity_schedule_table schema="demand" table="das_calib" procedure="update_das_table" fileName="activity_schedule"/>
 
         <!-- model scripts for PRE-DAY -->
         <model_scripts path="scripts/lua/mid/behavior_vc" format="lua">

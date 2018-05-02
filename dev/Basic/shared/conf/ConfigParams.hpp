@@ -261,6 +261,12 @@ private:
 	/**link travel time file name*/
 	std::string linkTravelTimesFile;
 
+	/**whether link travel time feedback is enabled*/
+	bool linktravelTimeFeedbackEnabled;
+
+	/**value of alpha for link travel time feedback*/
+	float alphaForLinkTTFeedback;
+
 public:
 	/////////////////////////////////////////////////////////////////////////////////////
     /// These are helper functions, to make compatibility between old/new parsing easier.
@@ -512,6 +518,35 @@ public:
 	 * @param linkTravelTimesFile filename to be set
 	 */
 	void setLinkTravelTimesFile(const std::string &linkTravelTimesFile);
+
+	/**
+	 * Sets the link travel time feedback true or false
+	 *
+	 * @param value true or false to be sent
+	 */
+	void setLinkTravelTimeFeedback(const bool value);
+
+	/**
+	 * sets the value of alpha for link travel time feedback
+	 *
+	 * @param alpha: value of alpha as read from the config file
+	 */
+	void setAlphaValueForLinkTTFeedback(const float alpha);
+
+	/**
+	 * Returns whether the link travel travel feedback is enabled or disabled
+	 *
+	 * @return true if link travel travel feedback is enabled
+	 */
+	bool isLinkTravelTimeFeedbackEnabled();
+
+	/**
+	 * Returns value of alpha for link travel time feedback
+	 *
+	 * @return the value of alpha
+	 */
+	float getAlphaValueForLinkTTFeedback();
+
 };
 
 

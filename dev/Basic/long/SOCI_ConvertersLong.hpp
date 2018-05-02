@@ -380,5 +380,18 @@ struct type_conversion<sim_mob::long_term::StudentStop>
     }
 };
 
+template<>
+struct type_conversion<sim_mob::long_term::SchoolDesk>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::SchoolDesk& schoolDesk)
+    {
+    	schoolDesk.setSchoolDeskId(values.get<BigSerial>("school_desk_id",0));
+    	schoolDesk.setSchoolId(values.get<BigSerial>("school_id",0));
+    }
+};
+
 } //namespace soci
 

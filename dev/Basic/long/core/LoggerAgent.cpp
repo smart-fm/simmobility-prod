@@ -269,6 +269,11 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 		streams.insert(std::make_pair(LOG_POLYTECH_ASSIGNMENT, polyTechAssignmentFile));
 		*polyTechAssignmentFile << "individualId, polyTechId" << std::endl;
 
+		//school desks
+		std::ofstream* schoolDesksFile = new std::ofstream("schoolDesks.csv");
+		streams.insert(std::make_pair(LOG_SCHOOL_DESK, schoolDesksFile));
+		*schoolDesksFile << "individualId, schoolId, schoolDeskId" << std::endl;
+
     }
 
     if(log_pre_school_assignment)

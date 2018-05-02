@@ -600,6 +600,16 @@ namespace sim_mob
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_POLYTECH_ASSIGNMENT,fmtr.str());
 	    }
 
+	    inline void writeSchoolDesksToFile(BigSerial individualId,BigSerial schoolId,BigSerial schoolDeskId)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	    	if(!config.ltParams.outputFiles.log_school_assignment)
+	    		return;
+
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%") % individualId  % schoolId % schoolDeskId ;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCHOOL_DESK,fmtr.str());
+	    }
+
 	    inline void writeRandomNumsToFile(int counter,BigSerial hhId, float montecarlo)
 	    {
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();

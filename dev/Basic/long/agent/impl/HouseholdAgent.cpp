@@ -187,8 +187,8 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	//There is a final contraint on BTOs. If the bidder successfully bid on a BTO, it will not sell its unit until
 	//the waiting time to move in is less than offsetBetweenUnitBuyingAndSellingAdvancedPurchase
 
-	//has 7 days elapsed since the bidder was activted AND the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
-	if(( bidder && bidder->isActive() && buySellInterval == 0) && (acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
+	//has 7 days elapsed since the bidder was activted OR the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
+	if(( bidder && bidder->isActive() && buySellInterval == 0) || (acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
 	{
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
@@ -288,6 +288,8 @@ void HouseholdAgent::TransferUnitToFreelanceAgent()
 
 	for( auto uitr = seller->sellingUnitsMap.begin(); uitr != seller->sellingUnitsMap.end(); uitr++ )
 	{
+		Unit *unit = model->getUnitById( uitr->first );
+		unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 		freelanceAgent->addUnitId( uitr->first );
 		this->removeUnitId( uitr->first );
 	}

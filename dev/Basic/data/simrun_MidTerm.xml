@@ -266,7 +266,7 @@
         </speed_density_params>
 
         <!-- lua scripts used in WITHINDAY -->
-        <model_scripts path="scripts/lua/mid/behavior_sg12/" format="lua">
+        <model_scripts path="scripts/lua/mid/behavior_vc/" format="lua">
              <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
              <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->
              <script name="ptrc" file="ptrc.lua"/> <!--public transit route choice-->
@@ -290,13 +290,13 @@
         <!-- prints person ids and tour details in console for each person if enabled -->
         <console_output enabled="true"/>
         <!-- table containing logsums for each individual in the population. NOTE:  -->
-        <logsum_table name="demand.preday_logsum_test_new_activity_sg_aditi"/>
+        <logsum_table name="demand.preday_logsum"/>
 
         <!-- table containing activity schedule of each individual in the population. -->
         <activity_schedule_table schema="demand" table="das_calib" procedure="update_das_table" fileName="activity_schedule"/>
 
         <!-- model scripts for PRE-DAY -->
-        <model_scripts path="scripts/lua/mid/behavior_fornew_act_type_sg" format="lua">
+        <model_scripts path="scripts/lua/mid/behavior_vc" format="lua">
             <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
             <script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
             <script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

@@ -235,7 +235,7 @@ std::string PT_RerouteInfo::getCSV() const
 }
 std::string PersonTravelTime::getCSV() const
 {
-	char csvArray[200];
+	char csvArray[600];
 	sprintf(csvArray, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%.2f\n",
 			personId.c_str(),
 			tripStartPoint.c_str(),

@@ -50,7 +50,7 @@ void RoadSegment::setCapacity(unsigned int capacityVph)
 	this->capacity = ((double)capacityVph) / 3600.0;
 }
 
-const std::vector<Lane *>& RoadSegment::getLanes() const
+const std::vector<const Lane *>& RoadSegment::getLanes() const
 {
 	return lanes;
 }
@@ -135,7 +135,7 @@ double RoadSegment::getLength() const
 	return polyLine->getLength();
 }
 
-void RoadSegment::addLane(Lane *lane)
+void RoadSegment::addLane(const Lane *lane)
 {
 	this->lanes.push_back(lane);
 }

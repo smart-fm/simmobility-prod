@@ -291,7 +291,6 @@
         <console_output enabled="true"/>
         <!-- table containing logsums for each individual in the population. NOTE:  -->
         <logsum_table name="demand.preday_logsum"/>
-
         <!-- table containing activity schedule of each individual in the population. -->
         <activity_schedule_table schema="demand" table="das_calib" procedure="update_das_table" fileName="activity_schedule"/>
 

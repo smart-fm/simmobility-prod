@@ -178,7 +178,7 @@ void ExpandMidTermConfigFile::verifyIncidents()
 			item->startTime = (*incIt).startTime - baseGranMS;
 			item->visibilityDistance = (*incIt).visibilityDistance;
 
-			const std::vector<Lane*>& lanes = roadSeg->getLanes();
+			const std::vector<const Lane*>& lanes = roadSeg->getLanes();
 			for (std::vector<IncidentParams::LaneParams>::iterator laneIt = incIt->laneParams.begin(); laneIt != incIt->laneParams.end(); ++laneIt)
 			{
 				LaneItem lane;

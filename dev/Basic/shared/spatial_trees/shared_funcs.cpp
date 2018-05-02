@@ -53,7 +53,7 @@ double sim_mob::spatial::getAdjacentPathWidth(const WayPoint &wayPoint)
 	if (wayPoint.type == WayPoint::LANE)
 	{
 		const Lane *lane = wayPoint.lane;
-		const std::vector<Lane *> &lanes = lane->getParentSegment()->getLanes();
+		const std::vector<const Lane *> &lanes = lane->getParentSegment()->getLanes();
 
 		//Find the index of the lane so that we can find the adjacent lanes.
 		size_t index = lane->getLaneIndex();

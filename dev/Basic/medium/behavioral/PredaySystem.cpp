@@ -1638,16 +1638,18 @@ long sim_mob::medium::PredaySystem::getFirstNodeInZone(const std::vector<ZoneNod
 void sim_mob::medium::PredaySystem::computeLogsums()
 {
     const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
-	if(personParams.hasFixedWorkPlace())
-	{
-		TourModeParams tmParams;
-        constructTourModeParams(tmParams, personParams.getFixedWorkLocation(), cfg.getActivityTypeId("Work"));
-        PredayLuaProvider::getPredayModel().computeTourModeLogsumWork(personParams, activityTypeConfigMap, tmParams);
-	}
+
     TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, numModes, unavailableODs);
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
     PredayLuaProvider::getPredayModel().initializeLogsums(personParams, activityTypeConfigMap);
     PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, activityTypeConfigMap, tmdParams, zoneMap.size());
+
+	if(personParams.hasFixedWorkPlace())
+	{
+		TourModeParams tmParams;
+		constructTourModeParams(tmParams, personParams.getFixedWorkLocation(), cfg.getActivityTypeId("Work"));
+		PredayLuaProvider::getPredayModel().computeTourModeLogsumWork(personParams, activityTypeConfigMap, tmParams);
+	}
     	// ISABEL
 	if(personParams.isStudent())
 	{

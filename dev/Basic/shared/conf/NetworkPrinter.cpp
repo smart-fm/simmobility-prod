@@ -154,7 +154,7 @@ void NetworkPrinter::printSegments(const map<unsigned int, RoadSegment *> &segme
 		out << "})\n";
 
 		//The associated lanes
-		const vector<Lane *> &lanes = it->second->getLanes();		
+		const vector<const Lane *> &lanes = it->second->getLanes();
 		for (size_t index = 0; index < lanes.size(); ++index)
 		{
 			out << "(\"lane\", 0, " << lanes[index]->getLaneId() << ", {";

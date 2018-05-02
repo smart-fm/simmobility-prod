@@ -798,7 +798,7 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 	//load configuration file for mid-term
 	ParseMidTermConfigFile parseMT_Cfg(mtConfigFileName, MT_Config::getInstance(), ConfigManager::GetInstanceRW().FullConfig());
 
-	//Enable or dgetindividualids_nishant_1000isable logging (all together, for now).
+	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
 	//      has been loaded or not. The new Config class makes this much clearer.
@@ -815,12 +815,12 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 		Print::Ignore();
 	}
 
-    if (MT_Config::getInstance().RunningMidSupply())
+	if (MT_Config::getInstance().RunningMidSupply())
 	{
 		Print() << "Mid-term run mode: supply\n" << endl;
 		return performMainSupply(configFileName, resLogFiles);
 	}
-    else if (MT_Config::getInstance().RunningMidDemand())
+	else if (MT_Config::getInstance().RunningMidDemand())
 	{
 		Print() << "Mid-term run mode: preday" << endl;
 		Print() << "Number of threads: " << MT_Config::getInstance().getNumPredayThreads()

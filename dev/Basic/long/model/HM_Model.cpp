@@ -1993,7 +1993,7 @@ void HM_Model::startImpl()
 
 				writeUnitTimesToFile((*it)->getId(),(*it)->getTimeOnMarket(), (*it)->getTimeOffMarket(), (*it)->getbiddingMarketEntryDay());
 			}
-				if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->getTenureStatus()!= 0)
+				if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY)
 				{
 					if(!resume)
 					{
@@ -3222,10 +3222,17 @@ void HM_Model::unitsFiltering()
 
 void HM_Model::update(int day)
 {
+
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	int simYear = config.ltParams.year;
+	std::tm currentDate = getDateBySimDay(simYear,day);
 
 	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
+//		if(compareTMDates((*it)->getSaleFromDate(),currentDate))
+//		{
+//			(*it)->setbiddingMarketEntryDay(day);
+//		}
 		//this unit is a vacancy and unit is on the market or to be entered to the market.
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getbiddingMarketEntryDay() != 999999 )
 		{

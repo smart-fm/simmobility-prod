@@ -1236,7 +1236,25 @@ void LaneStats::printAgents() const
 		if((*i)->getNextRole()){
 			debugMsgs << "(" << (*i)->getNextRole()->getRoleName() << ")";
 		}
+        if ( (*i)->getRole())
+        {
+            MovementFacet *movFacet = (*i)->getRole()->Movement();
+            DriverMovement *mov = dynamic_cast<DriverMovement *>(movFacet);
+            if(mov)
+            {
+                const MesoPathMover pathMover = mov->getMesoPathMover();
+                const std::vector<const SegmentStats*>& path = pathMover.getPath();
+                debugMsgs << "(pathStats:";
+                for(auto i = path.begin(); i!=path.end(); i++)
+                {
+                    debugMsgs << (*i)->getRoadSegment()->getRoadSegmentId()<<"-"<<(*i)->getStatsNumberInSegment()<<"|";
+                }
+                debugMsgs << ")(currStats:"<<pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId()<<")";
+                debugMsgs<< "(" << "posSeg:" << pathMover.getPositionInSegment() << " )" ;
+            }
+        }
 	}
+
 	debugMsgs << std::endl;
 	Print() << debugMsgs.str();
 }
@@ -1281,20 +1299,24 @@ Person_MT* SegmentStats::dequeue(const Person_MT* person, const Lane* lane, bool
 	{
 		return nullptr;
 	}
-	Person_MT* dequeuedPerson = laneIt->second->dequeue(person, isQueuingBfrUpdate, vehicleLength);
-	if (dequeuedPerson)
-	{
-		numPersons--; // record removal from segment
-	}
-	else
-	{
-		printAgents();
-		std::stringstream debugMsgs;
-		debugMsgs << "Error: Person " << person->getDatabaseId() << " (" << person->getRole()->getRoleName() << ")"
-				<< " was not found in lane " << lane->getLaneId() << std::endl;
-		throw std::runtime_error(debugMsgs.str());
-	}
-	return dequeuedPerson;
+    Person_MT* dequeuedPerson = laneIt->second->dequeue(person, isQueuingBfrUpdate, vehicleLength);
+    if (dequeuedPerson)
+    {
+       numPersons--; // record removal from segment
+    }
+    else
+    {
+#ifndef NDEBUG
+        printAgents();
+        std::stringstream debugMsgs;
+        debugMsgs << "Error: Person " << person->getDatabaseId() << " (" << person->getRole()->getRoleName() << ")"
+                  << " was not found in lane " << lane->getLaneId() << std::endl;
+        throw std::runtime_error(debugMsgs.str());
+#endif
+     Person_MT* personTest = const_cast<Person_MT*> (person);
+     personTest->setRemainingTimeThisTick(0.0);
+    }
+    return dequeuedPerson;
 }
 
 Person_MT* LaneStats::dequeue(const Person_MT* person, bool isQueuingBfrUpdate, double vehicleLength)

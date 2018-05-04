@@ -2128,40 +2128,43 @@ void HM_Model::startImpl()
 
 	for (size_t n = 0; n < households.size(); n++)
 	{
-		std::vector<BigSerial> individuals = households[n]->getIndividuals();
-		    		std::vector<BigSerial>::iterator individualsItr;
-		    		for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
-		    		{
-		    			const Individual* individual = getIndividualById((*individualsItr));
-		    			SchoolAssignmentSubModel schoolAssignmentModel(this);
-		    			if (individual!= nullptr)
-		    			{
-		    				switch(individual->getEducationId())
-		    				{
-		    				case 1:
-		    					incrementPreSchoolAssignIndividualCount();
-		    					schoolAssignmentModel.assignPreSchool(households[n],individual->getId(),nullptr, 0);
-		    					PrintOutV("number of individuals assigned for pre schools " << getPreSchoolAssignIndividualCount()<< std::endl);
-		    					break;
-		    				case 2:
-		    					incrementPrimarySchoolAssignIndividualCount();
-		    					schoolAssignmentModel.assignPrimarySchool(households[n],individual->getId(),nullptr, 0);
-		    					PrintOutV("number of individuals assigned for primary schools " <<getPrimaySchoolAssignIndividualCount()<< std::endl);
-		    					break;
-		    				case 3:
-		    					schoolAssignmentModel.assignSecondarySchool(households[n],individual->getId(),nullptr, 0);
-		    					break;
-		    				case 5:
-		    					schoolAssignmentModel.assignPolyTechnic(households[n],individual->getId(),nullptr, 0);
-		    					break;
-		    				case 6:
-		    					schoolAssignmentModel.assignUniversity(households[n],individual->getId(),nullptr, 0);
-		    					break;
+		if(config.ltParams.schoolAssignmentModel.enabled)
+		{
+			std::vector<BigSerial> individuals = households[n]->getIndividuals();
+			std::vector<BigSerial>::iterator individualsItr;
+			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+			{
+				const Individual* individual = getIndividualById((*individualsItr));
+				SchoolAssignmentSubModel schoolAssignmentModel(this);
+				if (individual!= nullptr)
+				{
+					switch(individual->getEducationId())
+					{
+					case 1:
+						incrementPreSchoolAssignIndividualCount();
+						schoolAssignmentModel.assignPreSchool(households[n],individual->getId(),nullptr, 0);
+						PrintOutV("number of individuals assigned for pre schools " << getPreSchoolAssignIndividualCount()<< std::endl);
+						break;
+					case 2:
+						incrementPrimarySchoolAssignIndividualCount();
+						schoolAssignmentModel.assignPrimarySchool(households[n],individual->getId(),nullptr, 0);
+						PrintOutV("number of individuals assigned for primary schools " <<getPrimaySchoolAssignIndividualCount()<< std::endl);
+						break;
+					case 3:
+						schoolAssignmentModel.assignSecondarySchool(households[n],individual->getId(),nullptr, 0);
+						break;
+					case 5:
+						schoolAssignmentModel.assignPolyTechnic(households[n],individual->getId(),nullptr, 0);
+						break;
+					case 6:
+						schoolAssignmentModel.assignUniversity(households[n],individual->getId(),nullptr, 0);
+						break;
 
-		    				}
-		    			}
+					}
+				}
 
-		    		}
+			}
+		}
 
 		hdbEligibilityTest(n);
 		if(config.ltParams.taxiAccessModel.enabled)

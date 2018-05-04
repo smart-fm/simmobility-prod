@@ -3229,14 +3229,14 @@ void HM_Model::update(int day)
 
 	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-//		if(compareTMDates((*it)->getSaleFromDate(),currentDate))
-//		{
-//			(*it)->setbiddingMarketEntryDay(day);
-//		}
+		if(compareTMDates((*it)->getSaleFromDate(),currentDate))
+		{
+			(*it)->setbiddingMarketEntryDay(day);
+		}
 		//this unit is a vacancy and unit is on the market or to be entered to the market.
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getbiddingMarketEntryDay() != 999999 )
 		{
-			//update unit's time on and off market values.
+			//update unit's time on and off market values.set
 			//unit is on the market if it is on or passed the bidding market entry day.
 			if ( (*it)->getRemainingTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay() )
 			{

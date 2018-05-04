@@ -34,7 +34,7 @@ namespace sim_mob
         class HouseholdAgent : public Agent_LT
         {
         public:
-            HouseholdAgent(BigSerial id, HM_Model* model, Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0, int awakeningDay = 0, bool acceptedBid = false, int buySellInterval = -1);
+            HouseholdAgent(BigSerial id, HM_Model* model, Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0, int awakeningDay = 0, bool acceptedBid = false);
             virtual ~HouseholdAgent();
             
             enum VehicleOwnershipOption

@@ -440,7 +440,6 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
 
                 	getParent()->getHousehold()->setTimeOffMarket(moveInWaitingTimeInDays + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid);
             		getParent()->setAcceptedBid(true);
-            		getParent()->setBuySellInterval(config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling);
 
                 	if(simulationEndDay < (moveInWaitingTimeInDays + day))
                 	{
@@ -449,6 +448,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 		getParent()->getHousehold()->setUnitPending(1);
                 		moveInWaitingTimeInDays = (moveInWaitingTimeInDays + day) - simulationEndDay;
                 		getParent()->getHousehold()->setPendingFromDate(getDateBySimDay(year,moveInWaitingTimeInDays));
+                		getParent()->setBuySellInterval(config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling);
                 	}
 
                     break;

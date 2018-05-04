@@ -38,9 +38,9 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay, bool acceptedBid, int buySellInterval)
+HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _household, HousingMarket* _market, bool _marketSeller, int _day, int _householdBiddingWindow, int awakeningDay, bool acceptedBid)
 							 : Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), _id), model(_model), market(_market), household(_household), marketSeller(_marketSeller), bidder (nullptr), seller(nullptr), day(_day),
-							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay),acceptedBid(acceptedBid), buySellInterval(-1)
+							   vehicleOwnershipOption(NO_VEHICLE), householdBiddingWindow(_householdBiddingWindow),awakeningDay(awakeningDay),acceptedBid(acceptedBid), buySellInterval(buySellInterval)
 							{
 
 	//Freelance agents are active by default.
@@ -188,7 +188,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	//the waiting time to move in is less than offsetBetweenUnitBuyingAndSellingAdvancedPurchase
 
 	//has 7 days elapsed since the bidder was activted OR the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
-	if(( bidder && bidder->isActive() && buySellInterval == 0) || (acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
+	if((buySellInterval == 0) || (acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
 	{
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
@@ -216,15 +216,15 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     {
         bidder->update(now);
         householdBiddingWindow--;
-       //	buySellInterval--;
+       	buySellInterval--;
        	household->updateTimeOnMarket();
     }
 
     //decrement the buy sell interval only after a successful bid
-    if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 && bidder->getParent()->getHousehold()->getLastBidStatus() == 1)
-    {
-    	buySellInterval--;
-    }
+//    if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 && bidder->getParent()->getHousehold()->getLastBidStatus() == 1)
+//    {
+//    	buySellInterval--;
+//    }
 
 	//If 1) the bidder is active and 2) it is not waiting to move into a unit and 3) it has exceeded it's bidding time frame,
 	//Then it can now go inactive. However if any one of the above three conditions are not true, the bidder has to remain active
@@ -288,8 +288,8 @@ void HouseholdAgent::TransferUnitToFreelanceAgent()
 
 	for( auto uitr = seller->sellingUnitsMap.begin(); uitr != seller->sellingUnitsMap.end(); uitr++ )
 	{
-		Unit *unit = model->getUnitById( uitr->first );
-		unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
+		//Unit *unit = model->getUnitById( uitr->first );
+		//unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 		freelanceAgent->addUnitId( uitr->first );
 		this->removeUnitId( uitr->first );
 	}
@@ -341,7 +341,7 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
 
 					householdBiddingWindow = config.ltParams.housingModel.householdBTOBiddingWindow;
 					bidder->setMoveInWaitingTimeInDays(-1);
-					//buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
+					buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 				}
         	}
             break;
@@ -372,7 +372,7 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
 
         			householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow;
         			bidder->setMoveInWaitingTimeInDays(-1);
-        			//buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
+        			buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
         		}
         	}
         	break;
@@ -407,6 +407,7 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
 				//A value of -1 means that this unit is *not* waiting to move in. Any value above 0 implies that the bidder
 				//has successfully bid on a unit and will move in in the number of days specified by the value of this variable.
 				bidder->setMoveInWaitingTimeInDays(-1);
+				buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 			}
 
 			#ifdef VERBOSE

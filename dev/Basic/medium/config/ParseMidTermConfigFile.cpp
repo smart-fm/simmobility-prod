@@ -4,19 +4,20 @@
 
 #include "ParseMidTermConfigFile.hpp"
 
+#include <boost/algorithm/string.hpp>
 #include "path/ParsePathXmlConfig.hpp"
 #include "util/XmlParseHelper.hpp"
 
 namespace
 {
 const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
-const float NUM_METERS_IN_KM = 1000;
-const float NUM_SECONDS_IN_AN_HOUR = 3600;
+const unsigned NUM_METERS_IN_KM = 1000;
+const unsigned NUM_SECONDS_IN_AN_HOUR = 3600;
 
 unsigned int ProcessTimegranUnits(xercesc::DOMElement* node)
 {
 	return ParseTimegranAsSecond(GetNamedAttributeValue(node, "value"), GetNamedAttributeValue(node, "units"),
-								 (unsigned int) NUM_SECONDS_IN_AN_HOUR);
+	                             NUM_SECONDS_IN_AN_HOUR);
 }
 
 unsigned int ParseGranularitySingle(const XMLCh* srcX)
@@ -92,7 +93,13 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 		processOnCallTaxiTrajectoryNode(GetSingleElementByName(rootNode, "onCallTaxiTrajectory"));
 		processOnHailTaxiTrajectoryNode(GetSingleElementByName(rootNode, "onHailTaxiTrajectory"));
 
-		if (mtCfg.RunningMidSupply())
+
+		if (mtCfg.RunningMidFullLoop())
+		{
+			processPredayNode(GetSingleElementByName(rootNode, "preday", true));
+			processSupplyNode(GetSingleElementByName(rootNode, "supply", true));
+		}
+		else if (mtCfg.RunningMidSupply())
 		{
 			processSupplyNode(GetSingleElementByName(rootNode, "supply", true));
 		}
@@ -150,7 +157,7 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 	childNode = GetSingleElementByName(node, "threads", true);
 	mtCfg.setNumPredayThreads(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true), DEFAULT_NUM_THREADS_DEMAND));
 
-	if(mtCfg.runningPredaySimulation())
+	if(mtCfg.runningPredaySimulation() || mtCfg.RunningMidFullLoop())
 	{
 		childNode = GetSingleElementByName(node, "output_activity_schedule", true);
 		mtCfg.setFileOutputEnabled(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
@@ -161,6 +168,12 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 
 	childNode = GetSingleElementByName(node, "logsum_table", true);
 	mtCfg.setLogsumTableName(ParseString(GetNamedAttributeValue(childNode, "name", true)));
+
+	childNode = GetSingleElementByName(node, "activity_schedule_table", true);
+	mtCfg.dasConfig.schema = ParseString(GetNamedAttributeValue(childNode, "schema", true));
+	mtCfg.dasConfig.table = ParseString(GetNamedAttributeValue(childNode, "table", true));
+	mtCfg.dasConfig.updateProc = ParseString(GetNamedAttributeValue(childNode, "procedure", true));
+	mtCfg.dasConfig.fileName = ParseString(GetNamedAttributeValue(childNode, "fileName", true));
 
 	ModelScriptsMap luaModelsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 	cfg.predayLuaScriptsMap = luaModelsMap;
@@ -293,6 +306,12 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 	child = GetSingleElementByName(node, "link_travel_time", true);
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
 	cfg.setLinkTravelTimesFile(value);
+	cfg.setLinkTravelTimeFeedback(ParseBoolean(GetNamedAttributeValue(child, "feedback")));
+	if (cfg.isLinkTravelTimeFeedbackEnabled())
+	{
+		cfg.setAlphaValueForLinkTTFeedback(ParseFloat(GetNamedAttributeValue(child, "alpha")));
+	}
+
 }
 
 void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* node)
@@ -328,6 +347,11 @@ void ParseMidTermConfigFile::processWalkSpeedElement(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processThreadsNumInPersonLoaderElement(xercesc::DOMElement* node)
 {
+	if(!node)
+	{
+		return;
+	}
+
 	unsigned int num = ParseUnsignedInt(GetNamedAttributeValue(node, "value", true), 1);
 	mtCfg.setThreadsNumInPersonLoader(num);
 }
@@ -562,6 +586,10 @@ void ParseMidTermConfigFile::processSubtripTravelMetricsOutputNode(xercesc::DOME
 			cfg.subTripTravelTimeEnabled = true;
 			cfg.subTripLevelTravelTimeOutput =
 					ParseString(GetNamedAttributeValue(node, "file"), "subtrip_travel_times.csv");
+			if(ParseBoolean(GetNamedAttributeValue(node, "feedback")))
+			{
+				cfg.isSubtripTravelTimeFeedbackEnabled = true;
+			}
 		}
 	}
 }

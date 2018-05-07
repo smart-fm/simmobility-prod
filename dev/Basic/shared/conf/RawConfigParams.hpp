@@ -18,6 +18,7 @@
 #include "workers/WorkGroup.hpp"
 #include "util/DailyTime.hpp"
 #include "util/Profiler.hpp"
+#include "conf/Constructs.hpp"
 
 namespace sim_mob {
 
@@ -786,6 +787,9 @@ public:
 
     /// subtrip level travel metrics output enabled
     bool subTripTravelTimeEnabled;
+
+    /// subtrip level zone to zone travel time feedback enabled
+    bool isSubtripTravelTimeFeedbackEnabled;
 
     /// subtrip level travel metrics output file
     std::string subTripLevelTravelTimeOutput;

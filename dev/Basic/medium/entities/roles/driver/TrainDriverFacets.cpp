@@ -673,66 +673,81 @@ void TrainMovement::frame_tick()
 				{
 					parentDriver->setIsToBeRemoved(isToBeRemoved);
 				}
-				Platform *nextPlatformAccordingToPosition = trainPlatformMover_accpos.getNextPlatform(false);
-				parentDriver->getMovementMutex();
-				moveForward();
-				parentDriver->movementMutexUnlock();
-				double distance = trainPathMover.getDistanceFromStartToPlatform(parentDriver->getTrainLine(),
-				                                                                nextPlatformAccordingToPosition);
-				if (isStopAtPlatform())
-				{
-					parentDriver->setInitialNumberOfPassengers(parentDriver->getPassengers().size());
-					//once the train has reached the platform reset of the moving case is set to false
-					forceResetMovingCase = false;
-					parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
+                Platform *nextPlatformAccordingToPosition = nullptr;
+                if(!trainPlatformMover_accpos.isLastPlatform())
+                {
+                    nextPlatformAccordingToPosition = trainPlatformMover_accpos.getNextPlatform(false);
+                    parentDriver->getMovementMutex();
+                    moveForward();
+                    parentDriver->movementMutexUnlock();
+                    double distance = trainPathMover.getDistanceFromStartToPlatform(parentDriver->getTrainLine(),
+                                                                                    nextPlatformAccordingToPosition);
+                    if (isStopAtPlatform())
+                    {
+                        parentDriver->setInitialNumberOfPassengers(parentDriver->getPassengers().size());
+                        //once the train has reached the platform reset of the moving case is set to false
+                        forceResetMovingCase = false;
+                        parentDriver->setNextRequested(TrainDriver::REQUESTED_AT_PLATFORM);
 
-				}
-				else
-				{
-					if (distance < getTotalCoveredDistance())
-					{
-						//if it has to ignore all platforms and last next position position wise is the last platform on its route
-						if (shouldIgnoreAllPlatforms && trainPlatformMover_accpos.getLastPlatformOnRoute() == trainPlatformMover_accpos.getNextPlatform(
-								false))
-						{
-							parentDriver->getParent()->setToBeRemoved();
-							arrivalAtEndPlatform();
-						}
-						else
-						{
-							//record the travel time statistics between the platform
-							TrainUpdateParams &params = parentDriver->getParams();
-							DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
-							int traveTime = params.now.ms() - startTimeOfNextStationStretch;
-							std::string prevPlatformName = " ";
-							//log travelTime
-							sim_mob::BasicLogger &ptMRTtraveltimeLogger = sim_mob::Logger::log(
-									"TravelTimeBetweenStations.csv");
-							if (getNextPlatform() == trainPlatformMover_accpos.getFirstPlatform())
-							{
-								prevPlatformName = " ";
-							}
-							else
-							{
-								Platform *prevPlatform = trainPlatformMover_accpos.getPlatformByOffset(-1);
-								if (prevPlatform != nullptr)
-								{
-									prevPlatformName = prevPlatform->getStationNo();
-								}
-								else
-								{
-									prevPlatformName = " ";
-								}
-							}
-							ptMRTtraveltimeLogger << parentDriver->getTrainLine() << "," << prevPlatformName << ","
-							                      << trainPlatformMover_accpos.getNextPlatform()->getStationNo() << ","
-							                      << traveTime << endl;
-							startTimeOfNextStationStretch = params.now.ms();
-							//update the next platform position wise
-							trainPlatformMover_accpos.getNextPlatform(true);
-						}
-					}
-				}
+                    }
+                    else
+                    {
+                        if (distance < getTotalCoveredDistance())
+                        {
+                            //if it has to ignore all platforms and last next position position wise is the last platform on its route
+                            if (shouldIgnoreAllPlatforms && trainPlatformMover_accpos.getLastPlatformOnRoute() == trainPlatformMover_accpos.getNextPlatform(
+                                    false))
+                            {
+                                parentDriver->getParent()->setToBeRemoved();
+                                arrivalAtEndPlatform();
+                            }
+                            else
+                            {
+                                //record the travel time statistics between the platform
+                                TrainUpdateParams &params = parentDriver->getParams();
+                                DailyTime startTime = ConfigManager::GetInstance().FullConfig().simStartTime();
+                                int traveTime = params.now.ms() - startTimeOfNextStationStretch;
+                                std::string prevPlatformName = " ";
+                                //log travelTime
+                                sim_mob::BasicLogger &ptMRTtraveltimeLogger = sim_mob::Logger::log(
+                                        "TravelTimeBetweenStations.csv");
+                                if (getNextPlatform() == trainPlatformMover_accpos.getFirstPlatform())
+                                {
+                                    prevPlatformName = " ";
+                                }
+                                else
+                                {
+                                    Platform *prevPlatform = trainPlatformMover_accpos.getPlatformByOffset(-1);
+                                    if (prevPlatform != nullptr)
+                                    {
+                                        prevPlatformName = prevPlatform->getStationNo();
+                                    }
+                                    else
+                                    {
+                                        prevPlatformName = " ";
+                                    }
+                                }
+                                ptMRTtraveltimeLogger << parentDriver->getTrainLine() << "," << prevPlatformName << ","
+                                                      << trainPlatformMover_accpos.getNextPlatform()->getStationNo() << ","
+                                                      << traveTime << endl;
+                                startTimeOfNextStationStretch = params.now.ms();
+                                //update the next platform position wise
+                                trainPlatformMover_accpos.getNextPlatform(true);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (trainPlatformMover_accpos.getLastPlatformOnRoute() == trainPlatformMover_accpos.getNextPlatform(
+                            false))
+                    {
+                        parentDriver->getParent()->setToBeRemoved();
+                        arrivalAtEndPlatform();
+                    }
+
+                }
+
 				//This function checks whether the stop point is present,if so then set the required stopping time and stopping status
 				isStopPointPresent();
 			}

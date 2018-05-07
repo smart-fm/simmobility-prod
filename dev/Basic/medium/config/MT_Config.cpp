@@ -129,14 +129,6 @@ void MT_Config::setNumPredayThreads(unsigned numPredayThreads)
 	}
 }
 
-const unsigned int MT_Config::getThreadsNumInPersonLoader() const
-{
-    return threadsNumInPersonLoader;
-}
-void MT_Config::setThreadsNumInPersonLoader(unsigned int number)
-{
-    threadsNumInPersonLoader = number;
-}
 
 void MT_Config::sealConfig()
 {
@@ -299,12 +291,25 @@ const std::string& MT_Config::getLogsumTableName() const
 	return logsumTableName;
 }
 
+
 void MT_Config::setLogsumTableName(const std::string& logsumTableName)
 {
 	if(!configSealed)
 	{
 		this->logsumTableName = logsumTableName;
     }
+}
+const unsigned int MT_Config::getThreadsNumInPersonLoader() const
+{
+	return threadsNumInPersonLoader;
+}
+
+void MT_Config::setThreadsNumInPersonLoader(unsigned int number)
+{
+	if(!configSealed)
+	{
+		threadsNumInPersonLoader = number;
+	}
 }
 
 bool MT_Config::RunningMidSupply() const {
@@ -313,6 +318,11 @@ bool MT_Config::RunningMidSupply() const {
 
 bool MT_Config::RunningMidDemand() const {
     return (midTermRunMode == MT_Config::MT_PREDAY);
+}
+
+bool MT_Config::RunningMidFullLoop() const
+{
+    return (midTermRunMode == MT_Config::MT_FULL);
 }
 
 void MT_Config::setMidTermRunMode(const std::string& runMode)
@@ -326,6 +336,10 @@ void MT_Config::setMidTermRunMode(const std::string& runMode)
     {
         midTermRunMode = MT_Config::MT_PREDAY;
     }
+	else if (runMode == "full")
+	{
+		midTermRunMode = MT_Config::MT_FULL;
+	}
     else
     {
         throw std::runtime_error("inadmissible value for mid_term_run_mode. Must be either 'supply' or 'preday'");

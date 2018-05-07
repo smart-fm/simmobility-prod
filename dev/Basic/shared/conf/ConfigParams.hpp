@@ -110,11 +110,17 @@ public:
     /// Is the simulation repeatable?
 	bool is_simulation_repeatable;
 
+	/// Number of agents killed due to errors
+	std::atomic<unsigned int> numAgentsKilled;
+
 	///Total number of trips loaded into SimMobility
 	std::atomic<unsigned int> numTripsLoaded;
 
 	///Total number of trips that could not be loaded into SimMobility
 	std::atomic<unsigned int> numTripsNotLoaded;
+
+	///Total number of trips simulated
+	std::atomic<unsigned int> numTripsSimulated;
 
 	///Total number of trips that were completed
 	std::atomic<unsigned int> numTripsCompleted;
@@ -124,9 +130,6 @@ public:
 
 	///Total number of person that could not be loaded due to path not found errors
 	std::atomic<unsigned int> numPathNotFound;
-
-	/// Number of agents killed due to errors
-	std::atomic<unsigned int> numAgentsKilled;
 
 public:
     /**
@@ -271,7 +274,11 @@ private:
 	bool onCallTaxiTrajectoryEnabled;
 	bool onHailTaxiTrajectoryEnabled;
 
+	/**whether link travel time feedback is enabled*/
+	bool linktravelTimeFeedbackEnabled;
 
+	/**value of alpha for link travel time feedback*/
+	float alphaForLinkTTFeedback;
 
 public:
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -525,6 +532,20 @@ public:
 	 */
 	void setLinkTravelTimesFile(const std::string &linkTravelTimesFile);
 
+	/**
+	 * Sets the link travel time feedback true or false
+	 *
+	 * @param value true or false to be sent
+	 */
+	void setLinkTravelTimeFeedback(const bool value);
+
+	/**
+	 * sets the value of alpha for link travel time feedback
+	 *
+	 * @param alpha: value of alpha as read from the config file
+	 */
+	void setAlphaValueForLinkTTFeedback(const float alpha);
+
 	//Taxi Trajectory Enable/Disable: related Functions
 	void setOnCallTaxiTrajectoryEnabled(bool value);
 	void setOnHailTaxiTrajectoryEnabled(bool value);
@@ -532,6 +553,19 @@ public:
 	bool isOnCallTaxiTrajectoryEnabled() const;
 	bool isOnHailTaxiTrajectoryEnabled() const;
 
+	/**
+	 * Returns whether the link travel travel feedback is enabled or disabled
+	 *
+	 * @return true if link travel travel feedback is enabled
+	 */
+	bool isLinkTravelTimeFeedbackEnabled();
+
+	/**
+	 * Returns value of alpha for link travel time feedback
+	 *
+	 * @return the value of alpha
+	 */
+	float getAlphaValueForLinkTTFeedback();
 
 };
 

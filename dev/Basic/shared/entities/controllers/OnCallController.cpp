@@ -72,8 +72,8 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	}
 
 	unsigned scheduleSize = driverSchedules.at(driver).size();
-
-	if (scheduleSize > 0)
+    //If Driver is in CRUISE status . Then it can be unsubscrisbe if needed.
+	if (scheduleSize > 0 && driverSchedules.at(driver).back().scheduleItemType !=  CRUISE)
 	{
 		std::stringstream msg;
 		msg << "Driver " << driver->getDatabaseId()<< "(" << driver << ")" << " has a non empty schedule and she sent a message "

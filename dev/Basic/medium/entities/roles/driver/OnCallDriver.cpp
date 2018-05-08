@@ -35,7 +35,34 @@ OnCallDriver::~OnCallDriver()
 		throw runtime_error(msg.str());
 	}
 #endif
+    // Calling unsubscribeDriver to remove it's entry from all list (availableDriver/PartialAvailableDriver/Controllercopy o
+	// & driver copy of driver schedule)
+	//Only calling it when there's no shift end but driver is getting destroy for some other reason
+	//For Shift end we call this from endShift() function so filter shift end.
+	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager() && !this->behaviour->hasDriverShiftEnded())
+	{
+		const vector<MobilityServiceController *> &driverSubscribedToController = getSubscribedControllers();
+		for (auto it = driverSubscribedToController.begin(); it != driverSubscribedToController.end(); ++it)
+		{
+			OnCallController *thisOnCallController = dynamic_cast<OnCallController *> (*it);
+			if (thisOnCallController)
+			{
+				/* Directly calling unsubscribeDriver function rather than sending MSG_DRIVER_UNSUBSCRIBE message to
+				 * controller to do so (to avaiod frame_tick delay)
+				 * MessageBus::PostMessage(thisOnCallController, MSG_DRIVER_UNSUBSCRIBE,
+										MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));
+				*/
+				thisOnCallController->unsubscribeDriver(parent);
+
+				ControllerLog() << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ": Driver " <<
+				parent->getDatabaseId() <<
+				" with pointer " << parent <<
+				" is being destroyed at time " << getParams().now.ms()/1000 << std::endl;
+			}
+		}
+	}
 }
+
 
 Role<Person_MT>* OnCallDriver::clone(Person_MT *person) const
 {
@@ -138,6 +165,12 @@ const Node* OnCallDriver::getCurrentNode() const
 	return movement->getCurrentNode();
 }
 
+void  OnCallDriver::setCurrentNode(const Node* thisNode)
+{
+	movement->setCurrentNode(thisNode);
+}
+
+
 const vector<MobilityServiceController *>& OnCallDriver::getSubscribedControllers() const
 {
 	return subscribedControllers;
@@ -155,7 +188,8 @@ unsigned long OnCallDriver::getPassengerCount() const
 
 const MobilityServiceDriver* OnCallDriver::exportServiceDriver() const
 {
-	return this;
+	const MobilityServiceDriver* thisMobilityserviceDriver = dynamic_cast<const MobilityServiceDriver*>(this);
+	return thisMobilityserviceDriver;
 }
 
 void OnCallDriver::subscribeToController()
@@ -334,6 +368,7 @@ void OnCallDriver::pickupPassenger()
 		//Add the passenger
 		passengers[passengerId] = passenger;
 		passenger->setDriver(this);
+		setCurrentNode(conflux->getConfluxNode());
 		passenger->setStartPoint(personPickedUp->currSubTrip->origin);
 		passenger->setStartPointDriverDistance(movement->getTravelMetric().distance);
 		passenger->setEndPoint(personPickedUp->currSubTrip->destination);
@@ -396,14 +431,14 @@ void OnCallDriver::dropoffPassenger()
 
 		MesoPathMover &pathMover = movement->getMesoPathMover();
 		const SegmentStats *segStats = pathMover.getCurrSegStats();
-		Conflux *conflux = segStats->getParentConflux();
+		medium::Conflux *conflux = segStats->getParentConflux();
 		passengerToBeDroppedOff->setFinalPointDriverDistance(movement->getTravelMetric().distance);
 		conflux->dropOffTraveller(person);
 
 		//Remove passenger from vehicle
 		passengers.erase(itPassengers);
 		++passengerInteractedDropOff;
-
+		setCurrentNode(conflux->getConfluxNode());
 		ControllerLog() << "Drop-off of user " << person->getDatabaseId() << " at time "
 		                << parent->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()<< " ("<<conflux->getConfluxNode()->printIfNodeIsInStudyArea()<<") and driverId " <<
 						getParent()->getDatabaseId() << std::endl;

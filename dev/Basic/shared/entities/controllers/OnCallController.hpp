@@ -163,6 +163,15 @@ public:
 	virtual bool isParked(const Person *driver) const;
 	virtual const Node* getCurrentNode(const Person* driver) const;
 
+	/**
+ 	* Unsubscribes a vehicle driver from the controller
+ 	* @param person Driver to be removed
+	 * Made this function public.. So that can be called from OnCall Driver's Destructor.
+	 * From OnCall Destructor we will directly call this message rather than sending(Posting) UNSUBSCRIBE Message to
+	 * controller to unsubscribe. Just to do the things without delay of 1 tick.
+ 	*/
+	virtual void unsubscribeDriver(Person* person);
+
 protected:
 	/** Store list of available drivers */
 	std::set<const Person *> availableDrivers;
@@ -278,12 +287,6 @@ protected:
 	 * @param person Driver to be added
 	 */
 	virtual void subscribeDriver(Person* person);
-
-	/**
-	 * Unsubscribes a vehicle driver from the controller
-	 * @param person Driver to be removed
-	 */
-	virtual void unsubscribeDriver(Person* person);
 
 	/**
 	 * Makes a vehicle driver available to the controller

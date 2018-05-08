@@ -113,6 +113,11 @@ public:
 	{
 		return currNode;
 	}
+
+	void setCurrentNode(const Node* thisNode)
+	{
+		currNode = thisNode;
+	}
 	/**
      * This method to check if the node is one of the blackListed nodes
      * @return

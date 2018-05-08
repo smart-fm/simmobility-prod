@@ -172,6 +172,11 @@ public:
 	 */
 	virtual const Node* getCurrentNode() const;
 
+    /**
+     * Set Current Node .It will call the Driver movement Set Current Node function to set.
+     */
+	void  setCurrentNode(const Node* thsNode);
+
 	/**
 	 * @return vector of controllers that the driver has subscribed to
 	 */

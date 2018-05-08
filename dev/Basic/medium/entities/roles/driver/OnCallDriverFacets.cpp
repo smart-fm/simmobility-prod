@@ -346,7 +346,8 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 		//We can pick the passenger up at this point
 		if(currLink->getToNode() == pickupNode)
 		{
-			currNode = currLink->getToNode();
+			// This was fix for personPickupNull Issue. Since currently we are not getting this error. So commented it.
+			//currNode = currLink->getToNode();
 			canPickPaxImmediately = true;
             ControllerLog()<<"driver "<<parent->getDatabaseId()<<" is at same node "<<pickupNode->getNodeId()<<endl;
 		}
@@ -708,6 +709,7 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 		}
 
 	}
+/*
 	//Managing to get some Node in Case of StudyArea Case. Since it is cruising So we have flexibility to do so
 	//TBD: for even normal case we can do similar rather than reflecting error "No DownStream Node" : Will discussed this point later
 	if(reachableNodes.empty() && onCallDriver->isDriverControllerStudyAreaEnabled())
@@ -724,7 +726,19 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 		throw runtime_error(msg.str());
 	}
 #endif
-
+*/
+	// Since this is cruising So rather than fleshing error for no reachableNode, We can take any random Node from the Network (To Be Discussed)
+	if(reachableNodes.empty())
+	{
+		if(onCallDriver->isDriverControllerStudyAreaEnabled())
+		{
+			reachableNodes.push_back(chooseRandomNodeFromStudyAreaRegion());
+		}
+		else
+		{
+			reachableNodes.push_back(chooseRandomNode());
+		}
+	}
 	//Select one node from the reachable nodes at random
 	unsigned int random = Utils::generateInt(0, reachableNodes.size() - 1);
 	const Node *selectedNode = reachableNodes[random];

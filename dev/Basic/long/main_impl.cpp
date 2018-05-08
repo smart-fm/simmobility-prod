@@ -515,23 +515,41 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             	developerModel->wakeUpDeveloperAgents(developerAgents);
             }
 
-            PrintOutV(" Day " << currTick
-            	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize(currTick)
-				   << " BTO_Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize())
-				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders()
-				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers()
-				   << " Bids: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
-				   << " Accepted: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
-				   << " Waiting: "  << (dynamic_cast<HM_Model*>(models[0]))->getWaitingToMove()
-				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
-				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
-				   << " AwakenByBTO: "	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings()
-				   << " " << std::endl );
+            /*
+             * note: this is a temporary modification done to get the correct accpeted bids counters printed on the console.
+             * later a proper barrier should be added, so all the thread updates will be finished once the program reaches this point.
+             */
+            (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize(currTick);
+            (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize());
+            (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders();
+            (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers();
+            (dynamic_cast<HM_Model*>(models[0]))->getBids();
+            (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids();
+            (dynamic_cast<HM_Model*>(models[0]))->getWaitingToMove();
+            (dynamic_cast<HM_Model*>(models[0]))->getExits();
+            (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter();
+            (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings();
+
+
+
 
             if((currTick > 0) && ((currTick+1)%opSchemaloadingInterval == 0))
             {
             	loadDataToOutputSchema(conn,currentOutputSchema,simVersionId,simStoppedTick,*developerModel,*housingMarketModel);
             }
+
+            PrintOutV(" Day " << currTick
+                                   	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize(currTick)
+                       				   << " BTO_Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize())
+                       				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders()
+                       				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers()
+                       				   << " Bids: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
+                       				   << " Accepted: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
+                       				   << " Waiting: "  << (dynamic_cast<HM_Model*>(models[0]))->getWaitingToMove()
+                       				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
+                       				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
+                       				   << " AwakenByBTO: "	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings()
+                       				   << " " << std::endl );
 
 
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBidders(0);

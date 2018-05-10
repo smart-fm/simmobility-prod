@@ -110,6 +110,14 @@ public:
 	void setBusLineId(const std::string &busLine);
 
 	BusStopAgent* getCurrBusStopAgent() const;
+    /**
+     * store the passenger alight info  at bus stop
+     *
+     * @param current is current time represented in string
+     * @param stop is which currently bus driver arrive at
+     *
+     */
+    void storeAlightInfo(Person_ST *passenger,const std::string BusLineId );
 
 	friend class BusDriverBehavior;
 	friend class BusDriverMovement;

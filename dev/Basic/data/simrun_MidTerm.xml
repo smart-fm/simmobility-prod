@@ -48,6 +48,7 @@
             <mapping name="studyArea_links" procedure="get_extmp_links()"/>
 	    <mapping name="studyArea_pvt_pathset" procedure="get_pvt_pathset_extmp"/>
 	    <mapping name="studyArea_blackListNodes" procedure="get_extmp_blackListNodes()"/>
+	    <mapping name="loop_nodes" procedure="get_loop_nodes()" />
             <mapping name="pt_platform" procedure="get_pt_train_platforms()"/>
             <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_train_dispatch_freq()"/>
             <mapping name="pt_mrt_block" procedure="get_pt_train_blocks()"/>
@@ -58,7 +59,7 @@
             <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
             <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
 	    	<mapping name="mrt_road_segments" procedure="get_pt_train_segments()"/>
-	    	<mapping name="day_activity_schedule" procedure="get_persons_between_2030_part_restr_study_area_demand_pan"/>
+	    	<mapping name="day_activity_schedule" procedure="get_persons_between_das_2030_partial_restriction"/>
             <mapping name="freight_trips" procedure="get_freight_between"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
         <!--    <mapping name="taxi_fleet" procedure="get_taxi_fleet_kakali"/>  -->

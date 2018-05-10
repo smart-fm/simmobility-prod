@@ -824,6 +824,8 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 			populateStudyArea();
 		}
 
+		roadNetwork->loadLoopNodesOfNetwork();
+
 		isNetworkLoaded = true;
 
 		Print() << "\nSimMobility Road Network loaded from database\n";

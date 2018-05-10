@@ -655,7 +655,7 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 		for (auto it = itTurningsFromCurrLane->second.begin(); it != itTurningsFromCurrLane->second.end(); ++it)
 		{
 			const Node * thisNode = it->second->getToLane()->getParentSegment()->getParentLink()->getToNode();
-			if(thisNode->getNodeType()==SOURCE_OR_SINK_NODE)
+			if(thisNode->getNodeType()==SOURCE_OR_SINK_NODE || onCallDriver->movement->ifLoopedNode(thisNode->getNodeId()))
 			{
 				continue;
 			}
@@ -665,9 +665,7 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 				{
 					continue;
 				}
-						auto studyAreaNodeMap = RoadNetwork::getInstance()->getMapOfStudyAreaNodes();
-				auto itr = studyAreaNodeMap.find(thisNode->getNodeId());
-				if (itr!= studyAreaNodeMap.end())
+				if(const_cast<RoadNetwork*>(rdNetwork)->isNodePresentInStudyArea(thisNode->getNodeId()))
 				{
 					reachableNodes.push_back(thisNode);
 				}
@@ -677,15 +675,13 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 				reachableNodes.push_back(thisNode);
 			}
 		}
-
 	}
 	else
 	{
-		//We are starting from a node and currently have no lane, all downstream nodes are
-		//reachable
+		//We are starting from a node and currently have no lane, all downstream nodes are reachable
 		for(auto link : downstreamLinks)
 		{
-			if(link->getToNode()->getNodeType()==SOURCE_OR_SINK_NODE)
+			if(link->getToNode()->getNodeType()==SOURCE_OR_SINK_NODE || onCallDriver->movement->ifLoopedNode(link->getToNode()->getNodeId()))
 			{
 				continue;
 			}
@@ -695,9 +691,7 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 				{
 					continue;
 				}
-				auto studyAreaNodeMap = RoadNetwork::getInstance()->getMapOfStudyAreaNodes();
-				auto itr = studyAreaNodeMap.find(link->getToNode()->getNodeId());
-				if (itr!= studyAreaNodeMap.end())
+				if(const_cast<RoadNetwork*>(rdNetwork)->isNodePresentInStudyArea(link->getToNode()->getNodeId()))
 				{
 					reachableNodes.push_back(link->getToNode());
 				}
@@ -709,24 +703,7 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 		}
 
 	}
-/*
-	//Managing to get some Node in Case of StudyArea Case. Since it is cruising So we have flexibility to do so
-	//TBD: for even normal case we can do similar rather than reflecting error "No DownStream Node" : Will discussed this point later
-	if(reachableNodes.empty() && onCallDriver->isDriverControllerStudyAreaEnabled())
-	{
-		reachableNodes.push_back(chooseRandomNodeFromStudyAreaRegion());
-	}
 
-#ifndef NDEBUG
-	if(reachableNodes.empty())
-	{
-		stringstream msg;
-		msg << "No downstream nodes are reachable from node " << fromNode->getNodeId()
-		    << " and lane id " << (currLane ? currLane->getLaneId() : 0);
-		throw runtime_error(msg.str());
-	}
-#endif
-*/
 	// Since this is cruising So rather than fleshing error for no reachableNode, We can take any random Node from the Network (To Be Discussed)
 	if(reachableNodes.empty())
 	{
@@ -772,7 +749,7 @@ const Node* OnCallDriverBehaviour::chooseRandomNode() const
 	const Node *result = itRandomNode->second;
 
 	//Ensure chosen node is not a source/sink node
-	if(result->getNodeType() == SOURCE_OR_SINK_NODE)
+	if(result->getNodeType() == SOURCE_OR_SINK_NODE || onCallDriver->movement->ifLoopedNode(result->getNodeId()))
 	{
 		result = chooseRandomNode();
 	}
@@ -794,7 +771,7 @@ const Node* OnCallDriverBehaviour::chooseRandomNodeFromStudyAreaRegion() const
 	const Node *result = itRandomNode->second;
 
 	//Ensure chosen node is not a source/sink node and also if this is not a black listed Node
-	if(result->getNodeType() == SOURCE_OR_SINK_NODE || onCallDriver->movement->ifNodeBlackListed(result->getNodeId()))
+	if(result->getNodeType() == SOURCE_OR_SINK_NODE || onCallDriver->movement->ifNodeBlackListed(result->getNodeId())|| onCallDriver->movement->ifLoopedNode(result->getNodeId()))
 	{
 		result = chooseRandomNodeFromStudyAreaRegion();
 	}
@@ -810,6 +787,20 @@ bool OnCallDriverMovement::ifNodeBlackListed(unsigned int thisNodeId)
 	std::unordered_set<unsigned int>::const_iterator blackListedItr;
 	blackListedItr = studyAreablackListedNodesSet.find(thisNodeId);
 	if (blackListedItr != studyAreablackListedNodesSet.end())
+	{
+		found = true;
+	}
+	return found;
+}
+
+
+bool OnCallDriverMovement::ifLoopedNode(unsigned int thisNodeId)
+{
+	auto loopNodesSet = RoadNetwork::getInstance()->getSetOfLoopNodesInNetwork();
+	bool found = false;
+	std::unordered_set<unsigned int>::const_iterator loopNodeItr;
+	loopNodeItr = loopNodesSet.find(thisNodeId);
+	if (loopNodeItr != loopNodesSet.end())
 	{
 		found = true;
 	}

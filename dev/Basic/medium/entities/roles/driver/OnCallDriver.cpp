@@ -35,34 +35,7 @@ OnCallDriver::~OnCallDriver()
 		throw runtime_error(msg.str());
 	}
 #endif
-    // Calling unsubscribeDriver to remove it's entry from all list (availableDriver/PartialAvailableDriver/Controllercopy o
-	// & driver copy of driver schedule)
-	//Only calling it when there's no shift end but driver is getting destroy for some other reason
-	//For Shift end we call this from endShift() function so filter shift end.
-	if (MobilityServiceControllerManager::HasMobilityServiceControllerManager() && !this->behaviour->hasDriverShiftEnded())
-	{
-		const vector<MobilityServiceController *> &driverSubscribedToController = getSubscribedControllers();
-		for (auto it = driverSubscribedToController.begin(); it != driverSubscribedToController.end(); ++it)
-		{
-			OnCallController *thisOnCallController = dynamic_cast<OnCallController *> (*it);
-			if (thisOnCallController)
-			{
-				/* Directly calling unsubscribeDriver function rather than sending MSG_DRIVER_UNSUBSCRIBE message to
-				 * controller to do so (to avaiod frame_tick delay)
-				 * MessageBus::PostMessage(thisOnCallController, MSG_DRIVER_UNSUBSCRIBE,
-										MessageBus::MessagePtr(new DriverUnsubscribeMessage(parent)));
-				*/
-				thisOnCallController->unsubscribeDriver(parent);
-
-				ControllerLog() << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ": Driver " <<
-				parent->getDatabaseId() <<
-				" with pointer " << parent <<
-				" is being destroyed at time " << getParams().now.ms()/1000 << std::endl;
 			}
-		}
-	}
-}
-
 
 Role<Person_MT>* OnCallDriver::clone(Person_MT *person) const
 {
@@ -169,7 +142,6 @@ void  OnCallDriver::setCurrentNode(const Node* thisNode)
 {
 	movement->setCurrentNode(thisNode);
 }
-
 
 const vector<MobilityServiceController *>& OnCallDriver::getSubscribedControllers() const
 {

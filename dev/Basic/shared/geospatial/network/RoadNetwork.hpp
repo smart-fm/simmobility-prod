@@ -94,6 +94,9 @@ private:
 	/***Set for StudyArea Black Listed Nodes*/
 	std::unordered_set<unsigned int> setOfStudyAreaBlackListedNodes;
 
+	/***Set for loop Nodes in Network*/
+	std::unordered_set<unsigned int> setOfLoopNodesInNetwork;
+
 
 
 	/**Private constructor as the class is a singleton*/
@@ -148,6 +151,8 @@ public:
 	const std::map<unsigned int, Link *>& getMapOfStudyAreaLinks() const ;
 
 	const std::unordered_set<unsigned int>& getSetOfStudyAreaBlackListedNodes() const ;
+
+	const std::unordered_set<unsigned int>& getSetOfLoopNodesInNetwork() const ;
 
 
 	/**
@@ -266,9 +271,10 @@ public:
 	bool isNodePresentInStudyArea(unsigned int thisNodeId);
 
 	bool IsMovementInStudyArea(unsigned int sourceNodeId, unsigned int destinationNodeId ) const;
-
+    /** function to load BlackListed nodes related with Study Area Only**/
 	void loadStudyAreaBlackListedNodes();
-
+	/** function to load Looped Nodes for entire network**/
+	void loadLoopNodesOfNetwork();
 
 	const Node *getNodeById(int id) const;
 	template<class T>

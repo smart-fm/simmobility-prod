@@ -140,6 +140,11 @@ const std::unordered_set<unsigned int>& RoadNetwork::getSetOfStudyAreaBlackListe
 	return setOfStudyAreaBlackListedNodes;
 }
 
+const std::unordered_set<unsigned int>& RoadNetwork::getSetOfLoopNodesInNetwork() const
+{
+	return setOfLoopNodesInNetwork;
+}
+
 void RoadNetwork::addLane(Lane* lane)
 {
 	//Find the segment to which the lane belongs
@@ -902,6 +907,24 @@ void RoadNetwork::loadStudyAreaBlackListedNodes()
 		const soci::row &r = (*it);
 		unsigned int nodeID = r.get < unsigned int > (0);
 		setOfStudyAreaBlackListedNodes.insert(nodeID);
+	}
+}
+
+void RoadNetwork::loadLoopNodesOfNetwork()
+{
+	ConfigParams &cfg = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+	soci::session sql_(soci::postgresql, cfg.getDatabaseConnectionString(false));
+	const std::map<std::string, std::string> &storedProcs = cfg.getDatabaseProcMappings().procedureMappings;
+	std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("loop_nodes");
+
+	if (spIt == storedProcs.end()) {
+		return;
+	}
+	soci::rowset<soci::row> rs = (sql_.prepare << "select * from " + spIt->second);
+	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it) {
+		const soci::row &r = (*it);
+		unsigned int nodeID = r.get < unsigned int > (0);
+		setOfLoopNodesInNetwork.insert(nodeID);
 	}
 }
 

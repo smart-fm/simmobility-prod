@@ -45,6 +45,7 @@
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/HouseholdUnitDao.hpp"
 #include "util/HelperFunctions.hpp"
+#include "util/Statistics.hpp"
 
 using std::cout;
 using std::endl;
@@ -529,6 +530,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             (dynamic_cast<HM_Model*>(models[0]))->getExits();
             (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter();
             (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings();
+            (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBidsFromBidder();
 
 
 
@@ -541,15 +543,23 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             PrintOutV(" Day " << currTick
                                    	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize(currTick)
                        				   << " BTO_Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize())
-                       				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders()
-                       				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers()
-                       				   << " Bids: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
-                       				   << " Accepted: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
-                       				   << " Waiting: "  << (dynamic_cast<HM_Model*>(models[0]))->getWaitingToMove()
+                       				   << " Bidders: " 	<< Statistics::getValue(Statistics::N_BIDDERS)
+                       				   << " Sellers: " 	<<  Statistics::getValue(Statistics::N_SELLERS)
+                       				   << " Bids: " 	<< Statistics::getValue(Statistics::N_BIDS)
+                       				   << " Accepted: " << Statistics::getValue(Statistics::N_ACCEPTED_BIDS)
+									   //<< " Accepted From Bidder's side: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBidsFromBidder()
+                       				   << " Waiting: "  << Statistics::getValue(Statistics::N_WAITING_TO_MOVE)
                        				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
                        				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
                        				   << " AwakenByBTO: "	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings()
                        				   << " " << std::endl );
+
+            //Statistics::print();
+            Statistics::reset(Statistics::N_WAITING_TO_MOVE);
+            Statistics::reset(Statistics::N_BIDS);
+            Statistics::reset(Statistics::N_ACCEPTED_BIDS);
+            Statistics::reset(Statistics::N_BIDDERS);
+            Statistics::reset(Statistics::N_SELLERS);
 
 
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBidders(0);

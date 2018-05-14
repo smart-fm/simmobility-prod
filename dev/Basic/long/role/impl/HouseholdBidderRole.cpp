@@ -332,7 +332,6 @@ void HouseholdBidderRole::update(timeslice now)
 	//The bidder role will do nothing else during this period (hence the return at the end of the if function).
 	if( moveInWaitingTimeInDays > 0 )
 	{
-		getParent()->getModel()->incrementWaitingToMove();
 
 		//Just before we set the bidderRole to inactive, we do the unit ownership switch.
 		if( moveInWaitingTimeInDays == 1 )
@@ -367,22 +366,13 @@ void HouseholdBidderRole::update(timeslice now)
 		//return;
 	}
 
-    //can bid another house if it is not waiting for any 
-    //response and if it not the same day
-    if (!waitingForResponse && lastTime.ms() < now.ms())
+    //based on the last bid status a household can't bid again until it passes awakeningOffMarketSuccessfulBid/awakeningOffMarketUnsuccessfulBid
+    if (getParent()->getHousehold()->getTimeOffMarket() <= 0)
     {
-        bidOnCurrentDay = false;
+    	bidUnit(now);
+    	getParent()->getModel()->incrementNumberOfBidders();
+    	Statistics::increment(Statistics::N_BIDDERS);
     }
-
-
-	getParent()->getModel()->incrementNumberOfBidders();
-
-	if (!waitingForResponse && !bidOnCurrentDay && bidUnit(now))
-	{
-		waitingForResponse = true;
-		bidOnCurrentDay = true;
-	}
-
 
     lastTime = now;
 }
@@ -404,7 +394,7 @@ void HouseholdBidderRole::TakeUnitOwnership()
 
 
     biddingEntry.invalidate();
-    Statistics::increment(Statistics::N_ACCEPTED_BIDS);
+   // Statistics::increment(Statistics::N_ACCEPTED_BIDS);
 }
 
 
@@ -546,6 +536,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 				}
 
 				model->incrementBids();
+				Statistics::increment(Statistics::N_BIDS);
 				return true;
 			}
 		}

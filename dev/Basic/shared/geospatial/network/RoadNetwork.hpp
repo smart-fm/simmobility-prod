@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <unordered_set>
 
 #include "PT_Stop.hpp"
 #include "NetworkLoader.hpp"
@@ -84,6 +85,20 @@ private:
 	/**This is a mapping between nodes and their upstream links*/
 	std::map<unsigned int, std::vector<const Link *> > mapOfUpstreamLinks;
 
+	/***Set for StudyArea Nodes*/
+	std::map<unsigned int, Node *> mapOfStudyAreaNodes;
+
+	/***Set for StudyArea Links*/
+	std::map<unsigned int, Link *> mapOfStudyAreaLinks;
+
+	/***Set for StudyArea Black Listed Nodes*/
+	std::unordered_set<unsigned int> setOfStudyAreaBlackListedNodes;
+
+	/***Set for loop Nodes in Network*/
+	std::unordered_set<unsigned int> setOfLoopNodesInNetwork;
+
+
+
 	/**Private constructor as the class is a singleton*/
 	RoadNetwork();
 
@@ -130,6 +145,15 @@ public:
 	const std::vector<const Link *>& getDownstreamLinks(unsigned int fromNodeId) const;
 
 	const std::vector<const Link *>& getUpstreamLinks(unsigned int fromNodeId) const;
+
+	const std::map<unsigned int, Node *>& getMapOfStudyAreaNodes() const;
+
+	const std::map<unsigned int, Link *>& getMapOfStudyAreaLinks() const ;
+
+	const std::unordered_set<unsigned int>& getSetOfStudyAreaBlackListedNodes() const ;
+
+	const std::unordered_set<unsigned int>& getSetOfLoopNodesInNetwork() const ;
+
 
 	/**
 	 * Adds a lane to the road network
@@ -241,6 +265,16 @@ public:
 	 * @param id the id to look-up in map
 	 * @return value mapped to id in map, if found; NULL otherwise
 	 */
+
+	void populateStudyArea() ;
+
+	bool isNodePresentInStudyArea(unsigned int thisNodeId);
+
+	bool IsMovementInStudyArea(unsigned int sourceNodeId, unsigned int destinationNodeId ) const;
+    /** function to load BlackListed nodes related with Study Area Only**/
+	void loadStudyAreaBlackListedNodes();
+	/** function to load Looped Nodes for entire network**/
+	void loadLoopNodesOfNetwork();
 
 	const Node *getNodeById(int id) const;
 	template<class T>

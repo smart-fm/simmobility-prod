@@ -44,19 +44,19 @@ void OnCallDriverMovement::frame_init()
 	currNode = (*(onCallDriver->getParent()->currTripChainItem))->origin.node;
 
 	//Register with the controller to which the driver is subscribed
-	onCallDriver->subscribeToController();
+		onCallDriver->subscribeToController();
 
-	//In the beginning there is nothing to do, yet we require a path to begin moving.
-	//So cruise to a random node, by creating a default schedule
-	continueCruising(currNode);
+		//In the beginning there is nothing to do, yet we require a path to begin moving.
+		//So cruise to a random node, by creating a default schedule
+		continueCruising(currNode);
 
-	//Begin performing schedule.
-	performScheduleItem();
+		//Begin performing schedule.
+		performScheduleItem();
 
-	onCallDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
+		onCallDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
 	serviceVehicle = onCallDriver->getParent()->getServiceVehicle();
 
-	onCallDriver->sendWakeUpShiftEndMsg();
+		onCallDriver->sendWakeUpShiftEndMsg();
 }
 
 void OnCallDriverMovement::frame_tick()
@@ -76,7 +76,15 @@ void OnCallDriverMovement::frame_tick()
 		if(pathMover.isEndOfPath())
 		{
 			const Node *endOfPathNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
-			continueCruising(endOfPathNode);
+			const RoadNetwork* rdnw = RoadNetwork::getInstance();
+			if(sim_mob::ConfigManager::GetInstance().FullConfig().isStudyAreaEnabled() && !(const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(endOfPathNode->getNodeId())))
+			{
+				continueCruising(currNode);
+			}
+			else
+			{
+				continueCruising(endOfPathNode);
+			}
 			performScheduleItem();
 		}
 		break;
@@ -171,7 +179,15 @@ bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		{
 		case CRUISING:
 		{
-			continueCruising(currLink->getToNode());
+			const RoadNetwork* rdnw = RoadNetwork::getInstance();
+			if(sim_mob::ConfigManager::GetInstance().FullConfig().isStudyAreaEnabled() && !(const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(currLink->getToNode()->getNodeId())))
+			{
+				continueCruising(currNode);
+			}
+			else
+			{
+				continueCruising(currLink->getToNode());
+			}
 			performScheduleItem();
 			break;
 		}
@@ -220,7 +236,16 @@ void OnCallDriverMovement::performScheduleItem()
 		{
 			onCallDriver->passengerInteractedDropOff=0;
 			const Node *endOfPathNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
-			continueCruising(endOfPathNode);
+            const RoadNetwork* rdnw = RoadNetwork::getInstance();
+			if(sim_mob::ConfigManager::GetInstance().FullConfig().isStudyAreaEnabled() && !(const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(endOfPathNode->getNodeId())))
+			{
+				continueCruising(currNode);
+			}
+			else
+			{
+				continueCruising(endOfPathNode);
+			}
+
 		}
 
 		//Get the current schedule item
@@ -298,7 +323,18 @@ void OnCallDriverMovement::beginCruising(const Node *node)
 	}
 
 	//Get route to the node
-	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+	std::vector<WayPoint> route = {};
+	if(onCallDriver->isDriverControllerStudyAreaEnabled())
+	{
+	    bool driverControllerStudyAreaEnabled = true;
+		route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT,driverControllerStudyAreaEnabled);
+
+	}
+	else
+	{
+		route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+	}
+
 
 	//Get shortest path if path is not found in the path-set
 	if(route.empty())
@@ -332,8 +368,8 @@ void OnCallDriverMovement::beginCruising(const Node *node)
 
 	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
 	                << onCallDriver->getParent()->getDatabaseId() << ": Begin cruising from node "
-	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-	                << " to node " << node->getNodeId() << endl;
+	                << currNode->getNodeId() <<" ("<<currNode->printIfNodeIsInStudyArea()<<")  and link " << (currLink ? currLink->getLinkId() : 0)
+	                << " to node " << node->getNodeId() <<" ("<<node->printIfNodeIsInStudyArea()<<") "<<endl;
 }
 
 void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
@@ -359,6 +395,8 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 		//We can pick the passenger up at this point
 		if(currLink->getToNode() == pickupNode)
 		{
+			// This was fix for personPickupNull Issue. Since currently we are not getting this error. So commented it.
+			//currNode = currLink->getToNode();
 			canPickPaxImmediately = true;
             ControllerLog()<<"driver "<<parent->getDatabaseId()<<" is at same node "<<pickupNode->getNodeId()<<endl;
 		}
@@ -423,8 +461,8 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 
     ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
                     << parent->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s) (" <<onCallDriver->getPassengersId()<< ") from node "
-                    << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-                    << " to pickup node " << pickupNode->getNodeId()<<endl;
+                    << currNode->getNodeId() <<" ("<<currNode->printIfNodeIsInStudyArea()<<")  and link " << (currLink ? currLink->getLinkId() : 0)
+                    << " to pickup node " << pickupNode->getNodeId()<<" ("<<pickupNode->printIfNodeIsInStudyArea()<<") "<<endl;
 
 	//Set vehicle to moving
 	onCallDriver->getResource()->setMoving(true);
@@ -501,8 +539,8 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 
 	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
 	                << parent->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s)(" <<onCallDriver->getPassengersId()<< ") from node "
-	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-	                << " to drop off node " << dropOffNode->getNodeId() <<endl;
+	                << currNode->getNodeId() <<" ("<<currNode->printIfNodeIsInStudyArea()<<") and link " << (currLink ? currLink->getLinkId() : 0)
+	                << " to drop off node " << dropOffNode->getNodeId()<<" ("<<dropOffNode->printIfNodeIsInStudyArea()<<") "<<endl;
 
 	//If we're exiting a parking, this flag would be true. We need to set current lane to lane infinity
 	//and also set the current segment based on the updated path
@@ -557,8 +595,8 @@ void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
 
 		ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
 		                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s) from node "
-		                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
-		                << " to parking node " << parkingNode->getNodeId() << endl;
+		                << currNode->getNodeId() <<" ("<<currNode->printIfNodeIsInStudyArea()<<") and link " << (currLink ? currLink->getLinkId() : 0)
+		                << " to parking node " << parkingNode->getNodeId() <<" ("<<parkingNode->printIfNodeIsInStudyArea()<<") "<<endl;
 	}
 	else
 	{
@@ -569,6 +607,7 @@ void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
 void OnCallDriverMovement::continueCruising(const Node *fromNode)
 {
 	//Cruise to a random node, by creating a default schedule
+	currNode = fromNode;
 	ScheduleItem cruise(CRUISE, onCallDriver->behaviour->chooseDownstreamNode(fromNode));
 	Schedule schedule;
 	schedule.push_back(cruise);
@@ -645,7 +684,6 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 	const MesoPathMover &pathMover = onCallDriver->movement->getMesoPathMover();
 	const Lane *currLane = onCallDriver->movement->getCurrentlane();
 	vector<const Node *> reachableNodes;
-
 	//If we are continuing from an existing path, we need to check for connectivity
 	//from the current lane
 	if(pathMover.isDrivingPathSet() && currLane)
@@ -663,31 +701,70 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 #endif
 
 		//Add all nodes that are reachable from the current lane to vector
-		for(auto it = itTurningsFromCurrLane->second.begin(); it != itTurningsFromCurrLane->second.end(); ++it)
+		for (auto it = itTurningsFromCurrLane->second.begin(); it != itTurningsFromCurrLane->second.end(); ++it)
 		{
-			reachableNodes.push_back(it->second->getToLane()->getParentSegment()->getParentLink()->getToNode());
+			const Node * thisNode = it->second->getToLane()->getParentSegment()->getParentLink()->getToNode();
+			if(thisNode->getNodeType()==SOURCE_OR_SINK_NODE || onCallDriver->movement->ifLoopedNode(thisNode->getNodeId()))
+			{
+				continue;
+			}
+			if(onCallDriver->isDriverControllerStudyAreaEnabled())
+			{
+				if(onCallDriver->movement->ifNodeBlackListed(thisNode->getNodeId()))
+				{
+					continue;
+				}
+				if(const_cast<RoadNetwork*>(rdNetwork)->isNodePresentInStudyArea(thisNode->getNodeId()))
+				{
+					reachableNodes.push_back(thisNode);
+				}
+			}
+			else
+			{
+				reachableNodes.push_back(thisNode);
+			}
 		}
 	}
 	else
 	{
-		//We are starting from a node and currently have no lane, all downstream nodes are
-		//reachable
+		//We are starting from a node and currently have no lane, all downstream nodes are reachable
 		for(auto link : downstreamLinks)
 		{
-			reachableNodes.push_back(link->getToNode());
+			if(link->getToNode()->getNodeType()==SOURCE_OR_SINK_NODE || onCallDriver->movement->ifLoopedNode(link->getToNode()->getNodeId()))
+			{
+				continue;
+			}
+			if(onCallDriver->isDriverControllerStudyAreaEnabled())
+			{
+				if(onCallDriver->movement->ifNodeBlackListed(link->getToNode()->getNodeId()))
+				{
+					continue;
+				}
+				if(const_cast<RoadNetwork*>(rdNetwork)->isNodePresentInStudyArea(link->getToNode()->getNodeId()))
+				{
+					reachableNodes.push_back(link->getToNode());
+				}
+			}
+			else
+			{
+				reachableNodes.push_back(link->getToNode());
+			}
 		}
+
 	}
 
-#ifndef NDEBUG
+	// Since this is cruising So rather than fleshing error for no reachableNode, We can take any random Node from the Network (To Be Discussed)
 	if(reachableNodes.empty())
 	{
-		stringstream msg;
-		msg << "No downstream nodes are reachable from node " << fromNode->getNodeId()
-		    << " and lane id " << (currLane ? currLane->getLaneId() : 0);
-		throw runtime_error(msg.str());
+		if(onCallDriver->isDriverControllerStudyAreaEnabled())
+		{
+			reachableNodes.push_back(chooseRandomNodeFromStudyAreaRegion());
+		}
+		else
+		{
+			reachableNodes.push_back(chooseRandomNode());
+		}
 	}
-#endif
-
 	//Select one node from the reachable nodes at random
 	unsigned int random = Utils::generateInt(0, reachableNodes.size() - 1);
 	const Node *selectedNode = reachableNodes[random];
@@ -698,7 +775,15 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 	while(selectedNode == fromNode)
 	{
 		//Choose a random node anywhere in the network
-		selectedNode = chooseRandomNode();
+		//
+		if(onCallDriver->isDriverControllerStudyAreaEnabled())
+		{
+			selectedNode = chooseRandomNodeFromStudyAreaRegion();
+		}
+		else
+		{
+			selectedNode = chooseRandomNode();
+		}
 	}
 
 	return selectedNode;
@@ -713,7 +798,7 @@ const Node* OnCallDriverBehaviour::chooseRandomNode() const
 	const Node *result = itRandomNode->second;
 
 	//Ensure chosen node is not a source/sink node
-	if(result->getNodeType() == SOURCE_OR_SINK_NODE)
+	if(result->getNodeType() == SOURCE_OR_SINK_NODE || onCallDriver->movement->ifLoopedNode(result->getNodeId()))
 	{
 		result = chooseRandomNode();
 	}
@@ -724,4 +809,49 @@ const Node* OnCallDriverBehaviour::chooseRandomNode() const
 bool OnCallDriverBehaviour::hasDriverShiftEnded() const
 {
 	return (onCallDriver->getParent()->currTick.ms() / 1000) >= onCallDriver->getParent()->getServiceVehicle().endTime;
+}
+
+const Node* OnCallDriverBehaviour::chooseRandomNodeFromStudyAreaRegion() const
+{
+	auto nodeMap = RoadNetwork::getInstance()->getMapOfStudyAreaNodes();
+	auto itRandomNode = nodeMap.begin();
+	advance(itRandomNode, Utils::generateInt(0, nodeMap.size() - 1));
+
+	const Node *result = itRandomNode->second;
+
+	//Ensure chosen node is not a source/sink node and also if this is not a black listed Node
+	if(result->getNodeType() == SOURCE_OR_SINK_NODE || onCallDriver->movement->ifNodeBlackListed(result->getNodeId())|| onCallDriver->movement->ifLoopedNode(result->getNodeId()))
+	{
+		result = chooseRandomNodeFromStudyAreaRegion();
+	}
+
+	return result;
+}
+
+
+bool OnCallDriverMovement::ifNodeBlackListed(unsigned int thisNodeId)
+{
+	auto studyAreablackListedNodesSet = RoadNetwork::getInstance()->getSetOfStudyAreaBlackListedNodes();
+	bool found = false;
+	std::unordered_set<unsigned int>::const_iterator blackListedItr;
+	blackListedItr = studyAreablackListedNodesSet.find(thisNodeId);
+	if (blackListedItr != studyAreablackListedNodesSet.end())
+	{
+		found = true;
+	}
+	return found;
+}
+
+
+bool OnCallDriverMovement::ifLoopedNode(unsigned int thisNodeId)
+{
+	auto loopNodesSet = RoadNetwork::getInstance()->getSetOfLoopNodesInNetwork();
+	bool found = false;
+	std::unordered_set<unsigned int>::const_iterator loopNodeItr;
+	loopNodeItr = loopNodesSet.find(thisNodeId);
+	if (loopNodeItr != loopNodesSet.end())
+	{
+		found = true;
+	}
+	return found;
 }

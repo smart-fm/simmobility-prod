@@ -273,6 +273,9 @@ private:
 	/** Taxi Trajectory enable/disable*/
 	bool onCallTaxiTrajectoryEnabled;
 	bool onHailTaxiTrajectoryEnabled;
+	///	is study area  enforced
+	bool studyAreaEnabled;
+
 
 	/**whether link travel time feedback is enabled*/
 	bool linktravelTimeFeedbackEnabled;
@@ -417,6 +420,15 @@ public:
     bool isPublicTransitEnabled() const;
 
     void setPublicTransitEnabled(bool value);
+
+	/**
+    * Checks whether study Area (Mount Pleasant Area )enforced
+	*
+	* @return true if study area enforced, else false
+	*/
+	bool isStudyAreaEnabled() const;
+
+	void setStudyAreaEnabled(bool value);
 
     bool isEnabledEdgeTravelTime() const;
 

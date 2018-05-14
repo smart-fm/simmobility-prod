@@ -17,9 +17,9 @@ using namespace messaging;
 using namespace std;
 
 OnCallController::OnCallController(const MutexStrategy &mtxStrat, unsigned int computationPeriod,
-                                   MobilityServiceControllerType type_, unsigned id, std::string tripSupportMode_, TT_EstimateType ttEstimateType_,unsigned maxAggregatedRequests_)
-		: MobilityServiceController(mtxStrat, type_, id, tripSupportMode_,maxAggregatedRequests_), scheduleComputationPeriod(computationPeriod),
-		  ttEstimateType(ttEstimateType_)
+                                   MobilityServiceControllerType type_, unsigned id, std::string tripSupportMode_, TT_EstimateType ttEstimateType_,unsigned maxAggregatedRequests_,bool studyAreaEnabledController)
+		: MobilityServiceController(mtxStrat, type_, id, tripSupportMode_,maxAggregatedRequests_,studyAreaEnabledController), scheduleComputationPeriod(computationPeriod),
+		  ttEstimateType(ttEstimateType_),studyAreaEnabledController(studyAreaEnabledController)
 {
 	rebalancer = new LazyRebalancer(this); //jo SimpleRebalancer(this);
 #ifndef NDEBUG
@@ -72,8 +72,8 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	}
 
 	unsigned scheduleSize = driverSchedules.at(driver).size();
-
-	if (scheduleSize > 0)
+    //If Driver is in CRUISE status . Then it can be unsubscrisbe if needed.
+	if (scheduleSize > 0 && driverSchedules.at(driver).back().scheduleItemType !=  CRUISE)
 	{
 		std::stringstream msg;
 		msg << "Driver " << driver->getDatabaseId()<< "(" << driver << ")" << " has a non empty schedule and she sent a message "
@@ -448,7 +448,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	}
 #endif
 
-	ControllerLog() << sim_mob::toString(this->getServiceType() )<< " controller sent this assignment to driver :" << driver->getDatabaseId() <<"("<<driver<<")"<< schedule <<". The assignement is sent at " <<
+	ControllerLog() << sim_mob::toString(this->getServiceType() )<< " controller ("<<toString()<<")sent this assignment to driver :" << driver->getDatabaseId() <<"("<<driver<<")"<< schedule <<". The assignement is sent at " <<
 	                currTick << "to ";
 #ifndef NDEBUG
 	ControllerLog() <<", (MessageHandler *) driver="<<(MessageHandler *) driver;
@@ -992,8 +992,16 @@ double OnCallController::getTT(const Node *node1, const Node *node2, TT_Estimate
 		{
 		case (OD_ESTIMATION):
 		{
-			retValue = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
-					node1->getNodeId(), node2->getNodeId(), DailyTime(currTick.ms()));
+			if(this->studyAreaEnabledController)
+			{
+				retValue = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime_StudyArea(
+						node1->getNodeId(), node2->getNodeId(), DailyTime(currTick.ms()));
+			}
+			else
+			{
+				retValue = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime(
+						node1->getNodeId(), node2->getNodeId(), DailyTime(currTick.ms()));
+			}
 			break;
 		}
 		case (SHORTEST_PATH_ESTIMATION):
@@ -1061,6 +1069,10 @@ void OnCallController::assignSchedules(const unordered_map<const Person *, Sched
 			//Append the parking schedule item to the end
 			const ScheduleItem parkingSchedule(PARK, parking);
 			schedule.push_back(parkingSchedule);
+		}
+		else
+		{
+			ControllerLog()<<"Parking is not found near dropOff node "<<finalDropOffNode->getNodeId()<<" . trip is with Driver "<<driver->getDatabaseId()<<" and schedule is { "<<p.second<<" }"<<endl;
 		}
 
 		assignSchedule(driver, schedule, isUpdatedSchedule);

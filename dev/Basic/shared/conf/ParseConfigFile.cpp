@@ -902,6 +902,9 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
                 unsigned int maxFleetSize = ParseUnsignedInt(GetNamedAttributeValue(*it, "maxFleetSize"));
                 unsigned int maxAggregatedRequests = ParseUnsignedInt(
                         GetNamedAttributeValue(*it, "maxAggregatedRequests"));
+				bool studyAreaEnabledController = ParseBoolean(
+						GetNamedAttributeValue(*it, "studyAreaEnabledController"));
+
 
                 if (cfg.mobilityServiceController.enabledControllers.count(key) > 0)
                 {
@@ -919,6 +922,7 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
                     vcc.maxFleetSize = maxFleetSize;
                     vcc.tripSupportMode = tripSupportMode;
                     vcc.maxAggregatedRequests = maxAggregatedRequests;
+					vcc.studyAreaEnabledController = studyAreaEnabledController;
                     cfg.mobilityServiceController.enabledControllers[key] = vcc;
                 }
             }

@@ -5,6 +5,7 @@
  *      Author: Andrea Araldo, araldo@mit.edu
  */
 
+#include <conf/ConfigManager.hpp>
 #include "MobilityServiceDriver.hpp"
 #include "entities/controllers/MobilityServiceController.hpp"
 
@@ -52,6 +53,24 @@ bool MobilityServiceDriver::hasMultipleSubscriptions() const
 	return (getSubscribedControllers().size()>1);
 }
 
+bool MobilityServiceDriver::isDriverControllerStudyAreaEnabled()
+{
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	std::vector<MobilityServiceController *> driverSubscribedToControllers = getSubscribedControllers();
+	bool studyAreaEnabledAmodController = false;
+
+	for (auto thisDriverController : driverSubscribedToControllers)
+	{
+		if(thisDriverController->controllerServiceType == MobilityServiceControllerType::SERVICE_CONTROLLER_AMOD
+			&& config.isStudyAreaEnabled() && thisDriverController->studyAreaEnabledController)
+		{
+			studyAreaEnabledAmodController = true;
+			break;
+		}
+	}
+	return studyAreaEnabledAmodController;
+}
+
 const std::string MobilityServiceDriver::getSubscribedControllerTypesStr() const
 {
 	std::string returnString = "";
@@ -73,6 +92,9 @@ bool sim_mob::isMobilityServiceDriver(const Person* person)
 	{
 		return false;
 	}
+
+
+bool isDriverControllerStudyAreaEnabled();
 }
 
 

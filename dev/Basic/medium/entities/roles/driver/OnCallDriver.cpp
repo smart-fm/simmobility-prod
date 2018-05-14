@@ -35,7 +35,7 @@ OnCallDriver::~OnCallDriver()
 		throw runtime_error(msg.str());
 	}
 #endif
-}
+			}
 
 Role<Person_MT>* OnCallDriver::clone(Person_MT *person) const
 {
@@ -160,7 +160,8 @@ unsigned long OnCallDriver::getPassengerCount() const
 
 const MobilityServiceDriver* OnCallDriver::exportServiceDriver() const
 {
-	return this;
+	const MobilityServiceDriver* thisMobilityserviceDriver = dynamic_cast<const MobilityServiceDriver*>(this);
+	return thisMobilityserviceDriver;
 }
 
 void OnCallDriver::subscribeToController()
@@ -272,7 +273,7 @@ void OnCallDriver::sendWakeUpShiftEndMsg()
 	unsigned int timeToShiftEnd = (parent->getServiceVehicle().endTime * 1000) - parent->currTick.ms();
 	unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
 
-	Conflux *cflx = movement->getMesoPathMover().getCurrSegStats()->getParentConflux();
+	medium::Conflux *cflx = movement->getMesoPathMover().getCurrSegStats()->getParentConflux();
 	MessageBus::PostMessage(cflx, MSG_WAKEUP_SHIFT_END, MessageBus::MessagePtr(new PersonMessage(parent)),
 		                        false, timeToShiftEnd / tick);
 }
@@ -346,9 +347,9 @@ void OnCallDriver::pickupPassenger()
 		passenger->Movement()->startTravelTimeMetric();
 
 		ControllerLog() << "Pickup succeeded for " << passengerId << " at time " << parent->currTick
-		<< " with startNodeId " << conflux->getConfluxNode()->getNodeId() << ", destinationNodeId "
-		<< personPickedUp->currSubTrip->destination.node->getNodeId()
-		<< ", and driverId " << parent->getDatabaseId() << std::endl;
+		<< " with startNodeId " << conflux->getConfluxNode()->getNodeId()<< " ("<<conflux->getConfluxNode()->printIfNodeIsInStudyArea()<<")  and  destinationNodeId "
+		<< personPickedUp->currSubTrip->destination.node->getNodeId() << " ("<<personPickedUp->currSubTrip->destination.node->printIfNodeIsInStudyArea()<<"), and driverId "
+		<< parent->getDatabaseId() << std::endl;
 
 		//Mark schedule item as completed
 		scheduleItemCompleted();
@@ -410,10 +411,9 @@ void OnCallDriver::dropoffPassenger()
 		passengers.erase(itPassengers);
 		++passengerInteractedDropOff;
 		setCurrentNode(conflux->getConfluxNode());
-
 		ControllerLog() << "Drop-off of user " << person->getDatabaseId() << " at time "
-		                << parent->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()
-		                << ", and driverId " << getParent()->getDatabaseId() << std::endl;
+		                << parent->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()<< " ("<<conflux->getConfluxNode()->printIfNodeIsInStudyArea()<<") and driverId " <<
+						getParent()->getDatabaseId() << std::endl;
 
 		//Mark schedule item as completed
 		scheduleItemCompleted();

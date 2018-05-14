@@ -277,6 +277,14 @@ void ConfigParams::setPublicTransitEnabled(bool value)
 	publicTransitEnabled = value;
 }
 
+bool ConfigParams::isStudyAreaEnabled() const {
+	return studyAreaEnabled;
+}
+
+void ConfigParams::setStudyAreaEnabled(bool value)
+{
+	studyAreaEnabled = value;
+}
 bool ConfigParams::isEnabledEdgeTravelTime() const
 {
 	return enabledEdgeTravelTime;

@@ -62,6 +62,8 @@ public:
 
 	virtual sim_mob::Schedule getAssignedSchedule() const = 0;
 
+	virtual bool isDriverControllerStudyAreaEnabled();
+
 protected:
 	MobilityServiceDriverStatus driverStatus;
 };

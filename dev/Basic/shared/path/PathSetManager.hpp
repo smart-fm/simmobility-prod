@@ -3,6 +3,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <soci/soci.h>
+#include <conf/ConfigManager.hpp>
 #include "entities/Person.hpp"
 #include "geospatial/network/Link.hpp"
 #include "PathSetParam.hpp"
@@ -327,7 +328,7 @@ private:
 	boost::shared_mutex mutexExclusion;
 
 	/**	stores the name of database's function operating on the pathset and singlepath tables */
-	const std::string psRetrieval;
+	std::string psRetrieval;
 
 	/**	stores the name of database's function operating on the pathset and singlepath tables */
 	const std::string psRetrievalWithoutRestrictedRegion;
@@ -495,6 +496,23 @@ public:
 	                        const Lane *currLane,
 	                        const Link *last,
 	                        bool useInSimulationTT = false);
+	bool getBestPath(std::vector<sim_mob::WayPoint> &res,
+					 const sim_mob::SubTrip &st, bool useCache,
+					 const std::set<const sim_mob::Link *> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
+					 bool usePartialExclusion,
+					 bool useBlackList,
+					 bool enRoute, const sim_mob::Link *approach,
+					 bool useInSimulationTT, bool IsDriverControllerStudyEnable);
+
+	bool getBestPathToLink(std::vector<sim_mob::WayPoint> &res,
+						   const sim_mob::SubTrip &st, bool useCache,
+						   const std::set<const sim_mob::Link *> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
+						   bool usePartialExclusion,
+						   bool useBlackList,
+						   bool enRoute, const sim_mob::Link *approach, boost::shared_ptr<sim_mob::PathSet> &pathset,
+						   const Lane *currLane,
+						   const Link *last,
+						   bool useInSimulationTT, bool IsDriverControllerStudyEnable);
 
 	/**
 	 * The main entry point to the pathset manager,
@@ -508,7 +526,11 @@ public:
 	std::vector<WayPoint> getPath(const sim_mob::SubTrip &subTrip, bool enRoute , const sim_mob::Link *approach, bool useInSimulationTT = false);
 
 	std::vector<WayPoint> getPathToLink(const sim_mob::SubTrip &subTrip, bool enRoute, const sim_mob::Link *approach,
-	                                    const Lane *currLane, const Link *last, bool useInSimulationTT = false);
+										const Lane *currLane, const Link *last, bool useInSimulationTT = false);
+	std::vector<WayPoint> getPath(const sim_mob::SubTrip &subTrip, bool enRoute , const sim_mob::Link *approach, bool useInSimulationTT , bool IsDriverControllerStudyEnable);
+
+	std::vector<WayPoint> getPathToLink(const sim_mob::SubTrip &subTrip, bool enRoute, const sim_mob::Link *approach,
+	                                    const Lane *currLane, const Link *last, bool useInSimulationTT, bool IsDriverControllerStudyEnable);
 
 	void filterPathsetsByLastLink(boost::shared_ptr<sim_mob::PathSet>& pathset,const Link* link);
 	/**
@@ -520,6 +542,8 @@ public:
 	 * @return in vehicle travel time of shortest path in the pathset for given O and D; -1 if no pathset is available for the OD. In seconds
 	 */
 	double getOD_TravelTime(unsigned int origin, unsigned int destination, const sim_mob::DailyTime& curTime);
+	//for OD Travel Time Estimation for Study Area for On Call Controller
+	double getOD_TravelTime_StudyArea(unsigned int origin, unsigned int destination, const sim_mob::DailyTime& curTime);
 	double getShortestPathTravelTime(const Node* origin, const Node* destination, const sim_mob::DailyTime& curTime);
 };
 

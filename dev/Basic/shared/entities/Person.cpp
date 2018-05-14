@@ -50,7 +50,7 @@ const int DEFAULT_LOWEST_AGE = 20;
 // default highest age
 const int DEFAULT_HIGHEST_AGE = 60;
 } //End unnamed namespace
-sim_mob::BasicLogger& CarTravelTimeLogger  = sim_mob::Logger::log("Car_Trave_time.csv");
+
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
 : Agent(mtxStrat, id), personDbId(databaseID), agentSrc(src), age(0), resetParamsRequired(false), isFirstTick(true), useInSimulationTravelTime(false),
 nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr)

@@ -185,6 +185,13 @@ private:
 	void processRegionRestrictionNode(xercesc::DOMElement* node);
 
 	/**
+     * processes the region_restriction element in config xml
+     *
+     * @param node node corresponding to cbd element inside xml file
+     */
+	void processStudyAreaNode(xercesc::DOMElement* node);
+
+	/**
 	 * processes the generateBusRoutes element in config xml
 	 *
 	 * @param node node corresponding to generateBusRoutes element inside xml file

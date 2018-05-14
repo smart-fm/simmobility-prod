@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <limits>
+#include <conf/ConfigManager.hpp>
 
 #include "Link.hpp"
 #include "logging/Log.hpp"
@@ -48,6 +49,9 @@ RoadNetwork::~RoadNetwork()
 	mapOfIdVsSMSVehiclesParking.clear();
 	mapOfDownstreamLinks.clear();
 	mapOfUpstreamLinks.clear();
+	mapOfStudyAreaNodes.clear();
+	mapOfStudyAreaLinks.clear();
+
 
 	roadNetwork = NULL;
 }
@@ -120,6 +124,25 @@ const std::vector<const Link *>& RoadNetwork::getDownstreamLinks(unsigned int fr
 const std::vector<const Link *>& RoadNetwork::getUpstreamLinks(unsigned int fromNodeId) const
 {
 	return mapOfUpstreamLinks.at(fromNodeId);
+}
+
+const std::map<unsigned int, Node*>& RoadNetwork::getMapOfStudyAreaNodes() const
+{
+	return mapOfStudyAreaNodes;
+}
+const std::map<unsigned int, Link*>& RoadNetwork::getMapOfStudyAreaLinks() const
+{
+	return mapOfStudyAreaLinks;
+}
+
+const std::unordered_set<unsigned int>& RoadNetwork::getSetOfStudyAreaBlackListedNodes() const
+{
+	return setOfStudyAreaBlackListedNodes;
+}
+
+const std::unordered_set<unsigned int>& RoadNetwork::getSetOfLoopNodesInNetwork() const
+{
+	return setOfLoopNodesInNetwork;
 }
 
 void RoadNetwork::addLane(Lane* lane)
@@ -806,3 +829,103 @@ Node* RoadNetwork::locateNearestNode(const Point& position) const
 	}
 	return candidate;
 }
+
+
+void RoadNetwork::populateStudyArea() {
+
+	ConfigParams &cfg = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+	soci::session sql_(soci::postgresql, cfg.getDatabaseConnectionString(false));
+	const std::map<std::string, std::string> &storedProcs = cfg.getDatabaseProcMappings().procedureMappings;
+	std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("studyArea_nodes");
+
+	if (spIt == storedProcs.end()) {
+		return;
+	}
+	soci::rowset<soci::row> rs = (sql_.prepare << "select * from " + spIt->second);
+	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it) {
+		const soci::row &r = (*it);
+		unsigned int nodeID = r.get < unsigned int > (0);
+		Node *thisNode = mapOfIdvsNodes[nodeID];
+		mapOfStudyAreaNodes[nodeID] = thisNode;
+
+	}
+
+	spIt = storedProcs.find("studyArea_links");
+
+	if (spIt == storedProcs.end()) {
+		return;
+	}
+	rs = (sql_.prepare << "select * from " + spIt->second);
+	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it) {
+		const soci::row &r = (*it);
+		unsigned int linkID = r.get < unsigned int > (0);
+		Link *thisLink = mapOfIdVsLinks[linkID];
+		mapOfStudyAreaLinks[linkID] = thisLink;
+
+	}
+	Print() << "Populated Study Area " << endl;
+
+
+}
+
+bool RoadNetwork::isNodePresentInStudyArea( unsigned int thisNodeId)
+{
+	std::map<unsigned int, Node *>::iterator StudyArNode = mapOfStudyAreaNodes.find(thisNodeId);
+	if (StudyArNode != mapOfStudyAreaNodes.end())
+		{
+			return true;
+		}
+	else
+	{
+		return false;
+	}
+}
+
+
+bool RoadNetwork::IsMovementInStudyArea(unsigned int sourceNodeId, unsigned int destinationNodeId ) const
+{
+
+	bool isFromNodePresentInStudyArea = const_cast<RoadNetwork*>(RoadNetwork::getInstance())->isNodePresentInStudyArea(sourceNodeId);
+	bool isToNodePresentInStudyArea = const_cast<RoadNetwork*>(RoadNetwork::getInstance())->isNodePresentInStudyArea(destinationNodeId);
+
+	return ((isFromNodePresentInStudyArea && isToNodePresentInStudyArea)?true:false);
+
+}
+
+void RoadNetwork::loadStudyAreaBlackListedNodes()
+{
+	ConfigParams &cfg = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+	soci::session sql_(soci::postgresql, cfg.getDatabaseConnectionString(false));
+	const std::map<std::string, std::string> &storedProcs = cfg.getDatabaseProcMappings().procedureMappings;
+	std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("studyArea_blackListNodes");
+
+	if (spIt == storedProcs.end()) {
+		return;
+	}
+	soci::rowset<soci::row> rs = (sql_.prepare << "select * from " + spIt->second);
+	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it) {
+		const soci::row &r = (*it);
+		unsigned int nodeID = r.get < unsigned int > (0);
+		setOfStudyAreaBlackListedNodes.insert(nodeID);
+	}
+}
+
+void RoadNetwork::loadLoopNodesOfNetwork()
+{
+	ConfigParams &cfg = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+	soci::session sql_(soci::postgresql, cfg.getDatabaseConnectionString(false));
+	const std::map<std::string, std::string> &storedProcs = cfg.getDatabaseProcMappings().procedureMappings;
+	std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("loop_nodes");
+
+	if (spIt == storedProcs.end()) {
+		return;
+	}
+	soci::rowset<soci::row> rs = (sql_.prepare << "select * from " + spIt->second);
+	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it) {
+		const soci::row &r = (*it);
+		unsigned int nodeID = r.get < unsigned int > (0);
+		setOfLoopNodesInNetwork.insert(nodeID);
+	}
+}
+
+

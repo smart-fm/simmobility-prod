@@ -6,6 +6,7 @@
 #include "TurningGroup.hpp"
 #include "Link.hpp"
 #include "entities/Person.hpp"
+#include "RoadNetwork.hpp"
 
 using namespace sim_mob;
 
@@ -202,3 +203,12 @@ void Node::setTazId(unsigned int tazId_)
 };
 //aa}
 //aa}
+
+
+const std::string Node::printIfNodeIsInStudyArea() const
+{
+	const RoadNetwork* rdnw = RoadNetwork::getInstance();
+	bool NodeInStudyArea = false;
+	NodeInStudyArea = const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(this->getNodeId());
+	return (NodeInStudyArea? "SA":"NSA");
+}

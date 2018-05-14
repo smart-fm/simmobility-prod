@@ -20,9 +20,9 @@ class SharedController : public OnCallController
 {
 public:
 	SharedController(const MutexStrategy &mtxStrat, unsigned int computationPeriod, unsigned id, std::string tripSupportMode_,
-	                 TT_EstimateType ttEstimateType, unsigned maxAggregatedRequests_) : OnCallController(mtxStrat, computationPeriod,
+	                 TT_EstimateType ttEstimateType, unsigned maxAggregatedRequests_,bool studyAreaEnabledController_) : OnCallController(mtxStrat, computationPeriod,
 	                                                                    MobilityServiceControllerType::SERVICE_CONTROLLER_SHARED, id, tripSupportMode_,
-	                                                                    ttEstimateType, maxAggregatedRequests_)
+	                                                                    ttEstimateType, maxAggregatedRequests_,studyAreaEnabledController)
 	{
 	}
 

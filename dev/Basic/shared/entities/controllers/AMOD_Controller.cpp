@@ -8,8 +8,8 @@ using namespace sim_mob;
 using namespace std;
 
 AMOD_Controller::AMOD_Controller(const MutexStrategy &mtx, unsigned int computationPeriod, unsigned int id, std::string tripSupportMode_,
-                                 TT_EstimateType tt_estType, unsigned maxAggregatedRequests_) : OnCallController(mtx, computationPeriod,
-                                                                                SERVICE_CONTROLLER_AMOD, id, tripSupportMode_,tt_estType,maxAggregatedRequests_)
+                                 TT_EstimateType tt_estType, unsigned maxAggregatedRequests_, bool studyAreaEnabledController_) : OnCallController(mtx, computationPeriod,
+                                                                                SERVICE_CONTROLLER_AMOD, id, tripSupportMode_,tt_estType,maxAggregatedRequests_,studyAreaEnabledController_)
 {}
 
 void AMOD_Controller::computeSchedules()
@@ -237,7 +237,7 @@ void AMOD_Controller::matchSingleRiderReq()
 				schedule.push_back(parkScheduleItem);
 			}
 
-			ControllerLog()<<"SingleRideRequest: Diver "<<bestDriver->getDatabaseId()<<" is serving Single Ride Request [ "<<schedule<<" ] at time "<<currTick<<" ."<<endl;
+			ControllerLog()<<"SingleRideRequest: is prepared  for Driver "<<bestDriver->getDatabaseId()<<" at time "<<currTick<<" ."<<endl;
             assignSchedule(bestDriver, schedule);
 #ifndef NDEBUG
 			if (currTick < request->timeOfRequest)

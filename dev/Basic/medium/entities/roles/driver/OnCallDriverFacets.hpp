@@ -126,6 +126,9 @@ public:
 	{
 		return serviceVehicle;
 	}
+     */
+	bool ifLoopedNode(unsigned int thisNodeId);
+
 };
 
 class OnCallDriverBehaviour : public DriverBehavior
@@ -157,6 +160,12 @@ public:
 	 * @return
 	 */
 	const Node *chooseRandomNode() const;
+
+	/**
+	 * This method chooses a random node from Study Area
+	 * @return
+	 */
+	const Node *chooseRandomNodeFromStudyAreaRegion() const;
 
 	/**
 	 * Checks if the driver's shift has ended

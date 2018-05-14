@@ -86,6 +86,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 		processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
 		processPublicTransit(GetSingleElementByName(rootNode, "public_transit"));
 		processRegionRestrictionNode(GetSingleElementByName(rootNode, "region_restriction"));
+		processStudyAreaNode(GetSingleElementByName(rootNode, "study_area"));
 		processPathSetFileName(GetSingleElementByName(rootNode, "pathset_config_file", true));
 		processTripChainOutputNode(GetSingleElementByName(rootNode, "trip_chain_output"));
     	processActivityTypesNode(GetSingleElementByName(rootNode, "activity_types", true));
@@ -637,6 +638,17 @@ void ParseMidTermConfigFile::processRegionRestrictionNode(xercesc::DOMElement* n
 
 	mtCfg.regionRestrictionEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 }
+
+	void ParseMidTermConfigFile::processStudyAreaNode(xercesc::DOMElement* node)
+	{
+		if (!node)
+		{
+			cfg.setStudyAreaEnabled(false);
+			return;
+		}
+
+		cfg.setStudyAreaEnabled(ParseBoolean(GetNamedAttributeValue(node, "enabled"), false));
+	}
 
 
 void ParseMidTermConfigFile::processBusStopScheduledTimesNode(xercesc::DOMElement* node)

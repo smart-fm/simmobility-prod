@@ -482,6 +482,9 @@ namespace sim_mob
 			Postcode *unitPostcode = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
 			BigSerial tazId = unitPostcode->getTazId();
 			double logsumTaz = model->ComputeHedonicPriceLogsumFromDatabase( tazId );
+			Household* householdT = const_cast<Household*>(household);
+			householdT->setLogsum(logsumTaz);
+
 			double missingAge = 0;
 			double ageOfUnit = 0;
 			double carDummy = 0;
@@ -600,10 +603,10 @@ namespace sim_mob
 
 				//needed when wtp model is expressed as log wtp
 				willingnessToPay = exp(willingnessToPay);
-				if(isinf(willingnessToPay) )
-				{
-					PrintOutV("wtp is inf for"<< unit->getId()<<std::endl);
-				}
+//				if(isinf(willingnessToPay) )
+//				{
+//					PrintOutV("wtp is inf for"<< unit->getId()<<std::endl);
+//				}
 
 				return willingnessToPay;
 

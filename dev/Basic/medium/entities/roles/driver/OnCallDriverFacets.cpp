@@ -113,7 +113,7 @@ std::string OnCallDriverMovement::frame_tick_output()
 {
 	const DriverUpdateParams &params = parentDriver->getParams();
 	//if (pathMover.isPathCompleted() || ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
-	if (ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
+	if (pathMover.isPathCompleted() ||ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
 	{
 		return std::string();
 	}

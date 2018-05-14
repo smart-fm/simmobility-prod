@@ -318,9 +318,15 @@ void HouseholdSellerRole::update(timeslice now)
 
         //If a unit has nothing to sell, then its job it done
         if( unitIds.size() == 0 )
+        {
         	setActive( false );
+        }
         else
+        {
         	getParent()->getModel()->incrementNumberOfSellers();
+        	Statistics::increment(Statistics::N_SELLERS);
+        }
+
 
     }
 }
@@ -418,7 +424,6 @@ void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
 		replyBid(*getParent(), bid, entry, NOT_AVAILABLE, 0);
 	}
 
-	Statistics::increment(Statistics::N_BIDS);
 }
 
 void HouseholdSellerRole::removeAllEntries()
@@ -521,6 +526,7 @@ void HouseholdSellerRole::notifyWinnerBidders()
 		#endif
 
         getParent()->getModel()->incrementSuccessfulBids();
+        Statistics::increment(Statistics::N_ACCEPTED_BIDS);
         market->removeEntry(maxBidOfDay.getNewUnitId());
         getParent()->removeUnitId(maxBidOfDay.getNewUnitId());
         sellingUnitsMap.erase(maxBidOfDay.getNewUnitId());

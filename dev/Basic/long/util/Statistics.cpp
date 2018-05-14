@@ -32,6 +32,7 @@ inline string toString(Statistics::StatsParameter param) {
         case Statistics::N_BIDS: return "Total number of bids";
         case Statistics::N_ACCEPTED_BIDS: return "Total number of accepted bids";
         case Statistics::N_BID_RESPONSES: return "Total number of bid responses";
+        case Statistics::N_WAITING_TO_MOVE: return "Total number of waiting to move";
         default: return "";
     }
 }
@@ -59,6 +60,18 @@ void Statistics::increment(Statistics::StatsParameter param, long value) {
     }
 }
 
+void Statistics::reset(StatsParameter param)
+{
+	boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
+		boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
+	    StatsMap::iterator mapItr = statistics.find(param);
+	    if (mapItr != statistics.end()) {
+	        (mapItr->second) = 0;
+	    } else {
+	        statistics.insert(StatsMapEntry(param, 0));
+	    }
+}
+
 void Statistics::print() {
 	boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
 	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
@@ -67,4 +80,18 @@ void Statistics::print() {
         long value = itr->second;
         PrintOut(paramName << ": " << value << endl);
     }
+}
+
+long Statistics::getValue(Statistics::StatsParameter param) {
+	boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
+	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
+	long value = 0;
+    for (StatsMap::iterator itr = statistics.begin(); itr != statistics.end(); itr++) {
+        if(itr->first == param)
+        {
+        	return itr->second;
+        }
+    }
+
+    return 0;
 }

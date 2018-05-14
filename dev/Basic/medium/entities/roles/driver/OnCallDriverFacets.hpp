@@ -126,6 +126,14 @@ public:
 	{
 		return serviceVehicle;
 	}
+    /**
+     * This method to check if the node is one of the blackListed nodes
+     * @return
+     */
+    bool ifNodeBlackListed(unsigned int thisNodeId);
+    /**
+     * This method to check if the node is alloped node mean node's link's to node and from node is same
+     * @return
      */
 	bool ifLoopedNode(unsigned int thisNodeId);
 

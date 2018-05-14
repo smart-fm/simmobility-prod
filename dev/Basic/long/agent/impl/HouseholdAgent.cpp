@@ -27,6 +27,7 @@
 #include "model/SchoolAssignmentSubModel.hpp"
 #include "model/JobAssignmentModel.hpp"
 #include "util/PrintLog.hpp"
+#include "util/Statistics.hpp"
 #include <random>
 
 using namespace sim_mob::long_term;
@@ -220,6 +221,15 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
        	household->updateTimeOnMarket();
     }
 
+    if(bidder && bidder->getMoveInWaitingTimeInDays()> 0)
+   // if(id < model->FAKE_IDS_START && getHousehold()->getLastBidStatus()==1)
+    //if(acceptedBid)
+    {
+    		model->incrementWaitingToMove();
+    		Statistics::increment(Statistics::N_WAITING_TO_MOVE);
+
+    }
+
     //decrement the buy sell interval only after a successful bid
     if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 && bidder->getParent()->getHousehold()->getLastBidStatus() == 1)
     {
@@ -228,7 +238,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
 	//If 1) the bidder is active and 2) it is not waiting to move into a unit and 3) it has exceeded it's bidding time frame,
 	//Then it can now go inactive. However if any one of the above three conditions are not true, the bidder has to remain active
-	if( bidder && bidder->isActive() &&  ( bidder->getMoveInWaitingTimeInDays() ==  0 || householdBiddingWindow == 0 ) )
+	if( bidder && bidder->isActive() &&  ( (bidder->getMoveInWaitingTimeInDays() ==  -1 && householdBiddingWindow == 0 ) || (bidder->getMoveInWaitingTimeInDays() == 0)) )
 	{
 		PrintExit( day, household, 0);
 		bidder->setActive(false);

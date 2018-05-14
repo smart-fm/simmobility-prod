@@ -530,9 +530,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             (dynamic_cast<HM_Model*>(models[0]))->getExits();
             (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter();
             (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings();
-            (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBidsFromBidder();
-
-
 
 
             if((currTick > 0) && ((currTick+1)%opSchemaloadingInterval == 0))
@@ -547,7 +544,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
                        				   << " Sellers: " 	<<  Statistics::getValue(Statistics::N_SELLERS)
                        				   << " Bids: " 	<< Statistics::getValue(Statistics::N_BIDS)
                        				   << " Accepted: " << Statistics::getValue(Statistics::N_ACCEPTED_BIDS)
-									   //<< " Accepted From Bidder's side: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBidsFromBidder()
                        				   << " Waiting: "  << Statistics::getValue(Statistics::N_WAITING_TO_MOVE)
                        				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
                        				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()

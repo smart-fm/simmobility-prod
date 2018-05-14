@@ -236,17 +236,26 @@ void HM_Model::setNumberOfSellers(int number)
 
 void HM_Model::incrementNumberOfSellers()
 {
-	numberOfSellers++;
+	{
+		boost::mutex::scoped_lock lock( mtx);
+		numberOfSellers++;
+	}
 }
 
 void HM_Model::incrementNumberOfBidders()
 {
-	numberOfBidders++;
+	{
+			boost::mutex::scoped_lock lock( mtx);
+			numberOfBidders++;
+	}
 }
 
 void HM_Model::incrementWaitingToMove()
 {
-	numberOfBiddersWaitingToMove++;
+	{
+			boost::mutex::scoped_lock lock( mtx);
+			numberOfBiddersWaitingToMove++;
+	}
 }
 
 int HM_Model::getWaitingToMove()
@@ -271,17 +280,26 @@ int HM_Model::getNumberOfBidders()
 
 void HM_Model::incrementBids()
 {
-	numberOfBids++;
+	{
+			boost::mutex::scoped_lock lock( mtx);
+			numberOfBids++;
+	}
 }
 
 void HM_Model::incrementExits()
 {
-	numberOfExits++;
+	{
+			boost::mutex::scoped_lock lock( mtx);
+			numberOfExits++;
+	}
 }
 
 void HM_Model::incrementSuccessfulBids()
 {
-	numberOfSuccessfulBids++;
+	{
+			boost::mutex::scoped_lock lock( mtx);
+			numberOfSuccessfulBids++;
+	}
 }
 
 int HM_Model::getNumberOfBTOAwakenings()
@@ -296,7 +314,10 @@ void HM_Model::setNumberOfBTOAwakenings(int number)
 
 void HM_Model::incrementNumberOfBTOAwakenings()
 {
-	numberOfBTOAwakenings++;
+	{
+			boost::mutex::scoped_lock lock( mtx);
+			numberOfBTOAwakenings++;
+	}
 }
 
 void HM_Model::resetBAEStatistics() //BAE is Bids, Awakenings and Exits

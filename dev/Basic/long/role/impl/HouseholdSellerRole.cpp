@@ -194,6 +194,7 @@ void HouseholdSellerRole::setActive(bool activeArg)
 
 void HouseholdSellerRole::update(timeslice now)
 {
+	day = now.ms();
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	bool resume = config.ltParams.resume;
 	if(resume && runOnce)
@@ -366,6 +367,10 @@ void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
 			//get the maximum bid of the day
 			Bids::iterator bidItr = maxBidsOfDay.find(unitId);
 			Bid* maxBidOfDay = nullptr;
+			Household *household = getParent()->getModel()->getHouseholdById(bid.getBidderId());
+			if(household->getLastBidStatus()== 1 || household->getTimeOffMarket() >0)
+				return;
+
 
 			if (bidItr != maxBidsOfDay.end())
 			{
@@ -507,16 +512,40 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 void HouseholdSellerRole::notifyWinnerBidders()
 {
     HousingMarket* market = getParent()->getMarket();
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
     for (Bids::iterator itr = maxBidsOfDay.begin(); itr != maxBidsOfDay.end(); itr++)
     {
         Bid& maxBidOfDay = itr->second;
         ExpectationEntry entry;
+
+        Household *household = getParent()->getModel()->getHouseholdById(maxBidOfDay.getBidderId());
+        if(household->getLastBidStatus()==1)
+        {
+        	continue;
+        }
         if (!getCurrentExpectation(maxBidOfDay.getNewUnitId(), entry))
         	continue;
 
         if(decide(maxBidOfDay, entry) == false)
         	continue;
+
+        household->setLastBidStatus(1);
+        const Unit *newUnit = getParent()->getModel()->getUnitById(maxBidOfDay.getNewUnitId());
+        int moveInWaitingTimeInDays = 0;
+        boost::gregorian::date moveInDate = boost::gregorian::date_from_tm(newUnit->getOccupancyFromDate());
+        boost::gregorian::date simulationDate(HITS_SURVEY_YEAR, 1, 1);
+        boost::gregorian::date_duration dt(day);
+        simulationDate = simulationDate + dt;
+
+        if( simulationDate <  moveInDate )
+        	moveInWaitingTimeInDays = ( moveInDate - simulationDate ).days();
+        else
+        	moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
+
+
+        household->setTimeOffMarket(moveInWaitingTimeInDays + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid);
+        household->setBuySellInterval(config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling);
 
         replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getNewUnitId()));
 

@@ -444,7 +444,7 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 	}
 	else
 	{
-		age= HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
+		age= HITS_SURVEY_YEAR  - 1900  - unit->getOccupancyFromDate().tm_year;
 	}
 
 

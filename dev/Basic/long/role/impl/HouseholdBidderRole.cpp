@@ -345,29 +345,29 @@ void HouseholdBidderRole::update(timeslice now)
 	}
 
 	//wait x days after move in to a new unit to reconsider the vehicle ownership option.
-	if( vehicleBuyingWaitingTimeInDays > 0 && moveInWaitingTimeInDays == 0)
-	{
-
-		if( vehicleBuyingWaitingTimeInDays == 1)
-		{
-			TimeCheck vehicleOwnershipTiming;
-
-			VehicleOwnershipModel vehOwnershipModel(getParent()->getModel());
-			vehOwnershipModel.reconsiderVehicleOwnershipOption2(*getParent()->getHousehold(),getParent(), day,true,false);
-
-			double vehicleOwnershipTime = vehicleOwnershipTiming.getClockTime();
-
-			#ifdef VERBOSE_SUBMODEL_TIMING
-				PrintOutV("vehicleOwnership time for agent " << getParent()->getId() << " is " << vehicleOwnershipTime << std::endl );
-			#endif
-		}
-			vehicleBuyingWaitingTimeInDays--;
-
-		//return;
-	}
+//	if( vehicleBuyingWaitingTimeInDays > 0 && moveInWaitingTimeInDays == 0)
+//	{
+//
+//		if( vehicleBuyingWaitingTimeInDays == 1)
+//		{
+//			TimeCheck vehicleOwnershipTiming;
+//
+//			VehicleOwnershipModel vehOwnershipModel(getParent()->getModel());
+//			vehOwnershipModel.reconsiderVehicleOwnershipOption2(*getParent()->getHousehold(),getParent(), day,true,false);
+//
+//			double vehicleOwnershipTime = vehicleOwnershipTiming.getClockTime();
+//
+//			#ifdef VERBOSE_SUBMODEL_TIMING
+//				PrintOutV("vehicleOwnership time for agent " << getParent()->getId() << " is " << vehicleOwnershipTime << std::endl );
+//			#endif
+//		}
+//			vehicleBuyingWaitingTimeInDays--;
+//
+//		//return;
+//	}
 
     //based on the last bid status a household can't bid again until it passes awakeningOffMarketSuccessfulBid/awakeningOffMarketUnsuccessfulBid
-    if (getParent()->getHousehold()->getTimeOffMarket() <= 0)
+    if ( ((getParent()->getHousehold()->getLastBidStatus() != 1) || (getParent()->getHousehold()->getLastBidStatus() != 2) ) && (getParent()->getHousehold()->getTimeOffMarket() <= 0))
     {
     	bidUnit(now);
     	getParent()->getModel()->incrementNumberOfBidders();
@@ -422,7 +422,6 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	else
                 		moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
 
-
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
@@ -473,6 +472,12 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 {
     HousingMarket* market = getParent()->getMarket();
     const Household* household = getParent()->getHousehold();
+
+    if(household->getLastBidStatus() == 1)
+    {
+    	PrintOutV("can't bid"<<std::endl);
+    }
+
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
     HM_Model* model = getParent()->getModel();
     

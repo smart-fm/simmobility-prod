@@ -397,6 +397,8 @@ namespace sim_mob
 		    	const HouseholdAgent *householdAgent = lookup.getHouseholdAgentById(household->getId());
 		    	const Unit *newUnit = householdAgent->getModel()->getUnitById(household->getUnitPending());
 
+		    	if(newUnit != nullptr)
+		    	{
 		    	boost::gregorian::date moveInDate = boost::gregorian::date_from_tm(newUnit->getOccupancyFromDate());
 		    	boost::gregorian::date simulationDate(HITS_SURVEY_YEAR, 1, 1);
 		    	boost::gregorian::date_duration dt(day);
@@ -421,6 +423,7 @@ namespace sim_mob
 		    			unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket);
 		    			unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket);
 		    		}
+		    	}
 		    	}
 		    }
 

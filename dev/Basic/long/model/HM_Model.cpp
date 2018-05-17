@@ -1660,6 +1660,18 @@ void HM_Model::startImpl()
 				preSchoolIndById.insert(std::make_pair((*it)->getId(), *it));
 
 			}
+
+			loadData<HouseholdPlanningAreaDao>( conn, hhPlanningAreaList, hhPlanningAreaMap, &HouseholdPlanningArea::getHouseHoldId);
+			PrintOutV("Number of household planning area rows: " << hhPlanningAreaList.size() << std::endl );
+
+			loadData<HHCoordinatesDao>( conn, hhCoordinates, hhCoordinatesById, &HHCoordinates::getHouseHoldId);
+			PrintOutV("Number of household coordinate rows: " << hhCoordinates.size() << std::endl );
+
+			loadData<SchoolAssignmentCoefficientsDao>( conn_calibration, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
+			PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
+
+			loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
+			PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
 		}
 
 		PrintOutV("Number of pre school individuals: " << preSchoolIndList.size() << std::endl );
@@ -1732,18 +1744,6 @@ void HM_Model::startImpl()
 
 		loadData<OwnerTenantMovingRateDao>( conn_calibration, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
 		PrintOutV("Number of Owner Tenant Moving Rate rows: " << ownerTenantMovingRate.size() << std::endl );
-
-		loadData<HouseholdPlanningAreaDao>( conn, hhPlanningAreaList, hhPlanningAreaMap, &HouseholdPlanningArea::getHouseHoldId);
-	    PrintOutV("Number of household planning area rows: " << hhPlanningAreaList.size() << std::endl );
-
-	    loadData<HHCoordinatesDao>( conn, hhCoordinates, hhCoordinatesById, &HHCoordinates::getHouseHoldId);
-	    PrintOutV("Number of household coordinate rows: " << hhCoordinates.size() << std::endl );
-
-	    loadData<SchoolAssignmentCoefficientsDao>( conn_calibration, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
-	    PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
-
-		loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
-		PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
 
 	}
 
@@ -1962,7 +1962,7 @@ void HM_Model::startImpl()
 	///this unit is a vacancy
 	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-		if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() != 3)
+		if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() != 3 && (*it)->getTenureStatus() != 0)
 		{
 			if(privatePresaleUnitsMap.find((*it)->getId()) == privatePresaleUnitsMap.end())
 			{

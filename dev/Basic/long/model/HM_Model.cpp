@@ -1494,6 +1494,16 @@ void HM_Model::startImpl()
 			loadEzLinkStops(conn_calibration);
 			loadStudentStops(conn_calibration);
 			loadSchoolDesks(conn);
+
+			loadData<HouseholdPlanningAreaDao>( conn, hhPlanningAreaList, hhPlanningAreaMap, &HouseholdPlanningArea::getHouseHoldId);
+			PrintOutV("Number of household planning area rows: " << hhPlanningAreaList.size() << std::endl );
+
+			loadData<HHCoordinatesDao>( conn, hhCoordinates, hhCoordinatesById, &HHCoordinates::getHouseHoldId);
+			PrintOutV("Number of household coordinate rows: " << hhCoordinates.size() << std::endl );
+
+			loadData<SchoolAssignmentCoefficientsDao>( conn_calibration, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
+			PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
+
 			assignNearestUniToEzLinkStops();
 			assignNearestPolytechToEzLinkStops();
 
@@ -1699,15 +1709,6 @@ void HM_Model::startImpl()
 
 		loadData<OwnerTenantMovingRateDao>( conn_calibration, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
 		PrintOutV("Number of Owner Tenant Moving Rate rows: " << ownerTenantMovingRate.size() << std::endl );
-
-		loadData<HouseholdPlanningAreaDao>( conn, hhPlanningAreaList, hhPlanningAreaMap, &HouseholdPlanningArea::getHouseHoldId);
-	    PrintOutV("Number of household planning area rows: " << hhPlanningAreaList.size() << std::endl );
-
-	    loadData<HHCoordinatesDao>( conn, hhCoordinates, hhCoordinatesById, &HHCoordinates::getHouseHoldId);
-	    PrintOutV("Number of household coordinate rows: " << hhCoordinates.size() << std::endl );
-
-	    loadData<SchoolAssignmentCoefficientsDao>( conn_calibration, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
-	    PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
 
 		loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
 		PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );

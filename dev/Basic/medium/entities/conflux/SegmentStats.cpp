@@ -1313,8 +1313,6 @@ Person_MT* SegmentStats::dequeue(const Person_MT* person, const Lane* lane, bool
                   << " was not found in lane " << lane->getLaneId() << std::endl;
         throw std::runtime_error(debugMsgs.str());
 #endif
-     Person_MT* personTest = const_cast<Person_MT*> (person);
-     personTest->setRemainingTimeThisTick(0.0);
     }
     return dequeuedPerson;
 }

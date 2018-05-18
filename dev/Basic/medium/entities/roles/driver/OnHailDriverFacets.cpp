@@ -66,6 +66,10 @@ void OnHailDriverMovement::frame_tick()
 	{
 	case CRUISING:
 	{
+        if(onHailDriver->getParent()->canMoveToNextSegment != Person_MT::NONE)
+        {
+            break;
+        }
 		if(!onHailDriver->behaviour->isCruisingStintComplete() && !pathMover.isEndOfPath())
 		{
 			onHailDriver->behaviour->incrementCruisingStintTime();
@@ -261,7 +265,6 @@ bool OnHailDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 	case DRIVE_TO_TAXISTAND:
 	{
 		bool enteredTaxiStand = onHailDriver->tryEnterTaxiStand(currSegStats, chosenTaxiStand);
-
 		if(enteredTaxiStand)
 		{
 			//Driver entered the taxi stand
@@ -308,7 +311,6 @@ void OnHailDriverMovement::performDecisionActions(BehaviourDecision decision)
 		{
 			//Choose a node to cruise to
 			const Node *node = onHailDriver->behaviour->chooseNode();
-
 			//Begin cruising to the chosen node
 			beginCruising(node);
 

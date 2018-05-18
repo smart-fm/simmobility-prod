@@ -404,12 +404,15 @@ namespace sim_mob
 						count++;
 					}
 
-					auto it = its.first;
-					std::advance(it, count/2);
+					if(count > 0)
+					{
+						auto it = its.first;
+						std::advance(it, count/2);
 
-					logZonalMedianHousingPrice = it->second->getTotalPrice();
+						logZonalMedianHousingPrice = it->second->getTotalPrice();
 
-					model->getAlternatives()[n]->setMedianHedonicPrice( logZonalMedianHousingPrice );
+						model->getAlternatives()[n]->setMedianHedonicPrice( logZonalMedianHousingPrice );
+					}
 				}
 
 				int m = 0;

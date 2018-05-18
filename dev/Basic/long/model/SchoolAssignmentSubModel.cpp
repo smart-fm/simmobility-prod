@@ -130,8 +130,9 @@ void SchoolAssignmentSubModel::assignPreSchool(Household *household,BigSerial in
 	HHCoordinates *hhCoords = model->getHHCoordinateByHHId(household->getId());
 	double hhCentroidX = hhCoords->getCentroidX();
 	double hhCentroidY = hhCoords->getCentroidY();
-	double minDistance = distanceCalculateEuclidean(preSchools.at(0)->getCentroidX(),preSchools.at(0)->getCentroidY(),hhCentroidX,hhCentroidY);
-	BigSerial selectedPreSchoolId = preSchools.at(0)->getId();
+	double minDistance = std::numeric_limits<double>::max();
+	BigSerial selectedPreSchoolId = 0;
+
 	for(preSchoolsItr = preSchools.begin(); preSchoolsItr != preSchools.end(); ++preSchoolsItr )
 	{
 		if(model->checkForSchoolSlots((*preSchoolsItr)->getId()))

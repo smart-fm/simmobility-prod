@@ -23,8 +23,6 @@ LogsumMtzV2Dao::~LogsumMtzV2Dao(){}
 void LogsumMtzV2Dao::fromRow(Row& result, LogsumMtzV2& outObj)
 {
     outObj.taz_id				= result.get<BigSerial>( "taz_id", 0);
-    outObj.name				= result.get<BigSerial>( "name", 0);
-    outObj.logsumAvg		= result.get<double>( "avg_logsum", .0);
     outObj.logsumWeighted	= result.get<double>( "logsum_weighted", .0);
 }
 

@@ -520,9 +520,8 @@ void HouseholdSellerRole::notifyWinnerBidders()
         ExpectationEntry entry;
 
         Household *household = getParent()->getModel()->getHouseholdById(maxBidOfDay.getBidderId());
-        if(household->getLastBidStatus()==1)
+        if(household->getLastBidStatus()==1 ||  household->getTimeOffMarket() >0)
         {
-        	PrintOutV("can't accept bid"<<std::endl);
         	continue;
         }
         if (!getCurrentExpectation(maxBidOfDay.getNewUnitId(), entry))
@@ -532,6 +531,26 @@ void HouseholdSellerRole::notifyWinnerBidders()
         	continue;
 
         household->setLastBidStatus(1);
+
+        const Unit *newUnit = getParent()->getModel()->getUnitById(maxBidOfDay.getNewUnitId());
+        boost::gregorian::date moveInDate = boost::gregorian::date_from_tm(newUnit->getOccupancyFromDate());
+        boost::gregorian::date simulationDate(HITS_SURVEY_YEAR, 1, 1);
+        boost::gregorian::date_duration dt(day);
+        simulationDate = simulationDate + dt;
+        int moveInWaitingTimeInDays = 0;
+        if( simulationDate <  moveInDate )
+        	moveInWaitingTimeInDays = ( moveInDate - simulationDate ).days();
+        else
+        	moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
+
+
+        int simulationEndDay = config.ltParams.days;
+        int year = config.ltParams.year;
+
+
+        household->setTimeOffMarket(moveInWaitingTimeInDays + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid);
+
+
         replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getNewUnitId()));
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );

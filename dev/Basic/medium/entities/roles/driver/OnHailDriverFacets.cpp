@@ -418,10 +418,13 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 	onHailDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_TO_TAXISTAND);
 	onHailDriver->behaviour->resetQueuingStintTime();
 
+	// Commenting below logs from controller.log as now we have onHailTrajectory to monitor driver movement
+	/*
 	ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
 	                << onHailDriver->getParent()->getDatabaseId() << ": Begin driving to taxi stand at link "
 	                << taxiStandLink->getLinkId() << " from the current node " << currNode->getNodeId()
 	                << " and link " << (currLink ? currLink->getLinkId() : 0) << endl;
+    */
 }
 
 void OnHailDriverMovement::beginCruising(const Node *node)
@@ -473,10 +476,13 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 	onHailDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
 	onHailDriver->behaviour->resetCruisingStintTime();
 
+	// Commenting below logs from controller.log as now we have onHailTrajectory to monitor driver movement
+	/*
 	ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
 	                << onHailDriver->getParent()->getDatabaseId() << ": Begin cruising from node "
 	                << currNode->getNodeId() << " and link " << (currLink ? currLink->getLinkId() : 0)
 	                << " to node " << node->getNodeId() << endl;
+    */
 }
 
 void OnHailDriverMovement::beginDriveWithPassenger(Person_MT *person)
@@ -577,9 +583,12 @@ void OnHailDriverMovement::beginQueuingAtTaxiStand(DriverUpdateParams &params)
 	//Update the value of current node as we return after this method
 	currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getFromNode();
 
+	// Commenting below logs from controller.log as now we have onHailTrajectory to monitor driver movement
+	/*
 	ControllerLog() << onHailDriver->getParent()->currTick.ms() << "ms: OnHailDriver "
 	                << onHailDriver->getParent()->getDatabaseId() << ": Begin queueing at taxi stand at segment "
 	                << chosenTaxiStand->getRoadSegmentId() << endl;
+    */
 }
 
 BehaviourDecision OnHailDriverBehaviour::makeBehaviourDecision() const

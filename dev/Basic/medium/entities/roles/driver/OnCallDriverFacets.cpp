@@ -100,6 +100,14 @@ void OnCallDriverMovement::frame_tick()
 	}
 	case PARKED:
 	{
+		if(onCallDriver->behaviour->hasDriverShiftEnded() && !onCallDriver->isWaitingForUnsubscribeAck)
+		{
+			ControllerLog() << "Shift end occur at Parking for driver :" << onCallDriver->getParent()->getDatabaseId() <<"at time  "<< onCallDriver->getParent()->currTick <<"( "<<
+					DailyTime(onCallDriver->getParent()->currTick.ms() + ConfigManager::GetInstance().FullConfig().simulation.simStartTime.getValue()).getStrRepr()<<")"<<endl;
+
+			onCallDriver->endShift();
+			break;
+		}
 		//Skip the multiple calls to frame_tick() from the conflux
 		DriverUpdateParams &params = onCallDriver->getParams();
 		params.elapsedSeconds = params.secondsInTick;
@@ -120,7 +128,6 @@ void OnCallDriverMovement::frame_tick()
 std::string OnCallDriverMovement::frame_tick_output()
 {
 	const DriverUpdateParams &params = parentDriver->getParams();
-	//if (pathMover.isPathCompleted() || ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
 	if (pathMover.isPathCompleted() ||ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
 	{
 		return std::string();

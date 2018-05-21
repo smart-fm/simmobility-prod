@@ -445,12 +445,14 @@ void OnCallDriver::dropoffPassenger()
 
 void OnCallDriver::endShift()
 {
-	auto currItem = driverSchedule.getCurrScheduleItem();
-
-	//Check if we are in the middle of a schedule
-	if(currItem->scheduleItemType != CRUISE && currItem->scheduleItemType != PARK)
+	if(getDriverStatus()!=PARKED)     //As for Parked Driver there would be no current schedule item
 	{
-		return;
+	    auto currItem = driverSchedule.getCurrScheduleItem();
+	    //Check if we are in the middle of a schedule
+	    if(currItem->scheduleItemType != CRUISE && currItem->scheduleItemType != PARK)
+	    {
+		    return;
+	    }
 	}
 
 	//Notify the controller(s)

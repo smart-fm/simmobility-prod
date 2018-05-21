@@ -254,7 +254,7 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 	{
 		const TripRequestMessage &requestArgs = MSG_CAST(TripRequestMessage, message);
 
-		ControllerLog() << "Request received by the controller of type "<< sim_mob::toString(controllerServiceType)<<" :" << requestArgs << ". This request is received at " <<
+		ControllerLog() << "Request received by the controller of type "<< sim_mob::toString(controllerServiceType)<<"  and id "<<controllerId<<" :" << requestArgs << ". This request is received at " <<
 		                currTick << std::endl;
 
 #ifndef NDEBUG

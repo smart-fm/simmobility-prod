@@ -639,7 +639,7 @@ const Node* OnHailDriverBehaviour::chooseNode() const
 
 bool OnHailDriverBehaviour::hasDriverShiftEnded() const
 {
-	return (onHailDriver->getParent()->currTick.ms() / 1000) >= onHailDriver->getParent()->getServiceVehicle().endTime;
+	return ((onHailDriver->getParent()->currTick.ms()+ConfigManager::GetInstance().FullConfig().simStartTime().getValue())/ 1000) >= onHailDriver->getParent()->getServiceVehicle().endTime;
 }
 
 void OnHailDriverBehaviour::incrementCruisingStintTime()

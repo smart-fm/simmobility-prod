@@ -237,7 +237,7 @@ void AMOD_Controller::matchSingleRiderReq()
 				schedule.push_back(parkScheduleItem);
 			}
 
-			ControllerLog()<<"SingleRideRequest: is prepared  for Driver "<<bestDriver->getDatabaseId()<<" at time "<<currTick<<" ."<<endl;
+			ControllerLog()<<"SingleRideRequest: is prepared for Diver "<<bestDriver->getDatabaseId()<<" at time "<<currTick<<" ."<<endl;
             assignSchedule(bestDriver, schedule);
 #ifndef NDEBUG
 			if (currTick < request->timeOfRequest)

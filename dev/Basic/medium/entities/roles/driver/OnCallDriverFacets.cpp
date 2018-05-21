@@ -366,10 +366,13 @@ void OnCallDriverMovement::beginCruising(const Node *node)
 	pathMover.resetPath(routeSegStats);
 	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
 
+	//Commenting below cruising log as now we have onCallTrajectory to monitor track
+	/*
 	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
 	                << onCallDriver->getParent()->getDatabaseId() << ": Begin cruising from node "
 	                << currNode->getNodeId() <<" ("<<currNode->printIfNodeIsInStudyArea()<<")  and link " << (currLink ? currLink->getLinkId() : 0)
 	                << " to node " << node->getNodeId() <<" ("<<node->printIfNodeIsInStudyArea()<<") "<<endl;
+*/
 }
 
 void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
@@ -808,7 +811,7 @@ const Node* OnCallDriverBehaviour::chooseRandomNode() const
 
 bool OnCallDriverBehaviour::hasDriverShiftEnded() const
 {
-	return (onCallDriver->getParent()->currTick.ms() / 1000) >= onCallDriver->getParent()->getServiceVehicle().endTime;
+	return ((onCallDriver->getParent()->currTick.ms()+ConfigManager::GetInstance().FullConfig().simStartTime().getValue())/ 1000) >= onCallDriver->getParent()->getServiceVehicle().endTime;
 }
 
 const Node* OnCallDriverBehaviour::chooseRandomNodeFromStudyAreaRegion() const

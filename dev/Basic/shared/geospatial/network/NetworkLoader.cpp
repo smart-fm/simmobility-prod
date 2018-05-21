@@ -810,7 +810,8 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 
 		loadBusStops(getStoredProcedure(storedProcs, "bus_stops", false));
 
-		loadParkingSlots(getStoredProcedure(storedProcs, "parking_slots", false));
+		// Exclude loading Parking Slots procedure . it's not used currently. For Parking we are using loadSMSVehicleParking function
+		//loadParkingSlots(getStoredProcedure(storedProcs, "parking_slots", false));
 
 		loadTaxiStands(getStoredProcedure(storedProcs, "taxi_stands", false));
 

@@ -56,7 +56,8 @@ void OnCallDriverMovement::frame_init()
 		onCallDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
 	serviceVehicle = onCallDriver->getParent()->getServiceVehicle();
 
-		onCallDriver->sendWakeUpShiftEndMsg();
+		//Commenting below signal message  as now we are handling shiftend during Parking in other way(checking for shiftend at every time if driver is in parking)
+		//onCallDriver->sendWakeUpShiftEndMsg();
 }
 
 void OnCallDriverMovement::frame_tick()
@@ -105,6 +106,7 @@ void OnCallDriverMovement::frame_tick()
 			ControllerLog() << "Shift end occur at Parking for driver :" << onCallDriver->getParent()->getDatabaseId() <<"at time  "<< onCallDriver->getParent()->currTick <<"( "<<
 					DailyTime(onCallDriver->getParent()->currTick.ms() + ConfigManager::GetInstance().FullConfig().simulation.simStartTime.getValue()).getStrRepr()<<")"<<endl;
 
+			onCallDriver->setToBeRemovedFromParking(true);
 			onCallDriver->endShift();
 			break;
 		}

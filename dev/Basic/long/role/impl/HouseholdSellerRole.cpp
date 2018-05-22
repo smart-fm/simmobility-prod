@@ -67,6 +67,10 @@ namespace
         if( response != NOT_AVAILABLE )
         {
         	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
+        	if(response == ACCEPTED)
+        	{
+        		Statistics::increment(Statistics::N_ACCEPTED_BIDS);
+        	}
         	if(entry.hedonicPrice == 0)
         	{
         		PrintOutV("hedonic price is 0 for bid"<<bid.getBidId()<<std::endl);
@@ -552,14 +556,13 @@ void HouseholdSellerRole::notifyWinnerBidders()
 
 
         replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getNewUnitId()));
+        //printBid(*getParent(), maxBidOfDay, entry, getCounter(dailyBids, maxBidOfDay.getNewUnitId()), ACCEPTED);
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
 		#ifdef VERBOSE
         PrintOutV("[day " << currentTime.ms() << "] Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << std::endl );
 		#endif
 
-        getParent()->getModel()->incrementSuccessfulBids();
-        Statistics::increment(Statistics::N_ACCEPTED_BIDS);
         market->removeEntry(maxBidOfDay.getNewUnitId());
         getParent()->removeUnitId(maxBidOfDay.getNewUnitId());
         sellingUnitsMap.erase(maxBidOfDay.getNewUnitId());

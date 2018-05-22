@@ -24,7 +24,7 @@ void AMOD_Controller::computeSchedules()
 	//Assign the shared trip requests
 
 	//First try to match the requests with drivers that are already serving shared requests
-	if (!driversServingSharedReq.empty())
+	if (!driverServingSharedRequests.empty())
 	{
 		matchDriversServingSharedReq();
 	}
@@ -74,7 +74,7 @@ void AMOD_Controller::computeSchedules()
 			//set of drivers serving shared requests that can still be assigned another passenger
 			if(schedule.size() <= 3)
 			{
-				driversServingSharedReq.insert(driver);
+                driverServingSharedRequests.insert(driver);
 			}
 		}
 	}
@@ -127,8 +127,8 @@ void AMOD_Controller::matchDriversServingSharedReq()
 		//This will contain the constructed schedule for every driver
 		std::unordered_map<const Person *, Schedule> schedulesComputedSoFar;
 
-		auto driver_Iter = driversServingSharedReq.begin();
-		while (driver_Iter!=driversServingSharedReq.end())
+		auto driver_Iter = driverServingSharedRequests.begin();
+		while (driver_Iter!=driverServingSharedRequests.end())
 		{
 			const Person* driver = *driver_Iter;
 			//The node in which the driver is currently located
@@ -181,7 +181,7 @@ void AMOD_Controller::matchDriversServingSharedReq()
 
 				//Remove the driver from the set of drivers serving shared requests that can take
 				//additional passengers, as this drivers capacity is full
-				driversServingSharedReq.erase(driver_Iter++);
+                driverServingSharedRequests.erase(driver_Iter++);
 			}
 			else
 			{
@@ -237,7 +237,7 @@ void AMOD_Controller::matchSingleRiderReq()
 				schedule.push_back(parkScheduleItem);
 			}
 
-			ControllerLog()<<"SingleRideRequest: is prepared for Diver "<<bestDriver->getDatabaseId()<<" at time "<<currTick<<" ."<<endl;
+			ControllerLog()<<"SingleRideRequest: is prepared  for Driver "<<bestDriver->getDatabaseId()<<" at time "<<currTick<<" ."<<endl;
             assignSchedule(bestDriver, schedule);
 #ifndef NDEBUG
 			if (currTick < request->timeOfRequest)

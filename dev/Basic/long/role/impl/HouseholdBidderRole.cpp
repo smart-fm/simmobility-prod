@@ -527,7 +527,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << biddingEntry.getBestBid() << "[wp:$" << biddingEntry.getWP() << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
 				#endif
 
-				Bid newBid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms(), biddingEntry.getWP(), biddingEntry.getWtp_e(), biddingEntry.getAffordability());
+				Bid newBid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms()-1, biddingEntry.getWP(), biddingEntry.getWtp_e(), biddingEntry.getAffordability());
 				bid(entry->getOwner(), newBid);
 				writeNewBidsToFile(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), biddingEntry.getBestBid(), now.ms());
 				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -541,9 +541,6 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 					newBidPtr->setSellerId(entry->getOwner()->getId());
 					model->addNewBids(newBidPtr);
 				}
-
-				model->incrementBids();
-				Statistics::increment(Statistics::N_BIDS);
 				return true;
 			}
 		}

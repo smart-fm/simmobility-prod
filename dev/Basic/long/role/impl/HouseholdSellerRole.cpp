@@ -62,11 +62,14 @@ namespace
     inline void replyBid(const HouseholdAgent& agent, const Bid& bid, const ExpectationEntry& entry, const BidResponse& response, unsigned int bidsCounter)
     {
         MessageBus::PostMessage(bid.getBidder(), LTMID_BID_RSP, MessageBus::MessagePtr(new BidMessage(bid, response)));
-
+        HM_Model* model = agent.getModel();
         //print bid.
-        if( response != NOT_AVAILABLE )
+        if( response == ACCEPTED || response ==  NOT_ACCEPTED || response == BETTER_OFFER)
         {
+        	model->incrementBids();
         	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
+        	Statistics::increment(Statistics::N_BIDS);
+
         	if(response == ACCEPTED)
         	{
         		Statistics::increment(Statistics::N_ACCEPTED_BIDS);
@@ -81,7 +84,7 @@ namespace
         	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
         	int moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
         	boost::shared_ptr<Bid> newBid = boost::make_shared<Bid>(bid);
-        	HM_Model* model = agent.getModel();
+
         	Unit* unit  = model->getUnitById(bid.getNewUnitId());
         	//boost::shared_ptr<Unit> updatedUnit = boost::make_shared<Unit>((*unit));
         	//set the sale status to "Launched and sold".

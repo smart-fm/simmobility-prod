@@ -160,8 +160,7 @@ unsigned long OnCallDriver::getPassengerCount() const
 
 const MobilityServiceDriver* OnCallDriver::exportServiceDriver() const
 {
-	const MobilityServiceDriver* thisMobilityserviceDriver = dynamic_cast<const MobilityServiceDriver*>(this);
-	return thisMobilityserviceDriver;
+	return this;
 }
 
 void OnCallDriver::subscribeToController()

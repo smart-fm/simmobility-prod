@@ -86,7 +86,7 @@ void OnCallController::unsubscribeDriver(Person *driver)
 
 	availableDrivers.erase(driver);
 	partiallyAvailableDrivers.erase(driver);
-    driverServingSharedRequests.erase(driver);
+    driversServingSharedReq.erase(driver);
 
 #ifndef NDEBUG
 	consistencyChecks("unsubscribeDriver: end");
@@ -119,7 +119,7 @@ void OnCallController::driverAvailable(const Person *driver)
 
 	//Remove from the partially available drivers
 	partiallyAvailableDrivers.erase(driver);
-    driverServingSharedRequests.erase(driver);
+	driversServingSharedReq.erase(driver);
 
 #ifndef NDEBUG
 	consistencyChecks("driverAvailable: end");
@@ -200,13 +200,13 @@ Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
         {
             ControllerLog() << "Computing schedule: " << requestQueue.size() << " requests are in the queue, available drivers "
                             << availableDrivers.size() <<", partiallyAvailableDrivers.size()="<< partiallyAvailableDrivers.size()
-                            << ", driverServingSharedRequests.size() "<<driverServingSharedRequests.size() <<" , "<< currTick
+                            << ", driversServingSharedReq.size() = "<<driversServingSharedReq.size() <<" , "<< currTick
                             << std::endl;
 
             computeSchedules();
             ControllerLog() << "Computation schedule done: now " << requestQueue.size() << " requests are in the queue, available drivers "
                             << availableDrivers.size() <<", partiallyAvailableDrivers.size()="<< partiallyAvailableDrivers.size()
-                            << ", driverServingSharedRequests.size() "<<driverServingSharedRequests.size() <<" , "<<currTick
+                            << ", driversServingSharedReq.size() = "<<driversServingSharedReq.size() <<" , "<<currTick
                             << std::endl;
         }
 #ifndef NDEBUG
@@ -413,6 +413,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 
 	//If this schedule only caters to 1 person, the add the driver to the list of partially available drivers
 	//Schedule size 3 indicates a schedule for 1 person: pick-up, drop-off and park
+	/*
     if (driverSchedules[driver].begin()->tripRequest.requestType == RequestType::TRIP_REQUEST_SHARED &&
         this->controllerServiceType == MobilityServiceControllerType::SERVICE_CONTROLLER_AMOD )
     {
@@ -425,7 +426,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
             driverServingSharedRequests.erase(driver);
         }
     }
-
+    */
     if (driverSchedules[driver].begin()->tripRequest.requestType == RequestType::TRIP_REQUEST_SHARED &&
         this->controllerServiceType != MobilityServiceControllerType::SERVICE_CONTROLLER_AMOD )
     {
@@ -992,7 +993,7 @@ double OnCallController::getTT(const Node *node1, const Node *node2, TT_Estimate
 		{
 		case (OD_ESTIMATION):
 		{
-			if(this->studyAreaEnabledController)
+			if(this->studyAreaEnabledController && sim_mob::ConfigManager::GetInstance().FullConfig().isStudyAreaEnabled())
 			{
 				retValue = PrivateTrafficRouteChoice::getInstance()->getOD_TravelTime_StudyArea(
 						node1->getNodeId(), node2->getNodeId(), DailyTime(currTick.ms()));

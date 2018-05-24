@@ -347,8 +347,8 @@ void OnCallDriver::pickupPassenger()
 		passenger->Movement()->startTravelTimeMetric();
 
 		ControllerLog() << "Pickup succeeded for " << passengerId << " at time " << parent->currTick
-		<< " with startNodeId " << conflux->getConfluxNode()->getNodeId()<< " ("<<conflux->getConfluxNode()->printIfNodeIsInStudyArea()<<")  and  destinationNodeId "
-		<< personPickedUp->currSubTrip->destination.node->getNodeId() << " ("<<personPickedUp->currSubTrip->destination.node->printIfNodeIsInStudyArea()<<"), and driverId "
+		<< " with startNodeId " << conflux->getConfluxNode()->getNodeId()<<conflux->getConfluxNode()->printIfNodeIsInStudyArea()<<" and  destinationNodeId "
+		<< personPickedUp->currSubTrip->destination.node->getNodeId() <<personPickedUp->currSubTrip->destination.node->printIfNodeIsInStudyArea()<<", and driverId "
 		<< parent->getDatabaseId() << std::endl;
 
 		//Mark schedule item as completed
@@ -412,7 +412,7 @@ void OnCallDriver::dropoffPassenger()
 		++passengerInteractedDropOff;
 		setCurrentNode(conflux->getConfluxNode());
 		ControllerLog() << "Drop-off of user " << person->getDatabaseId() << " at time "
-		                << parent->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()<< " ("<<conflux->getConfluxNode()->printIfNodeIsInStudyArea()<<") and driverId " <<
+		                << parent->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()<<conflux->getConfluxNode()->printIfNodeIsInStudyArea()<<"and driverId " <<
 						getParent()->getDatabaseId() << std::endl;
 
 		//Mark schedule item as completed

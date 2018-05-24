@@ -173,7 +173,7 @@ protected:
 	/**List of drivers who have been assigned a schedule, but are carrying only 1 passenger,
 	 * so they can potentially serve 1 more request (used by incremental controller)*/
 	std::set<const Person *> partiallyAvailableDrivers;
-    std::set<const Person *> driverServingSharedRequests;
+    std::set<const Person *> driversServingSharedReq;
 
 	/** Keeps track of current local tick */
 	unsigned int localTick = 0;

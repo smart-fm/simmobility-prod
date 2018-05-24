@@ -716,7 +716,6 @@ double sim_mob::PrivateTrafficRouteChoice::getOD_TravelTime_StudyArea(unsigned i
 		else
 		{
 			throw std::runtime_error("Both origin/destination should be in study Area for OD_StudyArea travelTime Estimation");
-			//pathsetRetrievalStatus = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval);
 		}
 		if(pathsetRetrievalStatus == PSM_HASPATH)
 		{
@@ -970,8 +969,10 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(std::vector<sim_mob::WayPoi
 		}
 		else
 		{
-			throw std::runtime_error("driver Controller is restricted to study area but schedule for outside Area");
-			//hasPath = loadPathsetFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval, blackListedLinks);
+			std::stringstream msg;
+			msg << "driver Controller is restricted to study area but schedule for outside Area: from node "<< fromNode->getNodeId()<< fromNode->printIfNodeIsInStudyArea()<<
+					"To Node "<<toNode->getNodeId()<<toNode->printIfNodeIsInStudyArea();
+			throw std::runtime_error(msg.str());
 		}
 	}
 	switch (hasPath)

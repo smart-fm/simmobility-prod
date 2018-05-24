@@ -2,6 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#include <conf/ConfigManager.hpp>
 #include "Node.hpp"
 #include "TurningGroup.hpp"
 #include "Link.hpp"
@@ -207,8 +208,14 @@ void Node::setTazId(unsigned int tazId_)
 
 const std::string Node::printIfNodeIsInStudyArea() const
 {
-	const RoadNetwork* rdnw = RoadNetwork::getInstance();
-	bool NodeInStudyArea = false;
-	NodeInStudyArea = const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(this->getNodeId());
-	return (NodeInStudyArea? "SA":"NSA");
+	if(sim_mob::ConfigManager::GetInstance().FullConfig().isStudyAreaEnabled() ) {
+		const RoadNetwork *rdnw = RoadNetwork::getInstance();
+		bool NodeInStudyArea = false;
+		NodeInStudyArea = const_cast<RoadNetwork *>(rdnw)->isNodePresentInStudyArea(this->getNodeId());
+		return (NodeInStudyArea ? " (SA) " : " (NSA) ");
+	}
+	else
+	{
+		return "";
+	}
 }

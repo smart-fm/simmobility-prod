@@ -18,6 +18,15 @@ private:
 	/**Stores the shared ride requests*/
 	std::list<TripRequestMessage> sharedRideRequests;
 
+
+	/**
+	 * The set of drivers which are serving the shared requests and have capacity to serve
+	 * additional requests
+	 */
+	// Taking this variable to onCallController
+	//std::set<const Person *> driversServingSharedReq;
+
+
 protected:
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests

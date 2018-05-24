@@ -379,8 +379,8 @@ void OnCallDriverMovement::beginCruising(const Node *node)
 	/*
 	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
 	                << onCallDriver->getParent()->getDatabaseId() << ": Begin cruising from node "
-	                << currNode->getNodeId() <<" ("<<currNode->printIfNodeIsInStudyArea()<<")  and link " << (currLink ? currLink->getLinkId() : 0)
-	                << " to node " << node->getNodeId() <<" ("<<node->printIfNodeIsInStudyArea()<<") "<<endl;
+	                << currNode->getNodeId()<<currNode->printIfNodeIsInStudyArea()<<" and link " << (currLink ? currLink->getLinkId() : 0)
+	                << " to node " << node->getNodeId() <<node->printIfNodeIsInStudyArea()<<endl;
 */
 }
 
@@ -473,8 +473,8 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 
     ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
                     << parent->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s) (" <<onCallDriver->getPassengersId()<< ") from node "
-                    << currNode->getNodeId() <<" ("<<currNode->printIfNodeIsInStudyArea()<<")  and link " << (currLink ? currLink->getLinkId() : 0)
-                    << " to pickup node " << pickupNode->getNodeId()<<" ("<<pickupNode->printIfNodeIsInStudyArea()<<") "<<endl;
+                    << currNode->getNodeId() <<currNode->printIfNodeIsInStudyArea()<<" and link " << (currLink ? currLink->getLinkId() : 0)
+                    << " to pickup node " << pickupNode->getNodeId()<<pickupNode->printIfNodeIsInStudyArea()<<endl;
 
 	//Set vehicle to moving
 	onCallDriver->getResource()->setMoving(true);
@@ -551,8 +551,8 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 
 	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
 	                << parent->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s)(" <<onCallDriver->getPassengersId()<< ") from node "
-	                << currNode->getNodeId() <<" ("<<currNode->printIfNodeIsInStudyArea()<<") and link " << (currLink ? currLink->getLinkId() : 0)
-	                << " to drop off node " << dropOffNode->getNodeId()<<" ("<<dropOffNode->printIfNodeIsInStudyArea()<<") "<<endl;
+	                << currNode->getNodeId() <<currNode->printIfNodeIsInStudyArea()<<" and link " << (currLink ? currLink->getLinkId() : 0)
+	                << " to drop off node " << dropOffNode->getNodeId()<<dropOffNode->printIfNodeIsInStudyArea()<<endl;
 
 	//If we're exiting a parking, this flag would be true. We need to set current lane to lane infinity
 	//and also set the current segment based on the updated path
@@ -607,8 +607,8 @@ void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
 
 		ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
 		                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s) from node "
-		                << currNode->getNodeId() <<" ("<<currNode->printIfNodeIsInStudyArea()<<") and link " << (currLink ? currLink->getLinkId() : 0)
-		                << " to parking node " << parkingNode->getNodeId() <<" ("<<parkingNode->printIfNodeIsInStudyArea()<<") "<<endl;
+		                << currNode->getNodeId()<<currNode->printIfNodeIsInStudyArea()<<"and link " << (currLink ? currLink->getLinkId() : 0)
+		                << " to parking node " << parkingNode->getNodeId() <<parkingNode->printIfNodeIsInStudyArea()<<endl;
 	}
 	else
 	{

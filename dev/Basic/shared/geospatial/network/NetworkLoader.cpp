@@ -824,6 +824,10 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		{
 			populateStudyArea();
 		}
+		else
+		{
+			Print()<< "Warning : Since  Study Area is not enable , so  controller's studyAreaEnabledController Param will be treated as false"<<endl;
+		}
 
 		roadNetwork->loadLoopNodesOfNetwork();
 

@@ -838,8 +838,9 @@ void RoadNetwork::populateStudyArea() {
 	const std::map<std::string, std::string> &storedProcs = cfg.getDatabaseProcMappings().procedureMappings;
 	std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("studyArea_nodes");
 
-	if (spIt == storedProcs.end()) {
-		return;
+	if (spIt == storedProcs.end())
+	{
+		throw std::runtime_error("Study Area Enabled but StudyArea Nodes Procedure is not available!");
 	}
 	soci::rowset<soci::row> rs = (sql_.prepare << "select * from " + spIt->second);
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it) {
@@ -852,8 +853,9 @@ void RoadNetwork::populateStudyArea() {
 
 	spIt = storedProcs.find("studyArea_links");
 
-	if (spIt == storedProcs.end()) {
-		return;
+	if (spIt == storedProcs.end())
+	{
+		throw std::runtime_error("Study Area Enabled but StudyArea Links Procedure is not available!");
 	}
 	rs = (sql_.prepare << "select * from " + spIt->second);
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it) {

@@ -267,7 +267,7 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 		std::ofstream* hhChoiceSetFile2 = new std::ofstream("HHChoiceSet2.csv");
 		streams.insert(std::make_pair(LOG_HHCHOICESET2, hhChoiceSetFile2));
 
-		*hhChoiceSetFile << "day, householdId, unitId"<<std::endl;
+		*hhChoiceSetFile2 << "day, householdId, unitId"<<std::endl;
 
     }
 
@@ -387,7 +387,7 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 
 	//new bids
 	
-	std::ofstream* newBidsFile = new std::ofstream("newBids.csv");
+	std::ofstream* newBidsFile = new std::ofstream("bidderSideBids.csv");
         streams.insert(std::make_pair(LOG_NEW_BIDS, newBidsFile));
          *newBidsFile << "bidId,currentUnitId,newUnitId,bidderId,bidValue,simday" << std::endl;
 

@@ -66,9 +66,7 @@ namespace
         //print bid.
         if( response == ACCEPTED || response ==  NOT_ACCEPTED || response == BETTER_OFFER)
         {
-        	model->incrementBids();
         	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
-        	Statistics::increment(Statistics::N_BIDS);
 
         	if(response == ACCEPTED)
         	{

@@ -529,6 +529,8 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 
 				Bid newBid(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now.ms()-1, biddingEntry.getWP(), biddingEntry.getWtp_e(), biddingEntry.getAffordability());
 				bid(entry->getOwner(), newBid);
+				Statistics::increment(Statistics::N_BIDS);
+				model->incrementBids();
 				writeNewBidsToFile(model->getBidId(),household->getUnitId(),entry->getUnitId(), household->getId(), biddingEntry.getBestBid(), now.ms());
 				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 				//add the bids active on last day to op schema
@@ -815,11 +817,14 @@ bool HouseholdBidderRole::pickEntryToBid()
     	std::string choiceset(" ");
     	for(int n = 0; n < screenedEntriesVec.size(); n++)
     	{
-    		printChoiceset2(day, household->getId(),screenedEntriesVec[n]->getUnitId());
+    		printChoiceset2(day-1, household->getId(),screenedEntriesVec[n]->getUnitId());
     		choiceset += std::to_string( screenedEntriesVec[n]->getUnitId() )  + ", ";
     	}
 
-    	printChoiceset(day, household->getId(), choiceset);
+    	if(screenedEntriesVec.size() > 0)
+    	{
+    		printChoiceset(day-1, household->getId(), choiceset);
+    	}
     }
 
     //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );

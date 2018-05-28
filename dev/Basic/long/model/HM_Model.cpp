@@ -1488,7 +1488,7 @@ void HM_Model::startImpl()
 	conn.connect();
 	resume = config.ltParams.resume;
 	conn.setSchema(config.schemas.main_schema);
-	//PredayLT_LogsumManager::getInstance();
+	PredayLT_LogsumManager::getInstance();
 
 
 	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
@@ -1808,10 +1808,21 @@ void HM_Model::startImpl()
 	int waitingToMoveInHouseholdCount = 0;
 	if(initialLoading)
 	{
+		std::vector<BigSerial>assignedUnitsVec;
 	for (HouseholdList::iterator it = households.begin();	it != households.end(); it++)
 	{
 		Household* household = *it;
 		BigSerial unitIdToBeOwned = INVALID_ID;
+		const Unit* hhUnit = getUnitById(household->getUnitId());
+		if (hhUnit)
+		{
+			assignedUnits.insert(std::make_pair(hhUnit->getId(), hhUnit->getId()));
+			assignedUnitsVec.push_back(hhUnit->getId());
+			if( hhUnit->getUnitType() <= 6  || hhUnit->getUnitType() == 65 )
+				logSqrtFloorAreahdb.push_back( log(sqrt(hhUnit->getFloorArea())));
+			else
+				logSqrtFloorAreacondo.push_back( log(sqrt(hhUnit->getFloorArea())));
+		}
 
 
 		//These households with tenure_status 3 are considered to be occupied by foreign workers
@@ -1857,12 +1868,6 @@ void HM_Model::startImpl()
 		if (unit)
 		{
 			hhAgent->addUnitId(unit->getId());
-			assignedUnits.insert(std::make_pair(unit->getId(), unit->getId()));
-
-			if( unit->getUnitType() <= 6  || unit->getUnitType() == 65 )
-				logSqrtFloorAreahdb.push_back( log(sqrt(unit->getFloorArea())));
-			else
-				logSqrtFloorAreacondo.push_back( log(sqrt(unit->getFloorArea())));
 		}
 		else
 		{
@@ -1886,6 +1891,8 @@ void HM_Model::startImpl()
 		agents.push_back(hhAgent);
 		workGroup.assignAWorker(hhAgent);
 	}
+
+	PrintOutV("assigned units vec size: "<<assignedUnitsVec.size()<<std::endl);
 
 	if(resume)
 	{
@@ -2159,7 +2166,8 @@ void HM_Model::startImpl()
 
 	}
 
-	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
+	PrintOutV("assigned units: " << assignedUnits.size() << std::endl);
+	PrintOutV("Initial Vacant units: " << vacancies << "vec size" << vacanciesVec.size() << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
 
 
 	addMetadata("Initial Units", units.size());
@@ -2304,6 +2312,7 @@ void HM_Model::startImpl()
 					}
 		}
 	}
+
 
 	PrintOutV("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
 	PrintOutV("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);
@@ -3175,10 +3184,6 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			indLogsumCounter++;
 			PrintOutV("indLogsumCounter"<<indLogsumCounter<<std::endl);
 			printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), logsum  );
-			printHouseholdHitsLogsum( "workLogsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), workLogsum  );
-			printHouseholdHitsLogsum( "eduLogsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), eduLogsum  );
-			printHouseholdHitsLogsum( "shopLogsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), shopLogsum  );
-			printHouseholdHitsLogsum( "otherLogsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), otherLogsum  );
 		}
 	}
 }

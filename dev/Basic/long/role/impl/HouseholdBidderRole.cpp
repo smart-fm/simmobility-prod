@@ -607,7 +607,7 @@ void HouseholdBidderRole::calculateMaxSurplusEntry(const HousingMarket::Entry* e
 				bool wtpOffsetEnabled = config.ltParams.housingModel.wtpOffsetEnabled;
 				if(wtpOffsetEnabled)
 				{
-					wp += entry->getHedonicPrice() * unitType->getWtpOffset();
+					wp += wp * unitType->getWtpOffset();
 				}
 			}
 

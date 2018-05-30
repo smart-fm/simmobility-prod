@@ -73,8 +73,11 @@
             <!--- If the "studyAreaEnabledController" is true in simulation.xml then the following stored proc are required --> 
             <mapping name="studyArea_nodes" procedure="get_extmp_nodes()"/>
             <mapping name="studyArea_links" procedure="get_extmp_links()"/>
-	    <mapping name="studyArea_pvt_pathset" procedure="get_pvt_pathset_extmp"/>
-	    <mapping name="studyArea_blackListNodes" procedure="get_extmp_blackListNodes()"/>
+            <mapping name="studyArea_pvt_pathset" procedure="get_pvt_pathset_extmp"/>
+	        <mapping name="studyArea_blackListNodes" procedure="get_extmp_blackListNodes()"/>
+	        <mapping name="studyArea_rail_pathset" procedure="get_pt_pathset_railsms_extmp"/>
+	        <mapping name="studyArea_rail_edges" procedure="get_pt_tr_edges_railsms_extmp()"/>
+            <mapping name="studyArea_rail_vertices" procedure="get_pt_tr_vertices_railsms_extmp()"/>
     </proc_map>
 
         

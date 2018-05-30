@@ -191,6 +191,14 @@ void ExpandMidTermConfigFile::loadPublicTransitNetworkFromDatabase()
 	const std::string storedProcRailSmsVertices = procedureMap.procedureMappings["rail_sms_vertices"];
 	const std::string storedProcRailSmsEdges = procedureMap.procedureMappings["rail_sms_edges"];
 	PT_NetworkCreater::createNetwork(storedProcRailSmsVertices, storedProcRailSmsEdges, PT_Network::TYPE_RAIL_SMS);
+
+	if (cfg.isStudyAreaEnabled())
+	{
+		//Create the rail-sms network for AMOD or restricted study Area
+		const std::string storedProcRailStudyAreaVertices = procedureMap.procedureMappings["studyArea_rail_vertices"];
+		const std::string storedProcRailStudyAreaEdges = procedureMap.procedureMappings["studyArea_rail_edges"];
+		PT_NetworkCreater::createNetwork(storedProcRailStudyAreaVertices, storedProcRailStudyAreaEdges, PT_Network::TYPE_RAIL_STUDY_AREA);
+	}
 }
 
 void ExpandMidTermConfigFile::verifyIncidents()

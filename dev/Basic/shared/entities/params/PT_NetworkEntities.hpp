@@ -344,7 +344,8 @@ public:
 	enum NetworkType
 	{
 		TYPE_DEFAULT = 0,
-		TYPE_RAIL_SMS = 1
+		TYPE_RAIL_SMS = 1,
+		TYPE_RAIL_STUDY_AREA =2
 	};
 
 	PT_Network()

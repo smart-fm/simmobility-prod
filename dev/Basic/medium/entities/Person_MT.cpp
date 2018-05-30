@@ -74,13 +74,14 @@ prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
 	std::string railFLMPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["rail_sms_pathset"];
+	std::string railFLMStuddyAreaPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["studyArea_rail_pathset"];
 
 	try
 	{
 		TripChainOutput::getInstance().printTripChain(tripChain);
 		convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance(), ptPathsetStoredProcName);
 		convertToTaxiTrips();
-		convertToSmartMobilityTrips(PT_NetworkCreater::getInstance(PT_Network::TYPE_RAIL_SMS), railFLMPathsetStoredProcName);
+		convertToSmartMobilityTrips(PT_NetworkCreater::getInstance(PT_Network::TYPE_RAIL_SMS), PT_NetworkCreater::getInstance(PT_Network::TYPE_RAIL_STUDY_AREA), railFLMPathsetStoredProcName, railFLMStuddyAreaPathsetStoredProcName );
 		insertWaitingActivityToTrip();
 		assignSubtripIds();
 		if (!tripChain.empty())
@@ -182,8 +183,9 @@ void Person_MT::convertToTaxiTrips()
 	}
 }
 
-void Person_MT::convertToSmartMobilityTrips(PT_Network &ptNetwork, const std::string& railFLMPathsetStoredProcName)
+void Person_MT::convertToSmartMobilityTrips(PT_Network &ptNetwork, PT_Network &ptNetworkStudyArea, const std::string& railFLMPathsetStoredProcName, const std::string& railFLMStuddyAreaPathsetStoredProcName)
 {
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	for (auto tripChainItemIt = tripChain.begin(); tripChainItemIt != tripChain.end(); ++tripChainItemIt)
 	{
 		if ((*tripChainItemIt)->itemType == sim_mob::TripChainItem::IT_TRIP)
@@ -230,22 +232,39 @@ void Person_MT::convertToSmartMobilityTrips(PT_Network &ptNetwork, const std::st
 					{
 						std::vector<OD_Trip> odTrips;
 						std::string personDbId = this->getDatabaseId();
-						unsigned int start_time = ((*tripChainItemIt)->startTime.offsetMS_From(
-								ConfigManager::GetInstance().FullConfig().simStartTime()) / 1000); // start time in seconds
+						unsigned int start_time = ((*tripChainItemIt)->startTime.offsetMS_From(cfg.simStartTime()) / 1000); // start time in seconds
+						bool ret = false;
 
-						bool ret = PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(
-								itSubTrip->origin.node->getNodeId(),
-								itSubTrip->destination.node->getNodeId(), itSubTrip->startTime.getValue(), odTrips,
-								personDbId, start_time, railFLMPathsetStoredProcName, PT_Network::TYPE_RAIL_SMS);
-
-						findMrtTripsAndPerformRailTransitRoute(odTrips);
-
-						if (ret)
+						if(cfg.isStudyAreaEnabled() && itSubTrip->getMode().find("Rail_AMOD")!= std::string::npos)
 						{
-							ret = makeODsToTrips(&(*itSubTrip), smartMobilityTrips, odTrips, ptNetwork, itSubTrip->getMode());
-							processRAIL_SMSTrips(smartMobilityTrips);
-						}
+							ret = PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(
+									itSubTrip->origin.node->getNodeId(),
+									itSubTrip->destination.node->getNodeId(), itSubTrip->startTime.getValue(), odTrips,
+									personDbId, start_time, railFLMStuddyAreaPathsetStoredProcName, PT_Network::TYPE_RAIL_STUDY_AREA);
 
+							if(ret)
+							{
+								findMrtTripsAndPerformRailTransitRoute(odTrips);
+								ret = makeODsToTrips(&(*itSubTrip), smartMobilityTrips, odTrips, ptNetworkStudyArea,
+													 itSubTrip->getMode());
+								processRAIL_SMSTrips(smartMobilityTrips);
+							}
+						}
+						else
+						{
+							ret = PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(
+									itSubTrip->origin.node->getNodeId(),
+									itSubTrip->destination.node->getNodeId(), itSubTrip->startTime.getValue(), odTrips,
+									personDbId, start_time, railFLMPathsetStoredProcName,PT_Network::TYPE_RAIL_SMS);
+							if(ret)
+							{
+								findMrtTripsAndPerformRailTransitRoute(odTrips);
+								ret = makeODsToTrips(&(*itSubTrip), smartMobilityTrips, odTrips, ptNetwork,
+													 itSubTrip->getMode());
+								processRAIL_SMSTrips(smartMobilityTrips);
+							}
+
+						}
 						if (!ret)
 						{
 							tripChain.clear();
@@ -297,7 +316,7 @@ void Person_MT::addWalkAndWaitLegs(vector<SubTrip> &subTrips, const vector<SubTr
 void Person_MT::processRAIL_SMSTrips(std::vector<SubTrip> &subTrips)
 {
 	std::vector<SubTrip> modifiedSubTrips;
-
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	for(auto itSubTrip = subTrips.begin(); itSubTrip != subTrips.end(); ++itSubTrip)
 	{
 		if (((*itSubTrip).travelMode == "Rail_SMS" || (*itSubTrip).travelMode == "Rail_SMS_Pool" ||
@@ -396,9 +415,9 @@ void Person_MT::processRAIL_SMSTrips(std::vector<SubTrip> &subTrips)
 			{
 				double distanceToNode = dist((*itSubTrip).destination.node->getLocation(), nodeNearStation->getLocation());
 
-				if (distanceToNode > 1000)
-				{
-					subTrip.origin = WayPoint(nodeNearStation);
+				if ((cfg.isStudyAreaEnabled() && (*itSubTrip).travelMode.find("Rail_AMOD") == std::string::npos) || distanceToNode > 1000) //making all other leg escept start leg as walk for Rail_AMOD|Rail_AMOD_Pool
+				{                                                                                                                          //So that person can not ask for Rail_Amod vehicle if he is
+					subTrip.origin = WayPoint(nodeNearStation);                                                                            //out of study Area (if study Area Enable)
 					subTrip.originType = TripChainItem::LT_NODE;
 					subTrip.destination = subTrip.origin;
 					subTrip.destinationType = TripChainItem::LT_NODE;
@@ -677,7 +696,7 @@ void Person_MT::EnRouteToNextTrip(const std::string& stationName, const DailyTim
 	}
 }
 
-void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork,const std::string&  ptPathsetStoredProcName)
+void Person_MT::convertPublicTransitODsToTrips(PT_Network& ptNetwork, const std::string&  ptPathsetStoredProcName)
 {
 	std::vector<TripChainItem *>::iterator tripChainItemIt;
 	for (tripChainItemIt = tripChain.begin(); tripChainItemIt != tripChain.end(); ++tripChainItemIt)

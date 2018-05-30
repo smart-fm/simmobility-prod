@@ -62,7 +62,7 @@ private:
 	void convertToTaxiTrips();
 
 	/**Alters the trip chain in accordance with the route choice for */
-	void convertToSmartMobilityTrips(PT_Network& ptNetwork,const std::string&  railFLMPathsetStoredProcName);
+	void convertToSmartMobilityTrips(PT_Network& ptNetwork, PT_Network& ptNetworkStudyArea, const std::string& railFLMPathsetStoredProcName, const std::string& railFLMStuddyAreaPathsetStoredProcName);
 
 	/**Adds the walk and wait legs for the travel by smart mobility*/
 	void addWalkAndWaitLegs(std::vector<SubTrip> &subTrips, const std::vector<SubTrip>::iterator &itSubTrip,

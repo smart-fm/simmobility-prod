@@ -208,6 +208,7 @@ void Node::setTazId(unsigned int tazId_)
 
 const std::string Node::printIfNodeIsInStudyArea() const
 {
+#ifndef NDEBUG
 	if(sim_mob::ConfigManager::GetInstance().FullConfig().isStudyAreaEnabled() ) {
 		const RoadNetwork *rdnw = RoadNetwork::getInstance();
 		bool NodeInStudyArea = false;
@@ -218,4 +219,6 @@ const std::string Node::printIfNodeIsInStudyArea() const
 	{
 		return "";
 	}
+#endif
+	return "";   // printing SA/NSA (study Area statics only in Debug Mode & only if Study Area Enable)
 }

@@ -1755,20 +1755,20 @@ void HM_Model::startImpl()
 		screeningCostTimeSuperMap.insert({costTime, screeningCostTime[n]->getId()});
 	}
 
-
-	if(!resume)
-	{
-		unitsFiltering();
-	}
-	else
-	{
-		BidDao bidDao(conn);
-		db::Parameters params;
-		params.push_back(lastStoppedDay-1);
-		const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + config.schemas.main_schema+ "bids" + " WHERE simulation_day = :v1;";
-		bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
-		PrintOutV("Total number of bids resumed from previous run: " << resumptionBids.size()<<std::endl);
-	}
+//
+//	if(!resume)
+//	{
+//		unitsFiltering();
+//	}
+//	else
+//	{
+//		BidDao bidDao(conn);
+//		db::Parameters params;
+//		params.push_back(lastStoppedDay-1);
+//		const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + config.schemas.main_schema+ "bids" + " WHERE simulation_day = :v1;";
+//		bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
+//		PrintOutV("Total number of bids resumed from previous run: " << resumptionBids.size()<<std::endl);
+//	}
 
 	workGroup.assignAWorker(&market);
 	int numWorkers = workGroup.size();
@@ -1967,7 +1967,7 @@ void HM_Model::startImpl()
 	///this unit is a vacancy
 	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-		if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() == 2)
+		if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() == 1)
 		{
 			if(privatePresaleUnitsMap.find((*it)->getId()) == privatePresaleUnitsMap.end())
 			{

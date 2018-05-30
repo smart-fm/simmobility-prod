@@ -1892,8 +1892,6 @@ void HM_Model::startImpl()
 		workGroup.assignAWorker(hhAgent);
 	}
 
-	PrintOutV("assigned units vec size: "<<assignedUnitsVec.size()<<std::endl);
-
 	if(resume)
 	{
 		PrintOutV("total number of household resumed from previous run: "<<resumeHouseholdCount<<std::endl);
@@ -1969,7 +1967,7 @@ void HM_Model::startImpl()
 	///this unit is a vacancy
 	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-		if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() != 3 && (*it)->getTenureStatus() != 0)
+		if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() == 2)
 		{
 			if(privatePresaleUnitsMap.find((*it)->getId()) == privatePresaleUnitsMap.end())
 			{
@@ -1977,23 +1975,32 @@ void HM_Model::startImpl()
 			}
 		}
 	}
+	int btoCount = 0;
+
 		for (UnitList::const_iterator it = vacanciesVec.begin(); it != vacanciesVec.end(); it++)
 		{
 			HedonicPrice_SubModel hpSubmodel(0, this, (*it));
 			hpSubmodel.computeInitialHedonicPrice((*it)->getId());
 
-			boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
-			boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
+			boost::gregorian::date saleFromDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
+			boost::gregorian::date simulationStartDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
+			boost::gregorian::date simulationEndDate = boost::gregorian::date(HITS_SURVEY_YEAR, 12, 31);
+
+			//select * from synpop12.fm_unit_res where unit_type < 7 and sale_from_date > '20120101'::date and sale_from_date <= '20121231'::date
+
 			int unitStartDay = startDay;
 
 			(*it)->setBto(false);
 
-			if( saleDate > simulationDate )
+			if( saleFromDate > simulationStartDate and saleFromDate <= simulationEndDate )
 			{
-				unitStartDay = (saleDate - simulationDate).days();
+				//unitStartDay = (saleDate - simulationDate).days();
 
-				if( (*it)->getUnitType() < 6 )
+				if( (*it)->getUnitType() < 7 )
+				{
 					(*it)->setBto(true);
+					btoCount++;
+				}
 			}
 
 
@@ -2021,7 +2028,7 @@ void HM_Model::startImpl()
 
 				writeUnitTimesToFile((*it)->getId(),(*it)->getTimeOnMarket(), (*it)->getTimeOffMarket(), (*it)->getbiddingMarketEntryDay());
 			}
-				if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY)
+				if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->isBto()== false)
 				{
 					if(!resume)
 					{
@@ -2166,8 +2173,8 @@ void HM_Model::startImpl()
 
 	}
 
-	PrintOutV("assigned units: " << assignedUnits.size() << std::endl);
-	PrintOutV("Initial Vacant units: " << vacancies << "vec size" << vacanciesVec.size() << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
+	PrintOutV("Initial Vacant units: " << vacancies  << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
+	//PrintOutV("bto units: " << btoCount << std::endl);
 
 
 	addMetadata("Initial Units", units.size());

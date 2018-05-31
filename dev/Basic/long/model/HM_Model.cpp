@@ -3142,39 +3142,43 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			//infer params
 			personParams.fixUpParamsForLtPerson();
 
-			if( config.ltParams.outputHouseholdLogsums.fixedHomeVariableWork )
-				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams );
-			else
-			if( config.ltParams.outputHouseholdLogsums.fixedWorkVariableHome )
-				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams );
+			double logsumTC = 0;
+			double logsumTCPlusOne = 0;
+			double logsumCTPlusOne = 0;
+			double logsumTCZero = 0;
+			double logsumScaledMaxCost = 0;
 
-			double logsumD 				= personParams.getDpbLogsum();
+			if( config.ltParams.outputHouseholdLogsums.fixedHomeVariableWork )
+			{
+				const std::string luaDirTC = "TC";
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirTC);
+				logsumTC = personParams.getDpbLogsum();
+				//TODO::later add config param to read either tc+1 or ct+1
+				const std::string luaDirTCPlusOne = "TCPlusOne";
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirTCPlusOne);
+				logsumTCPlusOne = personParams.getDpbLogsum();
+
+				const std::string luaDirCTlusOne = "CTPlusOne";
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirCTlusOne);
+				logsumCTPlusOne = personParams.getDpbLogsum();
+
+				const std::string luaDirTCZero = "TCZero";
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirTCZero);
+				logsumTCZero = personParams.getDpbLogsum();
+
+				logsumScaledMaxCost = (logsumTC - logsumTCZero) / (logsumTC -logsumTCPlusOne );
+
+			}
+			else if( config.ltParams.outputHouseholdLogsums.fixedWorkVariableHome )
+			{
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams );
+			}
+
+			double logsumD 				= logsumScaledMaxCost;
  			double travelProbabilityD	= personParams.getTravelProbability();
 			double tripsExpectedD		= personParams.getTripsExpected();
 
 			logsum.push_back(logsumD);
-
-			std::unordered_map<StopType, double> activityLogsums = personParams.getActivityLogsums();
-
-			for (auto activityLogsum : activityLogsums )
-			{
-				if(activityLogsum.first == 1)
-				{
-					workLogsum.push_back(activityLogsum.second);
-				}
-				else if(activityLogsum.first == 2)
-				{
-					eduLogsum.push_back(activityLogsum.second);
-				}
-				if(activityLogsum.first == 3)
-				{
-					shopLogsum.push_back(activityLogsum.second);
-				}
-				if(activityLogsum.first == 4)
-				{
-					otherLogsum.push_back(activityLogsum.second);
-				}
-			}
 			travelProbability.push_back(travelProbabilityD);
 			tripsExpected.push_back(tripsExpectedD);
 		}
@@ -3262,7 +3266,7 @@ void HM_Model::update(int day)
 
 	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-		if(compareTMDates((*it)->getSaleFromDate(),currentDate))
+		if(compareTMDates((*it)->getSaleFromDate(),currentDate) && (*it)->isBto() == false)
 		{
 			(*it)->setbiddingMarketEntryDay(day);
 		}

@@ -28,33 +28,77 @@ struct ModelContext
 
 boost::thread_specific_ptr<ModelContext> threadContext;
 
-void ensureContext()
+void ensureContext(const std::string &luaDir)
 {
-	if (!threadContext.get())
-	{
+	//if (!threadContext.get())
+	//{
 		try
 		{
-			const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMap;
-			const std::string& scriptsPath = extScripts.getPath();
-			const std::map<std::string, std::string>& predayScriptsName = extScripts.getScriptsFileNameMap();
-			ModelContext* modelCtx = new ModelContext();
-			for (const auto& item : predayScriptsName)
+
+			if(luaDir.compare("TC")==0)
 			{
-				modelCtx->predayModel.loadFile(scriptsPath + item.second);
+				const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMapTC;
+				const std::string& scriptsPath = extScripts.getPath();
+				const std::map<std::string, std::string>& predayScriptsName = extScripts.getScriptsFileNameMap();
+				ModelContext* modelCtx = new ModelContext();
+				for (const auto& item : predayScriptsName)
+				{
+					modelCtx->predayModel.loadFile(scriptsPath + item.second);
+				}
+				modelCtx->predayModel.initialize();
+				threadContext.reset(modelCtx);
 			}
-			modelCtx->predayModel.initialize();
-			threadContext.reset(modelCtx);
+			else if(luaDir.compare("TCPlusOne")==0)
+			{
+				const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMapTimeCostPlusOne;
+				const std::string& scriptsPath = extScripts.getPath();
+				const std::map<std::string, std::string>& predayScriptsName = extScripts.getScriptsFileNameMap();
+				ModelContext* modelCtx = new ModelContext();
+				for (const auto& item : predayScriptsName)
+				{
+					modelCtx->predayModel.loadFile(scriptsPath + item.second);
+				}
+				modelCtx->predayModel.initialize();
+				threadContext.reset(modelCtx);
+			}
+			else if(luaDir.compare("CTPlusOne")==0)
+			{
+				const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMapCostTimePlusOne;
+				const std::string& scriptsPath = extScripts.getPath();
+				const std::map<std::string, std::string>& predayScriptsName = extScripts.getScriptsFileNameMap();
+				ModelContext* modelCtx = new ModelContext();
+				for (const auto& item : predayScriptsName)
+				{
+					modelCtx->predayModel.loadFile(scriptsPath + item.second);
+				}
+				modelCtx->predayModel.initialize();
+				threadContext.reset(modelCtx);
+			}
+			else if(luaDir.compare("TCZero")==0)
+			{
+				const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMapTCZeroCostConstants;
+				const std::string& scriptsPath = extScripts.getPath();
+				const std::map<std::string, std::string>& predayScriptsName = extScripts.getScriptsFileNameMap();
+				ModelContext* modelCtx = new ModelContext();
+				for (const auto& item : predayScriptsName)
+				{
+					modelCtx->predayModel.loadFile(scriptsPath + item.second);
+				}
+				modelCtx->predayModel.initialize();
+				threadContext.reset(modelCtx);
+			}
+
 		} 
 		catch (const std::out_of_range& oorx)
 		{
 			throw std::runtime_error("missing or invalid generic property 'external_scripts'");
 		}
-	}
+	//}
 }
 }
 
-const PredayLogsumLuaModel& PredayLogsumLuaProvider::getPredayModel()
+const PredayLogsumLuaModel& PredayLogsumLuaProvider::getPredayModel(const std::string &luaDir)
 {
-	ensureContext();
+	ensureContext(luaDir);
 	return threadContext.get()->predayModel;
 }

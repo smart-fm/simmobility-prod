@@ -758,7 +758,8 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     	const HousingMarket::Entry* entry = market->getEntryById(unitId);
 
-    	if( entry == nullptr ||  entry->isBuySellIntervalCompleted() == false)
+//    	if( entry == nullptr ||  entry->isBuySellIntervalCompleted() == false)
+    	if( entry == nullptr)
     		continue;
 
 
@@ -821,10 +822,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     		choiceset += std::to_string( screenedEntriesVec[n]->getUnitId() )  + ", ";
     	}
 
-    	if(screenedEntriesVec.size() > 0)
-    	{
-    		printChoiceset(day-1, household->getId(), choiceset);
-    	}
+    	printChoiceset(day-1, household->getId(), choiceset);
     }
 
     //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );

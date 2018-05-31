@@ -99,6 +99,7 @@ void ParseConfigFile::processXmlFile(XercesDOMParser &parser)
 			processSchemasParamsNode(GetSingleElementByName(rootNode, "schemas"));
 			processLongTermParamsNode(GetSingleElementByName(rootNode, "longTermParams"));
 			processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts"));
+			processModelScriptsNodeABA(GetSingleElementByName(rootNode, "model_scripts_ABA"));
 			return;
 		}
 
@@ -907,6 +908,131 @@ void ParseConfigFile::processModelScriptsNode(xercesc::DOMElement *node)
 		scriptsMap.addScriptFileName(key, val);
 	}
 	cfg.luaScriptsMap = scriptsMap;
+}
+
+void ParseConfigFile::processModelScriptsNodeABA(xercesc::DOMElement *node)
+{
+	string format = ParseString(GetNamedAttributeValue(node, "format"), "");
+
+	if (format.empty() || format != "lua")
+	{
+		stringstream msg;
+		msg << "Invalid value for <model_scripts format=\""
+				<< format << "\">. Expected: \"lua\"";
+		throw runtime_error(msg.str());
+	}
+
+	string scriptsDirectoryPathTC =  ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "pathTC"), "name"));
+
+	if (scriptsDirectoryPathTC.empty())
+	{
+		stringstream msg;
+		msg << "Empty value for <model_scripts path_ABA=\"\"/>. "
+				<< "Expected: path to scripts";
+		throw runtime_error(msg.str());
+	}
+
+	if ((*scriptsDirectoryPathTC.rbegin()) != '/')
+	{
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPathTC.push_back('/');
+	}
+
+	ModelScriptsMap scriptsMapTC(scriptsDirectoryPathTC, format);
+
+	string tagName = "script";
+	processModelScriptNodeABAFIles(node,tagName,scriptsMapTC);
+	cfg.luaScriptsMapTC = scriptsMapTC;
+
+	//**************
+	string scriptsDirectoryPathTCPlusOne =  ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "pathTCPlusOne"), "name"));
+
+	if (scriptsDirectoryPathTCPlusOne.empty())
+	{
+		stringstream msg;
+		msg << "Empty value for <model_scripts path_ABA=\"\"/>. "
+				<< "Expected: path to scripts";
+		throw runtime_error(msg.str());
+	}
+
+	if ((*scriptsDirectoryPathTCPlusOne.rbegin()) != '/')
+	{
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPathTCPlusOne.push_back('/');
+	}
+
+	ModelScriptsMap scriptsMapTCPlusOne(scriptsDirectoryPathTCPlusOne, format);
+	processModelScriptNodeABAFIles(node,tagName,scriptsMapTCPlusOne);
+	cfg.luaScriptsMapTimeCostPlusOne = scriptsMapTCPlusOne;
+
+	string scriptsDirectoryPathCTPlusOne =  ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "pathCTPlusOne"), "name"));
+
+	if (scriptsDirectoryPathCTPlusOne.empty())
+	{
+		stringstream msg;
+		msg << "Empty value for <model_scripts path_ABA=\"\"/>. "
+				<< "Expected: path to scripts";
+		throw runtime_error(msg.str());
+	}
+
+	if ((*scriptsDirectoryPathCTPlusOne.rbegin()) != '/')
+	{
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPathCTPlusOne.push_back('/');
+	}
+
+	ModelScriptsMap scriptsMapCTPlusOne(scriptsDirectoryPathCTPlusOne, format);
+	processModelScriptNodeABAFIles(node,tagName,scriptsMapCTPlusOne);
+	cfg.luaScriptsMapCostTimePlusOne = scriptsMapCTPlusOne;
+
+	string scriptsDirectoryPathTCZero =  ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "pathTCZero"), "name"));
+
+	if (scriptsDirectoryPathTCZero.empty())
+	{
+		stringstream msg;
+		msg << "Empty value for <model_scripts path_ABA=\"\"/>. "
+				<< "Expected: path to scripts";
+		throw runtime_error(msg.str());
+	}
+
+	if ((*scriptsDirectoryPathTCZero.rbegin()) != '/')
+	{
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPathTCZero.push_back('/');
+	}
+
+	ModelScriptsMap scriptsMapTCZero(scriptsDirectoryPathTCZero, format);
+	processModelScriptNodeABAFIles(node,tagName,scriptsMapTCZero);
+	cfg.luaScriptsMapTCZeroCostConstants = scriptsMapTCZero;
+
+}
+
+void ParseConfigFile::processModelScriptNodeABAFIles(xercesc::DOMElement *node, std::string tagName, ModelScriptsMap &scriptsMap)
+{
+	//for (DOMElement *item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
+	for (DOMElement *item : GetElementsByName(node,tagName,true))
+	{
+		string name = TranscodeString(item->getNodeName());
+
+		if (name != "script")
+		{
+			Warn() << "\nWARNING! Invalid value for \'model_scripts\': \"" << TranscodeString(item->getNodeName())
+					    				   << "\" in file " << inFilePath << ". Expected: \'script\'\n";
+			continue;
+		}
+
+		string key = ParseString(GetNamedAttributeValue(item, "name"), "");
+		string val = ParseString(GetNamedAttributeValue(item, "file"), "");
+
+		if (key.empty() || val.empty())
+		{
+			Warn() << "\nWARNING! Empty value in <script name=\"" << key << "\" file=\"" << val << "\"/>. "
+					<< "Expected: script name and file name";
+			continue;
+		}
+
+		scriptsMap.addScriptFileName(key, val);
+	}
 }
 
 void ParseConfigFile::processTravelModesNode(DOMElement *node)

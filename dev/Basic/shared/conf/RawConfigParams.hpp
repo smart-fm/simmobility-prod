@@ -760,7 +760,12 @@ public:
 	PersonCharacteristicsParams personCharacteristicsParams;
 
     /// container for lua scripts
-    ModelScriptsMap luaScriptsMap;
+	ModelScriptsMap luaScriptsMap;
+
+    ModelScriptsMap luaScriptsMapTC;
+    ModelScriptsMap luaScriptsMapTimeCostPlusOne;
+    ModelScriptsMap luaScriptsMapCostTimePlusOne;
+    ModelScriptsMap luaScriptsMapTCZeroCostConstants;
 
 	ModelScriptsMap predayLuaScriptsMap;
 

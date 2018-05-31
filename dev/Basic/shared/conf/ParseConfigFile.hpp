@@ -218,6 +218,15 @@ private:
 	void processModelScriptsNode(xercesc::DOMElement *node);
 
 	/**
+	 * Processes the model_scripts_ABA element in the config file
+	 *
+	 * @param node node corresponding to the model_scripts_ABA element in the xml file
+	 */
+	void processModelScriptsNodeABA(xercesc::DOMElement *node);
+
+	void processModelScriptNodeABAFIles(xercesc::DOMElement *node, std::string tagName, ModelScriptsMap &scriptsMap);
+
+	/**
 	 * Processes the travel modes element in config xml
 	 *
 	 * @param node node corresponding to the travel modes element inside xml file

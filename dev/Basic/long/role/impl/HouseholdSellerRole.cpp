@@ -594,7 +594,6 @@ void HouseholdSellerRole::notifyWinnerBidders()
         Household *household = getParent()->getModel()->getHouseholdById(maxBidOfDay.getBidderId());
 
         Unit *currentUnit = getParent()->getModel()->getUnitById(household->getUnitId());
-        currentUnit->setLastBidStatus(1);
 
         if(household->getLastBidStatus()==1 ||  household->getTimeOffMarket() >0)
         {

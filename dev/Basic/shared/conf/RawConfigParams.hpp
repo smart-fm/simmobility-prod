@@ -77,6 +77,7 @@ struct LongTermParams
 		unsigned int timeOnMarket; //for units on the housing market
 		unsigned int timeOffMarket;//for units on the housing market
 		bool wtpOffsetEnabled;
+		bool unitsFiltering;
 		float vacantUnitActivationProbability;
 		float housingMarketSearchPercentage;
 		float housingMoveInDaysInterval;

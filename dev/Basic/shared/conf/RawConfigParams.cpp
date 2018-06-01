@@ -21,7 +21,7 @@ sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), 
 										   ,initialLoading(false), launchBTO(false), launchPrivatePresale(false){}
 sim_mob::LongTermParams::DeveloperModel::DeveloperModel(): enabled(false), timeInterval(0), initialPostcode(0),initialUnitId(0),initialBuildingId(0),
 															initialProjectId(0),minLotSize(0), constructionStartDay(0), saleFromDay(0),occupancyFromDay(0), constructionCompletedDay(0) {}
-sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), timeOffMarket(0), wtpOffsetEnabled(false),vacantUnitActivationProbability(0),
+sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), timeOffMarket(0), wtpOffsetEnabled(false),unitsFiltering(false),vacantUnitActivationProbability(0),
 													   housingMarketSearchPercentage(0), housingMoveInDaysInterval(0), offsetBetweenUnitBuyingAndSelling(0),
 													   bidderUnitsChoiceSet(0),bidderBTOUnitsChoiceSet(0),householdBiddingWindow(0), householdBTOBiddingWindow(0),
 													   householdAwakeningPercentageByBTO(0), offsetBetweenUnitBuyingAndSellingAdvancedPurchase(0){}

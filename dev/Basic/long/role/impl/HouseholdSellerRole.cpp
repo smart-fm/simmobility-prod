@@ -312,6 +312,73 @@ void HouseholdSellerRole::update(timeslice now)
 
             	unit->setAskingPrice(firstExpectation.askingPrice);
 
+            	if(unit->getZoneHousingType() == 0)
+            	{
+            		int planningAreaId = -1;
+            		int mtzId = -1;
+            		int subzoneId = -1;
+
+            		Taz *curTaz = model->getTazById(tazId);
+            		string planningAreaName = curTaz->getPlanningAreaName();
+
+            		HM_Model::MtzTazList mtzTaz = model->getMtztazList();
+            		for(int n = 0; n < mtzTaz.size();n++)
+            		{
+            			if(tazId == mtzTaz[n]->getTazId() )
+            			{
+            				mtzId = mtzTaz[n]->getMtzId();
+            				break;
+            			}
+            		}
+
+            		HM_Model::MtzList mtz = model->getMtzList();
+            		for(int n = 0; n < mtz.size(); n++)
+            		{
+            			if( mtzId == mtz[n]->getId())
+            			{
+            				subzoneId = mtz[n]->getPlanningSubzoneId();
+            				break;
+            			}
+            		}
+
+            		HM_Model::PlanningSubzoneList planningSubzone = model->getPlanningSubzoneList();
+            		for( int n = 0; n < planningSubzone.size(); n++ )
+            		{
+            			if( subzoneId == planningSubzone[n]->getId() )
+            			{
+            				planningAreaId = planningSubzone[n]->getPlanningAreaId();
+            				break;
+            			}
+            		}
+            		if(( unit->getUnitType() >=7 && unit->getUnitType() <=16 ) || ( unit->getUnitType() >= 32 && unit->getUnitType() <= 36 ) )
+            		{
+            			unit->setDwellingType(600);
+            		}
+            		else
+            			if( unit->getUnitType() >= 17 && unit->getUnitType() <= 31 )
+            			{
+            				unit->setDwellingType(700);
+            			}
+            			else
+            			{
+            				unit->setDwellingType(800);
+            			}
+            		HM_Model::AlternativeList alternative = model->getAlternatives();
+            		for( int n = 0; n < alternative.size(); n++)
+            		{
+            			if( alternative[n]->getDwellingTypeId() == unit->getDwellingType() &&
+            					alternative[n]->getPlanAreaId() 	== planningAreaId )
+            				//alternative[n]->getPlanAreaName() == planningAreaName)
+            				{
+            				unit->setZoneHousingType(alternative[n]->getMapId());
+
+            				//PrintOutV(" " << thisUnit->getId() << " " << alternative[n]->getPlanAreaId() << std::endl );
+            				//unitsByZoneHousingType.insert( std::pair<BigSerial,Unit*>( alternative[n]->getId(), thisUnit ) );
+            				break;
+            				}
+            		}
+            	}
+
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted, unit->getZoneHousingType() ));
                 //writeDailyHousingMarketUnitsToFile(now.ms()+1,unit->getId());
 				#ifdef VERBOSE
@@ -525,6 +592,10 @@ void HouseholdSellerRole::notifyWinnerBidders()
         ExpectationEntry entry;
 
         Household *household = getParent()->getModel()->getHouseholdById(maxBidOfDay.getBidderId());
+
+        Unit *currentUnit = getParent()->getModel()->getUnitById(household->getUnitId());
+        currentUnit->setLastBidStatus(1);
+
         if(household->getLastBidStatus()==1 ||  household->getTimeOffMarket() >0)
         {
         	continue;

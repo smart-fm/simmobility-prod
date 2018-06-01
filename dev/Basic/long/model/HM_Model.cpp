@@ -1755,20 +1755,20 @@ void HM_Model::startImpl()
 		screeningCostTimeSuperMap.insert({costTime, screeningCostTime[n]->getId()});
 	}
 
-//
-//	if(!resume)
-//	{
-//		unitsFiltering();
-//	}
-//	else
-//	{
-//		BidDao bidDao(conn);
-//		db::Parameters params;
-//		params.push_back(lastStoppedDay-1);
-//		const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + config.schemas.main_schema+ "bids" + " WHERE simulation_day = :v1;";
-//		bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
-//		PrintOutV("Total number of bids resumed from previous run: " << resumptionBids.size()<<std::endl);
-//	}
+
+	if(!resume && config.ltParams.housingModel.unitsFiltering)
+	{
+		unitsFiltering();
+	}
+	else
+	{
+		BidDao bidDao(conn);
+		db::Parameters params;
+		params.push_back(lastStoppedDay-1);
+		const std::string getResumptionBidsOnLastDay = "SELECT * FROM " + config.schemas.main_schema+ "bids" + " WHERE simulation_day = :v1;";
+		bidDao.getByQueryId(getResumptionBidsOnLastDay,params,resumptionBids);
+		PrintOutV("Total number of bids resumed from previous run: " << resumptionBids.size()<<std::endl);
+	}
 
 	workGroup.assignAWorker(&market);
 	int numWorkers = workGroup.size();
@@ -2025,8 +2025,6 @@ void HM_Model::startImpl()
 				(*it)->setbiddingMarketEntryDay(999999);
 				(*it)->setRemainingTimeOnMarket(timeOnMarket);
 				(*it)->setRemainingTimeOffMarket(timeOffMarket);
-
-				writeUnitTimesToFile((*it)->getId(),(*it)->getTimeOnMarket(), (*it)->getTimeOffMarket(), (*it)->getbiddingMarketEntryDay());
 			}
 				if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->isBto()== false)
 				{
@@ -2075,6 +2073,8 @@ void HM_Model::startImpl()
 					vacancies++;
 				//}
 			}
+
+			writeUnitTimesToFile((*it)->getId(),(*it)->getTimeOnMarket(), (*it)->getTimeOffMarket(), (*it)->getbiddingMarketEntryDay());
 
 
 

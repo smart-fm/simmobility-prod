@@ -587,7 +587,11 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 
 	housingModel.wtpOffsetEnabled =
 				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
-						houseModel, "wtpOffsetEnabled"), "value"), false);
+						houseModel, "unitsFiltering"), "value"), false);
+
+	housingModel.unitsFiltering =
+					ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+							houseModel, "wtpOffsetEnabled"), "value"), false);
 
 	housingModel.vacantUnitActivationProbability =
 			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(

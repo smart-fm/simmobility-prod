@@ -29,9 +29,9 @@
 
 	    <!-- hpc ip for remote midterm server -->
             <database id="fm_remote_mt" dbtype="postgres">
-                <host value="172.25.184.156"/>
+                <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="simmobility"/>
+                <dbname value="simmobility_vc12_2.1.1"/>
             </database>
 
             <!-- localhost for midterm server -->
@@ -137,6 +137,7 @@
             <timeOffMarket value="288"/>
             <timeInterval value="7"/>
 	    <wtpOffsetEnabled value="true"/>
+	    <unitsFiltering value="false"/>
 	    <awakeningModel enabled="true">
 		    <initialHouseholdsOnMarket value="7500"/>
 		    <dailyHouseholdAwakenings value="400"/>
@@ -213,7 +214,7 @@
         </outputFiles>
     </longTermParams>
 
-    <model_scripts path="scripts/lua/mid/behavior_SG_07022018_12_4/" format="lua">
+    <model_scripts path="scripts/lua/mid/behavior_vc/" format="lua">
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
@@ -224,5 +225,21 @@
 	<script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->  
         <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->                      
     </model_scripts>
+
+ <model_scripts_ABA  format="lua"> 
+	<pathTC name="scripts/lua/mid/behavior_SG_07022018_12_4/" format="lua" />
+	<pathTCPlusOne name="scripts/lua/mid/behavior_SG_07022018_12_4_C/" format="lua" />
+	<pathCTPlusOne name="scripts/lua/mid/behavior_SG_07022018_12_4_T/" format="lua" />
+	<pathTCZero name="scripts/lua/mid/behavior_SG_07022018_12_4_Zero_Time/" format="lua" />
+	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
+	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
+	<script name="dps" file="dps.lua"/> <!-- Day Pattern Stops -->
+	<script name="tmw" file="tmw.lua"/> <!--Tour Mode/Destination Work -->
+	<script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
+	<script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
+	<script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->  
+        <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->                      
+    </model_scripts_ABA>
 </config>
 

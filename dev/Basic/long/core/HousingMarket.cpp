@@ -226,10 +226,10 @@ void HousingMarket::getAvailableEntries(const IdVector& tazIds, HousingMarket::C
             //copy lists.
             for (HousingMarket::EntryMap::iterator itMap = map.begin(); itMap != map.end(); itMap++)
             {
-            	//if(itMap->second->isBuySellIntervalCompleted())
-            	//{
+            	if(itMap->second->isBuySellIntervalCompleted())
+            	{
             		outList.push_back(itMap->second);
-            	//}
+            	}
             }
         }
     }
@@ -240,10 +240,10 @@ void HousingMarket::getAvailableEntries(ConstEntryList& outList)
     //copy(entriesById, outList);
     for( auto itr = entriesById.begin(); itr != entriesById.end(); itr++)
     {
-    	//if( (*itr).second->isBuySellIntervalCompleted() == true)
-    	//{
+    	if( (*itr).second->isBuySellIntervalCompleted() == true)
+    	{
     		outList.push_back((*itr).second);
-    	//}
+    	}
     }
 }
 

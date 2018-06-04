@@ -237,13 +237,7 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 		//individual hits logsum for vehicle ownership
 		std::ofstream* individualHitsLogsumForVOFile = new std::ofstream("IndividualHitsLogsum4VO.csv");
 		streams.insert(std::make_pair(LOG_INDIVIDUAL_LOGSUM_VO, individualHitsLogsumForVOFile));
-		// % hitsId % paxId % householdId % individualId % memberId % tazH % tazW
-		// % logsum0 % logsum1 % logsum2 % logsum3 % logsum4 % logsum5 % workLogsum0 % workLogsum1 % workLogsum2 % workLogsum3 % workLogsum4 % workLogsum5 % eduLogsum0 % eduLogsum1 %
-		// eduLogsum2 % eduLogsum3 % eduLogsum4 % eduLogsum5 % shopLogsum0 % shopLogsum1 % shopLogsum2 % shopLogsum3 % shopLogsum4 % shopLogsum5 % otherLogsum0 % otherLogsum1 % otherLogsum2 %
-		 //otherLogsum3 % otherLogsum4 % otherLogsum5 % travelProbability0 % travelProbability1 % travelProbability2 % travelProbability3 % travelProbability4 % travelProbability5
-		// % tripsExpected0 % tripsExpected1 % tripsExpected2 % tripsExpected3 % tripsExpected4 % tripsExpected5
-		*individualHitsLogsumForVOFile << "hitsId , paxId , householdId , individualId , memberId , tazH , tazW , vo_logsum0 , vo_logsum1 ,vo_logsum2 , vo_logsum3 ,vo_logsum4 , vo_logsum5 ,workLogsum0, workLogsum1, workLogsum2, workLogsum3, workLogsum4, workLogsum5, "
-				" eduLogsum0, eduLogsum1, eduLogsum2, eduLogsum3, eduLogsum4, eduLogsum5, shopLogsum0, shopLogsum1, shopLogsum2, shopLogsum3, shopLogsum4, shopLogsum5, otherLogsum0, otherLogsum1, otherLogsum2, otherLogsum3, otherLogsum4, otherLogsum5, travelProbability0 , travelProbability1 , travelProbability2 , travelProbability3 ,travelProbability4 , travelProbability5 ,tripsExpected0, tripsExpected1, tripsExpected2 , tripsExpected3, tripsExpected4 , tripsExpected5" << std::endl;
+		*individualHitsLogsumForVOFile << "hitsId , paxId , householdId , individualId , memberId , tazH , tazW , vo_logsum0 , vo_logsum1 ,vo_logsum2 , vo_logsum3 ,vo_logsum4 , vo_logsum5" << std::endl;
     }
 
 

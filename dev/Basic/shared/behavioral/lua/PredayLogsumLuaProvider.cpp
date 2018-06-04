@@ -30,6 +30,7 @@ boost::thread_specific_ptr<ModelContext> threadContext;
 
 void ensureContext(const std::string &luaDir)
 {
+	//note::the threadcontext is commented because now we load the preday model based on the given lua directory for each thread.
 	//if (!threadContext.get())
 	//{
 		try

@@ -130,11 +130,13 @@
 	    <vehicleOwnershipLogsum value ="false"/>
 	    <fixedHomeVariableWork value ="false"/>
 	    <fixedWorkVariableHome value ="false"/>
-            <hitsRun value = "true" />
+            <hitsRun value = "false" />
+	    <maxcCost value ="false"/>
+	    <maxTime value ="true"/>
 	</outputHouseholdLogsums>
     	<housingModel enabled="true"> 	    
-            <timeOnMarket value="72"/>
-            <timeOffMarket value="288"/>
+            <timeOnMarket value="270"/>
+            <timeOffMarket value="90"/>
             <timeInterval value="7"/>
 	    <wtpOffsetEnabled value="true"/>
 	    <unitsFiltering value="false"/>
@@ -148,7 +150,7 @@
  	            <awakeningOffMarketUnsuccessfulBid value="210"/>
 	    </awakeningModel>
 
-	    <vacantUnitActivationProbability value="0.2000"/>
+	    <vacantUnitActivationProbability value="0.66"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>	   
 	    <bidderUnitsChoiceSet value = "50"/>
@@ -227,10 +229,10 @@
     </model_scripts>
 
  <model_scripts_ABA  format="lua"> 
-	<pathTC name="scripts/lua/mid/behavior_SG_07022018_12_4/" format="lua" />
-	<pathTCPlusOne name="scripts/lua/mid/behavior_SG_07022018_12_4_C/" format="lua" />
-	<pathCTPlusOne name="scripts/lua/mid/behavior_SG_07022018_12_4_T/" format="lua" />
-	<pathTCZero name="scripts/lua/mid/behavior_SG_07022018_12_4_Zero_Time/" format="lua" />
+	<pathTC name="scripts/lua/mid/behavior_vc/" format="lua" />
+	<pathTCPlusOne name="scripts/lua/mid/behavior_vc_t_c_plus1/" format="lua" />
+	<pathCTPlusOne name="scripts/lua/mid/behavior_vc_c_t_plus1/" format="lua" />
+	<pathTCZero name="scripts/lua/mid/behavior_vc_t_c_0/" format="lua" />
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

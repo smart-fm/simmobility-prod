@@ -563,6 +563,14 @@ void ParseConfigFile::processHouseHoldLogsumsNode(xercesc::DOMElement *outHHLogs
 				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
 						outHHLogsums, "hitsRun"), "value"), false);
 
+	outputHouseholdLogsums.maxcCost =
+					ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+							outHHLogsums, "maxcCost"), "value"), false);
+
+	outputHouseholdLogsums.maxTime =
+					ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+							outHHLogsums, "maxTime"), "value"), false);
+
 	cfg.ltParams.outputHouseholdLogsums = outputHouseholdLogsums;
 }
 

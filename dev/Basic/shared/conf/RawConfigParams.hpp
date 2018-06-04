@@ -119,6 +119,8 @@ struct LongTermParams
 		bool fixedHomeVariableWork;
 		bool fixedWorkVariableHome;
 		bool hitsRun;
+		bool maxcCost;
+		bool maxTime;
 	} outputHouseholdLogsums;
 
 	struct VehicleOwnershipModel{

@@ -758,8 +758,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     	const HousingMarket::Entry* entry = market->getEntryById(unitId);
 
-//    	if( entry == nullptr ||  entry->isBuySellIntervalCompleted() == false)
-    	if( entry == nullptr)
+    	if( entry == nullptr ||  entry->isBuySellIntervalCompleted() == false)
     		continue;
 
 

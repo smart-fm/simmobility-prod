@@ -406,8 +406,7 @@ namespace sim_mob
 
 		}
 		//hitsId , paxId , householdId , individualId , memberId , tazH , tazW , logsum[0] , logsum[1] ,logsum[2] , logsum[3] ,logsum[4] , logsum[5] ,travelProbability[0] , travelProbability[1] , travelProbability[2] , travelProbability[3] ,travelProbability[4] , travelProbability[5] ,tripsExpected[0] , tripsExpected[1], tripsExpected[2] , tripsExpected[3], tripsExpected[4] , tripsExpected[5]
-		inline void printHouseholdHitsLogsumFVO( std::string hitsId, int paxId, BigSerial householdId, BigSerial individualId, int memberId, int tazH, int tazW, std::unordered_map<int,double> &logsum, std::unordered_map<int,double> &activityLogsums0, std::unordered_map<int, double> &activityLogsums1, std::unordered_map<int, double> &activityLogsums2, std::unordered_map<int, double> &activityLogsums3,
-				std::unordered_map<int, double> &activityLogsums4, std::unordered_map<int, double> &activityLogsums5,std::unordered_map<int, double> &travelProbability,std::unordered_map<int, double> &tripsExpected )
+		inline void printHouseholdHitsLogsumFVO( std::string hitsId, int paxId, BigSerial householdId, BigSerial individualId, int memberId, int tazH, int tazW, std::unordered_map<int,double> &logsum)
 		{
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_individual_logsum_vo)
@@ -448,119 +447,10 @@ namespace sim_mob
 				}
 			}
 
-			double workLogsum0 = 0;
-			double eduLogsum0 = 0;
-			double shopLogsum0 = 0;
-			double otherLogsum0 = 0;
-			getActivityLogsumByActivityType(activityLogsums0,workLogsum0,eduLogsum0,shopLogsum0,otherLogsum0);
 
-			double workLogsum1 = 0;
-			double eduLogsum1 = 0;
-			double shopLogsum1 = 0;
-			double otherLogsum1 = 0;
-			getActivityLogsumByActivityType(activityLogsums1,workLogsum1,eduLogsum1,shopLogsum1,otherLogsum1);
-
-			double workLogsum2 = 0;
-			double eduLogsum2 = 0;
-			double shopLogsum2 = 0;
-			double otherLogsum2 = 0;
-			getActivityLogsumByActivityType(activityLogsums2,workLogsum2,eduLogsum2,shopLogsum2,otherLogsum2);
-
-			double workLogsum3 = 0;
-			double eduLogsum3 = 0;
-			double shopLogsum3 = 0;
-			double otherLogsum3 = 0;
-			getActivityLogsumByActivityType(activityLogsums3,workLogsum3,eduLogsum3,shopLogsum3,otherLogsum3);
-
-			double workLogsum4 = 0;
-			double eduLogsum4 = 0;
-			double shopLogsum4 = 0;
-			double otherLogsum4 = 0;
-			getActivityLogsumByActivityType(activityLogsums4,workLogsum4,eduLogsum4,shopLogsum4,otherLogsum4);
-
-			double workLogsum5 = 0;
-			double eduLogsum5 = 0;
-			double shopLogsum5 = 0;
-			double otherLogsum5 = 0;
-			getActivityLogsumByActivityType(activityLogsums5,workLogsum5,eduLogsum5,shopLogsum5,otherLogsum5);
-
-			double travelProbability0 = 0;
-			double travelProbability1 = 0;
-			double travelProbability2 = 0;
-			double travelProbability3 = 0;
-			double travelProbability4 = 0;
-			double travelProbability5 = 0;
-
-			for (auto travelProb : travelProbability )
-			{
-				if(travelProb.first == 0)
-				{
-					travelProbability0 = travelProb.second;
-				}
-				else if(travelProb.first == 1)
-				{
-					travelProbability1 = travelProb.second;
-				}
-				else if(travelProb.first == 2)
-				{
-					travelProbability2 = travelProb.second;
-				}
-				if(travelProb.first == 3)
-				{
-					travelProbability3 = travelProb.second;
-				}
-				if(travelProb.first == 4)
-				{
-					travelProbability4 = travelProb.second;
-				}
-				if(travelProb.first == 5)
-				{
-					travelProbability5 = travelProb.second;
-				}
-			}
-
-			double tripsExpected0 = 0;
-			double tripsExpected1 = 0;
-			double tripsExpected2 = 0;
-			double tripsExpected3 = 0;
-			double tripsExpected4 = 0;
-			double tripsExpected5 = 0;
-
-			for (auto tripsEx : tripsExpected )
-			{
-				if(tripsEx.first == 0)
-				{
-					tripsExpected0 = tripsEx.second;
-				}
-				else if(tripsEx.first == 1)
-				{
-					tripsExpected1 = tripsEx.second;
-				}
-				else if(tripsEx.first == 2)
-				{
-					tripsExpected2 = tripsEx.second;
-				}
-				if(tripsEx.first == 3)
-				{
-					tripsExpected3 = tripsEx.second;
-				}
-				if(tripsEx.first == 4)
-				{
-					tripsExpected4 = tripsEx.second;
-				}
-				if(tripsEx.first == 5)
-				{
-					tripsExpected5 = tripsEx.second;
-				}
-			}
-
-			boost::format fmtr = boost::format( "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%, %25%, %26%, %27%, %28%, %29%, "
-												 "%30%, %31%, %32%, %33%, %34%, %35%, %36%, %37%, %38%, %39%, %40%, %41%, %42%, %43%, %44%, %45%, %46%, %47%, %48%, %49%")
+			boost::format fmtr = boost::format( "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%")
 												 % hitsId % paxId % householdId % individualId % memberId % tazH % tazW
-												 % logsum0 % logsum1 % logsum2 % logsum3 % logsum4 % logsum5 % workLogsum0 % workLogsum1 % workLogsum2 % workLogsum3 % workLogsum4 % workLogsum5 % eduLogsum0 % eduLogsum1 %
-												 eduLogsum2 % eduLogsum3 % eduLogsum4 % eduLogsum5 % shopLogsum0 % shopLogsum1 % shopLogsum2 % shopLogsum3 % shopLogsum4 % shopLogsum5 % otherLogsum0 % otherLogsum1 % otherLogsum2 %
-												 otherLogsum3 % otherLogsum4 % otherLogsum5 % travelProbability0 % travelProbability1 % travelProbability2 % travelProbability3 % travelProbability4 % travelProbability5
-												 % tripsExpected0 % tripsExpected1 % tripsExpected2 % tripsExpected3 % tripsExpected4 % tripsExpected5;
+												 % logsum0 % logsum1 % logsum2 % logsum3 % logsum4 % logsum5;
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_LOGSUM_VO, fmtr.str());
 			std::cout << fmtr.str() << std::endl;
 		}

@@ -1760,7 +1760,7 @@ void HM_Model::startImpl()
 	{
 		unitsFiltering();
 	}
-	else
+	else if(resume)
 	{
 		BidDao bidDao(conn);
 		db::Parameters params;
@@ -2595,47 +2595,113 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			//infer params
 			personParams.fixUpParamsForLtPerson();
 
-			PersonParams personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams );
-			PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams );
-			PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams );
-			PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams );
-			PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams );
-			PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams );
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			const std::string luaDirTC = "TC";
+			PersonParams personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTC );
+			PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTC);
+			PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTC);
+			PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTC );
+			PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTC );
+			PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTC);
 
-			logsum.insert(std::make_pair(0,personParams0.getDpbLogsum()));
-			travelProbability.insert(std::make_pair(0,personParams0.getTravelProbability()));
-			tripsExpected.insert(std::make_pair(0,personParams0.getTripsExpected()));
-			activityLogsums0 = personParams0.getActivityLogsums();
+			double logsumTC0 = personParams0.getDpbLogsum();
+			double logsumTC1 = personParams1.getDpbLogsum();
+			double logsumTC2 = personParams2.getDpbLogsum();
+			double logsumTC3 = personParams3.getDpbLogsum();
+			double logsumTC4 = personParams4.getDpbLogsum();;
+			double logsumTC5 = personParams5.getDpbLogsum();
 
-			logsum.insert(std::make_pair(1,personParams1.getDpbLogsum()));
-			travelProbability.insert(std::make_pair(1,personParams1.getTravelProbability()));
-			tripsExpected.insert(std::make_pair(1,personParams1.getTripsExpected()));
-			activityLogsums1 = personParams1.getActivityLogsums();
+			const std::string luaDirTCZero = "TCZero";
+			personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTCZero );
+			personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTCZero);
+			personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTCZero);
+			personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTCZero );
+			personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTCZero );
+			personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTCZero);
 
-			logsum.insert(std::make_pair(2,personParams2.getDpbLogsum()));
-			travelProbability.insert(std::make_pair(2,personParams2.getTravelProbability()));
-			tripsExpected.insert(std::make_pair(2,personParams2.getTripsExpected()));
-			activityLogsums2 = personParams2.getActivityLogsums();
+			double logsumTCZero0 = personParams0.getDpbLogsum();
+			double logsumTCZero1 = personParams1.getDpbLogsum();
+			double logsumTCZero2 = personParams2.getDpbLogsum();
+			double logsumTCZero3 = personParams3.getDpbLogsum();
+			double logsumTCZero4 = personParams4.getDpbLogsum();
+			double logsumTCZero5 = personParams5.getDpbLogsum();
 
-			logsum.insert(std::make_pair(3,personParams3.getDpbLogsum()));
-			travelProbability.insert(std::make_pair(3,personParams3.getTravelProbability()));
-			tripsExpected.insert(std::make_pair(3,personParams3.getTripsExpected()));
-			activityLogsums3 = personParams3.getActivityLogsums();
+			if(config.ltParams.outputHouseholdLogsums.maxcCost)
+			{
+				const std::string luaDirTCPlusOne = "TCPlusOne";
+				personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTCPlusOne );
+				personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTCPlusOne);
+				personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTCPlusOne);
+				personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTCPlusOne );
+				personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTCPlusOne );
+				personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTCPlusOne);
 
-			logsum.insert(std::make_pair(4,personParams4.getDpbLogsum()));
-			travelProbability.insert(std::make_pair(4,personParams4.getTravelProbability()));
-			tripsExpected.insert(std::make_pair(4,personParams4.getTripsExpected()));
-			activityLogsums4 = personParams4.getActivityLogsums();
+				double logsumTCPlusOne0 = personParams0.getDpbLogsum();
+				double logsumTCPlusOne1 = personParams1.getDpbLogsum();
+				double logsumTCPlusOne2 = personParams2.getDpbLogsum();
+				double logsumTCPlusOne3 = personParams3.getDpbLogsum();
+				double logsumTCPlusOne4 = personParams4.getDpbLogsum();
+				double logsumTCPlusOne5 = personParams5.getDpbLogsum();
 
-			logsum.insert(std::make_pair(5,personParams5.getDpbLogsum()));
-			travelProbability.insert(std::make_pair(5,personParams5.getTravelProbability()));
-			tripsExpected.insert(std::make_pair(5,personParams5.getTripsExpected()));
-			activityLogsums5 = personParams5.getActivityLogsums();
+				double logsumScaledMaxCost0 = (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumTCPlusOne0 );
+				logsum.insert(std::make_pair(0,logsumScaledMaxCost0));
+
+				double logsumScaledMaxCost1 = (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumTCPlusOne1 );
+				logsum.insert(std::make_pair(1,logsumScaledMaxCost1));
+
+				double logsumScaledMaxCost2 = (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumTCPlusOne2 );
+				logsum.insert(std::make_pair(2,logsumScaledMaxCost2));
+
+				double logsumScaledMaxCost3 = (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumTCPlusOne3 );
+				logsum.insert(std::make_pair(3,logsumScaledMaxCost3));
+
+				double logsumScaledMaxCost4 = (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumTCPlusOne4 );
+				logsum.insert(std::make_pair(4,logsumScaledMaxCost4));
+
+				double logsumScaledMaxCost5 = (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumTCPlusOne5 );
+				logsum.insert(std::make_pair(5,logsumScaledMaxCost5));
+			}
+
+			if(config.ltParams.outputHouseholdLogsums.maxTime)
+			{
+				const std::string luaDirCTlusOne = "CTPlusOne";
+				personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirCTlusOne );
+				personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirCTlusOne);
+				personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirCTlusOne);
+				personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirCTlusOne );
+				personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirCTlusOne );
+				personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirCTlusOne);
+
+				double logsumCTPlusOne0 = personParams0.getDpbLogsum();
+				double logsumCTPlusOne1 = personParams1.getDpbLogsum();
+				double logsumCTPlusOne2 = personParams2.getDpbLogsum();
+				double logsumCTPlusOne3 = personParams3.getDpbLogsum();
+				double logsumCTPlusOne4 = personParams4.getDpbLogsum();
+				double logsumCTPlusOne5 = personParams5.getDpbLogsum();
+
+				double logsumScaledMaxTime0 =  (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumCTPlusOne0 );
+				logsum.insert(std::make_pair(0,logsumScaledMaxTime0));
+
+				double logsumScaledMaxTime1 =  (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumCTPlusOne1 );
+				logsum.insert(std::make_pair(1,logsumScaledMaxTime1));
+
+				double logsumScaledMaxTime2 =  (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumCTPlusOne2 );
+				logsum.insert(std::make_pair(2,logsumScaledMaxTime2));
+
+				double logsumScaledMaxTime3 =  (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumCTPlusOne3 );
+				logsum.insert(std::make_pair(3,logsumScaledMaxTime3));
+
+				double logsumScaledMaxTime4 =  (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumCTPlusOne4 );
+				logsum.insert(std::make_pair(4,logsumScaledMaxTime4));
+
+				double logsumScaledMaxTime5 =  (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumCTPlusOne5 );
+				logsum.insert(std::make_pair(5,logsumScaledMaxTime5));
+			}
 		}
 
 		simulationStopCounter++;
 
-		printHouseholdHitsLogsumFVO( "", -1, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, activityLogsums0, activityLogsums1, activityLogsums2, activityLogsums3, activityLogsums4,activityLogsums5, travelProbability, tripsExpected );
+		printHouseholdHitsLogsumFVO( "", -1, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
 	}
 }
 
@@ -2750,45 +2816,112 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::uno
 				//infer params
 				personParams.fixUpParamsForLtPerson();
 
-				PersonParams personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams );
-				PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams );
-				PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams );
-				PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams );
-				PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams );
-				PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams );
+				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+				const std::string luaDirTC = "TC";
+				PersonParams personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTC );
+				PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTC);
+				PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTC);
+				PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTC );
+				PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTC );
+				PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTC);
 
-				logsum.insert(std::make_pair(0,personParams0.getDpbLogsum()));
-				travelProbability.insert(std::make_pair(0,personParams0.getTravelProbability()));
-				tripsExpected.insert(std::make_pair(0,personParams0.getTripsExpected()));
-				activityLogsums0 = personParams0.getActivityLogsums();
+				double logsumTC0 = personParams0.getDpbLogsum();
+				double logsumTC1 = personParams1.getDpbLogsum();
+				double logsumTC2 = personParams2.getDpbLogsum();
+				double logsumTC3 = personParams3.getDpbLogsum();
+				double logsumTC4 = personParams4.getDpbLogsum();;
+				double logsumTC5 = personParams5.getDpbLogsum();
 
-				logsum.insert(std::make_pair(1,personParams1.getDpbLogsum()));
-				travelProbability.insert(std::make_pair(1,personParams1.getTravelProbability()));
-				tripsExpected.insert(std::make_pair(1,personParams1.getTripsExpected()));
-				activityLogsums1 = personParams1.getActivityLogsums();
+				const std::string luaDirTCZero = "TCZero";
+				personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTCZero );
+				personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTCZero);
+				personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTCZero);
+				personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTCZero );
+				personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTCZero );
+				personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTCZero);
 
-				logsum.insert(std::make_pair(2,personParams2.getDpbLogsum()));
-				travelProbability.insert(std::make_pair(2,personParams2.getTravelProbability()));
-				tripsExpected.insert(std::make_pair(2,personParams2.getTripsExpected()));
-				activityLogsums2 = personParams2.getActivityLogsums();
+				double logsumTCZero0 = personParams0.getDpbLogsum();
+				double logsumTCZero1 = personParams1.getDpbLogsum();
+				double logsumTCZero2 = personParams2.getDpbLogsum();
+				double logsumTCZero3 = personParams3.getDpbLogsum();
+				double logsumTCZero4 = personParams4.getDpbLogsum();
+				double logsumTCZero5 = personParams5.getDpbLogsum();
 
-				logsum.insert(std::make_pair(3,personParams3.getDpbLogsum()));
-				travelProbability.insert(std::make_pair(3,personParams3.getTravelProbability()));
-				tripsExpected.insert(std::make_pair(3,personParams3.getTripsExpected()));
-				activityLogsums3 = personParams3.getActivityLogsums();
+				if(config.ltParams.outputHouseholdLogsums.maxcCost)
+				{
+					const std::string luaDirTCPlusOne = "TCPlusOne";
+					personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTCPlusOne );
+					personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTCPlusOne);
+					personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTCPlusOne);
+					personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTCPlusOne );
+					personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTCPlusOne );
+					personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTCPlusOne);
 
-				logsum.insert(std::make_pair(4,personParams4.getDpbLogsum()));
-				travelProbability.insert(std::make_pair(4,personParams4.getTravelProbability()));
-				tripsExpected.insert(std::make_pair(4,personParams4.getTripsExpected()));
-				activityLogsums4 = personParams4.getActivityLogsums();
+					double logsumTCPlusOne0 = personParams0.getDpbLogsum();
+					double logsumTCPlusOne1 = personParams1.getDpbLogsum();
+					double logsumTCPlusOne2 = personParams2.getDpbLogsum();
+					double logsumTCPlusOne3 = personParams3.getDpbLogsum();
+					double logsumTCPlusOne4 = personParams4.getDpbLogsum();
+					double logsumTCPlusOne5 = personParams5.getDpbLogsum();
 
-				logsum.insert(std::make_pair(5,personParams5.getDpbLogsum()));
-				travelProbability.insert(std::make_pair(5,personParams5.getTravelProbability()));
-				tripsExpected.insert(std::make_pair(5,personParams5.getTripsExpected()));
-				activityLogsums5 = personParams5.getActivityLogsums();
+					double logsumScaledMaxCost0 = (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumTCPlusOne0 );
+					logsum.insert(std::make_pair(0,logsumScaledMaxCost0));
+
+					double logsumScaledMaxCost1 = (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumTCPlusOne1 );
+					logsum.insert(std::make_pair(1,logsumScaledMaxCost1));
+
+					double logsumScaledMaxCost2 = (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumTCPlusOne2 );
+					logsum.insert(std::make_pair(2,logsumScaledMaxCost2));
+
+					double logsumScaledMaxCost3 = (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumTCPlusOne3 );
+					logsum.insert(std::make_pair(3,logsumScaledMaxCost3));
+
+					double logsumScaledMaxCost4 = (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumTCPlusOne4 );
+					logsum.insert(std::make_pair(4,logsumScaledMaxCost4));
+
+					double logsumScaledMaxCost5 = (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumTCPlusOne5 );
+					logsum.insert(std::make_pair(5,logsumScaledMaxCost5));
+				}
+
+				if(config.ltParams.outputHouseholdLogsums.maxTime)
+				{
+					const std::string luaDirCTlusOne = "CTPlusOne";
+					personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirCTlusOne );
+					personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirCTlusOne);
+					personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirCTlusOne);
+					personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirCTlusOne );
+					personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirCTlusOne );
+					personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirCTlusOne);
+
+					double logsumCTPlusOne0 = personParams0.getDpbLogsum();
+					double logsumCTPlusOne1 = personParams1.getDpbLogsum();
+					double logsumCTPlusOne2 = personParams2.getDpbLogsum();
+					double logsumCTPlusOne3 = personParams3.getDpbLogsum();
+					double logsumCTPlusOne4 = personParams4.getDpbLogsum();
+					double logsumCTPlusOne5 = personParams5.getDpbLogsum();
+
+					double logsumScaledMaxTime0 =  (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumCTPlusOne0 );
+					logsum.insert(std::make_pair(0,logsumScaledMaxTime0));
+
+					double logsumScaledMaxTime1 =  (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumCTPlusOne1 );
+					logsum.insert(std::make_pair(1,logsumScaledMaxTime1));
+
+					double logsumScaledMaxTime2 =  (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumCTPlusOne2 );
+					logsum.insert(std::make_pair(2,logsumScaledMaxTime2));
+
+					double logsumScaledMaxTime3 =  (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumCTPlusOne3 );
+					logsum.insert(std::make_pair(3,logsumScaledMaxTime3));
+
+					double logsumScaledMaxTime4 =  (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumCTPlusOne4 );
+					logsum.insert(std::make_pair(4,logsumScaledMaxTime4));
+
+					double logsumScaledMaxTime5 =  (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumCTPlusOne5 );
+					logsum.insert(std::make_pair(5,logsumScaledMaxTime5));
+				}
+
 			}
 
-			printHouseholdHitsLogsumFVO( "", paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, activityLogsums0, activityLogsums1, activityLogsums2, activityLogsums3, activityLogsums4,activityLogsums5, travelProbability, tripsExpected );
+			printHouseholdHitsLogsumFVO( "", paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
 		}
 }
 
@@ -2907,46 +3040,113 @@ void HM_Model::getLogsumOfHitsHouseholdVO(BigSerial householdId)
 			//infer params
 			personParams.fixUpParamsForLtPerson();
 
-			PersonParams personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams );
-			PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams );
-			PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams );
-			PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams );
-			PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams );
-			PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams );
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			const std::string luaDirTC = "TC";
+			PersonParams personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTC );
+			PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTC);
+			PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTC);
+			PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTC );
+			PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTC );
+			PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTC);
 
-			logsum.insert(std::make_pair(0,personParams0.getDpbLogsum()));
-			travelProbability.insert(std::make_pair(0,personParams0.getTravelProbability()));
-			tripsExpected.insert(std::make_pair(0,personParams0.getTripsExpected()));
-			activityLogsums0 = personParams0.getActivityLogsums();
+			double logsumTC0 = personParams0.getDpbLogsum();
+			double logsumTC1 = personParams1.getDpbLogsum();
+			double logsumTC2 = personParams2.getDpbLogsum();
+			double logsumTC3 = personParams3.getDpbLogsum();
+			double logsumTC4 = personParams4.getDpbLogsum();;
+			double logsumTC5 = personParams5.getDpbLogsum();
 
-			logsum.insert(std::make_pair(1,personParams1.getDpbLogsum()));
-			travelProbability.insert(std::make_pair(1,personParams1.getTravelProbability()));
-			tripsExpected.insert(std::make_pair(1,personParams1.getTripsExpected()));
-			activityLogsums1 = personParams1.getActivityLogsums();
+			const std::string luaDirTCZero = "TCZero";
+			personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTCZero );
+			personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTCZero);
+			personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTCZero);
+			personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTCZero );
+			personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTCZero );
+			personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTCZero);
 
-			logsum.insert(std::make_pair(2,personParams2.getDpbLogsum()));
-			travelProbability.insert(std::make_pair(2,personParams2.getTravelProbability()));
-			tripsExpected.insert(std::make_pair(2,personParams2.getTripsExpected()));
-			activityLogsums2 = personParams2.getActivityLogsums();
+			double logsumTCZero0 = personParams0.getDpbLogsum();
+			double logsumTCZero1 = personParams1.getDpbLogsum();
+			double logsumTCZero2 = personParams2.getDpbLogsum();
+			double logsumTCZero3 = personParams3.getDpbLogsum();
+			double logsumTCZero4 = personParams4.getDpbLogsum();
+			double logsumTCZero5 = personParams5.getDpbLogsum();
 
-			logsum.insert(std::make_pair(3,personParams3.getDpbLogsum()));
-			travelProbability.insert(std::make_pair(3,personParams3.getTravelProbability()));
-			tripsExpected.insert(std::make_pair(3,personParams3.getTripsExpected()));
-			activityLogsums3 = personParams3.getActivityLogsums();
+			if(config.ltParams.outputHouseholdLogsums.maxcCost)
+			{
+				const std::string luaDirTCPlusOne = "TCPlusOne";
+				personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTCPlusOne );
+				personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTCPlusOne);
+				personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTCPlusOne);
+				personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTCPlusOne );
+				personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTCPlusOne );
+				personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTCPlusOne);
 
-			logsum.insert(std::make_pair(4,personParams4.getDpbLogsum()));
-			travelProbability.insert(std::make_pair(4,personParams4.getTravelProbability()));
-			tripsExpected.insert(std::make_pair(4,personParams4.getTripsExpected()));
-			activityLogsums4 = personParams4.getActivityLogsums();
+				double logsumTCPlusOne0 = personParams0.getDpbLogsum();
+				double logsumTCPlusOne1 = personParams1.getDpbLogsum();
+				double logsumTCPlusOne2 = personParams2.getDpbLogsum();
+				double logsumTCPlusOne3 = personParams3.getDpbLogsum();
+				double logsumTCPlusOne4 = personParams4.getDpbLogsum();
+				double logsumTCPlusOne5 = personParams5.getDpbLogsum();
 
-			logsum.insert(std::make_pair(5,personParams5.getDpbLogsum()));
-			travelProbability.insert(std::make_pair(5,personParams5.getTravelProbability()));
-			tripsExpected.insert(std::make_pair(5,personParams5.getTripsExpected()));
-			activityLogsums5 = personParams5.getActivityLogsums();
+				double logsumScaledMaxCost0 = (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumTCPlusOne0 );
+				logsum.insert(std::make_pair(0,logsumScaledMaxCost0));
+
+				double logsumScaledMaxCost1 = (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumTCPlusOne1 );
+				logsum.insert(std::make_pair(1,logsumScaledMaxCost1));
+
+				double logsumScaledMaxCost2 = (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumTCPlusOne2 );
+				logsum.insert(std::make_pair(2,logsumScaledMaxCost2));
+
+				double logsumScaledMaxCost3 = (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumTCPlusOne3 );
+				logsum.insert(std::make_pair(3,logsumScaledMaxCost3));
+
+				double logsumScaledMaxCost4 = (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumTCPlusOne4 );
+				logsum.insert(std::make_pair(4,logsumScaledMaxCost4));
+
+				double logsumScaledMaxCost5 = (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumTCPlusOne5 );
+				logsum.insert(std::make_pair(5,logsumScaledMaxCost5));
+			}
+
+			if(config.ltParams.outputHouseholdLogsums.maxTime)
+			{
+				const std::string luaDirCTlusOne = "CTPlusOne";
+				personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirCTlusOne );
+				personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirCTlusOne);
+				personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirCTlusOne);
+				personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirCTlusOne );
+				personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirCTlusOne );
+				personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirCTlusOne);
+
+				double logsumCTPlusOne0 = personParams0.getDpbLogsum();
+				double logsumCTPlusOne1 = personParams1.getDpbLogsum();
+				double logsumCTPlusOne2 = personParams2.getDpbLogsum();
+				double logsumCTPlusOne3 = personParams3.getDpbLogsum();
+				double logsumCTPlusOne4 = personParams4.getDpbLogsum();
+				double logsumCTPlusOne5 = personParams5.getDpbLogsum();
+
+				double logsumScaledMaxTime0 =  (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumCTPlusOne0 );
+				logsum.insert(std::make_pair(0,logsumScaledMaxTime0));
+
+				double logsumScaledMaxTime1 =  (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumCTPlusOne1 );
+				logsum.insert(std::make_pair(1,logsumScaledMaxTime1));
+
+				double logsumScaledMaxTime2 =  (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumCTPlusOne2 );
+				logsum.insert(std::make_pair(2,logsumScaledMaxTime2));
+
+				double logsumScaledMaxTime3 =  (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumCTPlusOne3 );
+				logsum.insert(std::make_pair(3,logsumScaledMaxTime3));
+
+				double logsumScaledMaxTime4 =  (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumCTPlusOne4 );
+				logsum.insert(std::make_pair(4,logsumScaledMaxTime4));
+
+				double logsumScaledMaxTime5 =  (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumCTPlusOne5 );
+				logsum.insert(std::make_pair(5,logsumScaledMaxTime5));
+			}
+
 		}
 
 		simulationStopCounter++;
-		printHouseholdHitsLogsumFVO( hitsIndividualLogsum[p]->getHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, activityLogsums0, activityLogsums1, activityLogsums2, activityLogsums3, activityLogsums4,activityLogsums5,travelProbability, tripsExpected );
+		printHouseholdHitsLogsumFVO( hitsIndividualLogsum[p]->getHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
 
 	}
 
@@ -3146,41 +3346,69 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			double logsumTCPlusOne = 0;
 			double logsumCTPlusOne = 0;
 			double logsumTCZero = 0;
-			double logsumScaledMaxCost = 0;
 
 			if( config.ltParams.outputHouseholdLogsums.fixedHomeVariableWork )
 			{
 				const std::string luaDirTC = "TC";
 				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirTC);
 				logsumTC = personParams.getDpbLogsum();
-				//TODO::later add config param to read either tc+1 or ct+1
-				const std::string luaDirTCPlusOne = "TCPlusOne";
-				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirTCPlusOne);
-				logsumTCPlusOne = personParams.getDpbLogsum();
-
-				const std::string luaDirCTlusOne = "CTPlusOne";
-				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirCTlusOne);
-				logsumCTPlusOne = personParams.getDpbLogsum();
 
 				const std::string luaDirTCZero = "TCZero";
 				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirTCZero);
 				logsumTCZero = personParams.getDpbLogsum();
 
-				logsumScaledMaxCost = (logsumTC - logsumTCZero) / (logsumTC -logsumTCPlusOne );
+				if(config.ltParams.outputHouseholdLogsums.maxcCost)
+				{
+					const std::string luaDirTCPlusOne = "TCPlusOne";
+					personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirTCPlusOne);
+					logsumTCPlusOne = personParams.getDpbLogsum();
 
+					double logsumScaledMaxCost = (logsumTC - logsumTCZero) / (logsumTC -logsumTCPlusOne );
+					logsum.push_back(logsumScaledMaxCost);
+				}
+
+				if(config.ltParams.outputHouseholdLogsums.maxTime)
+				{
+					const std::string luaDirCTlusOne = "CTPlusOne";
+					personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirCTlusOne);
+					logsumCTPlusOne = personParams.getDpbLogsum();
+
+					double logsumScaledMaxTime =  (logsumTC - logsumTCZero) / (logsumTC -logsumCTPlusOne );
+					logsum.push_back(logsumScaledMaxTime);
+				}
 			}
 			else if( config.ltParams.outputHouseholdLogsums.fixedWorkVariableHome )
 			{
 				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams );
+
+				const std::string luaDirTC = "TC";
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams, luaDirTC);
+				logsumTC = personParams.getDpbLogsum();
+
+				const std::string luaDirTCZero = "TCZero";
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams, luaDirTCZero);
+				logsumTCZero = personParams.getDpbLogsum();
+
+				if(config.ltParams.outputHouseholdLogsums.maxcCost)
+				{
+					const std::string luaDirTCPlusOne = "TCPlusOne";
+					personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams, luaDirTCPlusOne);
+					logsumTCPlusOne = personParams.getDpbLogsum();
+
+					double logsumScaledMaxCost = (logsumTC - logsumTCZero) / (logsumTC -logsumTCPlusOne );
+					logsum.push_back(logsumScaledMaxCost);
+				}
+
+				if(config.ltParams.outputHouseholdLogsums.maxcCost)
+				{
+					const std::string luaDirCTlusOne = "CTPlusOne";
+					personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams, luaDirCTlusOne);
+					logsumCTPlusOne = personParams.getDpbLogsum();
+
+					double logsumScaledMaxTime =  (logsumTC - logsumTCZero) / (logsumTC -logsumCTPlusOne );
+					logsum.push_back(logsumScaledMaxTime);
+				}
 			}
-
-			double logsumD 				= logsumScaledMaxCost;
- 			double travelProbabilityD	= personParams.getTravelProbability();
-			double tripsExpectedD		= personParams.getTripsExpected();
-
-			logsum.push_back(logsumD);
-			travelProbability.push_back(travelProbabilityD);
-			tripsExpected.push_back(tripsExpectedD);
 		}
 
 		static bool printTitle = true;

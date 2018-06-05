@@ -17,9 +17,11 @@ using namespace messaging;
 using namespace std;
 
 OnCallController::OnCallController(const MutexStrategy &mtxStrat, unsigned int computationPeriod,
-                                   MobilityServiceControllerType type_, unsigned id, std::string tripSupportMode_, TT_EstimateType ttEstimateType_,unsigned maxAggregatedRequests_,bool studyAreaEnabledController)
-		: MobilityServiceController(mtxStrat, type_, id, tripSupportMode_,maxAggregatedRequests_,studyAreaEnabledController), scheduleComputationPeriod(computationPeriod),
-		  ttEstimateType(ttEstimateType_),studyAreaEnabledController(studyAreaEnabledController)
+                                   MobilityServiceControllerType type_, unsigned id, std::string tripSupportMode_, TT_EstimateType ttEstimateType_,
+                                   unsigned maxAggregatedRequests_,bool studyAreaEnabledController, unsigned int toleratedExtraTime_,
+                                   unsigned int maxWaitingTime_)
+		: MobilityServiceController(mtxStrat, type_, id, tripSupportMode_,maxAggregatedRequests_,studyAreaEnabledController,toleratedExtraTime_,maxWaitingTime_), scheduleComputationPeriod(computationPeriod),
+		  ttEstimateType(ttEstimateType_),studyAreaEnabledController(studyAreaEnabledController),toleratedExtraTime(toleratedExtraTime_),maxWaitingTime(maxWaitingTime_)
 {
 	rebalancer = new LazyRebalancer(this); //jo SimpleRebalancer(this);
 #ifndef NDEBUG
@@ -175,7 +177,6 @@ void OnCallController::onDriverScheduleStatus(Person *driver)
 	{
 		schedule.erase(schedule.begin());
 	}
-
 #ifndef NDEBUG
 	ControllerLog() << "onDriverScheduleStatus(): driverSchedules.size() = " << driverSchedules.size() << endl;
 #endif
@@ -1057,10 +1058,6 @@ void OnCallController::assignSchedules(const unordered_map<const Person *, Sched
 
 		//Find where to park after the final drop off
 		const Node *finalDropOffNode = schedule.back().tripRequest.destinationNode;
-
-		//aa!!: Is the parking logic really only related to the IncrementalSharing. It seems to me that the parking
-		//			logic is generally related to OnCallController. We should move that logic there, otherwise we will
-		//			have to write always the same code for any controller.
 		const SMSVehicleParking *parking =
 				SMSVehicleParking::smsParkingRTree.searchNearestObject(finalDropOffNode->getPosX(),
 				                                                       finalDropOffNode->getPosY());

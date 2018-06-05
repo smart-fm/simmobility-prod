@@ -125,12 +125,14 @@ void ExpandMidTermConfigFile::processConfig()
 			std::string tripSupportMode = p.second.tripSupportMode;
             const unsigned maxAggregatedRequests = p.second.maxAggregatedRequests;
 			bool studyAreaEnabledController = p.second.studyAreaEnabledController;
+            const unsigned toleratedExtraTime = p.second.toleratedExtraTime;
+            const unsigned maxWaitingTime = p.second.maxWaitingTime;
 
 #ifndef NDEBUG
         	sim_mob::consistencyChecks(controllerType);
 #endif
 
-            if (!serviceCtrlMgr->addMobilityServiceController(controllerType, scheduleComputationPeriod, controllerId, tripSupportMode,maxAggregatedRequests,studyAreaEnabledController))
+            if (!serviceCtrlMgr->addMobilityServiceController(controllerType, scheduleComputationPeriod, controllerId, tripSupportMode,maxAggregatedRequests,studyAreaEnabledController,toleratedExtraTime,maxWaitingTime))
 			{
 				stringstream msg;
 				msg << "Error processing configuration file. Invalid values for <controller=\""

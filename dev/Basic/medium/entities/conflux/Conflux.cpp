@@ -1316,15 +1316,14 @@ bool Conflux::callMovementFrameInit(timeslice now, Person_MT* person)
 			return false;
 		}
 	}
-	//Failsafe: no Role at all?
-	//aa!!: We should crash in debug mode only
+#ifndef NDEBUG
 	if (!person->getRole())
 	{
 		std::stringstream debugMsgs;
 		debugMsgs << "Person " << this->getId() << " has no Role.";
 		throw std::runtime_error(debugMsgs.str());
 	}
-
+#endif
 	//Get an UpdateParams instance.
 	//TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
 	//      We should replace this eventually (but this will require a larger code cleanup).

@@ -48,8 +48,9 @@ protected:
 	// The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
 	explicit MobilityServiceController(const MutexStrategy &mtxStrat,
 	                                   MobilityServiceControllerType type_, unsigned id_, std::string tripSupportMode_,
-                                       unsigned maxAggregatedRequests_, bool studyAreaEnabledController_)
-			: Agent(mtxStrat, id_), controllerServiceType(type_), controllerId(id_), tripSupportMode(tripSupportMode_), maxAggregatedRequests(maxAggregatedRequests_),studyAreaEnabledController(studyAreaEnabledController_)
+                                       unsigned maxAggregatedRequests_, bool studyAreaEnabledController_,unsigned int toleratedExtraTime_,unsigned int maxWaitingTime_)
+			: Agent(mtxStrat, id_), controllerServiceType(type_), controllerId(id_), tripSupportMode(tripSupportMode_), maxAggregatedRequests(maxAggregatedRequests_),
+              studyAreaEnabledController(studyAreaEnabledController_),toleratedExtraTime(toleratedExtraTime_),maxWaitingTime(maxWaitingTime_)
 	{
 #ifndef NDEBUG
 		sim_mob::consistencyChecks(type_);
@@ -87,12 +88,12 @@ public:
 
 	bool studyAreaEnabledController;
 
-	static const unsigned toleratedExtraTime; //seconds
+    unsigned toleratedExtraTime; //seconds
 
 	/**
 	 * The maximum that a user is willing to wait before being picked up
 	 */
-	static const double maxWaitingTime; // seconds
+    double maxWaitingTime; // seconds
 
 	/**
 	 * Maximum number of people we can put together in a single vehicle

@@ -680,9 +680,11 @@ struct MobilityServiceControllerConfig
 	unsigned int maxFleetSize;
     unsigned int maxAggregatedRequests;
 	bool studyAreaEnabledController;
+    unsigned int toleratedExtraTime;
+    unsigned int maxWaitingTime;
 
 
-	MobilityServiceControllerConfig() : type(SERVICE_CONTROLLER_UNKNOWN), scheduleComputationPeriod(0), tripSupportMode(""),maxAggregatedRequests(0),studyAreaEnabledController(false) {}
+	MobilityServiceControllerConfig() : type(SERVICE_CONTROLLER_UNKNOWN), scheduleComputationPeriod(0), tripSupportMode(""),maxAggregatedRequests(0),studyAreaEnabledController(false),toleratedExtraTime(0),maxWaitingTime(0) {}
 };
 
 /**

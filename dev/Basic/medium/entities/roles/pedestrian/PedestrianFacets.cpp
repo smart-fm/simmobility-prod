@@ -5,6 +5,7 @@
  *      Author: zhang huai peng
  */
 
+#include <geospatial/network/RoadNetwork.hpp>
 #include "PedestrianFacets.hpp"
 
 #include "conf/ConfigManager.hpp"
@@ -98,8 +99,6 @@ void PedestrianMovement::frame_init()
 					MobilityServiceController *controller = nullptr;
 					const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
 					auto enabledCtrlrs = cfg.mobilityServiceController.enabledControllers;
-					//auto itCtrlr = controllers.get<ctrlrType>().find(SERVICE_CONTROLLER_AMOD);
-					//auto itCtrlr = controllers.get<ctrlTripSupportMode>().find(tcItem->getMode());
 					std::map<unsigned int, MobilityServiceControllerConfig>:: iterator itr ;
 
 					for (itr = enabledCtrlrs.begin(); itr != enabledCtrlrs.end(); itr++)
@@ -121,39 +120,6 @@ void PedestrianMovement::frame_init()
 						throw std::runtime_error(msg.str());
 					}
 
-					/*
-					if((*taxiTripItr).travelMode.find("AMOD") != std::string::npos)
-					{
-						//If the person is taking an AMOD service, get the AMOD controller
-						auto itCtrlr = controllers.get<ctrlrType>().find(SERVICE_CONTROLLER_AMOD);
-
-						if (itCtrlr == controllers.get<ctrlrType>().end())
-						{
-							std::stringstream msg;
-							msg << "Controller of type " << toString(SERVICE_CONTROLLER_AMOD)
-							    << " has not been added, but "
-							    << "the demand contains persons taking AMOD service";
-							throw std::runtime_error(msg.str());
-						}
-
-						controller = *itCtrlr;
-					}
-					else
-					{
-						//Choose randomly from available controllers
-						const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
-						auto enabledCtrlrs = cfg.mobilityServiceController.enabledControllers;
-						auto it = enabledCtrlrs.begin();
-						auto randomNum = Utils::generateInt(0, enabledCtrlrs.size() - 1);
-
-						std::advance(it, randomNum);
-
-						//Here we have to search by id, as the enabled controllers map has id as the key
-						auto itCtrlr = controllers.get<ctrlrId>().find(it->first);
-						controller = *itCtrlr;
-					}
-					 */
-
 #ifndef NDEBUG
 					consistencyChecks(controller->getServiceType());
 					controller->consistencyChecks();
@@ -169,13 +135,13 @@ void PedestrianMovement::frame_init()
 					TripRequestMessage *request = new TripRequestMessage(person->currTick, person,
 					                                                     person->getDatabaseId(), taxiStartNode,
 					                                                     taxiEndNode,
-					                                                     MobilityServiceController::toleratedExtraTime,
+                                                                         controller->maxWaitingTime,
 					                                                     reqType);
-					MessageBus::PostMessage(controller, MSG_TRIP_REQUEST, MessageBus::MessagePtr(request));
 
+                        MessageBus::PostMessage(controller, MSG_TRIP_REQUEST, MessageBus::MessagePtr(request));
 
-					ControllerLog() << "Request sent to controller of type " << toString(controller->getServiceType())
-					                << ": ID : " << controller->getControllerId() << ": " << *request << std::endl;
+                        ControllerLog() << "Request sent to controller of type " << toString(controller->getServiceType())
+                                        << ": ID : " << controller->getControllerId() << ": " << *request << std::endl;
 				}
 			}
 		}

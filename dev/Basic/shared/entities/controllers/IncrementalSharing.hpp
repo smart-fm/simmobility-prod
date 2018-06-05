@@ -18,9 +18,10 @@ class IncrementalSharing : public OnCallController
 {
 public:
 	IncrementalSharing(const MutexStrategy &mtxStrat, unsigned int computationPeriod, unsigned id, std::string tripSupportMode_,
-	                   TT_EstimateType ttEstimateType, unsigned maxAggregatedRequests_,bool studyAreaEnabledController_) : OnCallController(mtxStrat, computationPeriod,
+	                   TT_EstimateType ttEstimateType, unsigned maxAggregatedRequests_,bool studyAreaEnabledController_,
+                       unsigned int toleratedExtraTime,unsigned int maxWaitingTime) : OnCallController(mtxStrat, computationPeriod,
 	                                                                      MobilityServiceControllerType::SERVICE_CONTROLLER_INCREMENTAL,
-	                                                                      id, tripSupportMode_, ttEstimateType,maxAggregatedRequests_,studyAreaEnabledController_)
+	                                                                      id, tripSupportMode_, ttEstimateType,maxAggregatedRequests_,studyAreaEnabledController_,toleratedExtraTime,maxWaitingTime)
 	{
 	}
 

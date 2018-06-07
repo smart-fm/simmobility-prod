@@ -110,10 +110,10 @@
 
         <!-- Reasonable values for MidTerm -->
         <base_granularity   value="5"   units="seconds"/>
-        <total_runtime      value="60"      units="minutes" />
+        <total_runtime      value="720"      units="minutes" />
 
         <total_warmup       value="10"     units="seconds" />
-        <start_time         value="06:00:00"/>
+        <start_time         value="00:00:00"/>
 
 
         <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->
@@ -160,9 +160,9 @@ Note: Controller id indicates the subscribed_controller field specified in the t
 
     <!-- Trip Support Modes available
     "Rail_SMS_Pool" "AMOD_Pool" "Rail_SMS" "SMS_Pool" "SMS" "AMOD"-->
-    <controller id="2" type="7" tripSupportMode = "|AMOD|AMOD_Pool|Rail_AMOD_Pool|Rail_AMOD|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="80" maxAggregatedRequests="6" studyAreaEnabledController="true" toleratedExtraTime="1800" maxWaitingTime = "1800"/>
+    <controller id="2" type="7" tripSupportMode = "|AMOD|AMOD_Pool|Rail_AMOD_Pool|Rail_AMOD|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="1000" maxAggregatedRequests="6" studyAreaEnabledController="true" toleratedExtraTime="1800" maxWaitingTime = "1800"/>
     <controller id="5" type="7" tripSupportMode = "|SMS|SMS_Pool|Rail_SMS|Rail_SMS_Pool|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="1000" maxAggregatedRequests="6" studyAreaEnabledController="false" toleratedExtraTime="1800" maxWaitingTime = "1800"/>
-     <controller id="4" type="1" tripSupportMode = "|Taxi|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="0" maxAggregatedRequests="1" studyAreaEnabledController="false" toleratedExtraTime="1800" maxWaitingTime = "1800"/>
+     <controller id="4" type="1" tripSupportMode = "|Taxi|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="1000" maxAggregatedRequests="1" studyAreaEnabledController="false" toleratedExtraTime="1800" maxWaitingTime = "1800"/>
 
 </mobilityServiceController>
     <merge_log_files value="true"/>

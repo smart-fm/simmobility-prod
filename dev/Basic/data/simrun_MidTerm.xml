@@ -58,19 +58,19 @@
             <mapping name="restricted_reg_nodes" procedure="get_mp_nodes()"/>
             <mapping name="restricted_reg_links" procedure="get_mp_links()"/>
 	    <!-- Demand Related stored procedures-->
-            <mapping name="day_activity_schedule" procedure="get_persons_between_2030_study_area_demand"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between_das_2030_partial_restriction"/>
             <!-- <mapping name="freight_trips" procedure="get_freight_between"/> -->
 
 
             <!-- Smart Mobility Controller related stored procedures -->
-            <mapping name="taxi_fleet" procedure="get_taxi_fleet_kakali"/>
+            <mapping name="taxi_fleet" procedure="get_taxi_fleet_2030_partial_restriction"/>
             <mapping name="sms_parking" procedure="get_parking()"/>
             <mapping name="taxi_stands" procedure="get_taxi_stands_2030()"/>
             <mapping name="rail_sms_pathset" procedure="get_pt_pathset_railsms_entiresg"/>
             <mapping name="rail_sms_edges" procedure="get_pt_tr_edges_railsms_entiresg()"/>
             <mapping name="rail_sms_vertices" procedure="get_pt_tr_vertices_railsms_entiresg()"/>
             <mapping name="loop_nodes" procedure="get_loop_nodes()" />
-            <!--- If the "studyAreaEnabledController" is true in simulation.xml then the following stored proc are required --> 
+            <!--- If the "study_area enabled" is true  then the following stored proc are required -->
             <mapping name="studyArea_nodes" procedure="get_extmp_nodes()"/>
             <mapping name="studyArea_links" procedure="get_extmp_links()"/>
             <mapping name="studyArea_pvt_pathset" procedure="get_pvt_pathset_extmp"/>
@@ -164,7 +164,7 @@
 <travel_time_update interval="300" />
 
     <!-- For generating demand to be used in SHORT TERM -->
-<trip_chain_output enabled="true" trip_activities_file="trip_activities.csv" sub_trips_file="sub_trips.csv"/>
+<trip_chain_output enabled="false" trip_activities_file="trip_activities.csv" sub_trips_file="sub_trips.csv"/>
 
 <!-- type {1: Public Transit, 2: PrivateBus, 3: Private Car, 4: Sharing, 5: Private bike, 6: Walk, 7: Taxi}-->
 <travel_modes>

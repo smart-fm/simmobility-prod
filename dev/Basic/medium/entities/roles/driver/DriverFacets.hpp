@@ -117,6 +117,12 @@ public:
 		this->laneConnectorOverride = laneConnectorOverride;
 	}
 
+	/**
+ 	* This method to check if the node is a looped node mean node's link's to node and from node is same
+    * @return
+    */
+	bool ifLoopedNode(unsigned int thisNodeId);
+
 protected:
 	/// mark startTimeand origin. Called at every frame_init
 	virtual TravelMetric& startTravelTimeMetric();

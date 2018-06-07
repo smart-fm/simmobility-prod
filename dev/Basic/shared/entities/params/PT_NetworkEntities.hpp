@@ -386,6 +386,17 @@ public:
 	 * @return type of vertex
 	 */
 	int getVertexTypeFromStopId(std::string stopId);
+
+	const std::string getNetworkTypeStr(PT_Network::NetworkType type) const
+	{
+		switch(type)
+		{
+			case TYPE_DEFAULT: {return "TYPE_DEFAULT (default network including full Road Netork) "; }
+			case TYPE_RAIL_SMS:{ return "TYPE_RAIL_SMS (full Rail Network)"; }
+			case TYPE_RAIL_STUDY_AREA:{return "TYPE_RAIL_STUDY_AREA (Rail Network restricted with in Study Area) "; }
+			default: throw std::runtime_error("Network Type not recognized");
+		}
+	}
 };
 
 class PT_NetworkCreater

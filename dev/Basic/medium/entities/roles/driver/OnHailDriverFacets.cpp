@@ -636,7 +636,7 @@ const Node* OnHailDriverBehaviour::chooseNode() const
 	//Ensure chosen node is not our immediate downstream node
 	////Ensure chosen node is not a source/sink node
 	const MesoPathMover &pathMover = onHailDriver->movement->getMesoPathMover();
-	if ((result->getNodeType() == SOURCE_OR_SINK_NODE) ||
+	if ((result->getNodeType() == SOURCE_OR_SINK_NODE) ||onHailDriver->movement->ifLoopedNode(result->getNodeId())||
 	    (pathMover.isDrivingPathSet() &&
 	     result == pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode()))
 	{

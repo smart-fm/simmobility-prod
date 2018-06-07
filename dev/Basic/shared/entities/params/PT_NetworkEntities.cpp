@@ -27,7 +27,15 @@ void PT_NetworkCreater::createNetwork(const string &storedProcForVertex, const s
 		PT_Network *network = new PT_Network();
 		if (config.isPublicTransitEnabled())
 		{
+			if(!config.isStudyAreaEnabled() && type == PT_Network::TYPE_RAIL_STUDY_AREA)
+			{
+				// do Nothing : Don't initialise network  as we will never use it for the case.
+			}
+			else
+			{
 			network->initialise(storedProcForVertex, storeProceForEdges);
+				cout << "Public Transport network of type "<<(itInstance->second)->getNetworkTypeStr(type)<<" loaded\n";
+			}
 		}
 		mapOfInstances[type] = network;  //even if public Transit is not enabled a blank PT_Network instance should be insert in mapOfInstances map.
 	}
@@ -264,7 +272,7 @@ void PT_Network::initialise(const std::string &storedProcForVertex, const std::s
 		RailTransit::getInstance().initGraph(mrtStationIds, mrtEdges);
 	}
 
-	cout << "Public Transport network loaded\n";
+	//cout << "Public Transport network for << <<loaded\n";
 }
 
 PT_Network::~PT_Network()

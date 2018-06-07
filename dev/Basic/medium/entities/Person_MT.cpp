@@ -414,10 +414,11 @@ void Person_MT::processRAIL_SMSTrips(std::vector<SubTrip> &subTrips)
 			if((*itSubTrip).destination.node->getNodeId() != nodeNearStation->getNodeId())
 			{
 				double distanceToNode = dist((*itSubTrip).destination.node->getLocation(), nodeNearStation->getLocation());
-
-				if ((cfg.isStudyAreaEnabled() && (*itSubTrip).travelMode.find("Rail_AMOD") == std::string::npos) || distanceToNode > 1000) //making all other leg escept start leg as walk for Rail_AMOD|Rail_AMOD_Pool
-				{                                                                                                                          //So that person can not ask for Rail_Amod vehicle if he is
-					subTrip.origin = WayPoint(nodeNearStation);                                                                            //out of study Area (if study Area Enable)
+				//making all other leg except start leg as walk for Rail_AMOD|Rail_AMOD_Pool.So that person can not ask for Rail_Amod vehicle if he is out of study Area (if study Area Enable)
+				//if ((cfg.isStudyAreaEnabled() && (*itSubTrip).travelMode.find("Rail_AMOD") == std::string::npos) || distanceToNode > 1000)
+				if (distanceToNode > 1000)
+				{
+					subTrip.origin = WayPoint(nodeNearStation);
 					subTrip.originType = TripChainItem::LT_NODE;
 					subTrip.destination = subTrip.origin;
 					subTrip.destinationType = TripChainItem::LT_NODE;

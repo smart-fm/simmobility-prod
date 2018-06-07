@@ -854,16 +854,3 @@ bool OnCallDriverMovement::ifNodeBlackListed(unsigned int thisNodeId)
 	return found;
 }
 
-
-bool OnCallDriverMovement::ifLoopedNode(unsigned int thisNodeId)
-{
-	auto loopNodesSet = RoadNetwork::getInstance()->getSetOfLoopNodesInNetwork();
-	bool found = false;
-	std::unordered_set<unsigned int>::const_iterator loopNodeItr;
-	loopNodeItr = loopNodesSet.find(thisNodeId);
-	if (loopNodeItr != loopNodesSet.end())
-	{
-		found = true;
-	}
-	return found;
-}

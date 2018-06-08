@@ -190,6 +190,11 @@ public:
 	virtual Schedule getAssignedSchedule() const;
 
 	/**
+ 	* There is no travel time collection for on call drivers. This method does nothing
+ 	*/
+	virtual void collectTravelTime();
+
+	/**
 	 * @return the number of passengers in the vehicle.
 	 */
 	virtual unsigned long getPassengerCount() const;

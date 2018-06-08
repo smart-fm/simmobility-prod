@@ -490,3 +490,8 @@ std::string OnCallDriver::getPassengersId() const
     }
     return passengerID;
 }
+
+void OnCallDriver::collectTravelTime()
+{
+	//Do nothing, as we do not collect travel times for onCall drivers
+}

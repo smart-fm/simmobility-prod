@@ -284,6 +284,7 @@ void HouseholdAgent::TransferUnitToFreelanceAgent()
 	{
 		Unit *unit = model->getUnitById( uitr->first );
 		unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
+		unit->setbiddingMarketEntryDay(day+1);
 		freelanceAgent->addUnitId( uitr->first );
 		this->removeUnitId( uitr->first );
 	}

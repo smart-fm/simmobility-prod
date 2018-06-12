@@ -703,6 +703,11 @@ struct MobilityServiceControllerParams
 
 	/// Maps controller IDs to controller configurations
 	std::map<unsigned int, MobilityServiceControllerConfig> enabledControllers;
+	mutable std::string tripSupportModeList;
+	void makeTripSupportModeList(std::string Mode) const
+	{
+		tripSupportModeList.append(Mode);
+	}
 };
 
 /**

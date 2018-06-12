@@ -52,7 +52,42 @@ void ExpandMidTermConfigFile::processConfig()
     ConfigParams::AgentConstraints constraints;
     constraints.startingAutoAgentID = cfg.simulation.startingAutoAgentID;
 
-    loadNetworkFromDatabase();
+	loadNetworkFromDatabase();
+
+	//register and initialize MobilityServiceControllers
+	if (cfg.mobilityServiceController.enabled)
+	{
+		FleetController_MT::getInstance()->initialise(active_agents);
+		MobilityServiceControllerManager::RegisterMobilityServiceControllerManager(cfg.mutexStategy());
+
+		auto serviceCtrlMgr = MobilityServiceControllerManager::GetInstance();
+
+		for (const std::pair<unsigned int, MobilityServiceControllerConfig>& p : cfg.mobilityServiceController.enabledControllers)
+		{
+			const MobilityServiceControllerType controllerType = p.second.type;
+			const unsigned scheduleComputationPeriod = p.second.scheduleComputationPeriod;
+			const unsigned controllerId = p.first;
+			std::string tripSupportMode = p.second.tripSupportMode;
+			const unsigned maxAggregatedRequests = p.second.maxAggregatedRequests;
+			bool studyAreaEnabledController = p.second.studyAreaEnabledController;
+			const unsigned toleratedExtraTime = p.second.toleratedExtraTime;
+			const unsigned maxWaitingTime = p.second.maxWaitingTime;
+			cfg.mobilityServiceController.makeTripSupportModeList(tripSupportMode);
+
+#ifndef NDEBUG
+			sim_mob::consistencyChecks(controllerType);
+#endif
+
+			if (!serviceCtrlMgr->addMobilityServiceController(controllerType, scheduleComputationPeriod, controllerId, tripSupportMode,maxAggregatedRequests,studyAreaEnabledController,toleratedExtraTime,maxWaitingTime))
+			{
+				stringstream msg;
+				msg << "Error processing configuration file. Invalid values for <controller=\""
+				<< controllerId << "\" type=\"" << controllerType << "\""
+				<< "\nUnable to add Mobility Service Controller";
+				throw std::runtime_error(msg.str());
+			}
+		}
+	}
 
 	TravelTimeManager::getInstance()->loadTravelTimes();
 
@@ -61,11 +96,6 @@ void ExpandMidTermConfigFile::processConfig()
         RestrictedRegion::getInstance().populate();
     }
 
- /*   if (cfg.isPublicTransitEnabled())
-    {
-        loadPublicTransitNetworkFromDatabase();
-    }
-*/
 	loadPublicTransitNetworkFromDatabase();
 
     cfg.sealNetwork();
@@ -109,41 +139,7 @@ void ExpandMidTermConfigFile::processConfig()
         Conflux::CreateConfluxes();
     }
 
-    //register and initialize MobilityServiceControllers
-    if (cfg.mobilityServiceController.enabled)
-    {
-		FleetController_MT::getInstance()->initialise(active_agents);
-        MobilityServiceControllerManager::RegisterMobilityServiceControllerManager(cfg.mutexStategy());
-
-		auto serviceCtrlMgr = MobilityServiceControllerManager::GetInstance();
-
-        for (const std::pair<unsigned int, MobilityServiceControllerConfig>& p : cfg.mobilityServiceController.enabledControllers)
-        {
-        	const MobilityServiceControllerType controllerType = p.second.type;
-        	const unsigned scheduleComputationPeriod = p.second.scheduleComputationPeriod;
-        	const unsigned controllerId = p.first;
-			std::string tripSupportMode = p.second.tripSupportMode;
-            const unsigned maxAggregatedRequests = p.second.maxAggregatedRequests;
-			bool studyAreaEnabledController = p.second.studyAreaEnabledController;
-            const unsigned toleratedExtraTime = p.second.toleratedExtraTime;
-            const unsigned maxWaitingTime = p.second.maxWaitingTime;
-
-#ifndef NDEBUG
-        	sim_mob::consistencyChecks(controllerType);
-#endif
-
-            if (!serviceCtrlMgr->addMobilityServiceController(controllerType, scheduleComputationPeriod, controllerId, tripSupportMode,maxAggregatedRequests,studyAreaEnabledController,toleratedExtraTime,maxWaitingTime))
-			{
-				stringstream msg;
-				msg << "Error processing configuration file. Invalid values for <controller=\""
-					<< controllerId << "\" type=\"" << controllerType << "\""
-					<< "\nUnable to add Mobility Service Controller";
-				throw std::runtime_error(msg.str());
-			}
-        }
-    }
-
-    //register and initialize BusController
+	//register and initialize BusController
 	if (cfg.busController.enabled)
 	{
 		BusControllerMT::RegisterBusController(-1, cfg.mutexStategy());

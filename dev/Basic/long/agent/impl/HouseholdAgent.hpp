@@ -55,6 +55,8 @@ namespace sim_mob
             int getBuySellInterval( ) const;
 
             void setHouseholdBiddingWindow(int value);
+            int getHouseholdBiddingWindow() const;
+
             int getAwakeningDay() const;
 
             void setAwakeningDay(int _day);
@@ -66,7 +68,6 @@ namespace sim_mob
 
             void setAcceptedBid(bool isAccepted);
 
-        
         protected:
             /**
              * Inherited from LT_Agent.

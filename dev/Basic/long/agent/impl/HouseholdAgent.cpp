@@ -117,6 +117,10 @@ void HouseholdAgent::setHouseholdBiddingWindow(int value)
 	householdBiddingWindow = value;
 }
 
+int HouseholdAgent::getHouseholdBiddingWindow() const
+{
+	return householdBiddingWindow;
+}
 
 int HouseholdAgent::getAwakeningDay() const
 {

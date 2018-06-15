@@ -369,7 +369,7 @@ void HouseholdBidderRole::update(timeslice now)
 //	}
 
     //based on the last bid status a household can't bid again until it passes awakeningOffMarketSuccessfulBid/awakeningOffMarketUnsuccessfulBid
-    if ( ((getParent()->getHousehold()->getLastBidStatus() != 1) && (getParent()->getHousehold()->getLastBidStatus() != 2) ) && (getParent()->getHousehold()->getTimeOffMarket() <= 0))
+	if(getParent()->getHousehold()->getTimeOffMarket() <= 0)
     {
     	bidUnit(now);
     	getParent()->getModel()->incrementNumberOfBidders();
@@ -448,7 +448,10 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 {
                     biddingEntry.incrementTries();
                     getParent()->getHousehold()->setLastBidStatus(2);
-                    getParent()->getHousehold()->setTimeOffMarket(config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid);
+                    if(getParent()->getHouseholdBiddingWindow() == 0)
+                    {
+                    	getParent()->getHousehold()->setTimeOffMarket(config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid);
+                    }
                     break;
                 }
                 case BETTER_OFFER:

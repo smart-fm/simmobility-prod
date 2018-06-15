@@ -63,6 +63,11 @@ namespace
         	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
         }
 
+        if(response == ACCEPTED)
+        {
+        	Statistics::increment(Statistics::N_ACCEPTED_BIDS);
+        }
+
         if(response != NOT_AVAILABLE)
         {
         	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();

@@ -477,12 +477,6 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 {
     HousingMarket* market = getParent()->getMarket();
     const Household* household = getParent()->getHousehold();
-
-    if(household->getLastBidStatus() == 1)
-    {
-    	PrintOutV("can't bid"<<std::endl);
-    }
-
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
     HM_Model* model = getParent()->getModel();
     

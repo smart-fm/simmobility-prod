@@ -8,8 +8,8 @@ using namespace sim_mob;
 using namespace std;
 
 AMOD_Controller::AMOD_Controller(const MutexStrategy &mtx, unsigned int computationPeriod, unsigned int id, std::string tripSupportMode_,
-                                 TT_EstimateType tt_estType, unsigned maxAggregatedRequests_, bool studyAreaEnabledController_,unsigned int toleratedExtraTime,unsigned int maxWaitingTime) : OnCallController(mtx, computationPeriod,
-                                                                                SERVICE_CONTROLLER_AMOD, id, tripSupportMode_,tt_estType,maxAggregatedRequests_,studyAreaEnabledController_, toleratedExtraTime,maxWaitingTime)
+                                 TT_EstimateType tt_estType, unsigned maxAggregatedRequests_, bool studyAreaEnabledController_,unsigned int toleratedExtraTime,unsigned int maxWaitingTime,bool parkingEnabled)
+        : OnCallController(mtx, computationPeriod,SERVICE_CONTROLLER_AMOD, id, tripSupportMode_,tt_estType,maxAggregatedRequests_,studyAreaEnabledController_, toleratedExtraTime,maxWaitingTime,parkingEnabled)
 {}
 
 void AMOD_Controller::computeSchedules()
@@ -72,10 +72,14 @@ void AMOD_Controller::computeSchedules()
 
 			//If this driver wasn't assigned a schedule with more than 1 person, we add it to the
 			//set of drivers serving shared requests that can still be assigned another passenger
-			if(schedule.size() <= 3)
+			if(schedule.size() <= 2 && !parkingEnabled)
 			{
 				driversServingSharedReq.insert(driver);
 			}
+            else if(schedule.size()<=3)
+            {
+                driversServingSharedReq.insert(driver);
+            }
 		}
 	}
 
@@ -219,23 +223,25 @@ void AMOD_Controller::matchSingleRiderReq()
 
 		if (bestDriver)
 		{
-			//Retrieve the parking closest to the destination node
-			const Node *endNode = (*request).destinationNode;
-			auto parking = SMSVehicleParking::smsParkingRTree.searchNearestObject(endNode->getPosX(),
-			                                                                      endNode->getPosY());
-
-			Schedule schedule;
+            Schedule schedule;
 			const ScheduleItem pickUpScheduleItem(PICKUP, *request);
 			const ScheduleItem dropOffScheduleItem(DROPOFF, *request);
 
 			schedule.push_back(pickUpScheduleItem);
 			schedule.push_back(dropOffScheduleItem);
 
-			if (parking)
-			{
-				const ScheduleItem parkScheduleItem(PARK, parking);
-				schedule.push_back(parkScheduleItem);
-			}
+            if(parkingEnabled)
+            {
+                //Retrieve the parking closest to the destination node
+                const Node *endNode = (*request).destinationNode;
+                auto parking = SMSVehicleParking::smsParkingRTree.searchNearestObject(endNode->getPosX(),
+                                                                                      endNode->getPosY());
+                if (parking)
+                {
+                    const ScheduleItem parkScheduleItem(PARK, parking);
+                    schedule.push_back(parkScheduleItem);
+                }
+            }
 
 			ControllerLog()<<"SingleRideRequest: is prepared  for Driver "<<bestDriver->getDatabaseId()<<" at time "<<currTick<<" ."<<endl;
             assignSchedule(bestDriver, schedule);

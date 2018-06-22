@@ -908,6 +908,8 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
                         ParseUnsignedInt(GetNamedAttributeValue(*it, "toleratedExtraTime"));
                 unsigned int maxWaitingTime =
                         ParseUnsignedInt(GetNamedAttributeValue(*it, "maxWaitingTime"));
+                bool parkingEnabled =
+                        ParseBoolean(GetNamedAttributeValue(*it, "parkingEnabled"));
 
 
                 if (cfg.mobilityServiceController.enabledControllers.count(key) > 0)
@@ -929,6 +931,7 @@ void sim_mob::ParseConfigFile::processMobilityServiceControllerNode(DOMElement *
 					vcc.studyAreaEnabledController = studyAreaEnabledController;
                     vcc.toleratedExtraTime = toleratedExtraTime;
                     vcc.maxWaitingTime = maxWaitingTime;
+                    vcc.parkingEnabled = parkingEnabled;
                     cfg.mobilityServiceController.enabledControllers[key] = vcc;
                 }
             }

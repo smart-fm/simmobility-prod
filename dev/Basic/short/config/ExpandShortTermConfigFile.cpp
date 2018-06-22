@@ -376,13 +376,16 @@ void ExpandShortTermConfigFile::processConfig()
 			const unsigned controllerId = p.first;
 			std::string tripSupportMode = p.second.tripSupportMode;;
             const unsigned maxAggregatedRequests = p.second.maxAggregatedRequests;
-			bool studyAreaEnabledController = p.secong.studyAreaEnabledController;
+			bool studyAreaEnabledController = p.second.studyAreaEnabledController;
+            unsigned int toleratedExtraTime = p.second.toleratedExtraTime;
+            unsigned int maxWaitingTime = p.second.maxWaitingTime;
+            bool parkingEnabled = p.second.parkingEnabled;
 
 #ifndef NDEBUG
 			sim_mob::consistencyChecks(controllerType);
 #endif
 
-			if (!serviceCtrlMgr->addMobilityServiceController(controllerType, scheduleComputationPeriod, controllerId, tripSupportMode,maxAggregatedRequests,studyAreaEnabledController))
+			if (!serviceCtrlMgr->addMobilityServiceController(controllerType, scheduleComputationPeriod, controllerId, tripSupportMode,maxAggregatedRequests,studyAreaEnabledController,toleratedExtraTime,maxWaitingTime,parkingEnabled))
 			{
 				stringstream msg;
 				msg << "Error processing configuration file. Invalid values for <controller=\""

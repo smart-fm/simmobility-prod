@@ -72,13 +72,14 @@ void ExpandMidTermConfigFile::processConfig()
 			bool studyAreaEnabledController = p.second.studyAreaEnabledController;
 			const unsigned toleratedExtraTime = p.second.toleratedExtraTime;
 			const unsigned maxWaitingTime = p.second.maxWaitingTime;
+            bool parkingEnabled = p.second.parkingEnabled;
 			cfg.mobilityServiceController.makeTripSupportModeList(tripSupportMode);
 
 #ifndef NDEBUG
 			sim_mob::consistencyChecks(controllerType);
 #endif
 
-			if (!serviceCtrlMgr->addMobilityServiceController(controllerType, scheduleComputationPeriod, controllerId, tripSupportMode,maxAggregatedRequests,studyAreaEnabledController,toleratedExtraTime,maxWaitingTime))
+			if (!serviceCtrlMgr->addMobilityServiceController(controllerType, scheduleComputationPeriod, controllerId, tripSupportMode,maxAggregatedRequests,studyAreaEnabledController,toleratedExtraTime,maxWaitingTime,parkingEnabled))
 			{
 				stringstream msg;
 				msg << "Error processing configuration file. Invalid values for <controller=\""

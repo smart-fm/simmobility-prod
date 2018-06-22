@@ -682,9 +682,9 @@ struct MobilityServiceControllerConfig
 	bool studyAreaEnabledController;
     unsigned int toleratedExtraTime;
     unsigned int maxWaitingTime;
+    bool parkingEnabled;
 
-
-	MobilityServiceControllerConfig() : type(SERVICE_CONTROLLER_UNKNOWN), scheduleComputationPeriod(0), tripSupportMode(""),maxAggregatedRequests(0),studyAreaEnabledController(false),toleratedExtraTime(0),maxWaitingTime(0) {}
+	MobilityServiceControllerConfig() : type(SERVICE_CONTROLLER_UNKNOWN), scheduleComputationPeriod(0), tripSupportMode(""),maxAggregatedRequests(0),studyAreaEnabledController(false),toleratedExtraTime(0),maxWaitingTime(0),parkingEnabled(false) {}
 };
 
 /**

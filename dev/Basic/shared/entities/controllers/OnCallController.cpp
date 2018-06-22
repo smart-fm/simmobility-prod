@@ -19,8 +19,8 @@ using namespace std;
 OnCallController::OnCallController(const MutexStrategy &mtxStrat, unsigned int computationPeriod,
                                    MobilityServiceControllerType type_, unsigned id, std::string tripSupportMode_, TT_EstimateType ttEstimateType_,
                                    unsigned maxAggregatedRequests_,bool studyAreaEnabledController, unsigned int toleratedExtraTime_,
-                                   unsigned int maxWaitingTime_)
-		: MobilityServiceController(mtxStrat, type_, id, tripSupportMode_,maxAggregatedRequests_,studyAreaEnabledController,toleratedExtraTime_,maxWaitingTime_), scheduleComputationPeriod(computationPeriod),
+                                   unsigned int maxWaitingTime_,bool parkingEnabled)
+		: MobilityServiceController(mtxStrat, type_, id, tripSupportMode_,maxAggregatedRequests_,studyAreaEnabledController,toleratedExtraTime_,maxWaitingTime_,parkingEnabled), scheduleComputationPeriod(computationPeriod),
 		  ttEstimateType(ttEstimateType_),studyAreaEnabledController(studyAreaEnabledController),toleratedExtraTime(toleratedExtraTime_),maxWaitingTime(maxWaitingTime_)
 {
 	rebalancer = new LazyRebalancer(this); //jo SimpleRebalancer(this);
@@ -1055,23 +1055,24 @@ void OnCallController::assignSchedules(const unordered_map<const Person *, Sched
 	{
 		const Person *driver = p.first;
 		Schedule schedule = p.second;
-
-		//Find where to park after the final drop off
-		const Node *finalDropOffNode = schedule.back().tripRequest.destinationNode;
-		const SMSVehicleParking *parking =
-				SMSVehicleParking::smsParkingRTree.searchNearestObject(finalDropOffNode->getPosX(),
-				                                                       finalDropOffNode->getPosY());
-
-		if (parking)
-		{
-			//Append the parking schedule item to the end
-			const ScheduleItem parkingSchedule(PARK, parking);
-			schedule.push_back(parkingSchedule);
-		}
-		else
-		{
-			ControllerLog()<<"Parking is not found near dropOff node "<<finalDropOffNode->getNodeId()<<" . trip is with Driver "<<driver->getDatabaseId()<<" and schedule is { "<<p.second<<" }"<<endl;
-		}
+        if(parkingEnabled)
+        {
+            //Find where to park after the final drop off
+            const Node *finalDropOffNode = schedule.back().tripRequest.destinationNode;
+            const SMSVehicleParking *parking =
+                    SMSVehicleParking::smsParkingRTree.searchNearestObject(finalDropOffNode->getPosX(),
+                                                                           finalDropOffNode->getPosY());
+            if (parking)
+            {
+                //Append the parking schedule item to the end
+                const ScheduleItem parkingSchedule(PARK, parking);
+                schedule.push_back(parkingSchedule);
+            }
+            else
+            {
+                ControllerLog()<<"Parking is not found near dropOff node "<<finalDropOffNode->getNodeId()<<" . trip is with Driver "<<driver->getDatabaseId()<<" and schedule is { "<<p.second<<" }"<<endl;
+            }
+        }
 
 		assignSchedule(driver, schedule, isUpdatedSchedule);
 	}

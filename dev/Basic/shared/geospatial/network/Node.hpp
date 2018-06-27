@@ -34,7 +34,10 @@ enum NodeType
 	INTERSECTION_NODE = 2,
 
 	/**This type of node is a merging node*/
-	MERGE_NODE = 3
+	MERGE_NODE = 3,
+
+	/**This type node is need to be exluded from Network. We will filter these from network while running simulation*/
+	NETWORK_EXCLUDED_NODE = 9
 };
 
 /**

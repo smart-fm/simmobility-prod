@@ -65,6 +65,10 @@ void FleetController::LoadTaxiFleetFromDB()
 		double y = r.get<double>(COLUMN_START_LOCATION_Y);
 		Utils::convertWGS84_ToUTM(x, y);
 		fleetItem.startNode = Node::allNodesMap.searchNearestObject(x, y);
+		if(fleetItem.startNode->getNodeType()==SOURCE_OR_SINK_NODE || fleetItem.startNode->getNodeType()==NETWORK_EXCLUDED_NODE)
+		{
+			continue;
+		}
 		const std::string &startTime = r.get<std::string>(COLUMN_SHIFT_START_TIME);
 		fleetItem.startTime = getSecondFrmTimeString(startTime);
 		int shiftDuration = 3600 * r.get<int>(COLUMN_SHIFT_DURATION);

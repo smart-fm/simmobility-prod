@@ -370,7 +370,7 @@ const Node* OnCallDriverBehaviour::chooseRandomNode() const
     const Node *result = itRandomNode->second;
 
     //Ensure chosen node is not a source/sink node
-    if(result->getNodeType() == SOURCE_OR_SINK_NODE || onCallDriver->movement->blackListedNodes.find(result->getNodeId())!=onCallDriver->movement->blackListedNodes.end())
+    if(result->getNodeType() == SOURCE_OR_SINK_NODE ||result->getNodeType() == NETWORK_EXCLUDED_NODE || onCallDriver->movement->blackListedNodes.find(result->getNodeId())!=onCallDriver->movement->blackListedNodes.end())
     {
         result = chooseRandomNode();
     }

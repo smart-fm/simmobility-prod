@@ -716,7 +716,7 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 		for (auto it = itTurningsFromCurrLane->second.begin(); it != itTurningsFromCurrLane->second.end(); ++it)
 		{
 			const Node * thisNode = it->second->getToLane()->getParentSegment()->getParentLink()->getToNode();
-			if(thisNode->getNodeType()==SOURCE_OR_SINK_NODE || onCallDriver->movement->ifLoopedNode(thisNode->getNodeId()))
+			if(thisNode->getNodeType()==SOURCE_OR_SINK_NODE || thisNode->getNodeType()==NETWORK_EXCLUDED_NODE ||onCallDriver->movement->ifLoopedNode(thisNode->getNodeId()))
 			{
 				continue;
 			}
@@ -742,7 +742,7 @@ const Node * OnCallDriverBehaviour::chooseDownstreamNode(const Node *fromNode) c
 		//We are starting from a node and currently have no lane, all downstream nodes are reachable
 		for(auto link : downstreamLinks)
 		{
-			if(link->getToNode()->getNodeType()==SOURCE_OR_SINK_NODE || onCallDriver->movement->ifLoopedNode(link->getToNode()->getNodeId()))
+			if(link->getToNode()->getNodeType()==SOURCE_OR_SINK_NODE || link->getToNode()->getNodeType()==NETWORK_EXCLUDED_NODE || onCallDriver->movement->ifLoopedNode(link->getToNode()->getNodeId()))
 			{
 				continue;
 			}
@@ -810,7 +810,7 @@ const Node* OnCallDriverBehaviour::chooseRandomNode() const
 	const Node *result = itRandomNode->second;
 
 	//Ensure chosen node is not a source/sink node
-	if(result->getNodeType() == SOURCE_OR_SINK_NODE || onCallDriver->movement->ifLoopedNode(result->getNodeId()))
+	if(result->getNodeType() == SOURCE_OR_SINK_NODE || result->getNodeType() == NETWORK_EXCLUDED_NODE ||onCallDriver->movement->ifLoopedNode(result->getNodeId()))
 	{
 		result = chooseRandomNode();
 	}
@@ -832,7 +832,7 @@ const Node* OnCallDriverBehaviour::chooseRandomNodeFromStudyAreaRegion() const
 	const Node *result = itRandomNode->second;
 
 	//Ensure chosen node is not a source/sink node and also if this is not a black listed Node
-	if(result->getNodeType() == SOURCE_OR_SINK_NODE || onCallDriver->movement->ifNodeBlackListed(result->getNodeId())|| onCallDriver->movement->ifLoopedNode(result->getNodeId()))
+	if(result->getNodeType() == SOURCE_OR_SINK_NODE || result->getNodeType() == NETWORK_EXCLUDED_NODE ||  onCallDriver->movement->ifNodeBlackListed(result->getNodeId())|| onCallDriver->movement->ifLoopedNode(result->getNodeId()))
 	{
 		result = chooseRandomNodeFromStudyAreaRegion();
 	}

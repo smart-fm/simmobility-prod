@@ -241,6 +241,12 @@ void AMOD_Controller::matchSingleRiderReq()
                     const ScheduleItem parkScheduleItem(PARK, parking);
                     schedule.push_back(parkScheduleItem);
                 }
+                else
+                {
+                    std::stringstream msg;
+                    msg << "Parking stored procedure not provided instead of parking is enabled."<<std::endl;
+                    throw std::runtime_error(msg.str());
+                }
             }
 
 			ControllerLog()<<"SingleRideRequest: is prepared  for Driver "<<bestDriver->getDatabaseId()<<" at time "<<currTick<<" ."<<endl;

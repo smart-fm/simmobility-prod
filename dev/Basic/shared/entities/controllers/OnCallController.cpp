@@ -1070,7 +1070,9 @@ void OnCallController::assignSchedules(const unordered_map<const Person *, Sched
             }
             else
             {
-                ControllerLog()<<"Parking is not found near dropOff node "<<finalDropOffNode->getNodeId()<<" . trip is with Driver "<<driver->getDatabaseId()<<" and schedule is { "<<p.second<<" }"<<endl;
+                std::stringstream msg;
+                msg << "Parking stored procedure not provided instead of parking is enabled."<<std::endl;
+                throw std::runtime_error(msg.str());
             }
         }
 

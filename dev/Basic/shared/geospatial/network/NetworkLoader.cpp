@@ -720,13 +720,20 @@ void NetworkLoader::loadParkingSlots(const std::string& storedProc)
 void NetworkLoader::loadSMSVehicleParking(const std::string &storedProc)
 {
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
-
-	if(storedProc.empty())
-	{
-		Print() << "Optional data: Parking Info are not loaded. Stored procedure not provided\n";
-		Warn() << "Stored procedure to load Parking Info  not specified in the configuration file."
-			   << "\nParking Info not loaded..." << std::endl;
-		return;
+    auto controllerIt = config.mobilityServiceController.enabledControllers.begin();
+    while(controllerIt != config.mobilityServiceController.enabledControllers.end())
+    {
+        if((*controllerIt).second.parkingEnabled)
+        {
+            if (storedProc.empty())
+            {
+                std::stringstream msg;
+                msg << "Stored procedure to load Parking Info  not specified in the configuration file."
+                    << "\nParking Info not loaded..." << std::endl;
+                throw std::runtime_error(msg.str());
+            }
+        }
+        controllerIt++;
     }
 
     //SQL statement
@@ -814,7 +821,6 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		//loadParkingSlots(getStoredProcedure(storedProcs, "parking_slots", false));
 
 		loadTaxiStands(getStoredProcedure(storedProcs, "taxi_stands", false));
-
 		loadSMSVehicleParking(getStoredProcedure(storedProcs, "sms_parking", false));
 
 		//Close the connection

@@ -1068,12 +1068,6 @@ void OnCallController::assignSchedules(const unordered_map<const Person *, Sched
                 const ScheduleItem parkingSchedule(PARK, parking);
                 schedule.push_back(parkingSchedule);
             }
-            else
-            {
-                std::stringstream msg;
-                msg << "Parking stored procedure not provided instead of parking is enabled."<<std::endl;
-                throw std::runtime_error(msg.str());
-            }
         }
 
 		assignSchedule(driver, schedule, isUpdatedSchedule);

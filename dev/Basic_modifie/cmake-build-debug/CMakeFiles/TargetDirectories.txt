@@ -1,3 +1,0 @@
-/home/aditi/Documents/Simmobility/simmobility/dev/Basic/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/aditi/Documents/Simmobility/simmobility/dev/Basic/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/aditi/Documents/Simmobility/simmobility/dev/Basic/cmake-build-debug/CMakeFiles/Basic.dir

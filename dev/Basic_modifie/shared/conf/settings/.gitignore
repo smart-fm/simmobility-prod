@@ -1,3 +1,0 @@
-#Ignore all .h files (but not .h.in)
-*.h
-!*.h.in

@@ -117,7 +117,7 @@ public:
      * @param stop is which currently bus driver arrive at
      *
      */
-    void storeAlightInfo(Person_ST *passenger,const std::string &BusLineId );
+    void storeAlightInfo(Person_ST *passenger,const std::string BusLineId );
 
 	friend class BusDriverBehavior;
 	friend class BusDriverMovement;

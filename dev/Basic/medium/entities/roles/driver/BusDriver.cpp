@@ -96,9 +96,9 @@ bool  BusDriver::checkIsFull()
 	}
 }
 
-unsigned int BusDriver::alightPassenger(BusStopAgent* busStopAgent, const std::string& currentTime){
+unsigned int BusDriver::alightPassenger(BusStopAgent* busStopAgent, std::string& currentTime){
 	unsigned int numAlighting = 0;
-	std::list<Passenger*>::const_iterator itPassenger = passengerList.begin();
+	std::list<Passenger*>::iterator itPassenger = passengerList.begin();
 	const BusStop* stop = busStopAgent->getBusStop();
 	if(stop->isVirtualStop())
 	{
@@ -159,7 +159,7 @@ void BusDriver::storeArrivalTime(const std::string& current, const std::string& 
 		this->busSequenceNumber++;
 	}
 }
-void BusDriver::storeAlightInfo(const sim_mob::medium::Passenger* passenger,const std::string& currentTime, const BusStop* stop, const std::string &BusLineId )
+void BusDriver::storeAlightInfo(sim_mob::medium::Passenger* passenger,const std::string& currentTime, const BusStop* stop, const std::string BusLineId )
 {
 
 	PT_PassengerAlightInfo personAlightTimeInfo;
@@ -173,15 +173,12 @@ void BusDriver::storeAlightInfo(const sim_mob::medium::Passenger* passenger,cons
 	busStopNo = stop->getStopCode();
 	}
 	/** id of person who submitted this waiting time record*/
-    if(passenger!= nullptr)
-    {
-        personAlightTimeInfo.personId = passenger->getParent()->getDatabaseId();
-        personAlightTimeInfo.stopNo = busStopNo;
-        personAlightTimeInfo.serviceLine= BusLineId;
-        personAlightTimeInfo.alightTime = currentTime;    //person allight time (==current time)
-        messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_ALIGHTING,
-                                           messaging::MessageBus::MessagePtr(new PT_PassengerAlightInfoMessage(personAlightTimeInfo)));
-    }
+	personAlightTimeInfo.personId = passenger->getParent()->getDatabaseId();
+	personAlightTimeInfo.stopNo = busStopNo;
+	personAlightTimeInfo.serviceLine= BusLineId;
+	personAlightTimeInfo.alightTime = currentTime;    //person allight time (==current time)
+	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_ALIGHTING,
+									   messaging::MessageBus::MessagePtr(new PT_PassengerAlightInfoMessage(personAlightTimeInfo)));
 
 }
 
@@ -229,7 +226,7 @@ void BusDriver::openBusDoors(const std::string& current, BusStopAgent* busStopAg
 	 * agent in the simulation will be updating at the same time.
 	 */
 
-	unsigned int numAlighting = alightPassenger(busStopAgent, current);
+	unsigned int numAlighting = alightPassenger(busStopAgent, const_cast<std::string&>(current));
 	busStopAgent->handleBusArrival(this);
 	unsigned int numBoarding = busStopAgent->getBoardingNum(this);
 	unsigned int totalNumber = numAlighting + numBoarding;

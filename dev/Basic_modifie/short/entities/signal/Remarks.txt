@@ -1,8 +1,0 @@
-1)Function setupIndexMaps() will generate link_maps and crossing_maps based on the angle of each link wrt the main xy coordiante
-this generation for "each" signalled intersection can be lengthy. isn't it better t shift this to 
-road network editor and define an xml format in the road items section?
-
-2)determining angle of link at each intersection is based upon the link which can even be a curved line whose angle is not very accurate. 
-isn't it better we calculate the angle based on a more accurate element like segment->lane->polylines(actually final couple of polylines) ?
-
-3) is there a five way intersection in singapore? how are they implemented?

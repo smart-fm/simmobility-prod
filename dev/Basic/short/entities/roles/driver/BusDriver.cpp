@@ -138,7 +138,7 @@ BusStopAgent* BusDriver::getCurrBusStopAgent() const
 	return currBusStopAgent;
 }
 
-void BusDriver::storeAlightInfo(Person_ST *passenger,const std::string &BusLineId )
+void BusDriver::storeAlightInfo(Person_ST *passenger,const std::string BusLineId )
 {
 
     PT_PassengerAlightInfo personAlightTimeInfo;
@@ -155,15 +155,11 @@ void BusDriver::storeAlightInfo(Person_ST *passenger,const std::string &BusLineI
         busStopNo = busStop->getStopCode();
     }
     /** id of person who submitted this waiting time record*/
-    if(passenger!= nullptr)
-    {
-        personAlightTimeInfo.personId = passenger->getDatabaseId();
-        personAlightTimeInfo.stopNo = busStopNo;
-        personAlightTimeInfo.serviceLine = BusLineId;
-        personAlightTimeInfo.alightTime = DailyTime(currMS +
-                                                    ConfigManager::GetInstance().FullConfig().simStartTime().getValue()).getStrRepr();;    //person allight time (==current time)
-        messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_ALIGHTING,
-                                           messaging::MessageBus::MessagePtr(
-                                                   new PT_PassengerAlightInfoMessage(personAlightTimeInfo)));
-    }
+    personAlightTimeInfo.personId = passenger->getDatabaseId();
+    personAlightTimeInfo.stopNo = busStopNo;
+    personAlightTimeInfo.serviceLine= BusLineId;
+    personAlightTimeInfo.alightTime = DailyTime(currMS + ConfigManager::GetInstance().FullConfig().simStartTime().getValue()).getStrRepr();;    //person allight time (==current time)
+    messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_ALIGHTING,
+                                       messaging::MessageBus::MessagePtr(new PT_PassengerAlightInfoMessage(personAlightTimeInfo)));
+
 }

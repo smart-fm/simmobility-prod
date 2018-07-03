@@ -76,7 +76,7 @@ public:
 	 * @param stop is which currently bus driver arrive at
 	 *
 	 */
-	void storeAlightInfo(sim_mob::medium::Passenger* passenger,const std::string& current, const BusStop* stop, const std::string BusLineId );
+	void storeAlightInfo(const sim_mob::medium::Passenger* passenger,const std::string& current, const BusStop* stop, const std::string &BusLineId );
 
 	/**
 	 * change whether bus is full already
@@ -109,7 +109,7 @@ private:
 	 * @param bus stop agent is the agent which wrap bus stop and waiting people
 	 * @return the number of alighting people
 	 */
-	unsigned int alightPassenger(BusStopAgent* busStopAgent, std::string& currentTime);
+	unsigned int alightPassenger(BusStopAgent* busStopAgent, const std::string& currentTime);
 
 	/**
 	 * triggers boarding and alighting at a bus stop

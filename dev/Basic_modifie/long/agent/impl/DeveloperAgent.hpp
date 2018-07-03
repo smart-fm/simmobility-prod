@@ -1,0 +1,188 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
+/* 
+ * File:   DeveloperAgent.hpp
+ * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ *       : Gishara Premarathne <gishara@smart.mit.edu>
+ *
+ * Created on Mar 5, 2014, 6:36 PM
+ */
+#pragma once
+#include "entities/Agent_LT.hpp"
+#include "database/entity/Developer.hpp"
+#include "database/entity/Parcel.hpp"
+#include "database/entity/PotentialProject.hpp"
+#include "database/entity/Building.hpp"
+#include "database/entity/Unit.hpp"
+#include "database/entity/Project.hpp"
+#include "RealEstateAgent.hpp"
+
+namespace sim_mob {
+
+    namespace long_term {
+
+        class DeveloperModel;
+        
+        class DeveloperAgent : public Agent_LT {
+        public:
+            DeveloperAgent(boost::shared_ptr<Parcel> parcel, DeveloperModel* model);
+            virtual ~DeveloperAgent();
+            
+            /**
+             * Assigns a parcel to be processed by this agent.
+             * 
+             * @param parcelId parcel to process.
+             */
+            void assignParcel(BigSerial parcelId);
+
+            /**
+             * Tells if the agent is active or not.
+             * @return true if the agent is active, false otherwise.
+             */
+            bool isActive() const {
+            	return active;
+            }
+
+            /**
+             * Disable or enable the agent.
+             * @param active
+             */
+            void setActive(bool active) {
+            	this->active = active;
+            }
+       
+        protected:
+            /**
+             * Inherited from LT_Agent.
+             */
+            bool onFrameInit(timeslice now);
+            sim_mob::Entity::UpdateStatus onFrameTick(timeslice now);
+            void onFrameOutput(timeslice now);
+
+            /**
+             * Inherited from Entity. 
+             */
+            void onWorkerEnter();
+            void onWorkerExit();
+            virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+        public:
+            enum UnitSaleStatus {
+            	UNIT_NOT_LAUNCHED = 1, UNIT_LAUNCHED_BUT_UNSOLD, UNIT_LAUNCHED_AND_SOLD};
+            enum UnitPhysicalStatus {
+                UNIT_NOT_READY_FOR_OCCUPANCY = 1, UNIT_READY_FOR_OCCUPANCY_AND_VACANT, UNIT_READY_FOR_OCCUPANCY_AND_OCCUPIED};
+            enum BuildingStatus{
+            	BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES = 1, BUILDING_UNCOMPLETED_WITH_PREREQUISITES, BUILDING_NOT_LAUNCHED, BUILDING_LAUNCHED_BUT_UNSOLD, BUILDING_LAUNCHED_AND_SOLD, BUILDING_COMPLETED_WITH_PREREQUISITES, BUILDING_DEMOLISHED
+            };
+            enum UnitStatus{
+            	UNIT_PLANNED, UNIT_UNDER_CONSTRUCTION, UNIT_CONSTRUCTION_COMPLETED, UNIT_DEMOLISHED
+            };
+            /**
+             * Events callbacks.
+             */
+            virtual void onEvent(event::EventId eventId, event::Context ctxId,event::EventPublisher* sender, const event::EventArgs& args);
+
+            /**
+            * Processes the given event.
+            * @param eventId
+            * @param ctxId
+            * @param args
+            */
+            void processEvent(event::EventId eventId, event::Context ctxId,
+                                          const event::EventArgs& args);
+        
+            /*
+             * create new units and buildings, do the initial status encoding of parcel,unit and buildings
+             * @param project : most profitable project selected for this parcel
+             * @param projectId
+             */
+            void createUnitsAndBuildings(PotentialProject &project, BigSerial projectId);
+            /*
+             * create fm_project from potential most profitable project
+             * param project : most profitable project selected for this parcel
+             */
+            void createProject(PotentialProject &project, BigSerial projectId);
+
+            /*
+             * update the status and date params of buildings and units
+             */
+            void processExistingProjects();
+
+            /*
+             * set a 20% of new units at each month after 6th month of the simulation
+             * to be sent to HM via real estate agent
+             */
+            void setUnitsForHM(std::vector<boost::shared_ptr<Unit> >::iterator &first,std::vector<boost::shared_ptr<Unit> >::iterator &last);
+
+            /*
+             * set whether there are new units remaining to enter to market
+             */
+            void setUnitsRemain (bool unitRemain);
+
+            /*
+             * set the real estate agent for this developer agent
+             */
+            void setRealEstateAgent(RealEstateAgent* realEstAgent);
+            /*
+             * set newly generated 7digit postcode for new units in each parcel.
+             */
+            void setPostcode(int postCode);
+            /*
+             * set the housing market model for this developer agent
+             */
+            void setHousingMarketModel(HM_Model *housingModel);
+
+            /*
+             * set the simulation year
+             */
+            void setSimYear(int simulationYear);
+
+            void setProject(boost::shared_ptr<Project> project);
+
+            boost::shared_ptr<Parcel> getParcel();
+
+            void setParcelDBStatus(bool status);
+
+            bool getParcelDBStatus();
+
+            void setNewBuildings(std::vector<boost::shared_ptr<Building> > buildings);
+
+            void setNewUnits(std::vector<boost::shared_ptr<Unit> > units);
+
+            void launchBTOUnits(std::tm currentDate);
+
+            bool isHasBto() const;
+
+            void setHasBto(bool hasBto);
+
+            bool isIsDay0Project() const;
+
+            void setIsDay0Project(bool isDay0Project);
+
+            void launchOnGoingUnitsOnDay0();
+
+        private:
+            DeveloperModel* devModel;
+            boost::shared_ptr<Parcel> parcel;
+            IdVector parcelsToProcess;
+            bool active;
+            std::vector<boost::shared_ptr<Building> > newBuildings;
+            std::vector<boost::shared_ptr<Unit> > newUnits;
+            boost::shared_ptr<Project> fmProject;
+            int monthlyUnitCount;
+            bool unitsRemain;
+            std::vector<BigSerial> toBeDemolishedBuildingIds;
+            RealEstateAgent* realEstateAgent;
+            int postcode;
+            HM_Model *housingMarketModel;
+            int simYear;
+            int currentTick;
+            bool parcelDBStatus;
+            bool hasBTO;
+            bool onGoingProjectOnDay0;
+
+        };
+    }
+}
+

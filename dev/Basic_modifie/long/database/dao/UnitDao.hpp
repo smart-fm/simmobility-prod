@@ -1,0 +1,68 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
+/*
+ * File:   UnitDao.hpp
+ * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ *
+ * Created on 25 June, 2013, 3:59 PM
+ */
+#pragma once
+
+#include "database/dao/SqlAbstractDao.hpp"
+#include "database/entity/Unit.hpp"
+
+
+namespace sim_mob {
+    namespace long_term {
+        
+        /**
+         * Data Access Object to Unit table on datasource.
+         */
+        class UnitDao : public db::SqlAbstractDao<Unit> {
+        public:
+            UnitDao(db::DB_Connection& connection);
+            virtual ~UnitDao();
+
+        private:
+            /**
+             * Fills the given outObj with all values contained on Row. 
+             * @param result row with data to fill the out object.
+             * @param outObj to fill.
+             */
+            void fromRow(db::Row& result, Unit& outObj);
+
+            /**
+             * Fills the outParam with all values to insert or update on datasource.
+             * @param data to get values.
+             * @param outParams to put the data parameters.
+             * @param update tells if operation is an Update or Insert.
+             */
+            void toRow(Unit& data, db::Parameters& outParams, bool update);
+
+        public:
+
+            void insertUnit(Unit& unit,std::string schema);
+
+            /*
+             * Get the units of given building id
+             */
+            std::vector<Unit*> getUnitsByBuildingId(const long long buildingId,std::string schema);
+
+            /*
+             * Get BTO units
+             */
+            std::vector<Unit*> getBTOUnits(std::tm currentSimYear);
+
+            /*
+             * Get ongoing BTO units
+             */
+            std::vector<Unit*> getOngoingBTOUnits(std::tm currentSimYear);
+
+            std::vector<Unit*> loadUnitsToLaunchOnDay0(std::tm currentSimYear, std::tm lastDayOfCurrentSimYear,BigSerial fmParcelId);
+
+        };
+    }
+}
+

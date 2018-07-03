@@ -1,0 +1,24 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
+/**
+ * \file LatestStandard.h
+ * Contains the compile-time flag "SIMMOB_LATEST_STANDARD"
+ *
+ * \author Seth N. Hetu 
+ * 
+ * Please do not edit the file LatestStandard.h; instead, edit LatestStandard.h.in, 
+ *  which the header file is generated from.
+ *  
+ * Also note that parameters like SIMMOB_LATEST_STANDARD should be set in your cmake cache file.
+ *  Do not simply override the defaults in CMakeLists.txt
+ *
+ * \par
+ * ~Seth
+ */
+
+#pragma once
+
+#cmakedefine SIMMOB_LATEST_STANDARD
+

@@ -1,0 +1,17 @@
+GenConfig.h
+out*.txt
+HeadwayAtBusStopInfo.txt
+PassengerInfo.txt
+LinkTravelTime.csv
+*.xml*
+*.out*
+*.log*
+*.tags*
+*.csv*
+.cproject
+.project
+.vscode/*
+nbproject/*
+Debug*/
+Release*/
+/dev/visualizer/Traffic_Signal_Animation_Combined/bin/*

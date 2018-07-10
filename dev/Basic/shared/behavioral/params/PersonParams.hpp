@@ -745,6 +745,14 @@ public:
 	 */
 	const std::vector<long>& getAddressIdsInZone(int zoneCode) const;
 
+	/**
+	* getter function for timeWindowLookup
+	*/
+	TimeWindowsLookup getTimeWindowLookup()
+	{
+		return this->timeWindowsLookup;
+	}
+
 private:
 	std::string personId;
 	std::string hhId;
@@ -933,3 +941,4 @@ private:
 	double zoneEmployment;
 };
 } // end namespace sim_mob
+

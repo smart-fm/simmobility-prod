@@ -385,8 +385,7 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 	}
 	else
 	{
-		route = PrivateTrafficRouteChoice::getInstance()->getPathToLink(subTrip, false, currLink, nullptr,
-																		taxiStandLink, useInSimulationTT);
+		route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Link>(*currLink, *taxiStandLink);
 	}
 
 	//Get shortest path if path is not found in the path-set
@@ -443,21 +442,12 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 	{
 		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
 	}
-
-	//Get route to the node
-	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
-
+   
+	auto	route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
 	//Get shortest path if path is not found in the path-set
 	if(route.empty())
 	{
-		if(currLink)
-		{
-			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
-		}
-		else
-		{
-			route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
-		}
+		route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
 	}
 
 	if(route.empty())
@@ -636,7 +626,7 @@ const Node* OnHailDriverBehaviour::chooseNode() const
 	//Ensure chosen node is not our immediate downstream node
 	////Ensure chosen node is not a source/sink node
 	const MesoPathMover &pathMover = onHailDriver->movement->getMesoPathMover();
-	if ((result->getNodeType() == SOURCE_OR_SINK_NODE) ||(result->getNodeType() == NETWORK_EXCLUDED_NODE) ||onHailDriver->movement->ifLoopedNode(result->getNodeId())||
+	if ((result->getNodeType() == SOURCE_OR_SINK_NODE) ||onHailDriver->movement->ifLoopedNode(result->getNodeId())||
 	    (pathMover.isDrivingPathSet() &&
 	     result == pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode()))
 	{

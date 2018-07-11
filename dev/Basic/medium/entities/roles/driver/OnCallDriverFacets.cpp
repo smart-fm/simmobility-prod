@@ -78,7 +78,7 @@ void OnCallDriverMovement::frame_tick()
 		{
 			const Node *endOfPathNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
 			const RoadNetwork* rdnw = RoadNetwork::getInstance();
-			if(sim_mob::ConfigManager::GetInstance().FullConfig().isStudyAreaEnabled() && !(const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(endOfPathNode->getNodeId())))
+			if(onCallDriver->isDriverControllerStudyAreaEnabled() && !(const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(endOfPathNode->getNodeId())))
 			{
 				continueCruising(currNode);
 			}
@@ -189,7 +189,7 @@ bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		case CRUISING:
 		{
 			const RoadNetwork* rdnw = RoadNetwork::getInstance();
-			if(sim_mob::ConfigManager::GetInstance().FullConfig().isStudyAreaEnabled() && !(const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(currLink->getToNode()->getNodeId())))
+			if(onCallDriver->isDriverControllerStudyAreaEnabled()  && !(const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(currLink->getToNode()->getNodeId())))
 			{
 				continueCruising(currNode);
 			}
@@ -246,7 +246,7 @@ void OnCallDriverMovement::performScheduleItem()
 			onCallDriver->passengerInteractedDropOff=0;
 			const Node *endOfPathNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
             const RoadNetwork* rdnw = RoadNetwork::getInstance();
-			if(sim_mob::ConfigManager::GetInstance().FullConfig().isStudyAreaEnabled() && !(const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(endOfPathNode->getNodeId())))
+			if(onCallDriver->isDriverControllerStudyAreaEnabled()  && !(const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(endOfPathNode->getNodeId())))
 			{
 				continueCruising(currNode);
 			}

@@ -7,25 +7,25 @@
         <!-- Note that credentials (login details) are stored in a separate construct. -->
         <databases>
             <database id="fm_remote" dbtype="postgres">
-                <host value="172.25.184.48"/>
+                <host value="172.25.xxx.xx"/>
                 <port value="5432"/>
                 <dbname value="simmobility_l2nic2b"/>
             </database>
 
             <database id="fm_hpchead" dbtype="postgres">
-                <host value="172.25.184.156"/>
+                <host value="172.25.xxx.xxx"/>
                 <port value="5432"/>
                 <dbname value="simmobility_l2nic2b"/>
             </database>
 
             <database id="fm_hpchead_lt" dbtype="postgres">
-                <host value="172.25.184.156"/>
+                <host value="172.25.xxx.xxx"/>
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
             </database>
             
             <database id="fm_remote_lt" dbtype="postgres">
-                <host value="172.25.184.14"/>
+                <host value="172.25.xxx.xx"/>
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
             </database>
@@ -72,33 +72,22 @@
             <!--    2) Don't put any passwords to databases on the FM server. -->
             <plaintext-credential id="lt_cred">
                 <username value="fmstaff"/>
-                <password value="fm4trans"/>
+                <password value="xxxxxx"/>
             </plaintext-credential>
-
-            <plaintext-credential id="shahita_cred">
-                <username value="postgres"/>
-                <password value="password"/>
-            </plaintext-credential>
-
-            <plaintext-credential id="harish_cred">
-                <username value="postgres"/>
-                <password value="secret"/>
-            </plaintext-credential>
-
             <plaintext-credential id="fm_local">
-                <username value="postgres_l2nic2b"/>
-                <password value="l2nic2b"/>
+                <username value="postgres"/>
+                <password value="xxxxxx"/>
             </plaintext-credential>
 
             <plaintext-credential id="fm_remote_plain">
                 <username value="postgres"/>
-                <password value="5M_S1mM0bility"/>
+                <password value="xxxxxx"/>
             </plaintext-credential>
 
 
             <plaintext-credential id="fm_hpchead">
                 <username value="postgres"/>
-                <password value="d84dmiN"/>
+                <password value="xxxxxx"/>
             </plaintext-credential>
         </credentials>
     </constructs>

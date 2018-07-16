@@ -19,6 +19,7 @@
 #include "entities/IncidentStatus.hpp"
 #include "entities/roles/driver/models/CarFollowModel.hpp"
 #include "entities/roles/driver/models/LaneChangeModel.hpp"
+#include "entities/roles/driver/models/VehicleLoadingModel.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/vehicle/Vehicle.hpp"
@@ -41,6 +42,7 @@ const static int maxVisibleDis = 100;
 namespace sim_mob
 {
 class CarFollowingModel;
+class VehicleLoadingModel;
 
 class DriverBehavior : public BehaviorFacet
 {
@@ -221,6 +223,9 @@ protected:
 
 	/**Pointer to the intersection driving model previously used (and which may be needed again)*/
 	IntersectionDrivingModel* intModelBkUp;
+
+	/**Pointer to the vehicle loading model*/
+	VehicleLoadingModel *vehLoadingModel;
 
 	/**The speed which the vehicle will try to achieve.*/
 	double targetSpeed;

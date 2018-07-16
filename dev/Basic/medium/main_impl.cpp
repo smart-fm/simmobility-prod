@@ -81,6 +81,7 @@
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if output is disabled.
 #include <iostream>
+#include <path/ParsePathXmlConfig.hpp>
 
 using std::cout;
 using std::endl;
@@ -264,11 +265,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//NOTE: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not okay.
 	const MutexStrategy& mtx = ConfigManager::GetInstance().FullConfig().mutexStategy();
-	
+
 	//Create an instance of role factory
 	RoleFactory<Person_MT>* rf = new RoleFactory<Person_MT>();
 	RoleFactory<Person_MT>::setInstance(rf);
-	
+
 	rf->registerRole("driver", new sim_mob::medium::Driver(nullptr));
 	rf->registerRole("activityRole", new sim_mob::ActivityPerformer<Person_MT>(nullptr));
 	rf->registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, mtx));
@@ -451,7 +452,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 				delete ag;
 			}
 		}
-		
+
 		unsigned long currTimeMS = currTick * config.baseGranMS();
 
 		//Check if we are running in closed loop with DynaMIT
@@ -623,10 +624,39 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	safe_delete_item(periodicPersonLoader);
 	cout << "\nSimulation complete. Closing worker threads...\n" << endl;
 
+	// flushing the subtrip_metrics csv stream to subtrip_metrics.csv.
+	sim_mob::BasicLogger& csv = sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput);
+	csv.flush();
+
+	// updating the travel time tables if feed back is enabled
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	if (cfg.isLinkTravelTimeFeedbackEnabled())
+	{
+
+		std::string historicalTTtableName = ConfigManager::GetInstance().FullConfig().getRTTT();
+		std::string pathTolinkTTfile = cfg.getLinkTravelTimesFile();
+		float alpha = cfg.getAlphaValueForLinkTTFeedback();
+
+		Print() << "Update historical travel time: Started\n";
+		std::string linkTTupdateCmd = "python2.7 scripts/python/upsert_link_travel_time.py " +
+				             pathTolinkTTfile + " " + historicalTTtableName + " " + std::to_string(alpha);
+		int res = std::system(linkTTupdateCmd.c_str());
+
+		if (res == 0 )
+		{
+			Print() << "Update historical travel time: Completed\n";
+		}
+		else
+		{
+			throw std::runtime_error("Error in updating link travel time \n ");
+		}
+	}
+
 	//Delete our profile pointer (if it exists)
 	safe_delete_item(prof);
 	return true;
 }
+
 
 /**
  * The preday demand simulator
@@ -671,6 +701,71 @@ bool performMainDemand()
 		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
 		predayManager.dispatchLT_Persons();
 	}
+	return true;
+}
+
+bool performMidFullLoop(const std::string& configFileName, std::list<std::string>& resLogFiles)
+{
+
+	Print() << "Mid-Term demand: Started\n";
+
+	PredayManager predayManager;
+	predayManager.loadZones();
+	predayManager.loadCosts();
+	predayManager.loadPersonIds();
+	predayManager.loadUnavailableODs();
+
+
+	Print() << "LogSum computation: Started\n";
+	predayManager.runLogSumComputation();
+	Print() << "LogSum computation: Completed\n";
+
+    predayManager.loadZoneNodes();
+    predayManager.loadPostcodeNodeMapping();
+    PersonParams::removeInvalidAddress();
+
+	Print() << "Preday simulation: Started\n";
+	predayManager.runPredaySimulation();
+	Print() << "Preday simulation: Completed\n";
+
+	Print() << "Update Day Activity Schedule: Started\n";
+	predayManager.updateDayActivityScheduleTable();
+	Print() << "Update Day Activity Schedule: Completed\n";
+
+	Print() << "Mid-Term demand: Completed\n";
+
+	Print() << "Update getpersonsbetween stored procedure: Started\n";
+	predayManager.updateGetPersonBetweenStoredProc();
+	Print() << "Update getpersonsbetween stored procedure: Completed\n";
+
+	Print() << "Mid-Term supply: Started\n";
+	performMainSupply(configFileName, resLogFiles);
+
+	Print() << "Mid-Term supply: Completed\n";
+
+	// flushing the subtrip_metrics csv stream to subtrip_metrics.csv.
+	sim_mob::BasicLogger& csv = sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput);
+	csv.flush();
+
+	// updating the travel time tables if feed back is enabled
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+
+	if (cfg.isSubtripTravelTimeFeedbackEnabled)
+	{
+		Print() << "Subtrip metrics feedback: Started\n";
+		std::string stFeedbackCmd = "python2.7 scripts/python/TravelTimeAggregator.py " + ConfigManager::GetInstance().FullConfig().subTripLevelTravelTimeOutput;
+		std::cout <<"The python command " <<stFeedbackCmd<<"\n";
+		int res = std::system(stFeedbackCmd.c_str());
+		if (res == 0 )
+		{
+			Print() << "Subtrip metrics feedback: Completed\n";
+		}
+		else
+		{
+			throw std::runtime_error("Error in subtrip metrics feedback\n ");
+		}
+	}
+
 	return true;
 }
 
@@ -720,21 +815,28 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 		Print::Ignore();
 	}
 
-    if (MT_Config::getInstance().RunningMidSupply())
+	if (MT_Config::getInstance().RunningMidSupply())
 	{
 		Print() << "Mid-term run mode: supply\n" << endl;
 		return performMainSupply(configFileName, resLogFiles);
 	}
-    else if (MT_Config::getInstance().RunningMidDemand())
+	else if (MT_Config::getInstance().RunningMidDemand())
 	{
 		Print() << "Mid-term run mode: preday" << endl;
 		Print() << "Number of threads: " << MT_Config::getInstance().getNumPredayThreads()
 		        << std::endl << std::endl;
 		return performMainDemand();
 	}
+	else if (MT_Config::getInstance().RunningMidFullLoop())
+	{
+		Print() << "Mid-term run mode: Full" << endl;
+		Print() << "Number of threads: " << MT_Config::getInstance().getNumPredayThreads()
+				<< std::endl << std::endl;
+		return performMidFullLoop(configFileName, resLogFiles);
+	}
 	else
 	{
-		throw std::runtime_error("Invalid Mid-term run mode. Admissible values are \"demand\" and \"supply\"");
+		throw std::runtime_error("Invalid Mid-term run mode. Admissible values are \"demand\", \"supply\" and \"full\" ");
 	}
 }
 

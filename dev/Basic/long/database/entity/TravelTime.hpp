@@ -16,7 +16,7 @@ namespace sim_mob {
 
         class TravelTime {
         public:
-        	TravelTime(BigSerial origin = INVALID_ID, BigSerial destination = INVALID_ID, double carTravelTime = 0, double publicTravelTime = 0);
+        	TravelTime(BigSerial origin = INVALID_ID, BigSerial destination = INVALID_ID, double carTravelTime = 0, double publicTravelTime = 0, double numTransfers = 0);
 
             virtual ~TravelTime();
 
@@ -28,11 +28,13 @@ namespace sim_mob {
             BigSerial getDestination() const;
             BigSerial getOrigin() const;
             double getPublicTravelTime() const;
+            double getNumTransfers() const;
 
             void setCarTravelTime(double carTravelTime);
             void setDestination(BigSerial destination);
             void setOrigin(BigSerial origin);
             void setPublicTravelTime(double publicTravelTime);
+            void setNumTransfers(double numTransfers);
 
         private:
             friend class TravelTimeDao;
@@ -41,6 +43,7 @@ namespace sim_mob {
             BigSerial destination;
             double carTravelTime;
             double publicTravelTime;
+            double numTransfers;
         };
     }
 }

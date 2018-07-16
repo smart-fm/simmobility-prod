@@ -69,6 +69,11 @@ const Lane* Driver::getCurrLane() const
 	return currLane_.get();
 }
 
+const TurningPath* Driver::getCurrTurningPath() const
+{
+	return currTurning_.get();
+}
+
 void Driver::setYieldingToInIntersection(int driverId)
 {
 	yieldingToInIntersection = driverId;

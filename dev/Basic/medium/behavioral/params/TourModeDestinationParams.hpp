@@ -254,12 +254,7 @@ private:
 	/**
 	 * Time windows available for sub-tour.
 	 */
-	std::vector<sim_mob::TimeWindowAvailability> timeWindowAvailability;
-
-	/**
-	 * bitset of availablilities for fast checking
-	 */
-	std::bitset<1176> availabilityBit;
+	TimeWindowsLookup timeWindowsLookup;
 
 	int cbdOrgZone;
 	int cbdDestZone;

@@ -157,7 +157,7 @@ local beta_female_SMS = 2.89
 --choice set
 local choice = {}
 
-for i = 1, 24*11 do 
+for i = 1, 24*9 do 
 
 	choice[i] = i
 end
@@ -475,17 +475,7 @@ local function computeUtilities(params,dbparams)
 		utility[V_counter] = beta_cons_taxi + cost_over_income_taxi[i] * (1-missing_income)* beta_cost_taxi_1 + cost_taxi[i]*missing_income * beta_cost_taxi_2 + tt_taxi[i] * beta_tt_taxi + beta_central_taxi * central_dummy[i] + beta_log * math.log(employment[i]+math.exp(beta_area)*area[i]+(beta_population)*population[i] + 1) + (d1[i]+d2[i]) * beta_distance_taxi + beta_female_taxi * female_dummy + beta_zero_taxi*zero_car+beta_oneplus_taxi*one_plus_car+beta_twoplus_taxi*two_plus_car
 	end
 
-	--utility function for SMS 1-24
-	for i=1,24 do
-		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_SMS + cost_over_income_SMS[i] * (1-missing_income)* beta_cost_SMS_1 + cost_SMS[i] * missing_income * beta_cost_SMS_2 + tt_SMS[i] * beta_tt_SMS + beta_central_SMS * central_dummy[i] + beta_log * math.log(exp(beta_area)*area[i]+math.exp(beta_population)*population[i]) + (d1[i]+d2[i]) * beta_distance_SMS + beta_female_SMS * female_dummy + beta_zero_SMS*zero_car+beta_oneplus_SMS*one_plus_car+beta_twoplus_SMS*two_plus_car
-	end
 
-	--utility function for rail_SMS 1-24
-	for i=1,24 do
-		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_rail_SMS + cost_over_income_rail_SMS[i] * (1- missing_income) * beta_cost_rail_SMS_1 + cost_rail_SMS[i] * missing_income * beta_cost_rail_SMS_2 + tt_rail_SMS[i] * beta_tt_rail_SMS + beta_central_rail_SMS * central_dummy[i] + beta_log * math.log(exp(beta_area)*area[i]+exp(beta_population)*population[i]) + (d1[i]+d2[i]) * beta_distance_rail_SMS + beta_female_rail_SMS * female_dummy + beta_zero_rail_SMS*zero_car+ beta_oneplus_rail_SMS*one_plus_car+beta_twoplus_rail_SMS*two_plus_car
-	end
 end
 
 
@@ -494,7 +484,7 @@ end
 local availability = {}
 local function computeAvailabilities(params,dbparams)
 
-	for i = 1, 24*11 do 
+	for i = 1, 24*9 do 
 
 		availability[i] = dbparams:availability(i)
 	end

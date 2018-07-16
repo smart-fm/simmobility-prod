@@ -96,7 +96,7 @@ local beta_mode_work_walk= 0
 
 --choice set
 local choice = {}
-for i = 1, 24*11 do 
+for i = 1, 24*9 do 
 	choice[i] = i
 end
 
@@ -276,17 +276,7 @@ local function computeUtilities(params,dbparams)
 		utility[V_counter] = beta_cons_taxi + cost_taxi[i] * beta_cost_drive1_1 + tt_taxi[i] * beta_tt_taxi + beta_central_taxi * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_taxi + beta_female_taxi * female_dummy
 	end
 	
-	--utility function for SMS 1-24
-	for i=1,24 do
-		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_SMS + cost_SMS[i] * beta_cost_drive1_1 + tt_SMS[i] * beta_tt_SMS + beta_central_SMS * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_SMS + beta_female_SMS * female_dummy
-	end
 	
-	--utility function for rail_SMS 1-24
-	for i=1,24 do
-		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_rail_SMS + cost_rail_SMS[i] * beta_cost_rail_SMS_1 + tt_rail_SMS[i] * beta_tt_rail_SMS + beta_central_rail_SMS * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_rail_SMS + beta_female_rail_SMS * female_dummy + beta_mode_work_bus * mode_work_rail_SMS
-	end
 	
 end
 
@@ -295,7 +285,7 @@ end
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params,dbparams)
-	for i = 1, 24*11 do 
+	for i = 1, 24*9 do 
 		availability[i] = dbparams:availability(i)
 	end
 end

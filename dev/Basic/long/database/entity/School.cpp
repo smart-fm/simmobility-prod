@@ -9,9 +9,9 @@
 
 using namespace sim_mob::long_term;
 
-School::School(BigSerial id, BigSerial fmBuildingId ,double floorArea, int schoolSlot, double centroidX, double centroidY, bool giftedProgram, bool sapProgram,
-			   std::string planningArea, BigSerial tazName, std::string schoolType) : id(id),fmBuildingId(fmBuildingId), floorArea(floorArea), schoolSlot(schoolSlot),centroidX(centroidX),centroidY(centroidY),
-			   giftedProgram(giftedProgram), sapProgram(sapProgram), planningArea(planningArea),tazName(tazName),schoolType(schoolType){}
+School::School(BigSerial id, BigSerial fmBuildingId ,double floorArea, double schoolSlot, double centroidX, double centroidY, bool giftedProgram, bool sapProgram,
+			   std::string planningArea, BigSerial tazName, std::string schoolType, bool artProgram, bool musicProgram, bool langProgram, bool expressTest, double studentDensity, int numStudents) : id(id),fmBuildingId(fmBuildingId), floorArea(floorArea), schoolSlot(schoolSlot),centroidX(centroidX),centroidY(centroidY),
+			   giftedProgram(giftedProgram), sapProgram(sapProgram), planningArea(planningArea),tazName(tazName),schoolType(schoolType),artProgram(artProgram),musicProgram(musicProgram),langProgram(langProgram),expressTest(expressTest), studentDensity(studentDensity), numStudents(numStudents){}
 
 School::~School(){}
 
@@ -95,12 +95,12 @@ void School::setSapProgram(bool sapProgram)
 	this->sapProgram = sapProgram;
 }
 
-int School::getSchoolSlot() const
+double School::getSchoolSlot() const
 {
 	return schoolSlot;
 }
 
-void School::setSchoolSlot(int schoolSlot)
+void School::setSchoolSlot(double schoolSlot)
 {
 	this->schoolSlot = schoolSlot;
 }
@@ -203,5 +203,52 @@ int  School::getNumOfSelectedStudents()
 	return this->selectedStudents.size();
 }
 
+bool School::isArtProgram() const
+{
+	return artProgram;
+}
 
+void School::setArtProgram(bool artProgram)
+{
+	this->artProgram = artProgram;
+}
 
+bool School::isLangProgram() const
+{
+	return langProgram;
+}
+
+void School::setLangProgram(bool langProgram)
+{
+	this->langProgram = langProgram;
+}
+
+bool School::isMusicProgram() const
+{
+	return musicProgram;
+}
+
+void School::setMusicProgram(bool musicProgram)
+{
+	this->musicProgram = musicProgram;
+}
+
+bool School::isExpressTest() const
+{
+	return expressTest;
+}
+
+void School::setExpressTest(bool expressTest)
+{
+	this->expressTest = expressTest;
+}
+
+double School::getStudentDensity() const
+{
+	return studentDensity;
+}
+
+void School::setStudentDensity(double studentDensity)
+{
+	this->studentDensity = studentDensity;
+}

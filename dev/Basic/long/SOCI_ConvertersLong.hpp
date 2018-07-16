@@ -26,6 +26,8 @@
 #include "database/entity/StudyArea.hpp"
 #include "database/entity/JobsWithIndustryTypeAndTazId.hpp"
 #include "database/entity/ResidentialWTP_Coefs.hpp"
+#include "database/entity/StudentStop.hpp"
+#include "database/entity/EzLinkStop.hpp"
 
 using namespace sim_mob;
 using namespace long_term;
@@ -336,7 +338,7 @@ struct type_conversion<sim_mob::long_term::School>
     	school.setId(values.get<BigSerial>("id",0));
     	school.setFmBuildingId(values.get<BigSerial>("fm_building_id",0));
     	school.setFloorArea(values.get<double>("floor_area",0));
-    	school.setSchoolSlot(values.get<int>("school_slot",0));
+    	school.setSchoolSlot(values.get<double>("school_slot",0));
     	school.setCentroidX(values.get<double>("centroid_x",0));
     	school.setCentroidY(values.get<double>("centroid_y",0));
     	school.setGiftedProgram(values.get<int>("gifted_program",0));
@@ -344,6 +346,51 @@ struct type_conversion<sim_mob::long_term::School>
     	school.setPlanningArea(values.get<std::string>("planning_area",std::string()));
     	school.setTazName(values.get<BigSerial>("taz_name",0));
     	school.setSchoolType(values.get<std::string>("school_type",std::string()));
+    	school.setArtProgram(values.get<int>("art_program",0));
+    	school.setMusicProgram(values.get<int>("music_program",0));
+    	school.setLangProgram(values.get<int>("lang_program",0));
+    	school.setStudentDensity(values.get<double>("student_den",0));
+    	school.setExpressTest(values.get<int>("express_test",0));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::EzLinkStop>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::EzLinkStop& ezLinkStop)
+    {
+    	ezLinkStop.setId(values.get<BigSerial>("id",0));
+    	ezLinkStop.setXCoord(values.get<double>("x_coord",0));
+    	ezLinkStop.setYCoord(values.get<double>("y_coord",0));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::StudentStop>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::StudentStop& studentStop)
+    {
+    	studentStop.setHomeStopEzLinkId(values.get<int>("home_stop_ez_link_id",0));
+    	studentStop.setSchoolStopEzLinkId(values.get<int>("school_stop_ez_link_id",0));
+    }
+};
+
+template<>
+struct type_conversion<sim_mob::long_term::SchoolDesk>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::long_term::SchoolDesk& schoolDesk)
+    {
+    	schoolDesk.setSchoolDeskId(values.get<BigSerial>("school_desk_id",0));
+    	schoolDesk.setSchoolId(values.get<BigSerial>("school_id",0));
     }
 };
 

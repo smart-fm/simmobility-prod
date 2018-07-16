@@ -146,7 +146,7 @@ void sim_mob::tcp_connection::cmdDataStart(CommunicationDataManager& comDataMgr,
 	  timeStruct.tv_sec = 0;
 	  timeStruct.tv_usec = 0;
 	  FD_ZERO(&fileDescriptorSet);
-	  int nativeSocket = socket_.native();
+	  int nativeSocket = socket_.native_handle();
 	  std::string send_cmd = "COMMAND";
 	  std::string message_;
 	  for(;;)

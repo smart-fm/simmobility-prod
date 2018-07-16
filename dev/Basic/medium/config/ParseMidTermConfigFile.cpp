@@ -88,10 +88,16 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 		processRegionRestrictionNode(GetSingleElementByName(rootNode, "region_restriction"));
 		processPathSetFileName(GetSingleElementByName(rootNode, "pathset_config_file", true));
 		processTripChainOutputNode(GetSingleElementByName(rootNode, "trip_chain_output"));
-    processActivityTypesNode(GetSingleElementByName(rootNode, "activity_types", true));
-    processTravelModesNode(GetSingleElementByName(rootNode, "travel_modes", true));
+		processActivityTypesNode(GetSingleElementByName(rootNode, "activity_types", true));
+		processTravelModesNode(GetSingleElementByName(rootNode, "travel_modes", true));
 
-		if (mtCfg.RunningMidSupply())
+
+		if (mtCfg.RunningMidFullLoop())
+		{
+			processPredayNode(GetSingleElementByName(rootNode, "preday", true));
+			processSupplyNode(GetSingleElementByName(rootNode, "supply", true));
+		}
+		else if (mtCfg.RunningMidSupply())
 		{
 			processSupplyNode(GetSingleElementByName(rootNode, "supply", true));
 		}
@@ -149,7 +155,7 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 	childNode = GetSingleElementByName(node, "threads", true);
 	mtCfg.setNumPredayThreads(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true), DEFAULT_NUM_THREADS_DEMAND));
 
-	if(mtCfg.runningPredaySimulation())
+	if(mtCfg.runningPredaySimulation() || mtCfg.RunningMidFullLoop())
 	{
 		childNode = GetSingleElementByName(node, "output_activity_schedule", true);
 		mtCfg.setFileOutputEnabled(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
@@ -160,6 +166,12 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 
 	childNode = GetSingleElementByName(node, "logsum_table", true);
 	mtCfg.setLogsumTableName(ParseString(GetNamedAttributeValue(childNode, "name", true)));
+
+	childNode = GetSingleElementByName(node, "activity_schedule_table", true);
+	mtCfg.dasConfig.schema = ParseString(GetNamedAttributeValue(childNode, "schema", true));
+	mtCfg.dasConfig.table = ParseString(GetNamedAttributeValue(childNode, "table", true));
+	mtCfg.dasConfig.updateProc = ParseString(GetNamedAttributeValue(childNode, "procedure", true));
+	mtCfg.dasConfig.fileName = ParseString(GetNamedAttributeValue(childNode, "fileName", true));
 
 	ModelScriptsMap luaModelsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 	cfg.predayLuaScriptsMap = luaModelsMap;
@@ -292,6 +304,12 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 	child = GetSingleElementByName(node, "link_travel_time", true);
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
 	cfg.setLinkTravelTimesFile(value);
+	cfg.setLinkTravelTimeFeedback(ParseBoolean(GetNamedAttributeValue(child, "feedback")));
+	if (cfg.isLinkTravelTimeFeedbackEnabled())
+	{
+		cfg.setAlphaValueForLinkTTFeedback(ParseFloat(GetNamedAttributeValue(child, "alpha")));
+	}
+
 }
 
 void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* node)
@@ -566,6 +584,10 @@ void ParseMidTermConfigFile::processSubtripTravelMetricsOutputNode(xercesc::DOME
 			cfg.subTripTravelTimeEnabled = true;
 			cfg.subTripLevelTravelTimeOutput =
 					ParseString(GetNamedAttributeValue(node, "file"), "subtrip_travel_times.csv");
+			if(ParseBoolean(GetNamedAttributeValue(node, "feedback")))
+			{
+				cfg.isSubtripTravelTimeFeedbackEnabled = true;
+			}
 		}
 	}
 }

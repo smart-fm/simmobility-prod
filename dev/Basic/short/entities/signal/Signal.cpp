@@ -278,7 +278,7 @@ double Signal_SCATS::computePhaseDS(int phaseId, const timeslice &now)
 		const RoadNetwork *network = RoadNetwork::getInstance();
 		const Link *link = network->getById(network->getMapOfIdVsLinks(), linkIterator->first);
 		
-		const std::vector<Lane *> lanes = link->getRoadSegments().back()->getLanes();
+		const std::vector<const Lane *> lanes = link->getRoadSegments().back()->getLanes();
 		
 		for (std::size_t i = 0; i < lanes.size(); i++)
 		{ 

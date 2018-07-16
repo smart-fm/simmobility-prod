@@ -12,6 +12,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <random>
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;

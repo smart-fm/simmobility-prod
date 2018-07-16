@@ -79,6 +79,7 @@
 #include "model/VehicleOwnershipModel.hpp"
 #include "model/JobAssignmentModel.hpp"
 #include "model/HedonicPriceSubModel.hpp"
+#include "model/SchoolAssignmentSubModel.hpp"
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -1509,9 +1510,24 @@ void HM_Model::startImpl()
 
 		if(config.ltParams.schoolAssignmentModel.enabled)
 		{
-		loadPrimarySchools(conn);
-		loadPreSchools(conn);
-		loadTravelTime(conn_calibration);
+			loadSchools(conn);
+			loadTravelTime(conn_calibration);
+			loadEzLinkStops(conn_calibration);
+			loadStudentStops(conn_calibration);
+			loadSchoolDesks(conn);
+
+			loadData<HouseholdPlanningAreaDao>( conn, hhPlanningAreaList, hhPlanningAreaMap, &HouseholdPlanningArea::getHouseHoldId);
+			PrintOutV("Number of household planning area rows: " << hhPlanningAreaList.size() << std::endl );
+
+			loadData<HHCoordinatesDao>( conn, hhCoordinates, hhCoordinatesById, &HHCoordinates::getHouseHoldId);
+			PrintOutV("Number of household coordinate rows: " << hhCoordinates.size() << std::endl );
+
+			loadData<SchoolAssignmentCoefficientsDao>( conn_calibration, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
+			PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
+
+			assignNearestUniToEzLinkStops();
+			assignNearestPolytechToEzLinkStops();
+
 		}
 
 		if(config.ltParams.jobAssignmentModel.enabled)
@@ -1745,6 +1761,9 @@ void HM_Model::startImpl()
 		loadData<OwnerTenantMovingRateDao>( conn_calibration, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
 		PrintOutV("Number of Owner Tenant Moving Rate rows: " << ownerTenantMovingRate.size() << std::endl );
 
+		loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
+		PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
+
 	}
 
 
@@ -1827,9 +1846,12 @@ void HM_Model::startImpl()
 
 		//These households with tenure_status 3 are considered to be occupied by foreign workers
 		const int FROZEN_HH = 3;
-		//note::if you want to run job assignment model or school assignment model with foreign workers population, please comment this line.
-		if( household->getTenureStatus() == FROZEN_HH )
-			continue;
+		//school assignment model and foreign job assignment needs foriegn households as well.
+		if(!config.ltParams.schoolAssignmentModel.enabled && !config.ltParams.jobAssignmentModel.foreignWorkers)
+		{
+			if( household->getTenureStatus() == FROZEN_HH )
+				continue;
+		}
 
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
 
@@ -2185,6 +2207,44 @@ void HM_Model::startImpl()
 
 	for (size_t n = 0; n < households.size(); n++)
 	{
+		if(config.ltParams.schoolAssignmentModel.enabled)
+		{
+			std::vector<BigSerial> individuals = households[n]->getIndividuals();
+			std::vector<BigSerial>::iterator individualsItr;
+			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+			{
+				const Individual* individual = getIndividualById((*individualsItr));
+				SchoolAssignmentSubModel schoolAssignmentModel(this);
+				if (individual!= nullptr)
+				{
+					switch(individual->getEducationId())
+					{
+					case 1:
+						incrementPreSchoolAssignIndividualCount();
+						schoolAssignmentModel.assignPreSchool(households[n],individual->getId(),nullptr, 0);
+						PrintOutV("number of individuals assigned for pre schools " << getPreSchoolAssignIndividualCount()<< std::endl);
+						break;
+					case 2:
+						incrementPrimarySchoolAssignIndividualCount();
+						schoolAssignmentModel.assignPrimarySchool(households[n],individual->getId(),nullptr, 0);
+						PrintOutV("number of individuals assigned for primary schools " <<getPrimaySchoolAssignIndividualCount()<< std::endl);
+						break;
+					case 3:
+						schoolAssignmentModel.assignSecondarySchool(households[n],individual->getId(),nullptr, 0);
+						break;
+					case 5:
+						schoolAssignmentModel.assignPolyTechnic(households[n],individual->getId(),nullptr, 0);
+						break;
+					case 6:
+						schoolAssignmentModel.assignUniversity(households[n],individual->getId(),nullptr, 0);
+						break;
+
+					}
+				}
+
+			}
+		}
+
 		hdbEligibilityTest(n);
 		if(config.ltParams.taxiAccessModel.enabled)
 		{
@@ -2361,45 +2421,45 @@ void  HM_Model::loadLTVersion(DB_Connection &conn)
 	PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
 }
 
-void HM_Model::loadPrimarySchools(DB_Connection &conn)
+void HM_Model::loadEzLinkStops(DB_Connection &conn)
 {
 	soci::session sql;
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
-	std::string tableName = "school";
+	std::string tableName = "ez_link_stop";
 
 	//SQL statement
-	soci::rowset<School> primarySchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where school_type = 'primary_school'");
+	soci::rowset<EzLinkStop> ezLinkStopObjs = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
 
-	for (soci::rowset<School>::const_iterator itPrimarySchool = primarySchoolObjs.begin(); itPrimarySchool != primarySchoolObjs.end(); ++itPrimarySchool)
+	for (soci::rowset<EzLinkStop>::const_iterator itEzLink = ezLinkStopObjs.begin(); itEzLink != ezLinkStopObjs.end(); ++itEzLink)
 	{
-		School* primarySchool = new School(*itPrimarySchool);
-		primarySchools.push_back(primarySchool);
-		primarySchoolById.insert(std::pair<BigSerial, School*>( primarySchool->getId(), primarySchool ));
+		EzLinkStop* ezLinkStop = new EzLinkStop(*itEzLink);
+		ezLinkStops.push_back(ezLinkStop);
+		//ezLinkStopById.insert(std::pair<BigSerial, EzLinkStop*>( ezLinkStop->getId(), ezLinkStop ));
 	}
 
-	PrintOutV("Number of Primary School rows: " << primarySchools.size() << std::endl );
+	PrintOutV("Number of ezLink Stop rows: " << ezLinkStops.size() << std::endl );
 
 }
 
-void HM_Model::loadPreSchools(DB_Connection &conn)
+void HM_Model::loadStudentStops(DB_Connection &conn)
 {
 	soci::session sql;
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
-	std::string tableName = "school";
+	std::string tableName = "student_stop";
 
 	//SQL statement
-	soci::rowset<School> preSchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where school_type = 'pre_school'");
+	soci::rowset<StudentStop> studentStopObjs = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
 
-	for (soci::rowset<School>::const_iterator itPreSchool = preSchoolObjs.begin(); itPreSchool != preSchoolObjs.end(); ++itPreSchool)
+	for (soci::rowset<StudentStop>::const_iterator itStudentStop = studentStopObjs.begin(); itStudentStop != studentStopObjs.end(); ++itStudentStop)
 	{
-		School* preSchool = new School(*itPreSchool);
-		preSchools.push_back(preSchool);
-		preSchoolById.insert(std::pair<BigSerial, School*>( preSchool->getId(), preSchool ));
+		StudentStop* stStop = new StudentStop(*itStudentStop);
+		studentStops.push_back(stStop);
 	}
 
-	PrintOutV("Number of Pre School rows: " << preSchools.size() << std::endl );
+	PrintOutV("Number of Student Stop rows: " << studentStops.size() << std::endl );
+
 }
 
 void HM_Model::loadTravelTime(DB_Connection &conn)
@@ -2436,7 +2496,68 @@ void HM_Model::loadResidentialWTP_Coeffs(DB_Connection &conn)
 	}
 
 	PrintOutV("Number of residential wtp coeffs rows: " << resWTP_Coeffs.size() << std::endl );
+}
 
+void HM_Model::loadSchoolDesks(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "school_desk";
+
+	//SQL statement
+	soci::rowset<SchoolDesk> schoolDeskObjs = (sql.prepare << "select * from "  +  conn.getSchema() + tableName);
+
+	for (soci::rowset<SchoolDesk>::const_iterator itSchoolDesk = schoolDeskObjs.begin(); itSchoolDesk != schoolDeskObjs.end(); ++itSchoolDesk)
+	{
+		SchoolDesk* schoolDesk = new SchoolDesk(*itSchoolDesk);
+		schoolDesksBySchoolId.insert(std::pair<BigSerial, SchoolDesk*>( schoolDesk->getSchoolId(), schoolDesk ));
+	}
+
+	PrintOutV("Number of School Desksrows: " << schoolDesksBySchoolId.size() << std::endl );
+}
+
+void HM_Model::loadSchools(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "school";
+
+	//SQL statement
+	soci::rowset<School> schoolObjs = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
+
+	for (soci::rowset<School>::const_iterator itSchool = schoolObjs.begin(); itSchool != schoolObjs.end(); ++itSchool)
+	{
+		School* school = new School(*itSchool);
+		schools.push_back(school);
+		schoolById.insert(std::pair<BigSerial, School*>( school->getId(), school ));
+
+		if(school->getSchoolType().compare("pre_school") == 0)
+		{
+			preSchools.push_back(school);
+		}
+		else if(school->getSchoolType().compare("primary_school") == 0)
+		{
+			primarySchools.push_back(school);
+		}
+		else if(school->getSchoolType().compare("secondary_school") == 0)
+		{
+			secondarySchools.push_back(school);
+		}
+
+		else if(school->getSchoolType().compare("university") == 0)
+		{
+			universities.push_back(school);
+		}
+
+		else if(school->getSchoolType().compare("polytechnic") == 0)
+		{
+			polyTechnics.push_back(school);
+		}
+	}
+
+	PrintOutV("Number of school rows: " << schools.size() << std::endl );
 }
 
 const TravelTime* HM_Model::getTravelTimeByOriginDestTaz(BigSerial originTaz, BigSerial destTaz)
@@ -3978,18 +4099,6 @@ HM_Model::SchoolList HM_Model::getPrimarySchoolList() const
 	return this->primarySchools;
 }
 
-School* HM_Model::getPrimarySchoolById( BigSerial id) const
-{
-	SchoolMap::const_iterator itr = primarySchoolById.find(id);
-
-	if (itr != primarySchoolById.end())
-	{
-		return itr->second;
-	}
-
-	return nullptr;
-}
-
 HM_Model::HHCoordinatesList HM_Model::getHHCoordinatesList() const
 {
 	return this->hhCoordinates;
@@ -4012,15 +4121,19 @@ HM_Model::SchoolList HM_Model::getPreSchoolList() const
 	return this->preSchools;
 }
 
-School* HM_Model::getPreSchoolById( BigSerial id) const
+HM_Model::SchoolList HM_Model::getSecondarySchoolList() const
 {
-	SchoolMap::const_iterator itr = preSchoolById.find(id);
+	return this->secondarySchools;
+}
 
-	if (itr != preSchoolById.end())
-	{
-		return itr->second;
-	}
-	return nullptr;
+HM_Model::SchoolList HM_Model::getUniversityList() const
+{
+	return this->universities;
+}
+
+HM_Model::SchoolList HM_Model::getPolytechnicList() const
+{
+	return this->polyTechnics;
 }
 
 HouseholdUnit* HM_Model::getHouseholdUnitByHHId(BigSerial hhId) const
@@ -4091,7 +4204,7 @@ void HM_Model::loadJobAssignments(DB_Connection &conn)
 	std::string tableName = "job_assignment_coefficients";
 
 	//SQL statement
-	soci::rowset<JobAssignmentCoeffs> jobAssignmentCoeffsObj = (sql.prepare << "select * from calibration2012."  + tableName);
+	soci::rowset<JobAssignmentCoeffs> jobAssignmentCoeffsObj = (sql.prepare << "select * from " + conn.getSchema() + tableName);
 
 	for (soci::rowset<JobAssignmentCoeffs>::const_iterator itJobAssignmentCoeffs = jobAssignmentCoeffsObj.begin(); itJobAssignmentCoeffs != jobAssignmentCoeffsObj.end(); ++itJobAssignmentCoeffs)
 	{
@@ -4184,16 +4297,151 @@ int HM_Model::getPreSchoolAssignIndividualCount()
 	return this->numPreSchoolAssignIndividuals;
 }
 
+void HM_Model::addStudentToPrechool(BigSerial individualId, int schoolId)
+{
+	{
+		//boost::mutex::scoped_lock lock( mtx );
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		//boost::upgrade_lock<boost::shared_mutex> lock(sharedMtx1);
+		//boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+		School *preSchool = getSchoolById(schoolId);
+		preSchool->addStudent(individualId);
+		addSchoolDeskToStudent(individualId,schoolId);
+		writePreSchoolAssignmentsToFile(individualId,schoolId);
+	}
+}
+
 void HM_Model::addStudentToPrimarySchool(BigSerial individualId, int schoolId, BigSerial householdId)
 {
 	{
-		boost::mutex::scoped_lock lock( mtx );
-		School *priSchool = getPrimarySchoolById(schoolId);
+		//boost::mutex::scoped_lock lock( mtx );
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		School *priSchool = getSchoolById(schoolId);
 		priSchool->addStudent(individualId);
+		addSchoolDeskToStudent(individualId,schoolId);
+		writePrimarySchoolAssignmentsToFile(individualId,schoolId);
 		HHCoordinates *hhCoords = getHHCoordinateByHHId(householdId);
 		double distanceFromHomeToSchool = (distanceCalculateEuclidean(priSchool->getCentroidX(),priSchool->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
 		School::DistanceIndividual distanceInd{individualId,distanceFromHomeToSchool};
 		priSchool->addIndividualDistance(distanceInd);
+	}
+}
+
+void HM_Model::addStudentToSecondarychool(BigSerial individualId, int schoolId)
+{
+	{
+		//boost::mutex::scoped_lock lock( mtx );
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		School *secSchool = getSchoolById(schoolId);
+		secSchool->addStudent(individualId);
+		addSchoolDeskToStudent(individualId,schoolId);
+		writeSecondarySchoolAssignmentsToFile(individualId,schoolId);
+	}
+
+}
+
+void HM_Model::addStudentToUniversity(BigSerial individualId, int schoolId)
+{
+	{
+		//boost::mutex::scoped_lock lock( mtx );
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		School *university = getSchoolById(schoolId);
+		if(university != nullptr)
+		{
+			university->addStudent(individualId);
+			addSchoolDeskToStudent(individualId,schoolId);
+		}
+
+		writeUniversityAssignmentsToFile(individualId,schoolId);
+	}
+
+}
+
+void HM_Model::addStudentToPolytechnic(BigSerial individualId, int schoolId)
+{
+	{
+		//boost::mutex::scoped_lock lock( mtx );
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		School *polytechnic = getSchoolById(schoolId);
+		if(polytechnic != nullptr)
+		{
+			polytechnic->addStudent(individualId);
+			addSchoolDeskToStudent(individualId,schoolId);
+		}
+		writePolyTechAssignmentsToFile(individualId,schoolId);
+	}
+
+}
+
+bool HM_Model::checkForSchoolSlots(BigSerial schoolId)
+{
+	{
+		//boost::mutex::scoped_lock lock( mtx );
+		 //boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		boost::unique_lock<boost::shared_mutex> lock(sharedMtx1);
+		School *school = getSchoolById(schoolId);
+		if(school->getNumStudents()+1 < school->getSchoolSlot())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+}
+
+void HM_Model::addSchoolDeskToStudent(BigSerial individualId, int schoolId)
+{
+	{
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		//boost::mutex::scoped_lock lock( mtx );
+		//boost::upgrade_lock<boost::shared_mutex> lock(sharedMtx1);
+		//boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+
+		auto range = schoolDesksBySchoolId.equal_range(schoolId);
+		size_t sz = distance(range.first, range.second);
+
+		if(sz==0)
+		{
+			School *uni = getSchoolById(schoolId);
+			//this part should not be reached with proper data. If you get this message please check whether you have enough school desks according to school slots in each school.
+			PrintOutV("Individual id " <<  individualId << " has school desk id as 0" << std::endl);
+		}
+		else
+		{
+			std::random_device rdInGen;
+			std::mt19937 genRdInd(rdInGen());
+			std::uniform_int_distribution<int> disRdInd(0, (sz-1));
+			const unsigned int random_index = disRdInd(genRdInd);
+			std::advance(range.first, random_index);
+
+			int schoolDeskId = range.first->second->getSchoolDeskId();
+			writeSchoolDesksToFile(individualId,schoolId,schoolDeskId);
+
+			//boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+			HM_Model::SchoolDeskMultiMap::iterator iter;
+			for(iter=range.first;iter != range.second;++iter)
+			{
+				if((iter->second->getSchoolDeskId()) == schoolDeskId) {
+					schoolDesksBySchoolId.erase(iter);
+					break;
+				}
+			}
+			//lock.unlock();
+//			HM_Model::SchoolDeskMultiMap::iterator iter = range.first;
+//			while (iter != range.second)
+//			{
+//				if(iter->second->getSchoolDeskId() == schoolDeskId)
+//				{
+//					schoolDesksBySchoolId.erase(iter++);
+//				}
+//				else
+//				{
+//					++iter;
+//				}
+//			}
+		}
 	}
 }
 
@@ -4288,7 +4536,7 @@ HM_Model::JobsWithTazAndIndustryTypeMap& HM_Model::getJobsWithTazAndIndustryType
 bool HM_Model::checkJobsInTazAndIndustry(BigSerial tazId, BigSerial industryId)
 {
 	{
-		boost::unique_lock<boost::shared_mutex> lock(sharedMtx);
+		boost::unique_lock<boost::shared_mutex> lock(sharedMtx1);
 		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(tazId, industryId);
 		auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
 		size_t sz = distance(range.first, range.second);
@@ -4307,7 +4555,7 @@ bool HM_Model::checkJobsInTazAndIndustry(BigSerial tazId, BigSerial industryId)
 bool HM_Model::assignIndividualJob(BigSerial individualId, BigSerial selectedTazId, BigSerial industryId)
 {
 	{
-		boost::shared_lock<boost::shared_mutex> lock(sharedMtx);
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
 	HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
 	auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
 	size_t sz = distance(range.first, range.second);
@@ -4360,6 +4608,154 @@ HM_Model::HouseholdList HM_Model::getPendingHouseholds()
 int HM_Model::getIndLogsumCounter()
 {
 	return this->indLogsumCounter;
+}
+
+HM_Model::StudentStopList HM_Model::getStudentStops()
+{
+	return this->studentStops;
+}
+
+HM_Model::EzLinkStopList HM_Model::getEzLinkStops()
+{
+	return this->ezLinkStops;
+}
+
+EzLinkStop* HM_Model::getEzLinkStopsWithNearestUniById(BigSerial id) const
+{
+	EzLinkStopMap::const_iterator itr = ezLinkStopsWithNearestUniById.find(id);
+
+	if (itr != ezLinkStopsWithNearestUniById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+void HM_Model::assignNearestUniToEzLinkStops()
+{
+	//HM_Model::EzLinkStopMap ezLinkStopsWithNearestSchoolById;
+	BigSerial nearestSchoolId = 0;
+
+	for(EzLinkStop *ezLinkStop : ezLinkStops)
+	{
+		double minDistance = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), universities[0]->getCentroidX(), universities[0]->getCentroidY());
+		for(School *university : universities)
+		{
+			double distanceFromStopToUni = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), university->getCentroidX(), university->getCentroidY());
+			if(distanceFromStopToUni < minDistance)
+			{
+				minDistance = distanceFromStopToUni;
+				nearestSchoolId = university->getId();
+			}
+		}
+		if(minDistance < 1000)
+		{
+			ezLinkStop->setNearestUniversityId(nearestSchoolId);
+			ezLinkStopsWithNearestUni.push_back(ezLinkStop);
+			writeEzlinkStopsWithNearesUniToFile(ezLinkStop->getId(), nearestSchoolId);
+			ezLinkStopsWithNearestUniById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
+		}
+	}
+
+	HM_Model::StudentStopList studentStops = getStudentStops();
+
+	for(StudentStop *studentStop : studentStops)
+	{
+		HM_Model::EzLinkStopMap::const_iterator itr = ezLinkStopsWithNearestUniById.find(studentStop->getSchoolStopEzLinkId());
+
+		if (itr != ezLinkStopsWithNearestUniById.end())
+		{
+			studentStopsWithNearestUni.push_back(studentStop);
+		}
+
+	}
+}
+
+void HM_Model::assignNearestPolytechToEzLinkStops()
+{
+
+	HM_Model::EzLinkStopMap ezLinkStopsWithNearestSchoolById;
+	BigSerial nearestSchoolId = 0;
+
+	for(EzLinkStop *ezLinkStop : ezLinkStops)
+	{
+		double minDistance = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), polyTechnics[0]->getCentroidX(), polyTechnics[0]->getCentroidY());
+		for(School *polyTech : polyTechnics)
+		{
+			double distanceFromStopToUni = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), polyTech->getCentroidX(), polyTech->getCentroidY());
+			if(distanceFromStopToUni < minDistance)
+			{
+				minDistance = distanceFromStopToUni;
+				nearestSchoolId = polyTech->getId();
+			}
+		}
+		if(minDistance < 1000)
+		{
+			writeEzlinkStopsWithNearesPolyToFile(ezLinkStop->getId(), nearestSchoolId);
+			ezLinkStop->setNearestPolytechnicId(nearestSchoolId);
+			ezLinkStopsWithNearestPolyTech.push_back(ezLinkStop);
+			ezLinkStopsWithNearestPolytechById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
+		}
+	}
+
+	HM_Model::StudentStopList studentStops = getStudentStops();
+
+	for(StudentStop *studentStop : studentStops)
+	{
+		HM_Model::EzLinkStopMap::const_iterator itr = ezLinkStopsWithNearestPolytechById.find(studentStop->getSchoolStopEzLinkId());
+
+		if (itr != ezLinkStopsWithNearestPolytechById.end())
+		{
+			studentStopsWithNearestPolyTech.push_back(studentStop);
+		}
+
+	}
+}
+
+HM_Model::EzLinkStopList HM_Model::getEzLinkStopsWithNearsetUni()
+{
+	return ezLinkStopsWithNearestUni;
+}
+
+HM_Model::StudentStopList HM_Model::getStudentStopsWithNearestUni()
+{
+	return studentStopsWithNearestUni;
+}
+
+HM_Model::EzLinkStopList HM_Model::getEzLinkStopsWithNearsetPolytech()
+{
+	return this->ezLinkStopsWithNearestPolyTech;
+}
+
+HM_Model::StudentStopList HM_Model::getStudentStopsWithNearestPolytech()
+{
+	return this->studentStopsWithNearestPolyTech;
+
+}
+
+EzLinkStop* HM_Model::getEzLinkStopsWithNearestPolytechById(BigSerial id) const
+{
+	EzLinkStopMap::const_iterator itr = ezLinkStopsWithNearestPolytechById.find(id);
+
+	if (itr != ezLinkStopsWithNearestPolytechById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+School* HM_Model::getSchoolById(BigSerial schoolId) const
+{
+	SchoolMap::const_iterator itr = schoolById.find(schoolId);
+
+	if (itr != schoolById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
 }
 
 void HM_Model::stopImpl()

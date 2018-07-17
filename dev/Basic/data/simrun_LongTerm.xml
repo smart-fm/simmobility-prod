@@ -20,18 +20,17 @@
                 <dbname value="sim_mob_lt"/>
             </database>
             
-	    <!-- internal ip for remote midterm server -->
-            <database id="fm_remote_mt1" dbtype="postgres">
-                <host value="172.25.184.48"/>
+            <database id="fm_remote_mt" dbtype="postgres">
+                <host value="172.25.184.156"/>
                 <port value="5432"/>
                 <dbname value="simmobility"/>
             </database>
 
 	    <!-- hpc ip for remote midterm server -->
-            <database id="fm_remote_mt" dbtype="postgres">
-                <host value="172.25.184.156"/>
+            <database id="fm_remote_mt2" dbtype="postgres">
+                <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="simmobility"/>
+                <dbname value="simmobility_vc12_2.1.1"/>
             </database>
 
             <!-- localhost for midterm server -->
@@ -113,35 +112,43 @@
         <opSchemaloadingInterval value = "367"/>
         <initialLoading value = "true" />
         <launchBTO value = "false"/>
+	<launchPrivatePresale value = "false" />
     	<developerModel enabled="true">
-    		<timeInterval value="30"/>
+    	<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>
 		<initialBuildingId value = "300000" />
 		<initialUnitId value = "2000000" />
 		<initialProjectId value = "200000" />
 		<minLotSize value = "100.00" />
+		<constructionStartDay value = "60"/>
+        <saleFromDay value = "180"/>
+		<occupancyFromDay value = "365"/>
+		<constructionCompletedDay value = "365"/>
     	</developerModel>
 	<outputHouseholdLogsums enabled="false">
 	    <vehicleOwnershipLogsum value ="false"/>
 	    <fixedHomeVariableWork value ="false"/>
 	    <fixedWorkVariableHome value ="false"/>
+        <hitsRun value = "false" />
+	    <maxcCost value ="false"/>
+	    <maxTime value ="true"/>
 	</outputHouseholdLogsums>
     	<housingModel enabled="true"> 	    
-            <timeOnMarket value="72"/>
-            <timeOffMarket value="288"/>
+            <timeOnMarket value="270"/>
+            <timeOffMarket value="90"/>
             <timeInterval value="7"/>
-	    <wtpOffsetEnabled value="true"/>
-	    <awakeningModel enabled="true">
+	        <wtpOffsetEnabled value="true"/>
+	        <unitsFiltering value="false"/>
+	        <awakeningModel enabled="true">
 		    <initialHouseholdsOnMarket value="7500"/>
 		    <dailyHouseholdAwakenings value="400"/>
 		    <awakenModelShan value="false"/>
 		    <awakenModelRandom value="false"/>
 		    <awakenModelJingsi value="true"/>	
-                    <awakeningOffMarketSuccessfulBid value="210"/>
- 	            <awakeningOffMarketUnsuccessfulBid value="210"/>
+            <awakeningOffMarketSuccessfulBid value="210"/>
+ 	        <awakeningOffMarketUnsuccessfulBid value="210"/>
 	    </awakeningModel>
-
-	    <vacantUnitActivationProbability value="0.2000"/>
+	    <vacantUnitActivationProbability value="0.75"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>	   
 	    <bidderUnitsChoiceSet value = "50"/>
@@ -149,8 +156,8 @@
 	    <householdBiddingWindow value = "30" />
 	    <householdBTOBiddingWindow value = "5" />
 	    <householdAwakeningPercentageByBTO value = "0.020" />
-	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
-            <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
+	    <offsetBetweenUnitBuyingAndSelling value ="30"/>
+        <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
 	    <hedonicPriceModel enabled = "true">
 		<a value = "0.8"/>
 		<b value = "1.15"/>
@@ -174,6 +181,8 @@
                 <scenarioSchema value = 'synpop12.' />
 		<parcelsTable value = "fm_parcel" /> 
 		<!-- <parcelsTable value = "fm_parcel_study_area" /> --> <!-- in tp scenario : fm_parcel_scenario_toapayoh -->
+                <hedonicModel value = "true" />
+                <willingness_to_pay_model value = "true" />
 	</scenario>
 
 	<outputFiles enabled= 'false'>
@@ -205,7 +214,7 @@
         </outputFiles>
     </longTermParams>
 
-    <model_scripts path="scripts/lua/mid/behavior_sg12_20161206/" format="lua">
+    <model_scripts path="scripts/lua/mid/behavior_vc/" format="lua">
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
@@ -213,7 +222,24 @@
 	<script name="tmw" file="tmw.lua"/> <!--Tour Mode/Destination Work -->
 	<script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
 	<script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
-	<script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->                    
+	<script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->  
+        <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->                      
     </model_scripts>
+
+ <model_scripts_ABA  format="lua"> 
+	<pathTC name="scripts/lua/mid/behavior_vc/" format="lua" />
+	<pathTCPlusOne name="scripts/lua/mid/behavior_vc_t_c_plus1/" format="lua" />
+	<pathCTPlusOne name="scripts/lua/mid/behavior_vc_c_t_plus1/" format="lua" />
+	<pathTCZero name="scripts/lua/mid/behavior_vc_t_c_0/" format="lua" />
+	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
+	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
+	<script name="dps" file="dps.lua"/> <!-- Day Pattern Stops -->
+	<script name="tmw" file="tmw.lua"/> <!--Tour Mode/Destination Work -->
+	<script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
+	<script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
+	<script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->  
+        <script name="tme" file="tme.lua"/> <!--Tour Mode Education -->                      
+    </model_scripts_ABA>
 </config>
 

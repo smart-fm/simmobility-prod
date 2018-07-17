@@ -116,6 +116,7 @@ namespace sim_mob
             HouseholdAgent *parent;
             bool active;
             bool runOnce;
+            uint32_t day;
         };
     }
 }

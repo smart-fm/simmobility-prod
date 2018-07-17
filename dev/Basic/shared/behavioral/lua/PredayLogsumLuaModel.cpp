@@ -159,6 +159,17 @@ void sim_mob::PredayLogsumLuaModel::computeTourModeLogsum(PersonParams& personPa
                 personParams.setActivityLogsum(activity.first, workLogSum.cast<double>());
             }
         }
+
+        if (actConfig.type == EDUCATION_ACTIVITY_TYPE && personParams.isStudent())
+        {
+        	if (!actConfig.tourModeModel.empty())
+        	{
+        		std::string luaFunc = "compute_logsum_" + actConfig.tourModeModel;
+        		LuaRef computeLogsumTMW = getGlobal(state.get(), luaFunc.c_str());
+        		LuaRef workLogSum = computeLogsumTMW(&personParams, &tourModeParams);
+        		personParams.setActivityLogsum(activity.first, workLogSum.cast<double>());
+        	}
+        }
     }
 }
 

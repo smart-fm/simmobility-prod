@@ -358,25 +358,101 @@ namespace sim_mob
 												% logsum[1259]  % logsum[1260]  % logsum[1261]  % logsum[1262]  % logsum[1263]  % logsum[1264]  % logsum[1265]  % logsum[1266]*/;
 
 
-
-			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_HITS_LOGSUM, fmtr.str());
+			if(title.compare("logsum")==0)
+			{
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_HITS_LOGSUM, fmtr.str());
+			}
+			else if(title.compare("workLogsum")==0)
+			{
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_WORK_LOGSUM, fmtr.str());
+			}
+			else if(title.compare("eduLogsum")==0)
+			{
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_EDU_LOGSUM, fmtr.str());
+			}
+			else if(title.compare("shopLogsum")==0)
+			{
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_SHOP_LOGSUM, fmtr.str());
+			}
+			else if(title.compare("otherLogsum")==0)
+			{
+				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_OTHER_LOGSUM, fmtr.str());
+			}
 
 			std::cout << fmtr.str() << std::endl;
 		}
 
+		inline void getActivityLogsumByActivityType(std::unordered_map<int, double> &activityLogsums, double &workLogsum, double &eduLogsum, double &shopLogsum, double &otherLogsum)
+		{
+			for (auto activityLogsum : activityLogsums )
+			{
+				if(activityLogsum.first == 1)
+				{
+					workLogsum = activityLogsum.second;
+				}
+				else if(activityLogsum.first == 2)
+				{
+					eduLogsum = activityLogsum.second;
+				}
+				if(activityLogsum.first == 3)
+				{
+					shopLogsum = activityLogsum.second;
+				}
+				if(activityLogsum.first == 4)
+				{
+					otherLogsum = activityLogsum.second;
+				}
+			}
+
+		}
 		//hitsId , paxId , householdId , individualId , memberId , tazH , tazW , logsum[0] , logsum[1] ,logsum[2] , logsum[3] ,logsum[4] , logsum[5] ,travelProbability[0] , travelProbability[1] , travelProbability[2] , travelProbability[3] ,travelProbability[4] , travelProbability[5] ,tripsExpected[0] , tripsExpected[1], tripsExpected[2] , tripsExpected[3], tripsExpected[4] , tripsExpected[5]
-		inline void printHouseholdHitsLogsumFVO( std::string hitsId, int paxId, BigSerial householdId, BigSerial individualId, int memberId, int tazH, int tazW, vector<double> logsum, vector<double> travelProbability, vector<double> tripsExpected )
+		inline void printHouseholdHitsLogsumFVO( std::string hitsId, int paxId, BigSerial householdId, BigSerial individualId, int memberId, int tazH, int tazW, std::unordered_map<int,double> &logsum)
 		{
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_individual_logsum_vo)
 				return;
 
-			boost::format fmtr = boost::format( "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%, %25% ")
+			double logsum0 = 0;
+			double logsum1 = 0;
+			double logsum2 = 0;
+			double logsum3 = 0;
+			double logsum4 = 0;
+			double logsum5 = 0;
+
+			for (auto voLogsum : logsum )
+			{
+				if(voLogsum.first == 0)
+				{
+					logsum0 = voLogsum.second;
+				}
+				else if(voLogsum.first == 1)
+				{
+					logsum1 = voLogsum.second;
+				}
+				else if(voLogsum.first == 2)
+				{
+					logsum2 = voLogsum.second;
+				}
+				if(voLogsum.first == 3)
+				{
+					logsum3 = voLogsum.second;
+				}
+				if(voLogsum.first == 4)
+				{
+					logsum4 = voLogsum.second;
+				}
+				if(voLogsum.first == 5)
+				{
+					logsum5 = voLogsum.second;
+				}
+			}
+
+
+			boost::format fmtr = boost::format( "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%")
 												 % hitsId % paxId % householdId % individualId % memberId % tazH % tazW
-												 % logsum[0] % logsum[1] % logsum[2] % logsum[3] % logsum[4] % logsum[5]
-												 % travelProbability[0] % travelProbability[1] % travelProbability[2] % travelProbability[3] % travelProbability[4] % travelProbability[5]
-												 % tripsExpected[0] % tripsExpected[1] % tripsExpected[2] % tripsExpected[3] % tripsExpected[4] % tripsExpected[5];
+												 % logsum0 % logsum1 % logsum2 % logsum3 % logsum4 % logsum5;
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_LOGSUM_VO, fmtr.str());
+			std::cout << fmtr.str() << std::endl;
 		}
 
 		inline void printProbabilityList( BigSerial householdId, std::vector<double>probabilities )
@@ -421,6 +497,17 @@ namespace sim_mob
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % hhId % VehiclOwnershiOptionId % workInTopayo % liveInTopayo;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,fmtr.str());
 	    }
+
+	    inline void writeVehicleOwnershipToFile2(BigSerial hhId,int VehiclOwnershiOptionId, bool workInTopayo, bool liveInTopayo)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	    	if(!config.ltParams.outputFiles.log_vehicle_ownership)
+	    		return;
+
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % hhId % VehiclOwnershiOptionId % workInTopayo % liveInTopayo;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP2,fmtr.str());
+	    }
+
 	    									//day, householdId, unitId, willingnessToPay, AskingPrice, Affordability, BidAmount, Surplus, currentPostcode, unitPostcode
 	    inline void printHouseholdBiddingList(  int day, BigSerial householdId, BigSerial unitId, std::string postcodeCurrent, std::string postcodeNew,
 	    										double wp, double askingPrice, double affordability, double currentBid, double currentSurplus)
@@ -444,6 +531,15 @@ namespace sim_mob
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%")% day % householdId % choiceset;
 
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET,fmtr.str());
+	    }
+
+	    inline void printChoiceset2( int day, BigSerial householdId, BigSerial unitId)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%")% day % householdId % unitId;
+
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET2,fmtr.str());
 	    }
 
 	    inline void PrintExit(int day, const Household *household, int result)
@@ -651,13 +747,14 @@ namespace sim_mob
 	     * @param unit to be written.
 	     *
 	     */
-	    inline void printNewUnitsInMarket(BigSerial sellerId, BigSerial unitId, int entryday, int timeOnMarket, int timeOffMarket)
+	    inline void printNewUnitsInMarket(BigSerial sellerId, BigSerial unitId, int entryday, int timeOnMarket, int timeOffMarket, std::tm saleFromDate)
 	    {
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.units_in_market)
 				return;
 
-	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%") % sellerId % unitId % entryday % timeOnMarket % timeOffMarket;
+			boost::gregorian::date saleFromDateGreg 	 = boost::gregorian::date_from_tm(saleFromDate);
+	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%") % sellerId % unitId % entryday % timeOnMarket % timeOffMarket % boost::gregorian::to_iso_extended_string(saleFromDateGreg);
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS_IN_MARKET,fmtr.str());
 	    }
 
@@ -719,5 +816,21 @@ namespace sim_mob
 	    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % unitId % timeOnMarket % timeOffMarket % biddingMarketEntryDay;
 	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_DAILY_HOUSING_MARKET_UNIT_TIMES,fmtr.str());
 	    }
+
+	    inline void writeUnitHedonicPriceToFile( BigSerial unitId, double hedonicPrice)
+	    {
+	    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	    	boost::format fmtr = boost::format("%1%, %2%") % unitId % hedonicPrice;
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_UNIT_HEDONIC_PRICE,fmtr.str());
+	    }
+
+		inline void writeNewBidsToFile( BigSerial bidId,BigSerial currentUnitId, BigSerial newUnitId,BigSerial bidderId, double bidValue, int simDay )
+            {
+                ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+                boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%") % bidId % currentUnitId % newUnitId % bidderId %bidValue % simDay;
+                AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_NEW_BIDS,fmtr.str());
+            }
 	}
 }

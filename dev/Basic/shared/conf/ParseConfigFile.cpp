@@ -99,6 +99,7 @@ void ParseConfigFile::processXmlFile(XercesDOMParser &parser)
 			processSchemasParamsNode(GetSingleElementByName(rootNode, "schemas"));
 			processLongTermParamsNode(GetSingleElementByName(rootNode, "longTermParams"));
 			processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts"));
+			processModelScriptsNodeABA(GetSingleElementByName(rootNode, "model_scripts_ABA"));
 			return;
 		}
 
@@ -106,6 +107,8 @@ void ParseConfigFile::processXmlFile(XercesDOMParser &parser)
 		processSimulationNode(GetSingleElementByName(rootNode, "simulation", true));
 		processGenericPropsNode(GetSingleElementByName(rootNode, "generic_props"));
 		processMergeLogFilesNode(GetSingleElementByName(rootNode, "merge_log_files"));
+		processActivityTypesNode(GetSingleElementByName(rootNode, "activity_types", true));
+		processTravelModesNode(GetSingleElementByName(rootNode, "travel_modes", true));
 	}
 	catch (runtime_error &ex)
 	{
@@ -319,6 +322,10 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
 						node, "launchBTO"), "value"), false);
 
+	cfg.ltParams.launchPrivatePresale =
+			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+					node, "launchPrivatePresale"), "value"), false);
+
 	processDeveloperModelNode(GetSingleElementByName(node, "developerModel"));
 	processHousingModelNode(GetSingleElementByName(node, "housingModel"));
 	processHouseHoldLogsumsNode(GetSingleElementByName(node, "outputHouseholdLogsums"));
@@ -335,26 +342,6 @@ void ParseConfigFile::processLongTermParamsNode(xercesc::DOMElement *node)
 	processJobAssignmentModelNode(GetSingleElementByName(node, "jobAssignmentModel"));
 	processScenarioNode(GetSingleElementByName(node, "scenario"));
 	processOutputFilesNode(GetSingleElementByName(node, "outputFiles"));
-
-	LongTermParams::Scenario scenario;
-	DOMElement *scenarioNode = GetSingleElementByName(node, "scenario");
-
-	scenario.enabled =
-			ParseBoolean(GetNamedAttributeValue(scenarioNode, "enabled"), false);
-
-	scenario.scenarioName =
-				ParseString(GetNamedAttributeValue(GetSingleElementByName(
-						scenarioNode, "name"), "value"), "");
-
-	scenario.parcelsTable =
-			ParseString(GetNamedAttributeValue(GetSingleElementByName(
-					scenarioNode, "parcelsTable"), "value"), "");
-
-	scenario.scenarioSchema =
-				ParseString(GetNamedAttributeValue(GetSingleElementByName(
-						scenarioNode, "scenarioSchema"), "value"), "");
-
-	cfg.ltParams.scenario = scenario;
 }
 
 void ParseConfigFile::processOutputFilesNode(xercesc::DOMElement *output)
@@ -477,7 +464,36 @@ void ParseConfigFile::processScenarioNode(xercesc::DOMElement *scenarioNode)
 	scenario.scenarioName =
 			ParseString(GetNamedAttributeValue(GetSingleElementByName(scenarioNode, "name"), "value"), "");
 
-	cfg.ltParams.scenario = scenario;
+//	cfg.ltParams.scenario = scenario;
+//
+//
+//	LongTermParams::Scenario scenario;
+//		DOMElement *scenarioNode = GetSingleElementByName(node, "scenario");
+//
+//		scenario.enabled =
+//				ParseBoolean(GetNamedAttributeValue(scenarioNode, "enabled"), false);
+//
+//		scenario.scenarioName =
+//					ParseString(GetNamedAttributeValue(GetSingleElementByName(
+//							scenarioNode, "name"), "value"), "");
+
+		scenario.parcelsTable =
+				ParseString(GetNamedAttributeValue(GetSingleElementByName(
+						scenarioNode, "parcelsTable"), "value"), "");
+
+		scenario.scenarioSchema =
+					ParseString(GetNamedAttributeValue(GetSingleElementByName(
+							scenarioNode, "scenarioSchema"), "value"), "");
+
+		scenario.hedonicModel =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+								scenarioNode, "hedonicModel"), "value"), "");
+
+		scenario.willingnessToPayModel =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+									scenarioNode, "willingness_to_pay_model"), "value"), "");
+
+		cfg.ltParams.scenario = scenario;
 }
 
 void ParseConfigFile::processSchoolAssignmentModelNode(xercesc::DOMElement *schoolAssignModel)
@@ -543,6 +559,18 @@ void ParseConfigFile::processHouseHoldLogsumsNode(xercesc::DOMElement *outHHLogs
 			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
 					outHHLogsums, "vehicleOwnershipLogsum"), "value"), false);
 
+	outputHouseholdLogsums.hitsRun =
+				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+						outHHLogsums, "hitsRun"), "value"), false);
+
+	outputHouseholdLogsums.maxcCost =
+					ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+							outHHLogsums, "maxcCost"), "value"), false);
+
+	outputHouseholdLogsums.maxTime =
+					ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+							outHHLogsums, "maxTime"), "value"), false);
+
 	cfg.ltParams.outputHouseholdLogsums = outputHouseholdLogsums;
 }
 
@@ -568,6 +596,10 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 	housingModel.wtpOffsetEnabled =
 				ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
 						houseModel, "wtpOffsetEnabled"), "value"), false);
+
+	housingModel.unitsFiltering =
+					ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(
+							houseModel, "unitsFiltering"), "value"), false);
 
 	housingModel.vacantUnitActivationProbability =
 			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(
@@ -678,6 +710,22 @@ void ParseConfigFile::processDeveloperModelNode(xercesc::DOMElement *devModel)
 	developerModel.minLotSize =
 			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(
 					devModel, "minLotSize"), "value"), (float) 0.0);
+
+	developerModel.constructionStartDay =
+				ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
+						devModel, "constructionStartDay"), "value"), (int) 0);
+
+	developerModel.saleFromDay =
+			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
+					devModel, "saleFromDay"), "value"), (int) 0);
+
+	developerModel.occupancyFromDay =
+				ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
+						devModel, "occupancyFromDay"), "value"), (int) 0);
+
+	developerModel.constructionCompletedDay =
+					ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
+							devModel, "constructionCompletedDay"), "value"), (int) 0);
 
 	cfg.ltParams.developerModel = developerModel;
 }
@@ -874,3 +922,203 @@ void ParseConfigFile::processModelScriptsNode(xercesc::DOMElement *node)
 	cfg.luaScriptsMap = scriptsMap;
 }
 
+void ParseConfigFile::processModelScriptsNodeABA(xercesc::DOMElement *node)
+{
+	string format = ParseString(GetNamedAttributeValue(node, "format"), "");
+
+	if (format.empty() || format != "lua")
+	{
+		stringstream msg;
+		msg << "Invalid value for <model_scripts format=\""
+				<< format << "\">. Expected: \"lua\"";
+		throw runtime_error(msg.str());
+	}
+
+	string scriptsDirectoryPathTC =  ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "pathTC"), "name"));
+
+	if (scriptsDirectoryPathTC.empty())
+	{
+		stringstream msg;
+		msg << "Empty value for <model_scripts path_ABA=\"\"/>. "
+				<< "Expected: path to scripts";
+		throw runtime_error(msg.str());
+	}
+
+	if ((*scriptsDirectoryPathTC.rbegin()) != '/')
+	{
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPathTC.push_back('/');
+	}
+
+	ModelScriptsMap scriptsMapTC(scriptsDirectoryPathTC, format);
+
+	string tagName = "script";
+	processModelScriptNodeABAFIles(node,tagName,scriptsMapTC);
+	cfg.luaScriptsMapTC = scriptsMapTC;
+
+	//**************
+	string scriptsDirectoryPathTCPlusOne =  ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "pathTCPlusOne"), "name"));
+
+	if (scriptsDirectoryPathTCPlusOne.empty())
+	{
+		stringstream msg;
+		msg << "Empty value for <model_scripts path_ABA=\"\"/>. "
+				<< "Expected: path to scripts";
+		throw runtime_error(msg.str());
+	}
+
+	if ((*scriptsDirectoryPathTCPlusOne.rbegin()) != '/')
+	{
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPathTCPlusOne.push_back('/');
+	}
+
+	ModelScriptsMap scriptsMapTCPlusOne(scriptsDirectoryPathTCPlusOne, format);
+	processModelScriptNodeABAFIles(node,tagName,scriptsMapTCPlusOne);
+	cfg.luaScriptsMapTimeCostPlusOne = scriptsMapTCPlusOne;
+
+	string scriptsDirectoryPathCTPlusOne =  ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "pathCTPlusOne"), "name"));
+
+	if (scriptsDirectoryPathCTPlusOne.empty())
+	{
+		stringstream msg;
+		msg << "Empty value for <model_scripts path_ABA=\"\"/>. "
+				<< "Expected: path to scripts";
+		throw runtime_error(msg.str());
+	}
+
+	if ((*scriptsDirectoryPathCTPlusOne.rbegin()) != '/')
+	{
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPathCTPlusOne.push_back('/');
+	}
+
+	ModelScriptsMap scriptsMapCTPlusOne(scriptsDirectoryPathCTPlusOne, format);
+	processModelScriptNodeABAFIles(node,tagName,scriptsMapCTPlusOne);
+	cfg.luaScriptsMapCostTimePlusOne = scriptsMapCTPlusOne;
+
+	string scriptsDirectoryPathTCZero =  ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "pathTCZero"), "name"));
+
+	if (scriptsDirectoryPathTCZero.empty())
+	{
+		stringstream msg;
+		msg << "Empty value for <model_scripts path_ABA=\"\"/>. "
+				<< "Expected: path to scripts";
+		throw runtime_error(msg.str());
+	}
+
+	if ((*scriptsDirectoryPathTCZero.rbegin()) != '/')
+	{
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPathTCZero.push_back('/');
+	}
+
+	ModelScriptsMap scriptsMapTCZero(scriptsDirectoryPathTCZero, format);
+	processModelScriptNodeABAFIles(node,tagName,scriptsMapTCZero);
+	cfg.luaScriptsMapTCZeroCostConstants = scriptsMapTCZero;
+
+}
+
+void ParseConfigFile::processModelScriptNodeABAFIles(xercesc::DOMElement *node, std::string tagName, ModelScriptsMap &scriptsMap)
+{
+	//for (DOMElement *item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
+	for (DOMElement *item : GetElementsByName(node,tagName,true))
+	{
+		string name = TranscodeString(item->getNodeName());
+
+		if (name != "script")
+		{
+			Warn() << "\nWARNING! Invalid value for \'model_scripts\': \"" << TranscodeString(item->getNodeName())
+					    				   << "\" in file " << inFilePath << ". Expected: \'script\'\n";
+			continue;
+		}
+
+		string key = ParseString(GetNamedAttributeValue(item, "name"), "");
+		string val = ParseString(GetNamedAttributeValue(item, "file"), "");
+
+		if (key.empty() || val.empty())
+		{
+			Warn() << "\nWARNING! Empty value in <script name=\"" << key << "\" file=\"" << val << "\"/>. "
+					<< "Expected: script name and file name";
+			continue;
+		}
+
+		scriptsMap.addScriptFileName(key, val);
+	}
+}
+
+void ParseConfigFile::processTravelModesNode(DOMElement *node)
+{
+    if (!node)
+    {
+        return;
+    }
+
+    ///Loop through and save child attributes.
+    unsigned int modeId = 1;
+    for (DOMElement* mapItem = node->getFirstElementChild(); mapItem; mapItem = mapItem->getNextElementSibling(), ++modeId)
+    {
+        if (TranscodeString(mapItem->getNodeName())!="mode")
+        {
+            Warn() <<"Invalid travel_modes child node.\n";
+            continue;
+        }
+
+        TravelModeConfig travelModeConfig;
+
+        travelModeConfig.name = ParseString(GetNamedAttributeValue(mapItem, "name"), "");
+        travelModeConfig.type = ParseInteger(GetNamedAttributeValue(mapItem, "type"), 3);
+        travelModeConfig.numSharing = ParseInteger(GetNamedAttributeValue(mapItem, "num_sharing"), 1);
+        if (travelModeConfig.name.empty())
+        {
+            Warn() <<"\"travel_modes -> mode\" name cannot be empty";
+            continue;
+        }
+
+        cfg.travelModeMap[modeId] = travelModeConfig;
+    }
+}
+
+void ParseConfigFile::processActivityTypesNode(DOMElement *node)
+{
+    if (!node)
+    {
+        return;
+    }
+
+    ///Loop through and save child attributes.
+    unsigned int activityTypeId = 1;
+    for (DOMElement* mapItem = node->getFirstElementChild(); mapItem; mapItem = mapItem->getNextElementSibling(), ++activityTypeId)
+    {
+        if (TranscodeString(mapItem->getNodeName())!="activity_type")
+        {
+            Warn() <<"Invalid activity_types child node.\n";
+            continue;
+        }
+
+        ActivityTypeConfig actTypeConf;
+        actTypeConf.name = ParseString(GetNamedAttributeValue(mapItem, "name"), "");
+        actTypeConf.withinDayModeChoiceModel = ParseString(GetNamedAttributeValue(mapItem, "withinday_mode_choice"), "");
+        actTypeConf.numToursModel = ParseString(GetNamedAttributeValue(mapItem, "num_tours"), "");
+        actTypeConf.tourModeModel = ParseString(GetNamedAttributeValue(mapItem, "tour_mode"), "");
+        actTypeConf.tourModeDestModel = ParseString(GetNamedAttributeValue(mapItem, "tour_mode_dest"), "");
+        actTypeConf.tourTimeOfDayModel = ParseString(GetNamedAttributeValue(mapItem, "tour_time_of_day"), "");
+        actTypeConf.logsumTableColumn = ParseString(GetNamedAttributeValue(mapItem, "logsum_table_column"), "");
+        actTypeConf.type = ParseInteger(GetNamedAttributeValue(mapItem, "type") );
+        if (actTypeConf.name.empty())
+        {
+            Warn() <<"\"preday -> activity_types -> activity_type\" name cannot be empty";
+            continue;
+        }
+
+        if (actTypeConf.logsumTableColumn.empty())
+        {
+            Warn() <<"\"preday -> activity_types -> activity_type\" logsum_table_column cannot be empty";
+            continue;
+        }
+
+        cfg.activityTypeIdConfigMap[activityTypeId] = actTypeConf;
+        cfg.activityTypeNameIdMap[actTypeConf.name] = activityTypeId;
+    }
+
+}

@@ -195,17 +195,20 @@ void PersonParams::fixUpParamsForLtPerson()
 		setMissingIncome(0);
 	}
 	setHouseholdFactor(1); // no scaling of persons when generating day activity schedule
-	setHomeLocation(getTAZCodeForAddressId(homeAddressId));
+	//setHomeLocation(getTAZCodeForAddressId(homeAddressId));
+	setHomeLocation(homeAddressId);
 	setFixedSchoolLocation(0);
 	setFixedWorkLocation(0);
 	if (fixedWorkplace)
 	{
 
-		setFixedWorkLocation(getTAZCodeForAddressId(activityAddressId));
+		//setFixedWorkLocation(getTAZCodeForAddressId(activityAddressId));
+		setFixedWorkLocation(activityAddressId);
 	}
 	if (student)
 	{
-		setFixedSchoolLocation(getTAZCodeForAddressId(activityAddressId));
+		//setFixedSchoolLocation(getTAZCodeForAddressId(activityAddressId));
+		setFixedSchoolLocation(activityAddressId);
 	}
 	setHasDrivingLicence(getCarLicense() || getVanbusLicense());
 	setIsUniversityStudent(studentTypeId == 4);
@@ -301,6 +304,11 @@ const std::vector<long>& PersonParams::getAddressIdsInZone(int zoneCode) const
 		return EMPTY_VECTOR_OF_LONGS;
 	}
 	return znAddressIt->second;
+}
+
+std::unordered_map<StopType, double> PersonParams::getActivityLogsums() const
+{
+		return activityLogsums;
 }
 
 void PersonParams::setAddressLookup(const sim_mob::Address& address)

@@ -111,6 +111,8 @@ namespace sim_mob
 
             void setUnitIdToBeOwned(BigSerial unitId);
 
+            void calculateMaxSurplusEntry(const HousingMarket::Entry* entry,double &maxSurplus, double &finalBid, double &maxWp,double &maxAffordability, double &maxWtpe,BigSerial &maxEntryUnitId);
+
         protected:
 
             /**

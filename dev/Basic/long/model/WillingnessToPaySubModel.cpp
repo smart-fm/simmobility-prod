@@ -349,7 +349,7 @@ namespace sim_mob
 			const double halfStandDeviationLogsum = 0.07808;
 			const double quarterStandDeviationLogsum = 0.03904;
 
-			if( config.ltParams.scenario.enabled )
+			if( config.ltParams.scenario.enabled && config.ltParams.scenario.willingnessToPayModel)
 			{
 				std::multimap<string, StudyArea*> scenario = model->getStudyAreaByScenarioName();
 				//We will search for every instance of our scenario name in the scenario multimap
@@ -452,6 +452,164 @@ namespace sim_mob
 			V = exp(V);
 
 			return V;
+		}
+
+		double WillingnessToPaySubModel::calculateResidentialWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e, double day, HM_Model *model)
+		{
+			double willingnessToPay;
+			int unitTypeId = unit->getUnitType();
+			const ResidentialWTP_Coefs *wtpCoeffs = nullptr;
+			bool nonHDB = false;
+
+			if( (unitTypeId == 1) || (unitTypeId == 2) || (unitTypeId == 3) || (unitTypeId == 65))
+			{
+				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_123");
+			}
+			else if(unitTypeId == 4)
+			{
+				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_4");
+			}
+			else if(unitTypeId == 5 || unitTypeId == 6)
+			{
+				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_5");
+			}
+			else
+			{
+				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("private");
+				nonHDB = true;
+			}
+
+			Postcode *unitPostcode = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
+			BigSerial tazId = unitPostcode->getTazId();
+			double logsumTaz = model->ComputeHedonicPriceLogsumFromDatabase( tazId );
+			Household* householdT = const_cast<Household*>(household);
+			householdT->setLogsum(logsumTaz);
+
+			double missingAge = 0;
+			double ageOfUnit = 0;
+			double carDummy = 0;
+			if(household->getVehicleCategoryId() > 0)
+			{
+				carDummy = 1;
+			}
+			if( (unit->getOccupancyFromDate().tm_year == 8099)|| (unit->getOccupancyFromDate().tm_year == 0))
+			{
+				missingAge = 1;
+			}
+			else
+			{
+				ageOfUnit= HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
+			}
+
+			if(nonHDB && ageOfUnit > 50)
+			{
+				ageOfUnit = 50;
+			}
+			if(!nonHDB && ageOfUnit > 40)
+			{
+				ageOfUnit = 40;
+			}
+
+			ageOfUnit = ageOfUnit/10.0;// (age of unit is divided by 10 in Roberto's model')
+
+			const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( model->getUnitSlaAddressId( unit->getId() ) );
+			double distanceMall = pcAmenities->getDistanceToMall();
+			//Chetan. 3 July 2017.
+			//Temp fix cos XiaoHu added some distanceToMall in meters
+			if(distanceMall > 100 )
+				distanceMall = distanceMall / 1000;
+
+			double distanceToMRT = pcAmenities->getDistanceToMRT();
+			double isMRT_2_400m = 0;
+			if( (distanceToMRT > 0.200) && (distanceToMRT < 0.400))
+			{
+				isMRT_2_400m = 1;
+			}
+
+			double freeholdApartment = 0;
+			double freeholdCondo = 0;
+			double freeholdTerrace = 0;
+			double freeholdDetached = 0;
+
+			if(unitTypeId >=7 && unitTypeId <=11)
+			{
+				freeholdApartment = 1;
+			}
+			else if(unitTypeId >=12 && unitTypeId <= 16)
+			{
+				freeholdCondo = 1;
+			}
+			else if(unitTypeId >= 17 && unitTypeId <= 21)
+			{
+				freeholdTerrace = 1;
+			}
+			else if(unitTypeId >=27 && unitTypeId <=31)
+			{
+				freeholdDetached = 1;
+			}
+
+			double bus200_400m = 0;
+			if(pcAmenities->getDistanceToBus() >= 0.200 && pcAmenities->getDistanceToBus() <= 0.400)
+			{
+				bus200_400m = 1;
+			}
+
+			double fullTimeWorkers = household->getWorkers();
+			double oneTwoFullTimeWorkers = 0;
+			if(fullTimeWorkers == 1 || fullTimeWorkers == 2)
+			{
+				oneTwoFullTimeWorkers = 1;
+			}
+
+			double logArea = log(unit->getFloorArea()/10);//for the estimation of this coeff, we have to rescale to comparable with other units. - Roberto
+			double hhSizeWorkersDiff = household->getSize()- household->getWorkers();
+
+			Taz *taz = model->getTazById(tazId);
+			double mature = 0;
+			double matureOther = 0;
+			if(taz->getHdbTownType().compare("mature") == 0)
+			{
+				mature = 1;
+			}
+			else if (taz->getHdbTownType().compare("mature") == 0)
+			{
+				matureOther = 1;
+			}
+
+			willingnessToPay =  wtpCoeffs->getConstant() +
+								wtpCoeffs->getLogArea() * logArea
+								+ wtpCoeffs->getLogsumTaz() * logsumTaz
+								+ wtpCoeffs->getAge() * ageOfUnit + wtpCoeffs->getAgeSquared() * (ageOfUnit * ageOfUnit)
+								+ wtpCoeffs->getCarDummy() * carDummy + wtpCoeffs->getCarIntoLogsumTaz() * carDummy * logsumTaz
+								+ wtpCoeffs->getDistanceMall() * distanceMall
+								+ wtpCoeffs->getMrt200m400m() * isMRT_2_400m
+								+ wtpCoeffs->getMatureDummy() * mature + wtpCoeffs->getMatureOtherDummy() * matureOther
+								+ wtpCoeffs->getFloorNumber() * unit->getStorey()
+								+ wtpCoeffs->getLogIncome() * log(household->getIncome())
+								+ wtpCoeffs->getLogIncomeIntoLogArea() * log(household->getIncome()) * logArea
+								+ wtpCoeffs->getFreeholdApartment() * freeholdApartment
+								+ wtpCoeffs->getFreeholdCondo() * freeholdCondo
+								+ wtpCoeffs->getFreeholdTerrace() * freeholdTerrace
+								+ wtpCoeffs->getFreeholdDetached() * freeholdDetached
+								+ wtpCoeffs->getBus200m400mDummy() * bus200_400m
+								+ wtpCoeffs->getOneTwoFullTimeWorkerDummy() * oneTwoFullTimeWorkers
+								+ wtpCoeffs->getFullTimeWorkersTwoIntoLogArea() * oneTwoFullTimeWorkers * logArea
+								+ wtpCoeffs->getHhSizeworkersDiff() * hhSizeWorkersDiff;
+
+				boost::mt19937 rng( clock() );
+				boost::normal_distribution<> nd( 0.0, sde);
+				boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, nd);
+				wtp_e  = var_nor();
+
+				//needed when wtp model is expressed as log wtp
+				willingnessToPay = exp(willingnessToPay);
+//				if(isinf(willingnessToPay) )
+//				{
+//					PrintOutV("wtp is inf for"<< unit->getId()<<std::endl);
+//				}
+
+				return willingnessToPay;
+
 		}
 	}
 

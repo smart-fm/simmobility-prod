@@ -243,7 +243,7 @@ void sim_mob::QueuedLogger::flushToFile()
         		safe_delete_item(buffer);
         	}
         }
-        boost::this_thread::sleep(boost::posix_time::seconds(0.5));
+		boost::this_thread::sleep(boost::posix_time::milliseconds{static_cast<long>(500)});
     }
     //same thing as above , just to clear the queue after logFileCnt is set to true
     while (logQueue.pop(buffer)){

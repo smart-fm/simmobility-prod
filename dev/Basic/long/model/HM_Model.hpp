@@ -66,6 +66,7 @@
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
+#include "database/entity/ResidentialWTP_Coefs.hpp"
 
 namespace sim_mob
 {
@@ -233,6 +234,8 @@ namespace sim_mob
             typedef pair<BigSerial, int> TazAndIndustryTypeKey;
             typedef std::multimap<TazAndIndustryTypeKey, JobsWithIndustryTypeAndTazId*> JobsWithTazAndIndustryTypeMap;
 
+            typedef std::vector<ResidentialWTP_Coefs*> ResidentialWTP_CoeffsList;
+            typedef boost::unordered_map<string, ResidentialWTP_Coefs*> ResidentialWTP_CoeffsMap;
             typedef std::vector<EzLinkStop*> EzLinkStopList;
             typedef boost::unordered_map<BigSerial, EzLinkStop*> EzLinkStopMap;
 
@@ -350,6 +353,8 @@ namespace sim_mob
             void getLogsumOfIndividuals(BigSerial id);
             void getLogsumOfVaryingHomeOrWork(BigSerial id);
             void getLogsumOfHouseholdVO(BigSerial householdId);
+            void getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::unordered_map<int,double>&logsum);
+            void getLogsumOfHitsHouseholdVO(BigSerial householdId);
 
             HousingMarket* getMarket();
 
@@ -519,6 +524,9 @@ namespace sim_mob
             JobsByIndustryTypeByTaz* getJobsBySectorByTazId(BigSerial tazId) const;
 
             TazList& getTazList();
+            MtzTazList& getMtztazList();
+            MtzList& getMtzList();
+            PlanningSubzoneList& getPlanningSubzoneList();
 
             void loadIndLogsumJobAssignments(BigSerial individuaId);
             IndLogsumJobAssignmentList& getIndLogsumJobAssignment();
@@ -537,16 +545,20 @@ namespace sim_mob
             void loadEzLinkStops(DB_Connection &conn);
             void loadStudentStops(DB_Connection &conn);
             void loadTravelTime(DB_Connection &conn);
+            void loadResidentialWTP_Coeffs(DB_Connection &conn);
             void loadSchoolDesks(DB_Connection &conn);
             void loadSchools(DB_Connection &conn);
 
             const TravelTime* getTravelTimeByOriginDestTaz(BigSerial originTaz, BigSerial destTaz);
+            const ResidentialWTP_Coefs* getResidentialWTP_CoefsByPropertyType(string propertyType);
             void incrementPrimarySchoolAssignIndividualCount();
             int getPrimaySchoolAssignIndividualCount();
             void incrementPreSchoolAssignIndividualCount();
             int getPreSchoolAssignIndividualCount();
             void addStudentToPrechool(BigSerial individualId, int schoolId);
             void addStudentToPrimarySchool(BigSerial individualId, int schoolId, BigSerial householdId);
+            HouseholdList getPendingHouseholds();
+            int getIndLogsumCounter();
             void addStudentToSecondarychool(BigSerial individualId, int schoolId);
             void addStudentToUniversity(BigSerial individualId, int schoolId);
             void addStudentToPolytechnic(BigSerial individualId, int schoolId);
@@ -572,12 +584,14 @@ namespace sim_mob
             HousingMarket market;
 
             HouseholdList households;
+            HouseholdList pendingHouseholds;
             HouseholdMap householdsById;
             HouseholdMap householdWithBidsById;
 
             UnitList units; //residential only.
             UnitMap unitsById;
             std::multimap<BigSerial, Unit*> unitsByZoneHousingType;
+            UnitList privatePresaleUnits;
 
             UnitTypeList unitTypes; //residential only.
             UnitTypeMap unitTypesById;
@@ -654,11 +668,13 @@ namespace sim_mob
             boost::shared_mutex sharedMtx2;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
+            int indLogsumCounter;
 
             vector<double> logSqrtFloorAreahdb;
             vector<double> logSqrtFloorAreacondo;
 
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
+	        boost::unordered_map<BigSerial, BigSerial> privatePresaleUnitsMap;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;
             VehicleOwnershipCoeffMap vehicleOwnershipCoeffsById;
             TaxiAccessCoeffList taxiAccessCoeffs;
@@ -790,6 +806,9 @@ namespace sim_mob
 
 			int jobAssignIndCount;
 			bool isConnected;
+
+			ResidentialWTP_CoeffsList resWTP_Coeffs;
+			ResidentialWTP_CoeffsMap resWTP_CeoffsByPropertyType;
         };
     }
 }

@@ -9,6 +9,7 @@
  * Created on Jan 30, 2015, 5:13 PM
  */
 #include <cmath>
+#include <boost/make_shared.hpp>
 #include "RealEstateSellerRole.hpp"
 #include "util/Statistics.hpp"
 #include "util/Math.hpp"
@@ -22,7 +23,12 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/PrintLog.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "util/SharedFunctions.hpp"
+#include "model/HedonicPriceSubModel.hpp"
 
+using namespace sim_mob;
 using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
 using std::vector;
@@ -55,6 +61,58 @@ namespace
         if( response != NOT_AVAILABLE )
         {
         	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
+        }
+
+        if(response == ACCEPTED)
+        {
+        	Statistics::increment(Statistics::N_ACCEPTED_BIDS);
+        }
+
+        if(response != NOT_AVAILABLE)
+        {
+        	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+        	int moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
+        	boost::shared_ptr<Bid> newBid = boost::make_shared<Bid>(bid);
+        	HM_Model* model = agent.getModel();
+        	Unit* unit  = model->getUnitById(bid.getNewUnitId());
+        	//boost::shared_ptr<Unit> updatedUnit = boost::make_shared<Unit>((*unit));
+        	//set the sale status to "Launched and sold".
+        	unit->setSaleStatus(3);
+        	//set the occupancy status to "Ready for occupancy and occupied"
+        	unit->setOccupancyStatus(3);
+        	unit->setOccupancyFromDate(getDateBySimDay(config.ltParams.year,(bid.getSimulationDay())));
+        	//save accepted bids to a vector, to be saved in op schema later.
+        	//model->addUpdatedUnits(updatedUnit);
+
+        	int UnitslaId = model->getUnitSlaAddressId( unit->getId() );
+        	Household *thisBidder = model->getHouseholdById(bid.getBidderId());
+        	const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
+
+        	if( agent.getHousehold() )
+        	{
+        		newBid->setAffordabilityAmount(agent.getHousehold()->getAffordabilityAmount());
+        	}
+
+
+        	newBid->setHedonicPrice(entry.hedonicPrice);
+        	newBid->setAskingPrice(entry.askingPrice);
+        	newBid->setTargetPrice(entry.targetPrice);
+        	newBid->setCurrentPostcode( model->getUnitSlaAddressId( thisUnit->getId()) );
+        	newBid->setNewPostcode(UnitslaId);
+        	newBid->setUnitFloorArea(unit->getFloorArea());
+        	newBid->setUnitTypeId(unit->getUnitType());
+        	newBid->setMoveInDate(getDateBySimDay(config.ltParams.year,(bid.getSimulationDay()+moveInWaitingTimeInDays)));
+        	newBid->setBidsCounter(bidsCounter);
+        	newBid->setLagCoefficient(unit->getLagCoefficient());
+        	newBid->setCurrentUnitPrice(thisBidder->getCurrentUnitPrice());
+        	newBid->setLogsum(thisBidder->getLogsum());
+        	newBid->setSellerId(agent.getId());
+        	newBid->setAccepted(response);
+        	model->addNewBids(newBid);
+        	boost::shared_ptr<UnitSale> unitSale(new UnitSale(model->getUnitSaleId(),bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()),(bid.getSimulationDay() - unit->getbiddingMarketEntryDay()),(bid.getSimulationDay())));
+        	model->addUnitSales(unitSale);
+        	boost::shared_ptr<HouseholdUnit> hhUnit(new HouseholdUnit(thisBidder->getId(),bid.getNewUnitId(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()+moveInWaitingTimeInDays)));
+        	model->addHouseholdUnits(hhUnit);
         }
     }
 
@@ -99,7 +157,7 @@ namespace
 
 RealEstateSellerRole::SellingUnitInfo::SellingUnitInfo() :startedDay(0), interval(0), daysOnMarket(0), numExpectations(0){}
 
-RealEstateSellerRole::RealEstateSellerRole(Agent_LT* parent): parent(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false), active(true)
+RealEstateSellerRole::RealEstateSellerRole(RealEstateAgent* parent): parent(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false), active(true)
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	timeOnMarket   = config.ltParams.housingModel.timeOnMarket;
@@ -112,7 +170,7 @@ RealEstateSellerRole::~RealEstateSellerRole()
     sellingUnitsMap.clear();
 }
 
-Agent_LT* RealEstateSellerRole::getParent()
+RealEstateAgent* RealEstateSellerRole::getParent()
 {
 	return parent;
 }
@@ -183,7 +241,16 @@ void RealEstateSellerRole::update(timeslice now)
             	continue;
             }
 
-            BigSerial tazId = model->getUnitTazId(unitId);
+            BigSerial tazId = 0;
+            if(unit->isUnitByDevModel())
+            {
+            	tazId = unit->getTazIdByDevModel();
+            }
+            else
+            {
+            	tazId = model->getUnitTazId(unitId);;
+            }
+
             calculateUnitExpectations(*unit);
 
             //get first expectation to add the entry on market.
@@ -192,13 +259,75 @@ void RealEstateSellerRole::update(timeslice now)
             if(getCurrentExpectation(unit->getId(), firstExpectation))
             {
             	bool buySellInvtervalCompleted = true;
+            	int planningAreaId = -1;
+            	int mtzId = -1;
+            	int subzoneId = -1;
 
+            	Taz *curTaz = model->getTazById(tazId);
+            	string planningAreaName = curTaz->getPlanningAreaName();
+
+            	HM_Model::MtzTazList mtzTaz = model->getMtztazList();
+            	for(int n = 0; n < mtzTaz.size();n++)
+            	{
+            		if(tazId == mtzTaz[n]->getTazId() )
+            		{
+            			mtzId = mtzTaz[n]->getMtzId();
+            			break;
+            		}
+            	}
+
+            	HM_Model::MtzList mtz = model->getMtzList();
+            	for(int n = 0; n < mtz.size(); n++)
+            	{
+            		if( mtzId == mtz[n]->getId())
+            		{
+            			subzoneId = mtz[n]->getPlanningSubzoneId();
+            			break;
+            		}
+            	}
+
+            	HM_Model::PlanningSubzoneList planningSubzone = model->getPlanningSubzoneList();
+            	for( int n = 0; n < planningSubzone.size(); n++ )
+            	{
+            		if( subzoneId == planningSubzone[n]->getId() )
+            		{
+            			planningAreaId = planningSubzone[n]->getPlanningAreaId();
+            			break;
+            		}
+            	}
+            	if(( unit->getUnitType() >=7 && unit->getUnitType() <=16 ) || ( unit->getUnitType() >= 32 && unit->getUnitType() <= 36 ) )
+            	{
+            		unit->setDwellingType(600);
+            	}
+            	else
+            		if( unit->getUnitType() >= 17 && unit->getUnitType() <= 31 )
+            		{
+            			unit->setDwellingType(700);
+            		}
+            		else
+            		{
+            			unit->setDwellingType(800);
+            		}
+            	HM_Model::AlternativeList alternative = model->getAlternatives();
+            	for( int n = 0; n < alternative.size(); n++)
+            	{
+            		if( alternative[n]->getDwellingTypeId() == unit->getDwellingType() &&
+            				alternative[n]->getPlanAreaId() 	== planningAreaId )
+            			//alternative[n]->getPlanAreaName() == planningAreaName)
+            			{
+            			unit->setZoneHousingType(alternative[n]->getMapId());
+
+            			//PrintOutV(" " << thisUnit->getId() << " " << alternative[n]->getPlanAreaId() << std::endl );
+            			//unitsByZoneHousingType.insert( std::pair<BigSerial,Unit*>( alternative[n]->getId(), thisUnit ) );
+            			break;
+            			}
+            	}
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted, unit->getZoneHousingType() ));
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent " <<  this->getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
 				#endif
 
-                printNewUnitsInMarket(getParent()->getId(), unit->getId(), unit->getbiddingMarketEntryDay(), unit->getTimeOnMarket(), unit->getTimeOffMarket());
+                printNewUnitsInMarket(getParent()->getId(), unit->getId(), unit->getbiddingMarketEntryDay(), unit->getTimeOnMarket(), unit->getTimeOffMarket(), unit->getSaleFromDate());
             }
 
             selling = true;
@@ -376,7 +505,7 @@ void RealEstateSellerRole::notifyWinnerBidders()
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
 		#ifdef VERBOSE
-        PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent. Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << std::endl );
+        //PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent. Seller " << std::dec << getParent()->getUnitIds() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << std::endl );
 		#endif
 
         dynamic_cast<RealEstateAgent*>(getParent())->getModel()->incrementSuccessfulBids();
@@ -391,48 +520,71 @@ void RealEstateSellerRole::notifyWinnerBidders()
 
 void RealEstateSellerRole::calculateUnitExpectations(const Unit& unit)
 {
-	HM_Model* model = dynamic_cast<RealEstateAgent*>(getParent())->getModel();
-
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	unsigned int timeInterval = config.ltParams.housingModel.timeInterval;
-	unsigned int timeOnMarket = config.ltParams.housingModel.timeOnMarket;
+	if(unit.isBto())
+	{
+		HM_Model* model = dynamic_cast<RealEstateAgent*>(getParent())->getModel();
 
-    const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
-    SellingUnitInfo info;
-    info.startedDay = currentTime.ms();
-    info.interval = timeInterval;
-    info.daysOnMarket = unit.getTimeOnMarket();
 
-    info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
-    //luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
+		const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+		unsigned int timeInterval = config.ltParams.housingModel.timeInterval;
+		unsigned int timeOnMarket = config.ltParams.housingModel.timeOnMarket;
 
-    //number of expectations should match 
-    //if (info.expectations.size() == info.numExpectations)
-    {
-        //just revert the expectations order.
-        for (int i = 0; i < info.numExpectations; i++)
-        {
-            //int dayToApply = currentTime.ms() + (i * info.interval);
-            //printExpectation(currentTime, dayToApply, unit.getId(), *dynamic_cast<RealEstateAgent*>(getParent()), info.expectations[i]);
+		const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
+		SellingUnitInfo info;
+		info.startedDay = currentTime.ms();
+		info.interval = timeInterval;
+		info.daysOnMarket = unit.getTimeOnMarket();
 
-        	double asking =unit.getBTOPrice();
-        	double hedonic = unit.getBTOPrice();
-        	double target = unit.getBTOPrice();
+		info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
+		//luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
 
-            ExpectationEntry expectation;
+		//number of expectations should match
+		//if (info.expectations.size() == info.numExpectations)
+		{
+			//just revert the expectations order.
+			for (int i = 0; i < info.numExpectations; i++)
+			{
+				//int dayToApply = currentTime.ms() + (i * info.interval);
+				//printExpectation(currentTime, dayToApply, unit.getId(), *dynamic_cast<RealEstateAgent*>(getParent()), info.expectations[i]);
 
-            expectation.askingPrice = asking;
-            expectation.hedonicPrice = hedonic;
-            expectation.targetPrice = target;
+				double asking =unit.getBTOPrice();
+				double hedonic = unit.getBTOPrice();
+				double target = unit.getBTOPrice();
 
-            info.expectations.push_back(expectation);
+				ExpectationEntry expectation;
 
-        }
+				expectation.askingPrice = asking;
+				expectation.hedonicPrice = hedonic;
+				expectation.targetPrice = target;
 
-        sellingUnitsMap.erase(unit.getId());
-        sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
+				info.expectations.push_back(expectation);
 
-    }
+			}
+
+			sellingUnitsMap.erase(unit.getId());
+			sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
+
+		}
+	}
+	else
+	{
+
+		unsigned int timeInterval = config.ltParams.housingModel.timeInterval;
+
+		SellingUnitInfo info;
+		info.startedDay = currentTime.ms();
+		info.interval = timeInterval;
+		info.daysOnMarket = unit.getTimeOnMarket();
+
+		HM_Model* model = getParent()->getModel();
+
+		Unit *castUnit = const_cast<Unit*>(&unit);
+
+		HedonicPrice_SubModel hpSubmodel( currentTime.ms(), model, castUnit);
+
+		hpSubmodel.ComputeHedonicPrice(info, sellingUnitsMap, parent->getId());
+	}
 }
 
 bool RealEstateSellerRole::getCurrentExpectation(const BigSerial& unitId, ExpectationEntry& outEntry)

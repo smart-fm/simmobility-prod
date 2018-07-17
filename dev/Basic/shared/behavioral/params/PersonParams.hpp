@@ -745,6 +745,7 @@ public:
 	 */
 	const std::vector<long>& getAddressIdsInZone(int zoneCode) const;
 
+	std::unordered_map<StopType, double> getActivityLogsums() const;
 	/**
 	* getter function for timeWindowLookup
 	*/

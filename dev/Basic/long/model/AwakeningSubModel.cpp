@@ -145,7 +145,7 @@ namespace sim_mob
 				printAwakening(day, household);
 
 				#ifdef VERBOSE
-				PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
+				PrintOutV("[day " << day << "] Lifestyle 3. Household " << household->getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 				#endif
 
 				model->incrementLifestyle3HHs();
@@ -205,7 +205,7 @@ namespace sim_mob
 					printAwakening(day, household);
 
 					#ifdef VERBOSE
-					PrintOutV("[day " << day << "] Lifestyle 1. Household " << getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);
+					PrintOutV("[day " << day << "] Lifestyle 1. Household " << household->getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);
 					#endif
 
 					model->incrementLifestyle1HHs();
@@ -217,7 +217,7 @@ namespace sim_mob
 					printAwakening(day, household);
 
 					#ifdef VERBOSE
-					PrintOutV("[day " << day << "] Lifestyle 2. Household " << getId() << " has been awakened. "  << model->getNumberOfBidders() << std::endl);
+					PrintOutV("[day " << day << "] Lifestyle 2. Household " << household->getId() << " has been awakened. "  << model->getNumberOfBidders() << std::endl);
 					#endif
 
 					model->incrementLifestyle2HHs();
@@ -229,7 +229,7 @@ namespace sim_mob
 					printAwakening(day, household);
 
 					#ifdef VERBOSE
-					PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
+					PrintOutV("[day " << day << "] Lifestyle 3. Household " << household->getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 					#endif
 
 					model->incrementLifestyle3HHs();
@@ -257,7 +257,7 @@ namespace sim_mob
 				printAwakeningJingsi(day, household, futureTransitionRate, futureTransitionRandomDraw, movingRate, randomDrawMovingRate);
 
 				#ifdef VERBOSE
-				PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
+				PrintOutV("[day " << day << "] Lifestyle 3. Household " << household->getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 				#endif
 
 				model->incrementLifestyle3HHs();
@@ -341,11 +341,13 @@ namespace sim_mob
 
 		    	int awakenDay = household->getLastAwakenedDay();
 
-
 		    	if( household->getLastBidStatus() == 0 && day < awakenDay + household->getTimeOnMarket() )
 		    		continue;
 
 				if( (household->getLastBidStatus() == 1 ||  household->getLastBidStatus() == 2) && household->getTimeOffMarket() > 0)
+					continue;
+
+				if(household->getPendingStatusId() == 1)
 					continue;
 
                 double futureTransitionRate = 0;
@@ -384,6 +386,45 @@ namespace sim_mob
 		    	extEv.setDeveloperId(0);
 
 		    	events.push_back(extEv);
+		    }
+
+		    int simYear = config.ltParams.year;
+		    std::tm currentDate = getDateBySimDay(simYear,day);
+		    HM_Model::HouseholdList pendingHouseholds = model->getPendingHouseholds();
+		    for(Household *household : pendingHouseholds)
+		    {
+		    	AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
+		    	const HouseholdAgent *householdAgent = lookup.getHouseholdAgentById(household->getId());
+		    	const Unit *newUnit = householdAgent->getModel()->getUnitById(household->getUnitPending());
+
+		    	if(newUnit != nullptr)
+		    	{
+		    	boost::gregorian::date moveInDate = boost::gregorian::date_from_tm(newUnit->getOccupancyFromDate());
+		    	boost::gregorian::date simulationDate(HITS_SURVEY_YEAR, 1, 1);
+		    	boost::gregorian::date_duration dt(day);
+		    	simulationDate = simulationDate + dt;
+		    	int moveInWaitingTimeInDays = ( moveInDate - simulationDate ).days();
+
+		    	if(moveInWaitingTimeInDays <= config.ltParams.housingModel.housingMoveInDaysInterval)
+		    	{
+		    		//set the last bid status to 1 as this house has already done a successful bid and waiting to move in.
+		    		household->setLastBidStatus(1);
+		    		household->setAwakenedDay(day);
+		    		household->setLastAwakenedDay(day);
+
+		    		IdVector unitIds = householdAgent->getUnitIds();
+
+		    		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+		    		{
+		    			BigSerial unitId = *itr;
+		    			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+		    			unit->setbiddingMarketEntryDay(day);
+		    			unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket);
+		    			unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket);
+		    		}
+		    	}
+		    	}
 		    }
 
 		    return events;

@@ -62,17 +62,27 @@ namespace
     inline void replyBid(const HouseholdAgent& agent, const Bid& bid, const ExpectationEntry& entry, const BidResponse& response, unsigned int bidsCounter)
     {
         MessageBus::PostMessage(bid.getBidder(), LTMID_BID_RSP, MessageBus::MessagePtr(new BidMessage(bid, response)));
-
+        HM_Model* model = agent.getModel();
         //print bid.
-        if( response != NOT_AVAILABLE )
+        if( response == ACCEPTED || response ==  NOT_ACCEPTED || response == BETTER_OFFER)
+        {
         	printBid(agent, bid, entry, bidsCounter, (response == ACCEPTED));
 
-        if(response == ACCEPTED)
+        	if(response == ACCEPTED)
+        	{
+        		Statistics::increment(Statistics::N_ACCEPTED_BIDS);
+        	}
+        	if(entry.hedonicPrice == 0)
+        	{
+        		PrintOutV("hedonic price is 0 for bid"<<bid.getBidId()<<std::endl);
+        	}
+        }
+        if(response != NOT_AVAILABLE)
         {
         	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
         	int moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
         	boost::shared_ptr<Bid> newBid = boost::make_shared<Bid>(bid);
-        	HM_Model* model = agent.getModel();
+
         	Unit* unit  = model->getUnitById(bid.getNewUnitId());
         	//boost::shared_ptr<Unit> updatedUnit = boost::make_shared<Unit>((*unit));
         	//set the sale status to "Launched and sold".
@@ -106,7 +116,7 @@ namespace
         	newBid->setCurrentUnitPrice(thisBidder->getCurrentUnitPrice());
         	newBid->setLogsum(thisBidder->getLogsum());
         	newBid->setSellerId(agent.getId());
-        	newBid->setAccepted(ACCEPTED);
+        	newBid->setAccepted(response);
         	model->addNewBids(newBid);
         	boost::shared_ptr<UnitSale> unitSale(new UnitSale(model->getUnitSaleId(),bid.getNewUnitId(),bid.getBidderId(),agent.getId(),bid.getBidValue(),getDateBySimDay(config.ltParams.year,bid.getSimulationDay()),(bid.getSimulationDay() - unit->getbiddingMarketEntryDay()),(bid.getSimulationDay()-agent.getAwakeningDay())));
         	model->addUnitSales(unitSale);
@@ -189,6 +199,7 @@ void HouseholdSellerRole::setActive(bool activeArg)
 
 void HouseholdSellerRole::update(timeslice now)
 {
+	day = now.ms();
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	bool resume = config.ltParams.resume;
 	if(resume && runOnce)
@@ -245,21 +256,12 @@ void HouseholdSellerRole::update(timeslice now)
         	//this only applies to empty units. These units are given a random dayOnMarket value
         	//so that not all empty units flood the market on day 1. There's a timeOnMarket and timeOffMarket
         	//variable that is fed to simmobility through the long term XML file.
-
-
-            UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
-            if(it != sellingUnitsMap.end())
-            {
-            	continue;
-            }
-
-
-
             bool buySellInvtervalCompleted = false;
 
 
             //entry day is applied only to the vacant units assigned with freelance agents. Units assigned with households are put on the market when the household bidding window is completed.
             bool entryDay = true;
+
             //freelance agents will only awaken their units based on the unit market entry day
             if( getParent()->getId() >= model->FAKE_IDS_START )
             {
@@ -274,8 +276,11 @@ void HouseholdSellerRole::update(timeslice now)
                	buySellInvtervalCompleted = true;
             }
 
-
-
+			UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
+			if(it != sellingUnitsMap.end())
+			{
+				continue;
+			}
 
             TimeCheck hedonicPriceTiming;
 
@@ -301,8 +306,76 @@ void HouseholdSellerRole::update(timeslice now)
 
             	unit->setAskingPrice(firstExpectation.askingPrice);
 
+            	if(unit->getZoneHousingType() == 0)
+            	{
+            		int planningAreaId = -1;
+            		int mtzId = -1;
+            		int subzoneId = -1;
+
+            		Taz *curTaz = model->getTazById(tazId);
+            		string planningAreaName = curTaz->getPlanningAreaName();
+
+            		HM_Model::MtzTazList mtzTaz = model->getMtztazList();
+            		for(int n = 0; n < mtzTaz.size();n++)
+            		{
+            			if(tazId == mtzTaz[n]->getTazId() )
+            			{
+            				mtzId = mtzTaz[n]->getMtzId();
+            				break;
+            			}
+            		}
+
+            		HM_Model::MtzList mtz = model->getMtzList();
+            		for(int n = 0; n < mtz.size(); n++)
+            		{
+            			if( mtzId == mtz[n]->getId())
+            			{
+            				subzoneId = mtz[n]->getPlanningSubzoneId();
+            				break;
+            			}
+            		}
+
+            		HM_Model::PlanningSubzoneList planningSubzone = model->getPlanningSubzoneList();
+            		for( int n = 0; n < planningSubzone.size(); n++ )
+            		{
+            			if( subzoneId == planningSubzone[n]->getId() )
+            			{
+            				planningAreaId = planningSubzone[n]->getPlanningAreaId();
+            				break;
+            			}
+            		}
+            		if(( unit->getUnitType() >=7 && unit->getUnitType() <=16 ) || ( unit->getUnitType() >= 32 && unit->getUnitType() <= 36 ) )
+            		{
+            			unit->setDwellingType(600);
+            		}
+            		else
+            			if( unit->getUnitType() >= 17 && unit->getUnitType() <= 31 )
+            			{
+            				unit->setDwellingType(700);
+            			}
+            			else
+            			{
+            				unit->setDwellingType(800);
+            			}
+            		HM_Model::AlternativeList alternative = model->getAlternatives();
+            		for( int n = 0; n < alternative.size(); n++)
+            		{
+            			if( alternative[n]->getDwellingTypeId() == unit->getDwellingType() &&
+            					alternative[n]->getPlanAreaId() 	== planningAreaId )
+            				//alternative[n]->getPlanAreaName() == planningAreaName)
+            				{
+            				unit->setZoneHousingType(alternative[n]->getMapId());
+
+            				//PrintOutV(" " << thisUnit->getId() << " " << alternative[n]->getPlanAreaId() << std::endl );
+            				//unitsByZoneHousingType.insert( std::pair<BigSerial,Unit*>( alternative[n]->getId(), thisUnit ) );
+            				break;
+            				}
+            		}
+            	}
+
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted, unit->getZoneHousingType() ));
-                //writeDailyHousingMarketUnitsToFile(now.ms()+1,unit->getId());
+
+				//writeDailyHousingMarketUnitsToFile(now.ms()+1,unit->getId());
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
 				#endif
@@ -313,9 +386,15 @@ void HouseholdSellerRole::update(timeslice now)
 
         //If a unit has nothing to sell, then its job it done
         if( unitIds.size() == 0 )
+        {
         	setActive( false );
+        }
         else
+        {
         	getParent()->getModel()->incrementNumberOfSellers();
+        	Statistics::increment(Statistics::N_SELLERS);
+        }
+
 
     }
 }
@@ -355,6 +434,10 @@ void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
 			//get the maximum bid of the day
 			Bids::iterator bidItr = maxBidsOfDay.find(unitId);
 			Bid* maxBidOfDay = nullptr;
+			Household *household = getParent()->getModel()->getHouseholdById(bid.getBidderId());
+			if(household->getLastBidStatus()== 1 || household->getTimeOffMarket() >0)
+				return;
+
 
 			if (bidItr != maxBidsOfDay.end())
 			{
@@ -413,7 +496,6 @@ void HouseholdSellerRole::handleReceivedBid(const Bid &bid, BigSerial unitId)
 		replyBid(*getParent(), bid, entry, NOT_AVAILABLE, 0);
 	}
 
-	Statistics::increment(Statistics::N_BIDS);
 }
 
 void HouseholdSellerRole::removeAllEntries()
@@ -429,7 +511,6 @@ void HouseholdSellerRole::removeAllEntries()
 		if(it != sellingUnitsMap.end())
 		{
 			market->removeEntry(unitId);
-			sellingUnitsMap.erase(unitId);
 		}
     }
 }
@@ -457,18 +538,19 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 				 SellingUnitInfo& info = it->second;
 
 				 //unit has already completed its time on market. So we can remove it from the list.
-				 if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
+				 if( getParent()->getId() >= model->FAKE_IDS_START &&
+				   (int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket())
 				 {
 					#ifdef VERBOSE
 					PrintOutV("[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
 					#endif
 
-					sellingUnitsMap.erase(unitId);
+					 sellingUnitsMap.erase(unitId);
 
 					market->removeEntry(unitId);
 
 					const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-					unit->setbiddingMarketEntryDay((int)currentTime.ms() + config.ltParams.housingModel.timeOffMarket + 1 );
+					unit->setbiddingMarketEntryDay((int)currentTime.ms() + config.ltParams.housingModel.timeOffMarket );
 					unit->setRemainingTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 					unit->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 					unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
@@ -497,26 +579,58 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 void HouseholdSellerRole::notifyWinnerBidders()
 {
     HousingMarket* market = getParent()->getMarket();
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
     for (Bids::iterator itr = maxBidsOfDay.begin(); itr != maxBidsOfDay.end(); itr++)
     {
         Bid& maxBidOfDay = itr->second;
         ExpectationEntry entry;
-        getCurrentExpectation(maxBidOfDay.getNewUnitId(), entry);
+
+        Household *household = getParent()->getModel()->getHouseholdById(maxBidOfDay.getBidderId());
+
+        Unit *currentUnit = getParent()->getModel()->getUnitById(household->getUnitId());
+
+        if(household->getLastBidStatus()==1 ||  household->getTimeOffMarket() >0)
+        {
+        	continue;
+        }
+        if (!getCurrentExpectation(maxBidOfDay.getNewUnitId(), entry))
+        	continue;
 
         if(decide(maxBidOfDay, entry) == false)
         	continue;
 
+        household->setLastBidStatus(1);
+
+        const Unit *newUnit = getParent()->getModel()->getUnitById(maxBidOfDay.getNewUnitId());
+        boost::gregorian::date moveInDate = boost::gregorian::date_from_tm(newUnit->getOccupancyFromDate());
+        boost::gregorian::date simulationDate(HITS_SURVEY_YEAR, 1, 1);
+        boost::gregorian::date_duration dt(day);
+        simulationDate = simulationDate + dt;
+        int moveInWaitingTimeInDays = 0;
+        if( simulationDate <  moveInDate )
+        	moveInWaitingTimeInDays = ( moveInDate - simulationDate ).days();
+        else
+        	moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
+
+
+        int simulationEndDay = config.ltParams.days;
+        int year = config.ltParams.year;
+
+
+        household->setTimeOffMarket(moveInWaitingTimeInDays + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid);
+
+
         replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getNewUnitId()));
+        //printBid(*getParent(), maxBidOfDay, entry, getCounter(dailyBids, maxBidOfDay.getNewUnitId()), ACCEPTED);
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
 		#ifdef VERBOSE
-        PrintOutV("[day " << currentTime.ms() << "] Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << std::endl );
+        PrintOutV("[day " << currentTime.ms() << "] Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getNewUnitId() << " at $" << maxBidOfDay.getBidValue() << std::endl );
 		#endif
 
-        getParent()->getModel()->incrementSuccessfulBids();
         market->removeEntry(maxBidOfDay.getNewUnitId());
-        getParent()->removeUnitId(maxBidOfDay.getNewUnitId());
+		getParent()->removeUnitId(maxBidOfDay.getNewUnitId());
         sellingUnitsMap.erase(maxBidOfDay.getNewUnitId());
     }
 

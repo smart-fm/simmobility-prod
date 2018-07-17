@@ -58,7 +58,7 @@ std::vector<Individual*> IndividualDao::getPrimarySchoolIndividual(std::tm curre
 	db::Parameters params;
 	params.push_back(currentSimYear);
 	std::vector<Individual*> primarySchoolIndList;
-	getByQuery("SELECT * FROM " + connection.getSchema() + "individual where education_id = 2",primarySchoolIndList);
+	getByQueryId("SELECT * FROM " + connection.getSchema() + "primary_sch_individuals",params,primarySchoolIndList);
 	return primarySchoolIndList;
 }
 
@@ -67,7 +67,7 @@ std::vector<Individual*> IndividualDao::getPreSchoolIndividual(std::tm currentSi
 	db::Parameters params;
 	params.push_back(currentSimYear);
 	std::vector<Individual*> preSchoolIndList;
-	getByQuery("SELECT * FROM " + connection.getSchema() + "individual where education_id = 1",preSchoolIndList);
+	getByQueryId("SELECT * FROM " + connection.getSchema() + "pre_sch_individuals",params,preSchoolIndList);
 	return preSchoolIndList;
 
 }

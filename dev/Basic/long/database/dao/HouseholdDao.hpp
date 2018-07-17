@@ -43,6 +43,7 @@ namespace sim_mob {
 
         public:
             void insertHousehold(Household& houseHold,std::string schema);
+            std::vector<Household*> getPendingHouseholds(std::tm currentSimYear,std::tm lastDayOfCurrentSimYear);
         };
     }
 }

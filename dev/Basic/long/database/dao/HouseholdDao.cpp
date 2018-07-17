@@ -162,3 +162,14 @@ void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 	}
 
 }
+
+std::vector<Household*> HouseholdDao::getPendingHouseholds(std::tm currentSimYear,std::tm lastDayOfCurrentSimYear)
+{
+	const std::string DB_GETALL_PENDING_HH = "SELECT * FROM " + connection.getSchema() + "household" + " WHERE  pending_status_id = 1 and  pending_from_date >= :v1 and pending_from_date  < :v2";
+	db::Parameters params;
+	params.push_back(currentSimYear);
+	params.push_back(lastDayOfCurrentSimYear );
+	std::vector<Household*> pendingHouseholdList;
+	getByQueryId(DB_GETALL_PENDING_HH,params,pendingHouseholdList);
+	return pendingHouseholdList;
+}

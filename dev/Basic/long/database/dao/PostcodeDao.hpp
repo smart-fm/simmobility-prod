@@ -40,6 +40,10 @@ namespace sim_mob {
              * @param update tells if operation is an Update or Insert.
              */
             void toRow(Postcode& data, db::Parameters& outParams, bool update);
+
+        public:
+
+            std::vector<Postcode*> getPostcodeByTaz();
         };
     }
 }

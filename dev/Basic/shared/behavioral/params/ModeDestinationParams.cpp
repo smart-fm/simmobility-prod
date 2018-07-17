@@ -6,6 +6,7 @@
 #include "LogsumTourModeDestinationParams.hpp"
 #include "behavioral/PredayUtils.hpp"
 #include "conf/ConfigManager.hpp"
+#include "conf/ParseConfigFile.hpp"
 
 #include <algorithm>
 #include <stdio.h>
@@ -20,6 +21,10 @@ const double WALKABLE_DISTANCE = 3.0; //km
 const double OPERATIONAL_COST = 0.147;
 
 const std::vector<OD_Pair> unavailableODsDummy;
+const std::string configFileName = "data/simulation.xml";
+//Parse the config file (this *does not* create anything, it just reads it.).
+bool longTerm = false;
+ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig(), longTerm );
 
 /**
  * function to set drive1 and motorcycle availability for tours
@@ -685,7 +690,8 @@ int LogsumTourModeDestinationParams::isAvailable_TMD(int choiceId) const
 	}
 
     const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
-    int modeType = cfg.getActivityTypeConfig(int(choiceId / numZones)).type;
+   // int modeType = cfg.getActivityTypeConfig(int(choiceId / numZones)).type;
+    int modeType = cfg.getTravelModeConfig(getMode(choiceId)).type;
 
     switch(modeType)
     {
@@ -779,7 +785,8 @@ sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, 
 			workOP(znDesObj->getEmployment()), educationOP(znDesObj->getTotalEnrollment()), originArea(znOrgObj->getArea()),
 			destinationArea(znDesObj->getArea())
 {
-    int numModes = ConfigManager::GetInstance().FullConfig().getNumTravelModes();
+	const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+    int numModes = cfg.getNumTravelModes();
 
 	if (amObj && pmObj)
 	{
@@ -802,7 +809,7 @@ sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, 
 		avgTransfer = (amObj->getAvgTransfer() + pmObj->getAvgTransfer()) / 2;
 
 		//set availabilities
-        setTourModeAvailability(personParams, numModes, modeAvailabilityMap, ConfigManager::GetInstance().FullConfig());
+        setTourModeAvailability(personParams, numModes, modeAvailabilityMap, cfg);
 
         for (int mode = 1; mode <= numModes; ++mode)
         {
@@ -841,7 +848,7 @@ sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, 
 		avgTransfer = 0;
 
 		//set availabilities
-        setTourModeAvailability(personParams, numModes, modeAvailabilityMap, ConfigManager::GetInstance().FullConfig());
+        setTourModeAvailability(personParams, numModes, modeAvailabilityMap, cfg);
         for (int mode = 1; mode <= numModes; ++mode)
         {
             if (mode != PVT_CAR_MODE && mode != PVT_BIKE_MODE)

@@ -148,7 +148,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	//The household agent class manages two other classes: The householdBidderRole and the HouseholdSellerRole.
 	//The HouseholdBidderRole will, when active, bid on units for sale in the housing market.
 	//The HouseholdSellerRole will, when active, sell the unit (or units for freelance agents) on the housing market
-	//
 
 
 	day = now.frame();
@@ -192,7 +191,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	//There is a final contraint on BTOs. If the bidder successfully bid on a BTO, it will not sell its unit until
 	//the waiting time to move in is less than offsetBetweenUnitBuyingAndSellingAdvancedPurchase
 
-	//has 7 days elapsed since the bidder was activted OR the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
+	//has X days elapsed since the bidder was activted OR the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
 	if((bidder && bidder->isActive() && buySellInterval == 0) || (acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
 	{
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
@@ -209,7 +208,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 					entry->setBuySellIntervalCompleted(true);
 			}
 		}
-}
+	}
 
     if (seller && seller->isActive())
     {
@@ -221,16 +220,8 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     {
         bidder->update(now);
         householdBiddingWindow--;
-       //	buySellInterval--;
        	household->updateTimeOnMarket();
     }
-
-//    if(bidder && bidder->getMoveInWaitingTimeInDays()> 0)
-//    {
-//    		model->incrementWaitingToMove();
-//    		Statistics::increment(Statistics::N_WAITING_TO_MOVE);
-//
-//    }
 
     //decrement the buy sell interval only after a successful bid
     if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 && bidder->getParent()->getHousehold()->getLastBidStatus() == 1)
@@ -245,14 +236,17 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		PrintExit( day, household, 0);
 		bidder->setActive(false);
 
+		seller->removeAllEntries();
+
 		//transfer unit to a freelance agent if a household has done a successful bid and has not sold his house during MoveInWaitingTimeInDays.
-		if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 && bidder->getParent()->getHousehold()->getLastBidStatus() == 1 && bidder->getMoveInWaitingTimeInDays() == 0)
-			TransferUnitToFreelanceAgent();
+		if( id < model->FAKE_IDS_START &&
+			bidder->getParent()->getHousehold()->getLastBidStatus() == 1 &&
+			seller->sellingUnitsMap.size() > 0 )
+				TransferUnitToFreelanceAgent();
 
 	    //The seller becomes inactive when the bidder is inactive. This is alright
 		//because the bidder has a move in waiting time of 30 days
 	    //This is ample time for a seller role to sell the unit.
-		seller->removeAllEntries();
 		seller->setActive(false);
 		model->incrementExits();
 	}
@@ -287,11 +281,21 @@ void HouseholdAgent::TransferUnitToFreelanceAgent()
 	for( auto uitr = seller->sellingUnitsMap.begin(); uitr != seller->sellingUnitsMap.end(); uitr++ )
 	{
 		Unit *unit = model->getUnitById( uitr->first );
-		unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
-		unit->setbiddingMarketEntryDay(day+1);
-		freelanceAgent->addUnitId( uitr->first );
-		this->removeUnitId( uitr->first );
+		if(unit)
+		{
+			unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
+			unit->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
+			unit->setbiddingMarketEntryDay(day + 1);
+			freelanceAgent->addUnitId(uitr->first);
+			this->removeUnitId(uitr->first);
+		}
+
+#ifdef VERBOSE
+		PrintOutV("[day " << day << "] Unit " << unit->getId() << " from Household " << getId() << " transferred to freelance agent " << model->FAKE_IDS_START + agentChosen << std::endl);
+#endif
 	}
+
+	seller->sellingUnitsMap.clear();
 }
 
 void HouseholdAgent::onEvent(EventId eventId, Context ctxId, EventPublisher*, const EventArgs& args)

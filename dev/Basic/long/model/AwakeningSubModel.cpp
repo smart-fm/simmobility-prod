@@ -145,7 +145,7 @@ namespace sim_mob
 				printAwakening(day, household);
 
 				#ifdef VERBOSE
-				PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
+				PrintOutV("[day " << day << "] Lifestyle 3. Household " << household->getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 				#endif
 
 				model->incrementLifestyle3HHs();
@@ -205,7 +205,7 @@ namespace sim_mob
 					printAwakening(day, household);
 
 					#ifdef VERBOSE
-					PrintOutV("[day " << day << "] Lifestyle 1. Household " << getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);
+					PrintOutV("[day " << day << "] Lifestyle 1. Household " << household->getId() << " has been awakened." << model->getNumberOfBidders()  << std::endl);
 					#endif
 
 					model->incrementLifestyle1HHs();
@@ -217,7 +217,7 @@ namespace sim_mob
 					printAwakening(day, household);
 
 					#ifdef VERBOSE
-					PrintOutV("[day " << day << "] Lifestyle 2. Household " << getId() << " has been awakened. "  << model->getNumberOfBidders() << std::endl);
+					PrintOutV("[day " << day << "] Lifestyle 2. Household " << household->getId() << " has been awakened. "  << model->getNumberOfBidders() << std::endl);
 					#endif
 
 					model->incrementLifestyle2HHs();
@@ -229,7 +229,7 @@ namespace sim_mob
 					printAwakening(day, household);
 
 					#ifdef VERBOSE
-					PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
+					PrintOutV("[day " << day << "] Lifestyle 3. Household " << household->getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 					#endif
 
 					model->incrementLifestyle3HHs();
@@ -257,7 +257,7 @@ namespace sim_mob
 				printAwakeningJingsi(day, household, futureTransitionRate, futureTransitionRandomDraw, movingRate, randomDrawMovingRate);
 
 				#ifdef VERBOSE
-				PrintOutV("[day " << day << "] Lifestyle 3. Household " << getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
+				PrintOutV("[day " << day << "] Lifestyle 3. Household " << household->getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 				#endif
 
 				model->incrementLifestyle3HHs();

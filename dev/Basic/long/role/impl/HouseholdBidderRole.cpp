@@ -424,6 +424,20 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	else
                 		moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
 
+					/*
+					PrintOutV("moveInDays " << moveInWaitingTimeInDays
+											<< " occupancy "
+											<< newUnit->getOccupancyFromDate().tm_year
+											<< newUnit->getOccupancyFromDate().tm_mon
+											<< newUnit->getOccupancyFromDate().tm_mday
+											<< " moveInDate "
+											<< moveInDate
+											<< " simDay "
+											<< simulationDate
+											<< "  "
+											<< endl);
+					*/
+
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
@@ -720,71 +734,83 @@ bool HouseholdBidderRole::pickEntryToBid()
 	std::set<const HousingMarket::Entry*> screenedEntries;
 	std::vector<const HousingMarket::Entry*> screenedEntriesVec; //This vector's only purpose is to print the choiceset
 
-    for(int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
-    {
 
-        double randomDraw = (double)rand()/RAND_MAX;
-        int zoneHousingType = -1;
-        double cummulativeProbability = 0.0;
-        for( int m = 0; m < householdScreeningProbabilities.size(); m++ )
-        {
-        	cummulativeProbability +=  householdScreeningProbabilities[m];
-        	if( cummulativeProbability > randomDraw )
-        	{
-        		zoneHousingType = m + 1; //housing type is a one-based index
-        		break;
-        	}
-        }
+	//if(config.ltParams.housingModel.randomScreeningModel)
+	if(1)
+	{
+		while (screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet)
+		{
+			double randomDraw = (double) rand() / RAND_MAX * entries.size();
+			screenedEntries.insert(entries[randomDraw]);
+		}
+	}
+	else
+	//if(config.ltParams.housingModel.ShanLopezScreeningModel)
+	{
+		for (int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
+		{
 
-
-    	auto range = market->getunitsByZoneHousingType().equal_range( zoneHousingType  );
-    	int numUnits = distance(range.first, range.second); //find the number of units in the above zoneHousingType
-
-    	if(numUnits < minUnitsInZoneHousingType)
-    		continue;
-
-
-    	if( numUnits == 0 )
-    		continue;
-
-    	int offset = (float)rand() / RAND_MAX * (numUnits - 1);
-    	advance( range.first, offset ); // change a random unit in that zoneHousingType
-
-    	const BigSerial unitId = (range.first)->second;
-
-
-    	const HousingMarket::Entry* entry = market->getEntryById(unitId);
-
-    	if( entry == nullptr ||  entry->isBuySellIntervalCompleted() == false)
-    		continue;
-
-
-    	const Unit* thisUnit = model->getUnitById( entry->getUnitId() );
-
-
-
-        if( thisUnit->getZoneHousingType() == zoneHousingType )
-        {
-
-			if( thisUnit->getTenureStatus() == 2 && getParent()->getFutureTransitionOwn() == false ) //rented
+			double randomDraw = (double) rand() / RAND_MAX;
+			int zoneHousingType = -1;
+			double cummulativeProbability = 0.0;
+			for (int m = 0; m < householdScreeningProbabilities.size(); m++)
 			{
-				std::set<const HousingMarket::Entry*>::iterator screenedEntriesItr;
-				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
-
-				if( screenedEntriesItr == screenedEntries.end() )
-					screenedEntries.insert(entry);
+				cummulativeProbability += householdScreeningProbabilities[m];
+				if (cummulativeProbability > randomDraw)
+				{
+					zoneHousingType = m + 1; //housing type is a one-based index
+					break;
+				}
 			}
-			else
-			if( thisUnit->getTenureStatus() == 1) //owner-occupied
+
+
+			auto range = market->getunitsByZoneHousingType().equal_range(zoneHousingType);
+			int numUnits = distance(range.first, range.second); //find the number of units in the above zoneHousingType
+
+			if (numUnits < minUnitsInZoneHousingType)
+				continue;
+
+
+			if (numUnits == 0)
+				continue;
+
+			int offset = (float) rand() / RAND_MAX * (numUnits - 1);
+			advance(range.first, offset); // change a random unit in that zoneHousingType
+
+			const BigSerial unitId = (range.first)->second;
+
+
+			const HousingMarket::Entry *entry = market->getEntryById(unitId);
+
+			if (entry == nullptr || entry->isBuySellIntervalCompleted() == false)
+				continue;
+
+
+			const Unit *thisUnit = model->getUnitById(entry->getUnitId());
+
+
+			if (thisUnit->getZoneHousingType() == zoneHousingType)
 			{
-				std::set<const HousingMarket::Entry*>::iterator screenedEntriesItr;
-				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
 
-				if( screenedEntriesItr == screenedEntries.end() )
-					screenedEntries.insert(entry);
+				if (thisUnit->getTenureStatus() == 2 && getParent()->getFutureTransitionOwn() == false) //rented
+				{
+					std::set<const HousingMarket::Entry *>::iterator screenedEntriesItr;
+					screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry);
+
+					if (screenedEntriesItr == screenedEntries.end())
+						screenedEntries.insert(entry);
+				}
+				else if (thisUnit->getTenureStatus() == 1) //owner-occupied
+				{
+					std::set<const HousingMarket::Entry *>::iterator screenedEntriesItr;
+					screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry);
+
+					if (screenedEntriesItr == screenedEntries.end())
+						screenedEntries.insert(entry);
+				}
 			}
-        }
-    }
+		}
+	}
 
     {
 

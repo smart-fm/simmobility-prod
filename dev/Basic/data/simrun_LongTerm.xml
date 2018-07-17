@@ -21,14 +21,14 @@
             </database>
             
 	    <!-- internal ip for remote midterm server -->
-            <database id="fm_remote_mt1" dbtype="postgres">
+            <database id="fm_remote_mt" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
                 <dbname value="simmobility"/>
             </database>
 
 	    <!-- hpc ip for remote midterm server -->
-            <database id="fm_remote_mt" dbtype="postgres">
+            <database id="fm_remote_mt2" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
                 <dbname value="simmobility_vc12_2.1.1"/>
@@ -115,14 +115,14 @@
         <launchBTO value = "false"/>
 	<launchPrivatePresale value = "false" />
     	<developerModel enabled="true">
-    		<timeInterval value="30"/>
+    	<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>
 		<initialBuildingId value = "300000" />
 		<initialUnitId value = "2000000" />
 		<initialProjectId value = "200000" />
 		<minLotSize value = "100.00" />
 		<constructionStartDay value = "60"/>
-                <saleFromDay value = "180"/>
+        <saleFromDay value = "180"/>
 		<occupancyFromDay value = "365"/>
 		<constructionCompletedDay value = "365"/>
     	</developerModel>
@@ -130,7 +130,7 @@
 	    <vehicleOwnershipLogsum value ="false"/>
 	    <fixedHomeVariableWork value ="false"/>
 	    <fixedWorkVariableHome value ="false"/>
-            <hitsRun value = "false" />
+        <hitsRun value = "false" />
 	    <maxcCost value ="false"/>
 	    <maxTime value ="true"/>
 	</outputHouseholdLogsums>
@@ -138,19 +138,18 @@
             <timeOnMarket value="270"/>
             <timeOffMarket value="90"/>
             <timeInterval value="7"/>
-	    <wtpOffsetEnabled value="true"/>
-	    <unitsFiltering value="false"/>
-	    <awakeningModel enabled="true">
+	        <wtpOffsetEnabled value="true"/>
+	        <unitsFiltering value="false"/>
+	        <awakeningModel enabled="true">
 		    <initialHouseholdsOnMarket value="7500"/>
 		    <dailyHouseholdAwakenings value="400"/>
 		    <awakenModelShan value="false"/>
 		    <awakenModelRandom value="false"/>
 		    <awakenModelJingsi value="true"/>	
-                    <awakeningOffMarketSuccessfulBid value="210"/>
- 	            <awakeningOffMarketUnsuccessfulBid value="210"/>
+            <awakeningOffMarketSuccessfulBid value="210"/>
+ 	        <awakeningOffMarketUnsuccessfulBid value="210"/>
 	    </awakeningModel>
-
-	    <vacantUnitActivationProbability value="0.66"/>
+	    <vacantUnitActivationProbability value="0.75"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>	   
 	    <bidderUnitsChoiceSet value = "50"/>
@@ -158,8 +157,8 @@
 	    <householdBiddingWindow value = "30" />
 	    <householdBTOBiddingWindow value = "5" />
 	    <householdAwakeningPercentageByBTO value = "0.020" />
-	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
-            <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
+	    <offsetBetweenUnitBuyingAndSelling value ="30"/>
+        <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
 	    <hedonicPriceModel enabled = "true">
 		<a value = "0.8"/>
 		<b value = "1.15"/>

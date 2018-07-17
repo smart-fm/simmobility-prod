@@ -256,21 +256,12 @@ void HouseholdSellerRole::update(timeslice now)
         	//this only applies to empty units. These units are given a random dayOnMarket value
         	//so that not all empty units flood the market on day 1. There's a timeOnMarket and timeOffMarket
         	//variable that is fed to simmobility through the long term XML file.
-
-
-            UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
-            if(it != sellingUnitsMap.end())
-            {
-            	continue;
-            }
-
-
-
             bool buySellInvtervalCompleted = false;
 
 
             //entry day is applied only to the vacant units assigned with freelance agents. Units assigned with households are put on the market when the household bidding window is completed.
             bool entryDay = true;
+
             //freelance agents will only awaken their units based on the unit market entry day
             if( getParent()->getId() >= model->FAKE_IDS_START )
             {
@@ -285,8 +276,11 @@ void HouseholdSellerRole::update(timeslice now)
                	buySellInvtervalCompleted = true;
             }
 
-
-
+			UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
+			if(it != sellingUnitsMap.end())
+			{
+				continue;
+			}
 
             TimeCheck hedonicPriceTiming;
 
@@ -380,7 +374,8 @@ void HouseholdSellerRole::update(timeslice now)
             	}
 
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), model->getUnitSlaAddressId( unit->getId() ), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice, unit->isBto(), buySellInvtervalCompleted, unit->getZoneHousingType() ));
-                //writeDailyHousingMarketUnitsToFile(now.ms()+1,unit->getId());
+
+				//writeDailyHousingMarketUnitsToFile(now.ms()+1,unit->getId());
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
 				#endif
@@ -516,7 +511,6 @@ void HouseholdSellerRole::removeAllEntries()
 		if(it != sellingUnitsMap.end())
 		{
 			market->removeEntry(unitId);
-			sellingUnitsMap.erase(unitId);
 		}
     }
 }
@@ -544,18 +538,19 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 				 SellingUnitInfo& info = it->second;
 
 				 //unit has already completed its time on market. So we can remove it from the list.
-				 if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
+				 if( getParent()->getId() >= model->FAKE_IDS_START &&
+				   (int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket())
 				 {
 					#ifdef VERBOSE
 					PrintOutV("[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
 					#endif
 
-					sellingUnitsMap.erase(unitId);
+					 sellingUnitsMap.erase(unitId);
 
 					market->removeEntry(unitId);
 
 					const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-					unit->setbiddingMarketEntryDay((int)currentTime.ms() + config.ltParams.housingModel.timeOffMarket + 1 );
+					unit->setbiddingMarketEntryDay((int)currentTime.ms() + config.ltParams.housingModel.timeOffMarket );
 					unit->setRemainingTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 					unit->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 					unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
@@ -631,11 +626,11 @@ void HouseholdSellerRole::notifyWinnerBidders()
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
 		#ifdef VERBOSE
-        PrintOutV("[day " << currentTime.ms() << "] Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << std::endl );
+        PrintOutV("[day " << currentTime.ms() << "] Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getNewUnitId() << " at $" << maxBidOfDay.getBidValue() << std::endl );
 		#endif
 
         market->removeEntry(maxBidOfDay.getNewUnitId());
-        getParent()->removeUnitId(maxBidOfDay.getNewUnitId());
+		getParent()->removeUnitId(maxBidOfDay.getNewUnitId());
         sellingUnitsMap.erase(maxBidOfDay.getNewUnitId());
     }
 

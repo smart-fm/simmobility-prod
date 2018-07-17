@@ -3485,42 +3485,7 @@ void HM_Model::unitsFiltering()
 	PrintOutV( "Total units " << units.size() << std::endl );
 }
 
-void HM_Model::update(int day)
-{
-
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	int simYear = config.ltParams.year;
-	std::tm currentDate = getDateBySimDay(simYear,day);
-
-	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
-	{
-		if(compareTMDates((*it)->getSaleFromDate(),currentDate) && (*it)->isBto() == false)
-		{
-			(*it)->setbiddingMarketEntryDay(day);
-		}
-		//this unit is a vacancy and unit is on the market or to be entered to the market.
-		if (assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getbiddingMarketEntryDay() != 999999 )
-		{
-			//update unit's time on and off market values.set
-			//unit is on the market if it is on or passed the bidding market entry day.
-			if ( (*it)->getRemainingTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay() )
-			{
-
-				(*it)->updateRemainingTimeOnMarket();
-			}
-			//unit is off the market if it has already completed the time on the market or if it has not yet entered the market.
-			else if((*it)->getRemainingTimeOnMarket() == 0 || day < (*it)->getbiddingMarketEntryDay() )
-			{
-				if((*it)->getRemainingTimeOffMarket() > 0) // unit is off the market.
-				{
-					(*it)->updateRemainingTimeOffMarket();
-				}
-			}
-
-		}
-	}
-
-}
+void HM_Model::update(int day) {}
 
 
 void HM_Model::hdbEligibilityTest(int index)

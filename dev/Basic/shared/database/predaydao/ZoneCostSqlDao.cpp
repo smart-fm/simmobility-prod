@@ -147,6 +147,7 @@ ZoneNodeSqlDao::~ZoneNodeSqlDao()
 void ZoneNodeSqlDao::fromRow(Row& result, ZoneNodeParams& outObj)
 {
     outObj.setZone(result.get<int>(DB_FIELD_TAZ));
+    outObj.setNodeType(result.get<int>(DB_FIELD_NODE_TYPE));
     outObj.setNodeId(result.get<unsigned int>(DB_FIELD_NODE_ID));
     outObj.setSourceNode(result.get<int>(DB_FIELD_SOURCE));
     outObj.setSinkNode(result.get<int>(DB_FIELD_SINK));

@@ -20,9 +20,8 @@
                 <dbname value="sim_mob_lt"/>
             </database>
             
-	    <!-- internal ip for remote midterm server -->
             <database id="fm_remote_mt" dbtype="postgres">
-                <host value="172.25.184.48"/>
+                <host value="172.25.184.156"/>
                 <port value="5432"/>
                 <dbname value="simmobility"/>
             </database>

@@ -749,57 +749,18 @@ int sim_mob::medium::StopModeDestinationParams::isCbdOrgZone() const
 
 int sim_mob::medium::SubTourParams::getTimeWindowAvailability(size_t timeWnd) const
 {
-	return timeWindowAvailability[timeWnd - 1].getAvailability();
+	return timeWindowsLookup[timeWnd - 1].getAvailability();
 }
 
 void sim_mob::medium::SubTourParams::initTimeWindows(double startTime, double endTime)
 {
-	if (!timeWindowAvailability.empty())
-	{
-		timeWindowAvailability.clear();
-	}
-	size_t index = 0;
-	for (double start = 1; start <= 48; start++)
-	{
-		for (double end = start; end <= 48; end++)
-		{
-			if (start >= startTime && end <= endTime)
-			{
-				timeWindowAvailability.push_back(TimeWindowAvailability(start, end, true));
-				availabilityBit[index] = 1;
-			}
-			else
-			{
-				timeWindowAvailability.push_back(TimeWindowAvailability(start, end, false));
-			}
-			index++;
-		}
-	}
+	timeWindowsLookup.setAllUnavailable();
+	timeWindowsLookup.setAvailable(startTime, endTime);
 }
 
 void sim_mob::medium::SubTourParams::blockTime(double startTime, double endTime)
 {
-	if (startTime <= endTime)
-	{
-		size_t index = 0;
-		for (std::vector<TimeWindowAvailability>::iterator i = timeWindowAvailability.begin(); i != timeWindowAvailability.end(); i++, index++)
-		{
-			TimeWindowAvailability& twa = (*i);
-			double start = twa.getStartTime();
-			double end = twa.getEndTime();
-			if ((start >= startTime && start <= endTime) || (end >= startTime && end <= endTime))
-			{
-				twa.setAvailability(false);
-				availabilityBit[index] = 0;
-			}
-		}
-	}
-	else
-	{
-		std::stringstream errStream;
-		errStream << "invalid time window was passed for blocking" << "|start: " << startTime << "|end: " << endTime << std::endl;
-		throw std::runtime_error(errStream.str());
-	}
+	timeWindowsLookup.setUnavailable(startTime, endTime);
 }
 
 sim_mob::medium::SubTourParams::SubTourParams(const Tour& parentTour) :
@@ -816,5 +777,5 @@ sim_mob::medium::SubTourParams::~SubTourParams()
 
 bool sim_mob::medium::SubTourParams::allWindowsUnavailable()
 {
-	return availabilityBit.none();
+	return timeWindowsLookup.areAllUnavailable();
 }

@@ -1089,23 +1089,41 @@ double MITSIM_CF_Model::calcWaitForAllowedLaneAcc(DriverUpdateParams &params)
 
 double MITSIM_CF_Model::calcDesiredSpeed(DriverUpdateParams &params)
 {
-	double speedOnSign = 0;
+    double speedOnSign = 0;
+    double desiredSpeed = 0;
 
-	if (params.speedLimit)
-	{
-		speedOnSign = params.speedLimit;
-	}
-	else
-	{
-		speedOnSign = params.maxLaneSpeed;
-	}
+    if (params.speedLimit)
+    {
 
-	float desired = speedFactor * speedOnSign;
+        speedOnSign = params.speedLimit;
+    }
+    else
+    {
+        if(params.currLane)
+        {
+            speedOnSign = params.currLane->getParentSegment()->getMaxSpeed();
+        }
+        else
+        {
+            speedOnSign = params.maxLaneSpeed;
+        }
 
-	desired = desired * (1 + getSpeedLimitAddon());
+    }
 
-	double desiredSpeed = std::min<double>(desired, params.maxLaneSpeed);
-	return desiredSpeed;
+    float desired = speedFactor * speedOnSign;
+
+    desired = desired * (1 + getSpeedLimitAddon());
+
+    if(params.currLane)
+    {
+        desiredSpeed = std::min<double>(desired, params.currLane->getParentSegment()->getMaxSpeed());
+    }
+    else
+    {
+        desiredSpeed  = std::min<double>(desired, params.maxLaneSpeed);
+    }
+
+    return desiredSpeed;
 }
 
 double MITSIM_CF_Model::calcForwardGapAcc(DriverUpdateParams &params)
@@ -1342,24 +1360,34 @@ double MITSIM_CF_Model::calcBrakeToStopAcc(DriverUpdateParams &params, double di
 
 double MITSIM_CF_Model::calcDesiredSpeedAcc(DriverUpdateParams &params)
 {
-	float maxspd = params.maxLaneSpeed;
-	double epsilon_v = Math::DOUBLE_EPSILON;
+    float maxspd = 0;
 
-	if (params.perceivedFwdVelocity < maxspd - epsilon_v)
-	{
-		// Use maximum acceleration
-		return params.maxAcceleration;
-	}
-	else if (params.perceivedFwdVelocity > maxspd + epsilon_v)
-	{
-		// Decelerate
-		return params.normalDeceleration;
-	}
-	else
-	{
-		// Keep current speed.
-		return 0.0;
-	}
+    if (params.currLane)
+    {
+        maxspd = params.currLane->getParentSegment()->getMaxSpeed();
+    }
+    else
+    {
+        maxspd = params.maxLaneSpeed;
+    }
+
+    double epsilon_v = Math::DOUBLE_EPSILON;
+
+    if (params.perceivedFwdVelocity < maxspd - epsilon_v)
+    {
+        // Use maximum acceleration
+        return params.maxAcceleration;
+    }
+    else if (params.perceivedFwdVelocity > maxspd + epsilon_v)
+    {
+        // Decelerate
+        return params.normalDeceleration;
+    }
+    else
+    {
+        // Keep current speed.
+        return 0.0;
+    }
 }
 
 double MITSIM_CF_Model::calcTargetSpeedAcc(DriverUpdateParams &params, double distance, double velocity)

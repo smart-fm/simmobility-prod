@@ -282,7 +282,7 @@ private:
 };
 
 /**
- * Simple struct to store configuration setting related to TripChain outputs
+ * Structure to store das table config information
  */
 struct TripChainOutputConfig
 {
@@ -295,7 +295,23 @@ struct TripChainOutputConfig
 
 	TripChainOutputConfig() : enabled(false), tripActivitiesFile(""), subTripsFile("")
 	{}
+
 };
+
+/**
+ * Structure to store das table config information
+ */
+struct DAS_Config
+{
+	DAS_Config() : schema(""), table(""), updateProc(""), fileName("")
+	{}
+
+	std::string schema;
+	std::string table;
+	std::string updateProc;
+	std::string fileName;
+};
+
 
 /**
  * Singleton class to hold Mid-term related configurations
@@ -655,6 +671,8 @@ public:
 	 */
 	bool RunningMidDemand() const;
 
+	bool RunningMidFullLoop() const;
+
 	/**
 	 * Sets the mid term run mode
 	 *
@@ -734,7 +752,7 @@ public:
 	 */
 	enum MidTermRunMode
 	{
-		MT_NONE, MT_SUPPLY, MT_PREDAY
+		MT_NONE, MT_SUPPLY, MT_PREDAY, MT_FULL
 	};
 
 	/// Mid term run mode identifier
@@ -751,6 +769,9 @@ public:
 
 	/// Configuration for trip chain output
 	TripChainOutputConfig tripChainOutput;
+
+	/// Day Activity Schedule config information
+	DAS_Config dasConfig;
 
 private:
 	/**

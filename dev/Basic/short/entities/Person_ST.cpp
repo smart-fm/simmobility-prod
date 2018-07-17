@@ -449,6 +449,9 @@ bool Person_ST::advanceCurrentTripChainItem()
 		return false;
 	}
 
+	//Reset the start lane index so that the vehicle loading model can choose the lane
+	startLaneIndex = -1;
+
 	// current role (activity or sub-trip level role)[for now: only subtrip] is about to change,
 	// time to collect its movement metrics(even activity performer)
 	if (currRole != nullptr)

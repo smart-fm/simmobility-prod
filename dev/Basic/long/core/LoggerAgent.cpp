@@ -274,11 +274,31 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 
     if(log_school_assignment)
     {
-		//school assignment
-		std::ofstream* schoolAssignmentFile = new std::ofstream("schools.csv");
-		streams.insert(std::make_pair(LOG_SCHOOL_ASSIGNMENT, schoolAssignmentFile));
+		//primary school assignment
+		std::ofstream* primarySchoolAssignmentFile = new std::ofstream("primarySchools.csv");
+		streams.insert(std::make_pair(LOG_PRIMARY_SCHOOL_ASSIGNMENT, primarySchoolAssignmentFile));
+		*primarySchoolAssignmentFile << "individualId, primarySchoolId" << std::endl;
 
-		*schoolAssignmentFile << "individualId, primarySchoolId" << std::endl;
+		//seconary school assignment
+		std::ofstream* secondarySchoolAssignmentFile = new std::ofstream("secondarySchools.csv");
+		streams.insert(std::make_pair(LOG_SECONDARY_SCHOOL_ASSIGNMENT, secondarySchoolAssignmentFile));
+		*secondarySchoolAssignmentFile << "individualId, secondarySchoolId" << std::endl;
+
+		//university assignment
+		std::ofstream* uniAssignmentFile = new std::ofstream("universities.csv");
+		streams.insert(std::make_pair(LOG_UNIVERSITY_ASSIGNMENT, uniAssignmentFile));
+		*uniAssignmentFile << "individualId, universityId" << std::endl;
+
+		//polytech assignment
+		std::ofstream* polyTechAssignmentFile = new std::ofstream("polyTechnics.csv");
+		streams.insert(std::make_pair(LOG_POLYTECH_ASSIGNMENT, polyTechAssignmentFile));
+		*polyTechAssignmentFile << "individualId, polyTechId" << std::endl;
+
+		//school desks
+		std::ofstream* schoolDesksFile = new std::ofstream("schoolDesks.csv");
+		streams.insert(std::make_pair(LOG_SCHOOL_DESK, schoolDesksFile));
+		*schoolDesksFile << "individualId, schoolId, schoolDeskId" << std::endl;
+
     }
 
     if(log_pre_school_assignment)
@@ -287,7 +307,7 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 		std::ofstream* preSchoolAssignmentFile = new std::ofstream("preSchools.csv");
 		streams.insert(std::make_pair(LOG_PRE_SCHOOL_ASSIGNMENT, preSchoolAssignmentFile));
 
-		*preSchoolAssignmentFile << "hhid, individual_id, school_id" << std::endl;
+		*preSchoolAssignmentFile << "individual_id, pre_school_id" << std::endl;
     }
 
     if(log_hh_awakening)
@@ -380,11 +400,19 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 	 *unitHedonicPriceFile << "unitId, hedonicPrice" << std::endl;
 
 	//new bids
-	
 	std::ofstream* newBidsFile = new std::ofstream("bidderSideBids.csv");
         streams.insert(std::make_pair(LOG_NEW_BIDS, newBidsFile));
          *newBidsFile << "bidId,currentUnitId,newUnitId,bidderId,bidValue,simday" << std::endl;
 
+	 //ezlink stops with nearest uni
+	 std::ofstream* ezLinkStopsWithNearestUniFile = new std::ofstream("ezLinkStopsWithNearestUni.csv");
+	 streams.insert(std::make_pair(LOG_NEARSET_UNI_EZ_LINK, ezLinkStopsWithNearestUniFile));
+	 *ezLinkStopsWithNearestUniFile << "ezLinkStopId, uniId" << std::endl;
+
+	 //ezlink stops with nearest poly
+	 std::ofstream* eLinkStopsWithNearestPolyFile = new std::ofstream("ezLinkStopsWithNearestPoly.csv");
+	 streams.insert(std::make_pair(LOG_NEARSET_POLYTECH_EZ_LINK, eLinkStopsWithNearestPolyFile));
+	 *eLinkStopsWithNearestPolyFile << "ezLinkStopId, polyId" << std::endl;
 }
 
 LoggerAgent::~LoggerAgent()

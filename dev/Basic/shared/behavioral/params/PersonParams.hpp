@@ -16,6 +16,7 @@
 
 namespace sim_mob
 {
+
 /**
  * An encapsulation of a time window and its availability.
  *
@@ -67,18 +68,45 @@ public:
 		return startTime;
 	}
 
-	/**
-	 * This vector is used as lookup for obtaining the start and end time of the time window chosen from the time of day model
-	 * There are 48 half-hour windows in a day. Each half hour window can be a start time of a time-window and any half-hour window
-	 * after the start time in the same can be an end time of a time-window. Therefore there are (48 * (48+1) / 2) = 1176 time windows in a day.
-	 * This vector has 1176 elements.
-	 */
-	static const std::vector<TimeWindowAvailability> timeWindowsLookup;
-
 private:
 	double startTime;
 	double endTime;
 	bool availability;
+};
+
+class TimeWindowsLookup
+{
+  public:
+	// Get start and end times of time windows, with no instance-specific "availability" information
+	static TimeWindowAvailability getTimeWindowAt(size_t idx);
+
+	TimeWindowAvailability operator[](size_t i) const;
+
+	bool areAllUnavailable() const;
+
+	void setAllAvailable();
+	void setAllUnavailable();
+
+	void setAvailable(double startTime, double endTime);
+	void setUnavailable(double startTime, double endTime);
+	void setRange(double startTime, double endTime, bool val);
+
+private:
+	/**
+	 * There are 48 half-hour windows in a day. Each half hour window can be the start time of a time-window, and any half-hour window
+	 * after the start time can be the end time of a time-window. Therefore there are (48 * (48+1) / 2) = 1176 time windows in a day.
+	 */
+	static const size_t intervalsPerDay = 48;
+	static const size_t numTimeWindows = intervalsPerDay * (intervalsPerDay + 1) / 2;
+
+	typedef std::array<double, 2> TimeWindow;
+	typedef std::array<TimeWindow, numTimeWindows> TimeWindows;
+
+	// Bit array of availability, for each time window
+	std::bitset<numTimeWindows> availability;
+
+	// 2D double array of start times and end times, for each time window
+	static TimeWindows timeWindows;
 };
 
 class Address
@@ -156,7 +184,7 @@ private:
 class PersonParams
 {
 public:
-	PersonParams(bool allocateTimeWindowLookup = true);
+	PersonParams();
 	virtual ~PersonParams();
 
 	const std::string& getHhId() const
@@ -644,10 +672,7 @@ public:
 
     static void clearZoneAddresses();
 
-	/**
-	 * makes all time windows to available
-	 */
-	void initTimeWindows();
+	void setAllTimeWindowsAvailable();
 
 	/**
 	 * get the availability for a time window for tour
@@ -721,6 +746,13 @@ public:
 	const std::vector<long>& getAddressIdsInZone(int zoneCode) const;
 
 	std::unordered_map<StopType, double> getActivityLogsums() const;
+	/**
+	* getter function for timeWindowLookup
+	*/
+	TimeWindowsLookup getTimeWindowLookup()
+	{
+		return this->timeWindowsLookup;
+	}
 
 private:
 	std::string personId;
@@ -778,7 +810,7 @@ private:
 	/**
 	 * Time windows availability for the person.
 	 */
-	std::vector<sim_mob::TimeWindowAvailability> timeWindowAvailability;
+	TimeWindowsLookup timeWindowsLookup;
 
 	/**
 	 * income category lookup containing lower limits of each category.
@@ -910,3 +942,4 @@ private:
 	double zoneEmployment;
 };
 } // end namespace sim_mob
+

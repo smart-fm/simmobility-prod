@@ -70,6 +70,15 @@ public:
 	void storeArrivalTime(const std::string& current, const std::string& waitTime, const BusStop* stop);
 
 	/**
+	 * store the passenger alight info  at bus stop
+	 *
+	 * @param current is current time represented in string
+	 * @param stop is which currently bus driver arrive at
+	 *
+	 */
+	void storeAlightInfo(const sim_mob::medium::Passenger* passenger,const std::string& current, const BusStop* stop, const std::string &BusLineId );
+
+	/**
 	 * change whether bus is full already
 	 *  @return boolean value, if bus is full, return true, otherwise false
 	 */
@@ -100,7 +109,7 @@ private:
 	 * @param bus stop agent is the agent which wrap bus stop and waiting people
 	 * @return the number of alighting people
 	 */
-	unsigned int alightPassenger(BusStopAgent* busStopAgent);
+	unsigned int alightPassenger(BusStopAgent* busStopAgent, const std::string& currentTime);
 
 	/**
 	 * triggers boarding and alighting at a bus stop

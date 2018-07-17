@@ -408,6 +408,12 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 			while(tourIt!=subToursList.end()) { tourIt = subToursList.erase(tourIt); }
 			return;
 		}
+		
+		// If no time window is available, we do not schedule this sub tour
+        	if (personParams.getTimeWindowLookup().areAllUnavailable())
+		{
+			return;
+		}
 
 		// predict time of day
 		TimeWindowAvailability timeWindow = predictSubTourTimeOfDay(subTour, workBasedSubTourParams);
@@ -464,7 +470,7 @@ TimeWindowAvailability PredaySystem::predictSubTourTimeOfDay(Tour& subTour, SubT
 	int timeWndw;
 	if(!subTour.isSubTour()) { throw std::runtime_error("predictSubTourTimeOfDay() is only for sub-tours"); };
 	timeWndw = PredayLuaProvider::getPredayModel().predictSubTourTimeOfDay(personParams, subTourParams);
-	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
+	return TimeWindowsLookup::getTimeWindowAt(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
 }
 
 TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
@@ -693,7 +699,7 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour)
 	{
 		return TimeWindowAvailability();
 	}
-	return TimeWindowAvailability::timeWindowsLookup.at(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
+	return TimeWindowsLookup::getTimeWindowAt(timeWndw - 1); //timeWndw ranges from 1 - 1176. Vector starts from 0.
 }
 
 void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours, double prevTourEndTime)
@@ -820,6 +826,13 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours,
 				destLocation = (*stopIt)->getStopLocation(); //we have predicted the location for all stops already.
 				++stopIt; //get back
 			}
+
+			// If no time window is available, we do not schedule this stop
+			if (personParams.getTimeWindowLookup().areAllUnavailable())
+			{
+				break;
+			}
+			
 			stopTodSuccessful = predictStopTimeOfDay(prevStop, destLocation, true);  //predict arrival time for nextStop
 			if(!stopTodSuccessful) { break; } //break off here if prediction was unsuccessful. This stop and remaining stops are to be deleted.
 			currStop = prevStop;
@@ -864,6 +877,12 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours,
 				++stopIt;
 				destLocation = (*stopIt)->getStopLocation(); //we have predicted the location for all stops already.
 				--stopIt; //get back
+			}
+
+			// If no time window is available, we do not schedule this stop
+			if (personParams.getTimeWindowLookup().areAllUnavailable())
+			{
+				break;
 			}
 			stopTodSuccessful = predictStopTimeOfDay(nextStop, destLocation, false); //predict departure time for nextStop
 			if(!stopTodSuccessful) { break; } //break off here if prediction was unsuccessful. This stop and remaining stops are to be deleted.
@@ -1479,7 +1498,7 @@ void PredaySystem::planDay()
 	// set the Operational Cost before it is used anywhere
 	OPERATIONAL_COST = ConfigManager::GetInstance().FullConfig().simulation.operationalCost;
 
-	personParams.initTimeWindows();
+	personParams.setAllTimeWindowsAvailable();
 
 	//Predict day pattern
 	logStream << "Person: " << personParams.getPersonId() << "| home: " << personParams.getHomeLocation();
@@ -1544,6 +1563,12 @@ void PredaySystem::planDay()
 				personParams.blockTime(firstAvailableTimeIndex, FIRST_INDEX_FOR_PUBLIC_TANSIT_MODE);
 				firstAvailableTimeIndex = FIRST_INDEX_FOR_PUBLIC_TANSIT_MODE;
 			}
+		}
+
+		// If no time window is available, we do not schedule this tour
+        	if (personParams.getTimeWindowLookup().areAllUnavailable())
+		{
+            		break;
 		}
 
 		// Predict time of day for this tour
@@ -1638,16 +1663,18 @@ long sim_mob::medium::PredaySystem::getFirstNodeInZone(const std::vector<ZoneNod
 void sim_mob::medium::PredaySystem::computeLogsums()
 {
     const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
-	if(personParams.hasFixedWorkPlace())
-	{
-		TourModeParams tmParams;
-        constructTourModeParams(tmParams, personParams.getFixedWorkLocation(), cfg.getActivityTypeId("Work"));
-        PredayLuaProvider::getPredayModel().computeTourModeLogsumWork(personParams, activityTypeConfigMap, tmParams);
-	}
+
     TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, numModes, unavailableODs);
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
     PredayLuaProvider::getPredayModel().initializeLogsums(personParams, activityTypeConfigMap);
     PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, activityTypeConfigMap, tmdParams, zoneMap.size());
+
+	if(personParams.hasFixedWorkPlace())
+	{
+		TourModeParams tmParams;
+		constructTourModeParams(tmParams, personParams.getFixedWorkLocation(), cfg.getActivityTypeId("Work"));
+		PredayLuaProvider::getPredayModel().computeTourModeLogsumWork(personParams, activityTypeConfigMap, tmParams);
+	}
     	// ISABEL
 	if(personParams.isStudent())
 	{
@@ -1943,3 +1970,4 @@ void sim_mob::medium::PredaySystem::updateStatistics(CalibrationStatistics& stat
 		else { statsCollector.addToTravelDistanceStats(0, householdFactor); }
 	}
 }
+

@@ -4,7 +4,7 @@
 
 <config>
     <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
-    <!-- Admissible values are "preday", "withinday" and "supply". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.-->
+    <!-- Admissible values are "preday", "withinday", "supply", and "full". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.-->
     <mid_term_run_mode value="preday"/>
 
     <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
@@ -209,8 +209,6 @@
 	    <mode name="Motorcycle" type="5" num_sharing="1"/>
 	    <mode name="Walk" type="6" num_sharing="1"/>
 	    <mode name="Taxi" type="7" num_sharing="1"/>
-	    <mode name="SMS" type="7" num_sharing="1"/>
-	    <mode name="Rail_SMS" type="1" num_sharing="1"/>
     </travel_modes>
 
     <!-- Activity types can be configured by adding or removing from the list below. -->
@@ -219,7 +217,6 @@
 	    <activity_type name="Education" withinday_mode_choice="wdme" num_tours="nte" tour_mode_dest="" tour_mode="tme" tour_time_of_day="ttde" type="2" logsum_table_column="education"/>
 	    <activity_type name="Shop" withinday_mode_choice="wdmso" num_tours="nts" tour_mode_dest="tmds" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="shop"/>
 	    <activity_type name="Other" withinday_mode_choice="wdmso" num_tours="nto" tour_mode_dest="tmdo" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="other"/>
-	    <activity_type name="NewType" withinday_mode_choice="wdmso" num_tours="nto" tour_mode_dest="tmdo" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="newtype"/>
     </activity_types>
 
        <!-- ======================= SUPPLY ======================== -->
@@ -251,10 +248,10 @@
             <waiting_count file="waitingcount.csv"/>
             <travel_time file="traveltime.csv"/>
             <pt_stop_stats file="ptstopstats.csv"/>
-            <subtrip_metrics file="subtrip_metrics.csv" enabled="true"/>
+            <subtrip_metrics file="subtrip_metrics.csv" enabled="true" feedback="false"/>
             <screen_line_count file="screen_line_count.csv" enabled="true" interval="900"/>
             <pt_reroute file=""/>
-            <link_travel_time file="link_travel_time.csv"/>
+            <link_travel_time file="link_travel_time.csv" feedback="false" alpha="0.5"/>
         </output_statistics>  
         
         <!-- parameters used in speed density function -->
@@ -269,7 +266,7 @@
         </speed_density_params>
 
         <!-- lua scripts used in WITHINDAY -->
-        <model_scripts path="scripts/lua/mid/behavior_sg12/" format="lua">
+        <model_scripts path="scripts/lua/mid/behavior_vc/" format="lua">
              <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
              <script name="pvtrc" file="pvtrc.lua"/> <!--private traffic route choice-->
              <script name="ptrc" file="ptrc.lua"/> <!--public transit route choice-->
@@ -293,10 +290,12 @@
         <!-- prints person ids and tour details in console for each person if enabled -->
         <console_output enabled="true"/>
         <!-- table containing logsums for each individual in the population. NOTE:  -->
-        <logsum_table name="demand.preday_logsum_test_new_activity_sg_aditi"/>
+        <logsum_table name="demand.preday_logsum"/>
+        <!-- table containing activity schedule of each individual in the population. -->
+        <activity_schedule_table schema="demand" table="das_calib" procedure="update_das_table" fileName="activity_schedule"/>
 
         <!-- model scripts for PRE-DAY -->
-        <model_scripts path="scripts/lua/mid/behavior_fornew_act_type_sg" format="lua">
+        <model_scripts path="scripts/lua/mid/behavior_vc" format="lua">
             <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
             <script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
             <script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

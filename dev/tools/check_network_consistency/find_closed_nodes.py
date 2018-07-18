@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed May 16 14:28:05 2018
-Tool: Find the sink/source and closed nodes (unreachable nodes)
+Tool: Find the 
+- sink/source nodes [node type 1],
+- closed nodes (unreachable nodes) [node type 9], 
+- loop nodes [node type 8]
 
 Steps:
     1. Provides database connection. 
     2. studyArea = True or False:
         False (full network will be loaded, output: node_new.csv)
-            - provides: table_node, Storedprocedure_link, Storedprocedure_turninggroup
+            - please provides: table_node, Storedprocedure_link, Storedprocedure_turninggroup
         True (study area network will be loaded, output: blackisted_node.csv)
-            - provides: Storedprocedure_StudyArea_node, Storedprocedure_StudyArea_link, Storedprocedure_StudyArea_turninggroup
+            - please provides: Storedprocedure_StudyArea_node, Storedprocedure_StudyArea_link, Storedprocedure_StudyArea_turninggroup
             
 """
 
@@ -25,7 +28,7 @@ sys.path=os.getcwd()
 studyArea = False
 
 ## Full Network
-table_node = 'supply.node'
+table_node = 'supply_2bmerge.node'
 Storedprocedure_link = 'get_links()'
 Storedprocedure_turninggroup = 'get_turning_groups()'
 ## Study Area
@@ -37,7 +40,7 @@ Storedprocedure_StudyArea_turninggroup = 'get_jurong_turning_groups()'
 def main():
     
     #Define our connection string
-    conn_string = "host='172.25.184.156' dbname='simmobility_l2nic3b' user='postgres' password='d84dmiN'"
+    conn_string = "host='172.25.184.156' dbname='simmobility_l2nic2b' user='postgres' password='d84dmiN'"
     
     # print the connection string we will use to connect
     print ("Connecting to database\n	->%s" % (conn_string))
@@ -49,7 +52,62 @@ def main():
         input_nodes,input_link,input_turninggroup = loadtable_FullNetowork(conn)
     else:
         input_nodes,input_link,input_turninggroup = loadtable_StudyAreaNetowork(conn)
+    
+    # Finding sink/source node and closed node
+    sinksourceNode, closenodelist = find_closed_node (input_nodes,input_turninggroup,input_link)
+    
+    # Finding loop node
+    loopnodelist = find_loop_node(conn)
+    
+    # export to csv file
+    if studyArea == False:
+        newNodefilesname = 'nodes_new.csv'
+        
+        input_nodes.loc[input_nodes.id.isin(loopnodelist),'node_type'] =8
+        input_nodes.loc[input_nodes.id.isin(sinksourceNode),'node_type'] =1
+        input_nodes.loc[input_nodes.node_type == 1 & ~input_nodes.id.isin(sinksourceNode),'node_type'] = 0              
+        input_nodes.loc[input_nodes.id.isin(closenodelist),'node_type'] =9
+        input_nodes.to_csv(newNodefilesname, index = False)
+        print('\nNew node file was generated: ',newNodefilesname)
+    else:
+        blackListedNode = 'blacklisted_node.csv'
+        closenodelist.to_csv(blackListedNode, index=False, header=True)
+        print('\nFile was generated: ',blackListedNode)
 
+def loadtable_StudyAreaNetowork (conn):
+    
+    # Load Table: Node
+    sql_node = """SELECT * FROM """ + Storedprocedure_StudyArea_node + """ """
+    input_nodes = sqlio.read_sql_query(sql_node, conn)
+    
+    # Load Table: Link
+    sql_link = """SELECT * FROM """ + Storedprocedure_StudyArea_link + """ """
+    input_link = sqlio.read_sql_query(sql_link, conn)
+    
+    # Load Table: Turning group
+    sql_tg = """SELECT * FROM """ + Storedprocedure_StudyArea_turninggroup + """  """
+    input_turninggroup = sqlio.read_sql_query(sql_tg, conn)
+    
+    return input_nodes,input_link,input_turninggroup
+
+def loadtable_FullNetowork(conn):
+    
+    # Load Table: Node
+    sql_node = """SELECT * FROM """ + table_node + """ """
+    input_nodes = sqlio.read_sql_query(sql_node, conn)
+    
+    # Load Table: Link
+    sql_link = """SELECT * FROM """ + Storedprocedure_link + """ """
+    input_link = sqlio.read_sql_query(sql_link, conn)
+    
+    # Load Table: Turning group
+    sql_tg = """SELECT * FROM """ + Storedprocedure_turninggroup + """  """
+    input_turninggroup = sqlio.read_sql_query(sql_tg, conn)
+    
+    return input_nodes,input_link,input_turninggroup        
+
+def find_closed_node(input_nodes,input_turninggroup,input_link):
+    
     # Find the sink / source nodes. which have no turning group
     sinksourceNode = input_nodes[~input_nodes.id.isin(input_turninggroup.node_id)].id
     print('SinkSourceNode :', len(sinksourceNode))
@@ -101,51 +159,18 @@ def main():
     print('Closed node: ',len(closenodelist),' ',closenodelist.tolist())
     print('Closed link: ',len(closed_link),' ',closed_link)
     
-    if studyArea == False:
-        newNodefilesname = 'nodes_new.csv'
-        input_nodes.loc[input_nodes.id.isin(sinksourceNode),'node_type'] =1
-        input_nodes.loc[input_nodes.node_type == 1 & ~input_nodes.id.isin(sinksourceNode),'node_type'] =0              
-        input_nodes.loc[input_nodes.id.isin(closenodelist),'node_type'] =9
+    return sinksourceNode, closenodelist
 
-        # export to csv file
-        input_nodes.to_csv(newNodefilesname, index = False)
-        print('\nNew node file was generated: ',newNodefilesname)
-    else:
-        blackListedNode = 'blacklisted_node.csv'
-        closenodelist.to_csv(blackListedNode, index=False, header=True)
-        print('\nFile was generated: ',blackListedNode)
-
-def loadtable_StudyAreaNetowork (conn):
+def find_loop_node(conn):
     
-    # Load Table: Node
-    sql_node = """SELECT * FROM """ + Storedprocedure_StudyArea_node + """ """
-    input_nodes = sqlio.read_sql_query(sql_node, conn)
+    # Query : find loop node (fromnode = tonode)
+    sql_node = """SELECT DISTINCT from_node FROM """ + Storedprocedure_link + """ WHERE from_node = to_node """
+    loopnode = sqlio.read_sql_query(sql_node, conn)
+    loopnodeList = loopnode.from_node.tolist()
+    print('\nLoop Nodes :', len(loopnode.from_node) , loopnodeList)
     
-    # Load Table: Link
-    sql_link = """SELECT * FROM """ + Storedprocedure_StudyArea_link + """ """
-    input_link = sqlio.read_sql_query(sql_link, conn)
+    return loopnodeList
     
-    # Load Table: Turning group
-    sql_tg = """SELECT * FROM """ + Storedprocedure_StudyArea_turninggroup + """  """
-    input_turninggroup = sqlio.read_sql_query(sql_tg, conn)
     
-    return input_nodes,input_link,input_turninggroup
-
-def loadtable_FullNetowork(conn):
-    
-    # Load Table: Node
-    sql_node = """SELECT * FROM """ + table_node + """ """
-    input_nodes = sqlio.read_sql_query(sql_node, conn)
-    
-    # Load Table: Link
-    sql_link = """SELECT * FROM """ + Storedprocedure_link + """ """
-    input_link = sqlio.read_sql_query(sql_link, conn)
-    
-    # Load Table: Turning group
-    sql_tg = """SELECT * FROM """ + Storedprocedure_turninggroup + """  """
-    input_turninggroup = sqlio.read_sql_query(sql_tg, conn)
-    
-    return input_nodes,input_link,input_turninggroup        
-
 if __name__ == "__main__":
     main()

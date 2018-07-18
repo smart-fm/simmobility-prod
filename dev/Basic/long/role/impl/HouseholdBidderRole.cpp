@@ -735,8 +735,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 	std::vector<const HousingMarket::Entry*> screenedEntriesVec; //This vector's only purpose is to print the choiceset
 
 
-	//if(config.ltParams.housingModel.randomScreeningModel)
-	if(1)
+	if(config.ltParams.housingModel.bidderUnitChoiceset.randomChoiceset == true)
 	{
 		while (screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet)
 		{
@@ -745,11 +744,10 @@ bool HouseholdBidderRole::pickEntryToBid()
 		}
 	}
 	else
-	//if(config.ltParams.housingModel.ShanLopezScreeningModel)
+	if(config.ltParams.housingModel.bidderUnitChoiceset.shanLopezChoiceset == true)
 	{
 		for (int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
 		{
-
 			double randomDraw = (double) rand() / RAND_MAX;
 			int zoneHousingType = -1;
 			double cummulativeProbability = 0.0;

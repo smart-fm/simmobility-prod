@@ -16,7 +16,6 @@ namespace sim_mob
 {
 	namespace long_term
 	{
-
 		ScreeningSubModel::ScreeningSubModel()
 		{
 			model 			= nullptr;
@@ -37,14 +36,10 @@ namespace sim_mob
 
 			if(headOfHhJob->getId() !=0)
 			{
-
-
 				int tazIdWork = slaAddressWork->getTazId();
 				Taz *tazWork  = model->getTazById(tazIdWork);
 				int mtzIdWork = model->getMtzIdByTazId(tazIdWork);
 				Mtz *mtzWork  = model->getMtzById(mtzIdWork);
-
-
 
 				if(mtzWork)
 					planningSubzoneWork = model->getPlanningSubzoneById( mtzWork->getPlanningSubzoneId() );
@@ -391,11 +386,10 @@ namespace sim_mob
 
 				if( model->getAlternatives()[n]->getMedianHedonicPrice() > 0.000001 )
 				{
-					logZonalMedianHousingPrice =  model->getAlternatives()[n]->getMedianHedonicPrice();// / sumFloorArea / 1000;
+					logZonalMedianHousingPrice =  model->getAlternatives()[n]->getMedianHedonicPrice();
 				}
 				else
 				{
-
 					string strId = to_string(model->getAlternatives()[n]->getPlanAreaId()) + to_string(model->getAlternatives()[n]->getDwellingTypeId());
 					int key = std::atoi( strId.c_str());
 

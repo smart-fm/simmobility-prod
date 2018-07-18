@@ -106,111 +106,113 @@
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>  
-	<year value = "2012" />   
-	<resume value ="false"/> 
-	<currentOutputSchema value = "baseline_2012_20170811023744"/> <!--if resume is true give the current op schema name-->
+		<year value = "2012" />   
+		<resume value ="false"/> 
+		<currentOutputSchema value = "baseline_2012_20170811023744"/> <!--if resume is true give the current op schema name-->
         <opSchemaloadingInterval value = "367"/>
         <initialLoading value = "true" />
         <launchBTO value = "false"/>
-	<launchPrivatePresale value = "false" />
+		<launchPrivatePresale value = "false" />
     	<developerModel enabled="true">
-    	<timeInterval value="30"/>
-		<InitialPostcode value = "1000000"/>
-		<initialBuildingId value = "300000" />
-		<initialUnitId value = "2000000" />
-		<initialProjectId value = "200000" />
-		<minLotSize value = "100.00" />
-		<constructionStartDay value = "60"/>
-        <saleFromDay value = "180"/>
-		<occupancyFromDay value = "365"/>
-		<constructionCompletedDay value = "365"/>
+    		<timeInterval value="30"/>
+			<InitialPostcode value = "1000000"/>
+			<initialBuildingId value = "300000" />
+			<initialUnitId value = "2000000" />
+			<initialProjectId value = "200000" />
+			<minLotSize value = "100.00" />
+			<constructionStartDay value = "60"/>
+        	<saleFromDay value = "180"/>
+			<occupancyFromDay value = "365"/>
+			<constructionCompletedDay value = "365"/>
     	</developerModel>
-	<outputHouseholdLogsums enabled="false">
-	    <vehicleOwnershipLogsum value ="false"/>
-	    <fixedHomeVariableWork value ="false"/>
-	    <fixedWorkVariableHome value ="false"/>
-        <hitsRun value = "false" />
-	    <maxcCost value ="false"/>
-	    <maxTime value ="true"/>
-	</outputHouseholdLogsums>
+		<outputHouseholdLogsums enabled="true">
+	    	<vehicleOwnershipLogsum value ="true"/>
+	    	<fixedHomeVariableWork value ="false"/>
+	    	<fixedWorkVariableHome value ="false"/>
+        	<hitsRun value = "false" />
+	    	<maxcCost value ="true"/>
+	    	<maxTime value ="false"/>
+		</outputHouseholdLogsums>
     	<housingModel enabled="true"> 	    
             <timeOnMarket value="270"/>
             <timeOffMarket value="90"/>
             <timeInterval value="7"/>
 	        <wtpOffsetEnabled value="true"/>
 	        <unitsFiltering value="false"/>
+		    <bidderChoiceset enabled="true">
+				<randomChoiceset value="false"/>
+				<shanLopezChoiceset value="true"/>
+				<bidderUnitsChoiceSet value = "50"/>
+	   		    <bidderBTOUnitsChoiceSet value = "10"/>
+			</bidderChoiceset>
 	        <awakeningModel enabled="true">
-		    <initialHouseholdsOnMarket value="7500"/>
-		    <dailyHouseholdAwakenings value="400"/>
-		    <awakenModelShan value="false"/>
-		    <awakenModelRandom value="false"/>
-		    <awakenModelJingsi value="true"/>	
-            <awakeningOffMarketSuccessfulBid value="210"/>
- 	        <awakeningOffMarketUnsuccessfulBid value="210"/>
-	    </awakeningModel>
-	    <vacantUnitActivationProbability value="0.75"/>
-	    <housingMarketSearchPercentage value="0.15"/>
-	    <housingMoveInDaysInterval value="30"/>	   
-	    <bidderUnitsChoiceSet value = "50"/>
-	    <bidderBTOUnitsChoiceSet value = "10"/>
-	    <householdBiddingWindow value = "30" />
-	    <householdBTOBiddingWindow value = "5" />
-	    <householdAwakeningPercentageByBTO value = "0.020" />
-	    <offsetBetweenUnitBuyingAndSelling value ="30"/>
-        <offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
-	    <hedonicPriceModel enabled = "true">
-		<a value = "0.8"/>
-		<b value = "1.15"/>
-	    </hedonicPriceModel>
+		    	<initialHouseholdsOnMarket value="7500"/>
+		    	<dailyHouseholdAwakenings value="400"/>
+		    	<awakenModelShan value="false"/>
+		    	<awakenModelRandom value="false"/>
+		    	<awakenModelJingsi value="true"/>	
+            	<awakeningOffMarketSuccessfulBid value="210"/>
+ 	        	<awakeningOffMarketUnsuccessfulBid value="210"/>
+	        </awakeningModel>
+	    	<vacantUnitActivationProbability value="0.75"/>
+	    	<housingMarketSearchPercentage value="0.15"/>
+	    	<housingMoveInDaysInterval value="30"/>	   
+	    	<householdBiddingWindow value = "30" />
+	    	<householdBTOBiddingWindow value = "5" />
+	    	<householdAwakeningPercentageByBTO value = "0.020" />
+	    	<offsetBetweenUnitBuyingAndSelling value ="30"/>
+        	<offsetBetweenUnitBuyingAndSellingAdvancedPurchase value = "30" />
+	    	<hedonicPriceModel enabled = "true">
+				<a value = "0.8"/>
+				<b value = "1.15"/>
+	    	</hedonicPriceModel>
         </housingModel>
-	<vehicleOwnershipModel enabled='false'>
-		<vehicleBuyingWaitingTimeInDays value= "1"/>
-	</vehicleOwnershipModel>
+		<vehicleOwnershipModel enabled='false'>
+			<vehicleBuyingWaitingTimeInDays value= "1"/>
+		</vehicleOwnershipModel>
         <taxiAccessModel enabled='false'>
-	</taxiAccessModel>
-	<schoolAssignmentModel enabled = 'false'>
-		<schoolChangeWaitingTimeInDays value ="1" />
-	</schoolAssignmentModel>
-	<jobAssignmentModel enabled = 'false'>
-               <foreignWorkers value = "false" />
-	</jobAssignmentModel>
-
-	<scenario enabled= 'true'>
+		</taxiAccessModel>
+		<schoolAssignmentModel enabled = 'false'>
+			<schoolChangeWaitingTimeInDays value ="1" />
+		</schoolAssignmentModel>
+		<jobAssignmentModel enabled = 'false'>
+           <foreignWorkers value = "false" />
+		</jobAssignmentModel>
+		<scenario enabled= 'true'>
                 <name value="baseline" />
-		<!-- <name value="ToaPayohScenario"/>-->  <!--right now we have baseline and tp scenario-->
+				<!-- <name value="ToaPayohScenario"/>-->  <!--right now we have baseline and tp scenario-->
                 <scenarioSchema value = 'synpop12.' />
-		<parcelsTable value = "fm_parcel" /> 
-		<!-- <parcelsTable value = "fm_parcel_study_area" /> --> <!-- in tp scenario : fm_parcel_scenario_toapayoh -->
+				<parcelsTable value = "fm_parcel" /> 
+				<!-- <parcelsTable value = "fm_parcel_study_area" /> --> <!-- in tp scenario : fm_parcel_scenario_toapayoh -->
                 <hedonicModel value = "true" />
                 <willingness_to_pay_model value = "true" />
-	</scenario>
-
-	<outputFiles enabled= 'false'>
-                <bids value= 'true' />
-                <expectations value= 'true'/>
-                <parcels value= 'true' />
-                <units value= 'true' />
-                <projects value= 'true'/>
-                <hh_pc value= 'true'/>
-                <units_in_market value= 'true'/>
-                <log_taxi_availability value= 'true'/>
-                <log_vehicle_ownership value= 'true'/>
-                <log_taz_level_logsum value= 'true'/>
-                <log_householdgrouplogsum value= 'true'/>
-                <log_individual_hits_logsum value= 'true'/>
-                <log_householdbidlist value= 'true'/>
-                <log_individual_logsum_vo value= 'true' />
-		<log_screeningprobabilities value= 'true' />
-		<log_hhchoiceset value= 'true' />
-		<log_error value= 'true' />
-		<log_school_assignment value= 'true' />
-		<log_pre_school_assignment value = 'true' />
-		<log_hh_awakening value = 'true' />
-		<log_hh_exit value = 'true' />
-		<log_random_nums value = 'true' />
-		<log_dev_roi value = 'true' />
-		<log_household_statistics value = 'true' />
-		<log_out_xx_files value='false' />
+		</scenario>
+	    <outputFiles enabled= 'false'>
+        	<bids value= 'true' />
+        	<expectations value= 'true'/>
+        	<parcels value= 'true' />
+        	<units value= 'true' />
+        	<projects value= 'true'/>
+        	<hh_pc value= 'true'/>
+        	<units_in_market value= 'true'/>
+        	<log_taxi_availability value= 'true'/>
+        	<log_vehicle_ownership value= 'true'/>
+        	<log_taz_level_logsum value= 'true'/>
+        	<log_householdgrouplogsum value= 'true'/>
+        	<log_individual_hits_logsum value= 'true'/>
+        	<log_householdbidlist value= 'true'/>
+        	<log_individual_logsum_vo value= 'true' />
+			<log_screeningprobabilities value= 'true' />
+			<log_hhchoiceset value= 'true' />
+			<log_error value= 'true' />
+			<log_school_assignment value= 'true' />
+			<log_pre_school_assignment value = 'true' />
+			<log_hh_awakening value = 'true' />
+			<log_hh_exit value = 'true' />
+			<log_random_nums value = 'true' />
+			<log_dev_roi value = 'true' />
+			<log_household_statistics value = 'true' />
+			<log_out_xx_files value='false' />
         </outputFiles>
     </longTermParams>
 
@@ -227,10 +229,10 @@
     </model_scripts>
 
  <model_scripts_ABA  format="lua"> 
-	<pathTC name="scripts/lua/mid/behavior_vc/" format="lua" />
-	<pathTCPlusOne name="scripts/lua/mid/behavior_vc_t_c_plus1/" format="lua" />
-	<pathCTPlusOne name="scripts/lua/mid/behavior_vc_c_t_plus1/" format="lua" />
-	<pathTCZero name="scripts/lua/mid/behavior_vc_t_c_0/" format="lua" />
+	<pathTC name="scripts/lua/mid/behavior_SG_20032018_12_4_Base_case_new/" format="lua" />
+	<pathTCPlusOne name="scripts/lua/mid/behavior_SG_20032018_12_4_Base_case_new_cost_plus1/" format="lua" />
+	<pathCTPlusOne name="scripts/lua/mid/behavior_SG_20032018_12_4_Base_case_new_time_plus1/" format="lua" />
+	<pathTCZero name="scripts/lua/mid/behavior_SG_20032018_12_4_Base_case_new_1000_cost_and_time/" format="lua" />
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

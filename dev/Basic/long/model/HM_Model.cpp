@@ -2626,6 +2626,19 @@ void HM_Model::getLogsumOfIndividuals(BigSerial id)
 
 void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 {
+	HouseHoldHitsSample *hitsSample = nullptr;
+	{
+		boost::mutex::scoped_lock lock( mtx3 );
+
+		hitsSample = this->getHouseHoldHitsById( householdId );
+		indLogsumCounter++;
+
+		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
+			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
+		else
+			return;
+	}
+
 	Household *currentHousehold = getHouseholdById( householdId );
 
 	std::vector<BigSerial> householdIndividualIds = currentHousehold->getIndividuals();
@@ -2645,6 +2658,18 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 		BigSerial tazW = 0;
 		BigSerial tazH = 0;
+
+		int paxId  = -1;
+		int p = 0;
+		for(p = 0; p < hitsIndividualLogsum.size(); p++ )
+		{
+			if (  hitsIndividualLogsum[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
+			{
+				paxId  = hitsIndividualLogsum[p]->getPaxId();
+				break;
+			}
+		}
+
 
 		{
 			PersonParams personParams;
@@ -2822,12 +2847,25 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 		simulationStopCounter++;
 
-		printHouseholdHitsLogsumFVO( "", -1, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
+		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
 	}
 }
 
 void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::unordered_map<int,double>&logsum)
 {
+
+	HouseHoldHitsSample *hitsSample = nullptr;
+	{
+		boost::mutex::scoped_lock lock( mtx3 );
+
+		hitsSample = this->getHouseHoldHitsById( householdId );
+		indLogsumCounter++;
+
+		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
+			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
+		else
+			return;
+	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
 
@@ -2865,6 +2903,18 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::uno
 			int paxId  = -1;
 			BigSerial tazW = 0;
 			BigSerial tazH = 0;
+
+			int p = 0;
+			for(p = 0; p < hitsIndividualLogsum.size(); p++ )
+			{
+				if (  hitsIndividualLogsum[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
+				{
+					paxId  = hitsIndividualLogsum[p]->getPaxId();
+					break;
+				}
+			}
+
+
 
 			{
 				PersonParams personParams;
@@ -3042,7 +3092,7 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::uno
 
 			}
 
-			printHouseholdHitsLogsumFVO( "", paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
+			printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
 		}
 }
 

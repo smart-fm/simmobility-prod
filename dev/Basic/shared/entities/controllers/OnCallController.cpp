@@ -614,7 +614,8 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 			else
 			{
 				numberOfPassengers++;
-			}
+                latestNode = scheduleItem.tripRequest.startNode;
+            }
 			break;
 		}
 		case (DROPOFF):
@@ -624,14 +625,18 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
 			const Node *startNode = scheduleItem.tripRequest.startNode;
 			const Node *nextNode = scheduleItem.tripRequest.destinationNode;
 			scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
-			double timeIfHeWereAlone = waitingTimeThreshold + getTT(startNode, nextNode, ttEstimateType);
+            double avgWaitingTime = 900 ; //seconds, this time should be made configurable later, if the test results look good.
+			double timeIfHeWereAlone = avgWaitingTime + getTT(startNode, nextNode, ttEstimateType);
 			const double sharedTravelDelay = 600; //seconds
 			double rideTimeThreshold = schedule.size() > 2 ? timeIfHeWereAlone + sharedTravelDelay : timeIfHeWereAlone;
 			if (scheduleTimeStamp - request.timeOfRequest.getSeconds() > rideTimeThreshold)
 			{
 				return -1;
 			}
-			// else do nothing and continue checking the other items
+            else
+            {
+                latestNode = nextNode;
+            }
 			break;
 		}
 		default:

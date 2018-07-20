@@ -125,7 +125,7 @@
 			<occupancyFromDay value = "365"/>
 			<constructionCompletedDay value = "365"/>
     	</developerModel>
-		<outputHouseholdLogsums enabled="true">
+		<outputHouseholdLogsums enabled="false">
 	    	<vehicleOwnershipLogsum value ="true"/>
 	    	<fixedHomeVariableWork value ="false"/>
 	    	<fixedWorkVariableHome value ="false"/>
@@ -142,8 +142,8 @@
 		    <bidderChoiceset enabled="true">
 				<randomChoiceset value="false"/>
 				<shanLopezChoiceset value="true"/>
-				<bidderUnitsChoiceSet value = "50"/>
-	   		    <bidderBTOUnitsChoiceSet value = "10"/>
+				<bidderChoicesetSize value = "50"/>
+	   		    <bidderBTOChoicesetSize value = "10"/>
 			</bidderChoiceset>
 	        <awakeningModel enabled="true">
 		    	<initialHouseholdsOnMarket value="7500"/>

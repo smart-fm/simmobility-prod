@@ -437,8 +437,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config HousingModel bidderChoiceset " << config.ltParams.housingModel.bidderUnitChoiceset.enabled << endl);
         PrintOutV("XML Config HousingModel bidderChoiceset random" << config.ltParams.housingModel.bidderUnitChoiceset.randomChoiceset << endl);
         PrintOutV("XML Config HousingModel bidderChoiceset shanLopez" << config.ltParams.housingModel.bidderUnitChoiceset.shanLopezChoiceset << endl);        
-        PrintOutV("XML Config HousingModel bidderChoiceset BTOUnitsChoiceSet " << config.ltParams.housingModel.bidderUnitChoiceset.bidderBTOUnitsChoiceSet << endl);
-        PrintOutV("XML Config HousingModel bidderChoiceset UnitsChoiceSet " << config.ltParams.housingModel.bidderUnitChoiceset.bidderUnitsChoiceSet << endl);
+        PrintOutV("XML Config HousingModel bidderChoiceset BTOUnitsChoiceset " << config.ltParams.housingModel.bidderUnitChoiceset.bidderBTOChoicesetSize << endl);
+        PrintOutV("XML Config HousingModel bidderChoiceset UnitsChoiceset " << config.ltParams.housingModel.bidderUnitChoiceset.bidderChoicesetSize << endl);
 
         PrintOutV("XML Config HousingModel AwakeningSubModel initialHouseholdsOnMarket " << config.ltParams.housingModel.awakeningModel.initialHouseholdsOnMarket << endl);
         PrintOutV("XML Config HousingModel AwakeningSubModel dailyHouseholdAwakenings " << config.ltParams.housingModel.awakeningModel.dailyHouseholdAwakenings << endl);

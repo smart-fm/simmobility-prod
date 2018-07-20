@@ -676,13 +676,13 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
 						houseModel, "bidderChoiceset"), "shanLopezChoiceset"), "value"), false);
 
-	housingModel.bidderUnitChoiceset.bidderUnitsChoiceSet =
+	housingModel.bidderUnitChoiceset.bidderChoicesetSize =
 			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
-					houseModel, "bidderChoiceset"), "bidderUnitsChoiceset"), "value"), (int) 0);
+					houseModel, "bidderChoiceset"), "bidderChoicesetSize"), "value"), (int) 0);
 
-	housingModel.bidderUnitChoiceset.bidderBTOUnitsChoiceSet =
+	housingModel.bidderUnitChoiceset.bidderBTOChoicesetSize =
 			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
-					houseModel, "bidderChoiceset"), "bidderBTOUnitsChoiceset"), "value"), (int) 0);
+					houseModel, "bidderChoiceset"), "bidderBTOChoicesetSize"), "value"), (int) 0);
 
 
 	cfg.ltParams.housingModel = housingModel;

@@ -235,6 +235,9 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 
 		const double quarter = 365.0 / 4.0; // a yearly quarter
 		int index =	day / quarter;
+
+		index = index % (*interestRateListX).size();
+
 		double interestRate = (*interestRateListX)[index]->getInterestRate() / 100 / 12.0; // divide by 12 to get the monthly interest rate.
 
 		//Household affordability formula based on excel PV function:
@@ -746,7 +749,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 	else
 	if(config.ltParams.housingModel.bidderUnitChoiceset.shanLopezChoiceset == true)
 	{
-		for (int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
+		for (int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitChoiceset.bidderChoicesetSize; n++)
 		{
 			double randomDraw = (double) rand() / RAND_MAX;
 			int zoneHousingType = -1;
@@ -820,7 +823,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	set<BigSerial> btoEntries = market->getBTOEntries();
 
         //Add x number of BTO units to the screenedUnit vector if the household is eligible for it
-        for(int n = 0; n < config.ltParams.housingModel.bidderBTOUnitsChoiceSet && btoEntries.size() != 0; n++)
+        for(int n = 0; n < config.ltParams.housingModel.bidderUnitChoiceset.bidderBTOChoicesetSize && btoEntries.size() != 0; n++)
         {
         	int offset = (float)rand() / RAND_MAX * ( btoEntries.size() - 1 );
 

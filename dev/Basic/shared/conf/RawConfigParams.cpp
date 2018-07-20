@@ -30,8 +30,8 @@ sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInter
 sim_mob::LongTermParams::HousingModel::BidderUnitChoiceset::BidderUnitChoiceset(): enabled(false),
 																			randomChoiceset(false),
 																			shanLopezChoiceset(false),
-																			bidderUnitsChoiceSet(0),
-																			bidderBTOUnitsChoiceSet(0){}
+																			bidderChoicesetSize(0),
+																			bidderBTOChoicesetSize(0){}
 
 sim_mob::LongTermParams::HousingModel::AwakeningModel::AwakeningModel(): initialHouseholdsOnMarket(0), dailyHouseholdAwakenings(0), awakenModelJingsi(false), awakenModelShan(false), awakenModelRandom(false), awakeningOffMarketSuccessfulBid(0), awakeningOffMarketUnsuccessfulBid(0){}
 

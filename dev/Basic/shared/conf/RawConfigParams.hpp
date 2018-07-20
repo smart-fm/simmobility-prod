@@ -95,8 +95,8 @@ struct LongTermParams
 			bool enabled;
 			bool randomChoiceset;
 			bool shanLopezChoiceset;
-			int bidderUnitsChoiceSet;
-			int bidderBTOUnitsChoiceSet;
+			int bidderChoicesetSize;
+			int bidderBTOChoicesetSize;
 		} bidderUnitChoiceset;
 
 		struct AwakeningModel

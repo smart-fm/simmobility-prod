@@ -45,8 +45,8 @@ void AMOD_Controller::computeSchedules()
 
 		// Number of requests that we have aggregated so far
 		unsigned aggregatedRequests = 0;
-
-		schedule = buildSchedule(maxAggregatedRequests, maxWaitingTime, driverNode, schedule, &aggregatedRequests);
+        unsigned int remainingCapacity = (min(maxAggregatedRequests,driver->getPassengerCapacity())) - driver->exportServiceDriver()->getPassengerCount();
+        schedule = buildSchedule(remainingCapacity, maxWaitingTime, driverNode, schedule, &aggregatedRequests);
 
 #ifndef NDEBUG
 		if (schedule.size() != aggregatedRequests * 2 )
@@ -125,16 +125,14 @@ void AMOD_Controller::separateSharedAndSingleRequests()
 
 void AMOD_Controller::matchDriversServingSharedReq()
 {
-	{
-		unsigned maxAggRequests = maxAggregatedRequests- 1;
-
 		//This will contain the constructed schedule for every driver
 		std::unordered_map<const Person *, Schedule> schedulesComputedSoFar;
 
 		auto driver_Iter = driversServingSharedReq.begin();
-		while (driver_Iter!=driversServingSharedReq.end())
+		while (driver_Iter!=driversServingSharedReq.end() && !sharedRideRequests.empty())// aditi added to save computation time if there are no more requests,need to test
 		{
 			const Person* driver = *driver_Iter;
+            unsigned int maxAggRequests = (min(maxAggregatedRequests,driver->getPassengerCapacity())) - driver->exportServiceDriver()->getPassengerCount();
 			//The node in which the driver is currently located
 			const Node *driverNode = driver->exportServiceDriver()->getCurrentNode();
 
@@ -208,7 +206,6 @@ void AMOD_Controller::matchDriversServingSharedReq()
 #endif
 
 		assignSchedules(schedulesComputedSoFar, true);
-	}
 }
 
 void AMOD_Controller::matchSingleRiderReq()

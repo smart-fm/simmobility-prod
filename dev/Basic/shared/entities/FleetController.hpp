@@ -38,8 +38,11 @@ public:
 		std::string driverId;
 		double startTime = 0;
 		double endTime = 0;
+        int segmentId = 0;
+        int vehicleType = 0;
 		const Node* startNode = nullptr;
 		unsigned int controllerSubscription = 0;
+        int passengerCapacity = 0;
 	};
 
 	struct cmp_fleet_start: public std::less<FleetItem>

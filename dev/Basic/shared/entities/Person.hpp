@@ -18,7 +18,6 @@
 #include "util/LangHelpers.hpp"
 #include "util/Profiler.hpp"
 #include "workers/Worker.hpp"
-
 namespace sim_mob
 {
 
@@ -68,7 +67,7 @@ private:
 
 	/**Indicates if the detailed path for the current sub-trip is already planned*/
 	bool nextPathPlanned;
-	
+    unsigned int passengerCapacity = 0;
 	/**
 	 * Ask this person to re-route to the destination with the given set of blacklisted links
 	 * If the Agent cannot complete this new route, it will fall back onto the old route.
@@ -357,7 +356,14 @@ public:
 	{
 		return useInSimulationTravelTime;
     }
-
+    unsigned int getPassengerCapacity() const
+    {
+        return passengerCapacity;
+    }
+    void setPassengerCapacity(unsigned int capacity)
+    {
+        passengerCapacity = capacity;
+    }
     /**
      * generic interface to export service driver.
      * return empty which is default value.

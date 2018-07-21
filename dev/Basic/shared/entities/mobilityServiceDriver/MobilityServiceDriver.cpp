@@ -92,6 +92,7 @@ bool sim_mob::isMobilityServiceDriver(const Person* person)
 	}
 }
 
-
-
-
+sim_mob::VehicleBase::VehicleType MobilityServiceDriver::getVehicleType() const
+{
+    return VehicleBase::CAR;
+}

@@ -64,6 +64,7 @@ public:
 
 	virtual bool isDriverControllerStudyAreaEnabled();
 
+    virtual sim_mob::VehicleBase::VehicleType getVehicleType() const;
 protected:
 	MobilityServiceDriverStatus driverStatus;
 };

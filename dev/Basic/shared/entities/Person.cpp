@@ -61,6 +61,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 : Agent(mtxStrat), personDbId(tc.front()->getPersonID()), agentSrc(src), tripChain(tc), age(0), resetParamsRequired(false),
 isFirstTick(true), useInSimulationTravelTime(false), nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr),sureToBeDeletedPerson(false)
 {
+    passengerCapacity = 20;
 }
 
 sim_mob::Person::~Person()

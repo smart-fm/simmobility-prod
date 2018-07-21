@@ -64,7 +64,7 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
                     person->setServiceVehicle((*lstart).second);
                     person->setDatabaseId((*lstart).second.driverId);
                     person->setPersonCharacteristics();
-
+                    person->setPassengerCapacity((*lstart).second.passengerCapacity);
                     string tripType;
 
                     MobilityServiceControllerType type = it->second.type;

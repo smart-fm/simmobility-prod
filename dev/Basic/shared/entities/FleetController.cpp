@@ -7,6 +7,7 @@
 #include "FleetController.hpp"
 #include "conf/ConfigManager.hpp"
 #include "util/Utils.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 
 namespace bt = boost::posix_time;
 using namespace sim_mob;
@@ -16,12 +17,13 @@ namespace
 	enum TaxiFleetTableColumns
 	{
 		COLUMN_VEHICLE_NUMBER = 0,
-		COLUMN_DRIVER_ID = 1,
-		COLUMN_START_LOCATION_X = 2,
-		COLUMN_START_LOCATION_Y = 3,
+		COLUMN_VEHICLE_TYPE = 1,
+		COLUMN_DRIVER_ID = 2,
+		COLUMN_START_SEGMENT_ID = 3,
 		COLUMN_SHIFT_START_TIME = 4,
 		COLUMN_CONTROLLER_SUBSCRIPTIONS = 5,
-		COLUMN_SHIFT_DURATION = 6
+		COLUMN_SHIFT_DURATION = 6,
+        COLUMN_PASSENGER_CAPACITY = 8
 	};
 }
 
@@ -61,10 +63,12 @@ void FleetController::LoadTaxiFleetFromDB()
 		const soci::row& r = (*it);
 		fleetItem.vehicleNo = r.get<std::string>(COLUMN_VEHICLE_NUMBER);
 		fleetItem.driverId = r.get<std::string>(COLUMN_DRIVER_ID);
-		double x = r.get<double>(COLUMN_START_LOCATION_X);
-		double y = r.get<double>(COLUMN_START_LOCATION_Y);
-		Utils::convertWGS84_ToUTM(x, y);
-		fleetItem.startNode = Node::allNodesMap.searchNearestObject(x, y);
+		fleetItem.segmentId = r.get<int>(COLUMN_START_SEGMENT_ID);
+		fleetItem.vehicleType = r.get<int>(COLUMN_VEHICLE_TYPE);
+        fleetItem.passengerCapacity = r.get<int>(COLUMN_PASSENGER_CAPACITY);
+        const RoadNetwork* rdnw = RoadNetwork::getInstance();
+        const RoadSegment* roadSegment = rdnw->getById(rdnw->getMapOfIdVsRoadSegments(), fleetItem.segmentId);
+        fleetItem.startNode = roadSegment->getParentLink()->getToNode();
 		if(fleetItem.startNode->getNodeType()==SOURCE_OR_SINK_NODE || fleetItem.startNode->getNodeType()==NETWORK_EXCLUDED_NODE)
 		{
 			continue;
@@ -73,7 +77,7 @@ void FleetController::LoadTaxiFleetFromDB()
 		fleetItem.startTime = getSecondFrmTimeString(startTime);
 		int shiftDuration = 3600 * r.get<int>(COLUMN_SHIFT_DURATION);
 		fleetItem.endTime = fleetItem.startTime + shiftDuration;
-		fleetItem.controllerSubscription = r.get<unsigned int>(COLUMN_CONTROLLER_SUBSCRIPTIONS);
+		fleetItem.controllerSubscription = r.get<int>(COLUMN_CONTROLLER_SUBSCRIPTIONS);
 		std::map<unsigned int, MobilityServiceControllerConfig>::const_iterator controllerIdIt = ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.find(fleetItem.controllerSubscription);
 		if(controllerIdIt == ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.end())
 		{

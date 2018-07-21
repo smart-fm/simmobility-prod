@@ -127,7 +127,6 @@ void AMOD_Controller::matchDriversServingSharedReq()
 {
 		//This will contain the constructed schedule for every driver
 		std::unordered_map<const Person *, Schedule> schedulesComputedSoFar;
-
 		auto driver_Iter = driversServingSharedReq.begin();
 		while (driver_Iter!=driversServingSharedReq.end() && !sharedRideRequests.empty())// aditi added to save computation time if there are no more requests,need to test
 		{

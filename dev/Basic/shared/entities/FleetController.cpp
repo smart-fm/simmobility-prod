@@ -17,13 +17,15 @@ namespace
 	enum TaxiFleetTableColumns
 	{
 		COLUMN_VEHICLE_NUMBER = 0,
-		COLUMN_VEHICLE_TYPE = 1,
+        COLUMN_VEHICLE_TYPE = 1,
 		COLUMN_DRIVER_ID = 2,
 		COLUMN_START_SEGMENT_ID = 3,
 		COLUMN_SHIFT_START_TIME = 4,
 		COLUMN_CONTROLLER_SUBSCRIPTIONS = 5,
 		COLUMN_SHIFT_DURATION = 6,
-        COLUMN_PASSENGER_CAPACITY = 8
+        COLUMN_PCU = 7,
+        COLUMN_PASSENGER_CAPACITY = 8,
+        COLUMN_AV = 9
 	};
 }
 
@@ -78,6 +80,8 @@ void FleetController::LoadTaxiFleetFromDB()
 		int shiftDuration = 3600 * r.get<int>(COLUMN_SHIFT_DURATION);
 		fleetItem.endTime = fleetItem.startTime + shiftDuration;
 		fleetItem.controllerSubscription = r.get<int>(COLUMN_CONTROLLER_SUBSCRIPTIONS);
+        fleetItem.pcu= r.get<int>(COLUMN_PCU);
+        fleetItem.av = r.get<int>(COLUMN_AV);
 		std::map<unsigned int, MobilityServiceControllerConfig>::const_iterator controllerIdIt = ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.find(fleetItem.controllerSubscription);
 		if(controllerIdIt == ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.end())
 		{

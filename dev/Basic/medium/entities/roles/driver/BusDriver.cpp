@@ -98,7 +98,7 @@ bool  BusDriver::checkIsFull()
 
 unsigned int BusDriver::alightPassenger(BusStopAgent* busStopAgent, const std::string& currentTime){
 	unsigned int numAlighting = 0;
-	std::list<Passenger*>::const_iterator itPassenger = passengerList.begin();
+	std::list<Passenger*>::iterator itPassenger = passengerList.begin();
 	const BusStop* stop = busStopAgent->getBusStop();
 	if(stop->isVirtualStop())
 	{

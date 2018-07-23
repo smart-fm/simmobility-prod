@@ -3035,22 +3035,31 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::uno
 					double logsumTCPlusOne4 = personParams4.getDpbLogsum();
 					double logsumTCPlusOne5 = personParams5.getDpbLogsum();
 
-					double logsumScaledMaxCost0 = (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumTCPlusOne0 );
+					double denominator0 = (logsumTC0 -logsumTCPlusOne0 );
+					double denominator1 = (logsumTC1 -logsumTCPlusOne1 );
+					double denominator2 = (logsumTC2 -logsumTCPlusOne2 );
+					double denominator3 = (logsumTC3 -logsumTCPlusOne3 );
+					double denominator4 = (logsumTC4 -logsumTCPlusOne4 );
+					double denominator5 = (logsumTC5 -logsumTCPlusOne5 ); 
+
+					double avgDenomenator = (denominator0 + denominator1 + denominator2 + denominator3 + denominator4  + denominator5) / 6.0;
+
+					double logsumScaledMaxCost0 = (logsumTC0 - logsumTCZero0) / avgDenomenator;
 					logsum.insert(std::make_pair(0,logsumScaledMaxCost0));
 
-					double logsumScaledMaxCost1 = (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumTCPlusOne1 );
+					double logsumScaledMaxCost1 = (logsumTC1 - logsumTCZero1) / avgDenomenator;
 					logsum.insert(std::make_pair(1,logsumScaledMaxCost1));
 
-					double logsumScaledMaxCost2 = (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumTCPlusOne2 );
+					double logsumScaledMaxCost2 = (logsumTC2 - logsumTCZero2) / avgDenomenator;
 					logsum.insert(std::make_pair(2,logsumScaledMaxCost2));
 
-					double logsumScaledMaxCost3 = (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumTCPlusOne3 );
+					double logsumScaledMaxCost3 = (logsumTC3 - logsumTCZero3) / avgDenomenator;
 					logsum.insert(std::make_pair(3,logsumScaledMaxCost3));
 
-					double logsumScaledMaxCost4 = (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumTCPlusOne4 );
+					double logsumScaledMaxCost4 = (logsumTC4 - logsumTCZero4) / avgDenomenator;
 					logsum.insert(std::make_pair(4,logsumScaledMaxCost4));
 
-					double logsumScaledMaxCost5 = (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumTCPlusOne5 );
+					double logsumScaledMaxCost5 = (logsumTC5 - logsumTCZero5) / avgDenomenator;
 					logsum.insert(std::make_pair(5,logsumScaledMaxCost5));
 				}
 
@@ -3071,22 +3080,32 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::uno
 					double logsumCTPlusOne4 = personParams4.getDpbLogsum();
 					double logsumCTPlusOne5 = personParams5.getDpbLogsum();
 
-					double logsumScaledMaxTime0 =  (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumCTPlusOne0 );
+					double denominator0 = (logsumTC0 -logsumCTPlusOne0 );
+					double denominator1 = (logsumTC1 -logsumCTPlusOne1 );
+					double denominator2 = (logsumTC2 -logsumCTPlusOne2 );
+					double denominator3 = (logsumTC3 -logsumCTPlusOne3 );
+					double denominator4 = (logsumTC4 -logsumCTPlusOne4 );
+					double denominator5 = (logsumTC5 -logsumCTPlusOne5 ); 
+
+					double avgDenomenator = (denominator0 + denominator1 + denominator2 + denominator3 + denominator4  + denominator5) / 6.0;
+
+
+					double logsumScaledMaxTime0 =  (logsumTC0 - logsumTCZero0) / avgDenomenator;
 					logsum.insert(std::make_pair(0,logsumScaledMaxTime0));
 
-					double logsumScaledMaxTime1 =  (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumCTPlusOne1 );
+					double logsumScaledMaxTime1 =  (logsumTC1 - logsumTCZero1) / avgDenomenator;
 					logsum.insert(std::make_pair(1,logsumScaledMaxTime1));
 
-					double logsumScaledMaxTime2 =  (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumCTPlusOne2 );
+					double logsumScaledMaxTime2 =  (logsumTC2 - logsumTCZero2) / avgDenomenator;
 					logsum.insert(std::make_pair(2,logsumScaledMaxTime2));
 
-					double logsumScaledMaxTime3 =  (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumCTPlusOne3 );
+					double logsumScaledMaxTime3 =  (logsumTC3 - logsumTCZero3) / avgDenomenator;
 					logsum.insert(std::make_pair(3,logsumScaledMaxTime3));
 
-					double logsumScaledMaxTime4 =  (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumCTPlusOne4 );
+					double logsumScaledMaxTime4 =  (logsumTC4 - logsumTCZero4) / avgDenomenator;
 					logsum.insert(std::make_pair(4,logsumScaledMaxTime4));
 
-					double logsumScaledMaxTime5 =  (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumCTPlusOne5 );
+					double logsumScaledMaxTime5 =  (logsumTC5 - logsumTCZero5) / avgDenomenator;
 					logsum.insert(std::make_pair(5,logsumScaledMaxTime5));
 				}
 

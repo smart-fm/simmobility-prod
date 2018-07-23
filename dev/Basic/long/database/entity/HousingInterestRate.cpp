@@ -26,7 +26,7 @@ HousingInterestRate::HousingInterestRate(BigSerial _id,
 																interest_rate(interest_rate),
 																gdp_growth(_gdp_growth),
 																rate_real(_rate_real),
-																source(source){}
+																source(_source){}
 
 HousingInterestRate::~HousingInterestRate(){}
 
@@ -92,10 +92,21 @@ std::string HousingInterestRate::getSource() const
 }
 
 
-HousingInterestRate& HousingInterestRate::operator=(const HousingInterestRate& source)
+HousingInterestRate& HousingInterestRate::operator=(const HousingInterestRate& sourcerhs)
 {
-	this->id = source.id;
-	this->interest_rate = source.interest_rate;
+	this->id = sourcerhs.id;
+	this->interest_rate = sourcerhs.interest_rate;
+	this->id  = sourcerhs.id;
+	this->year = sourcerhs.year;
+	this->quarter  = sourcerhs.quarter;
+	this->yq  = sourcerhs.yq;
+	this->infl_tminus1 = sourcerhs.infl_tminus1;
+	this->infl_tplus1 = sourcerhs.infl_tplus1;
+	this->interest_rate = sourcerhs.interest_rate;
+	this->gdp_growth = sourcerhs.gdp_growth;
+	this->rate_real = sourcerhs.rate_real;
+	this->source = sourcerhs.source;
+
 
 	return *this;
 }

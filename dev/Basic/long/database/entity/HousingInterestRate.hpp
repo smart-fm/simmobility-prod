@@ -27,7 +27,7 @@ namespace sim_mob
 								float interest_rate = 0,
 								float gdp_growth = 0,
 								float rate_real = 0,
-								std::string source = 0);
+								std::string source = "");
 			virtual ~HousingInterestRate();
 			void setInterestRate( float val);
 			void setId( BigSerial id);

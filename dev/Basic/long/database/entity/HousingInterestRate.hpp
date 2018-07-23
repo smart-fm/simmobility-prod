@@ -7,6 +7,7 @@
 
 #include "Common.hpp"
 #include "Types.hpp"
+#
 
 #pragma once
 
@@ -17,18 +18,31 @@ namespace sim_mob
 		class HousingInterestRate
 		{
 		public:
-			HousingInterestRate(BigSerial id=0, std::tm from_date = std::tm(), std::tm to_date = std::tm(), float interestRate=0);
+			HousingInterestRate(BigSerial id=0,
+								int year = 0,
+								int quarter = 0,
+								std::string yq = "",
+								float infl_tminus1 = 0,
+								float infl_tplus1 = 0,
+								float interest_rate = 0,
+								float gdp_growth = 0,
+								float rate_real = 0,
+								std::string source = 0);
 			virtual ~HousingInterestRate();
-
 			void setInterestRate( float val);
-			void setFromDate( std::tm val);
-			void setToDate( std::tm val);
 			void setId( BigSerial id);
 
-			float     getInterestRate() const;
-			std::tm   getFromDate() const;
-			std::tm	  getToDate() const;
+			
 			BigSerial getId() const;
+			int getYear() const;
+			int getQuarter() const;
+			std::string getYq() const; 
+			float getInfl_tminus1() const;
+			float getInfl_tplus1() const;
+			float getInterestRate() const;
+			float getGdp_growth() const;
+			float getRate_real() const;
+			std::string getSource() const;
 
 			HousingInterestRate& operator=(const HousingInterestRate& source);
 
@@ -42,9 +56,15 @@ namespace sim_mob
 			friend class HousingInterestRateDao;
 
 			BigSerial id;
-			std::tm from_date;
-			std::tm to_date;
-			float interestRate;
+			int year;
+			int quarter;
+			std::string yq; 
+			float infl_tminus1;
+			float infl_tplus1;
+			float interest_rate;
+			float gdp_growth;
+			float rate_real;
+			std::string source;
 
 		};
 	}

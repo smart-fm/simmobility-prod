@@ -234,7 +234,8 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 		HM_Model::HousingInterestRateList *interestRateListX = getParent()->getModel()->getHousingInterestRateList();
 
 		const double quarter = 365.0 / 4.0; // a yearly quarter
-		int index =	day / quarter;
+		const int FirstQuarter2012 = 45;  // index 45 is 1st quarter 2012 in table housing_interest_rate
+		int index =	FirstQuarter2012 + (day / quarter);
 
 		index = index % (*interestRateListX).size();
 

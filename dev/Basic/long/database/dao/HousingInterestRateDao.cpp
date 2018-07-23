@@ -18,9 +18,15 @@ HousingInterestRateDao::~HousingInterestRateDao(){}
 void HousingInterestRateDao::fromRow(Row& result, HousingInterestRate& outObj)
 {
     outObj.id	= result.get<BigSerial>( "id", INVALID_ID);
-    outObj.from_date	= result.get<std::tm>( "from_date", std::tm());
-    outObj.to_date		= result.get<std::tm>( "to_date", std::tm());
-    outObj.interestRate	= result.get<double>( "interest_rate", .0);
+    outObj.interest_rate	= result.get<double>("interest_rate", .0);
+	outObj.year	        =result.get<int>( "year", 0);
+	outObj.quarter	    =result.get<int>( "quarter", 0);
+	outObj.yq	        =result.get<std::string>( "yq", ""); 
+	outObj.infl_tminus1	=result.get<float>( "infl_tminus1", .0);
+	outObj.infl_tplus1	=result.get<float>( "infl_tplus1", .0);
+	outObj.gdp_growth	=result.get<float>( "gdp_growth", .0);
+	outObj.rate_real	=result.get<float>( "rate_real", .0);
+	outObj.source	    =result.get<std::string>( "source","");
 
 }
 

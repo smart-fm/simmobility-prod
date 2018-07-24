@@ -47,6 +47,7 @@
 #include "database/dao/OwnerTenantMovingRateDao.hpp"
 #include "database/dao/AlternativeHedonicPriceDao.hpp"
 #include "database/dao/ScreeningModelCoefficientsDao.hpp"
+#include "database/dao/ScreeningModelFactorsDao.hpp"
 #include "database/dao/SimulationStoppedPointDao.hpp"
 #include "database/dao/BidDao.hpp"
 #include "database/dao/VehicleOwnershipChangesDao.hpp"
@@ -1491,7 +1492,6 @@ void HM_Model::startImpl()
 	conn.setSchema(config.schemas.main_schema);
 	PredayLT_LogsumManager::getInstance();
 
-
 	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
 	conn_calibration.connect();
 	conn_calibration.setSchema(config.schemas.calibration_schema);
@@ -1507,6 +1507,10 @@ void HM_Model::startImpl()
 		loadLTVersion(conn);
 		loadStudyAreas(conn);
 		loadResidentialWTP_Coeffs(conn_calibration);
+
+		loadData<ScreeningModelFactorsDao>( conn_calibration, screeningModelFactorsList, screeningModelFactorsMap, &ScreeningModelFactors::getId );
+		PrintOutV("Number of screening Model Factors: " << screeningModelFactorsList.size() << std::endl );
+
 
 		if(config.ltParams.schoolAssignmentModel.enabled)
 		{
@@ -2727,11 +2731,14 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 			personParams.setIsStudent(isStudent);
 
-			personParams.setActivityAddressId( tazW );
+			personParams.setActivityAddressId( this->getEstablishmentSlaAddressId(establishment->getId()) );
 
 			//household related
 			personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
-			personParams.setHomeAddressId( tazH );
+			
+			personParams.setHomeAddressId( this->getUnitSlaAddressId(unit->getId()) );
+			
+
 			personParams.setHH_Size( currentHousehold->getSize() );
 			personParams.setHH_NumUnder4( currentHousehold->getChildUnder4());
 			personParams.setHH_NumUnder15( currentHousehold->getChildUnder15());
@@ -2850,6 +2857,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
 	}
 }
+
 
 void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::unordered_map<int,double>&logsum)
 {

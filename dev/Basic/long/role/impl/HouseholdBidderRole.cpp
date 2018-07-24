@@ -239,7 +239,7 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 
 		index = index % (*interestRateListX).size();
 
-		double interestRate = (*interestRateListX)[index]->getInterestRate() / 100 / 12.0; // divide by 12 to get the monthly interest rate.
+		double interestRate = (*interestRateListX)[index]->getRate_real() / 100 / 12.0; // divide by 12 to get the monthly interest rate.
 
 		//Household affordability formula based on excel PV function:
 		//https://support.office.com/en-ca/article/PV-function-3d25f140-634f-4974-b13b-5249ff823415

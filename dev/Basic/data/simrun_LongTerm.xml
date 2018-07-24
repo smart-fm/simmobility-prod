@@ -140,8 +140,8 @@
 	        <wtpOffsetEnabled value="true"/>
 	        <unitsFiltering value="false"/>
 		    <bidderChoiceset enabled="true">
-				<randomChoiceset value="false"/>
-				<shanLopezChoiceset value="true"/>
+				<randomChoiceset value="true"/>
+				<shanLopezChoiceset value="false"/>
 				<bidderChoicesetSize value = "50"/>
 	   		    <bidderBTOChoicesetSize value = "10"/>
 			</bidderChoiceset>

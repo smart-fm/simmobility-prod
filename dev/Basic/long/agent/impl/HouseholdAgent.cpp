@@ -59,6 +59,9 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
 
     futureTransitionOwn = false;
 
+	if(id >= model->FAKE_IDS_START)
+		unitIds.reserve(100000);
+
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -74,7 +77,10 @@ void HouseholdAgent::addUnitId(const BigSerial& unitId)
 
 void HouseholdAgent::removeUnitId(const BigSerial& unitId)
 {
-    unitIds.erase(std::remove(unitIds.begin(), unitIds.end(), unitId), unitIds.end());
+	auto itr = find(unitIds.begin(), unitIds.end(), unitId);
+
+	if( itr != unitIds.end())
+    	unitIds.erase(itr);
 }
 
 const IdVector& HouseholdAgent::getUnitIds() const

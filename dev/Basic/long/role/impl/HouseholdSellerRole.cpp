@@ -265,7 +265,7 @@ void HouseholdSellerRole::update(timeslice now)
             //freelance agents will only awaken their units based on the unit market entry day
             if( getParent()->getId() >= model->FAKE_IDS_START )
             {
-               	if( unit->getbiddingMarketEntryDay() == now.ms() )
+               	if( unit && unit->getbiddingMarketEntryDay() == now.ms() )
                		entryDay = true;
                	else
                	{

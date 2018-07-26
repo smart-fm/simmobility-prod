@@ -27,7 +27,7 @@ void PT_NetworkCreater::createNetwork(const string &storedProcForVertex, const s
 		PT_Network *network = new PT_Network();
 		if (config.isPublicTransitEnabled())
 		{
-			if(type==PT_Network::TYPE_RAIL_SMS && (config.mobilityServiceController.tripSupportModeList.find("Rail_SMS")== std::string::npos))
+			if(type==PT_Network::TYPE_RAIL_SMS && (config.mobilityServiceController.tripSupportModeList.find("Rail")== std::string::npos))
 			{
 				// do Nothing : Don't initialise network  as we will never use it for the case.
 			}

@@ -457,6 +457,8 @@ namespace sim_mob
 
             ScreeningCostTimeList getScreeningCostTime();
             ScreeningCostTime* getScreeningCostTimeInst(std::string key);
+
+            ScreeningModelFactorsList& getscreeningModelFactorsList();
             AccessibilityFixedPzidList getAccessibilityFixedPzid();
 
 

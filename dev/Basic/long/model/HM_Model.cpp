@@ -2593,6 +2593,12 @@ const ResidentialWTP_Coefs* HM_Model::getResidentialWTP_CoefsByPropertyType(stri
 
 }
 
+
+HM_Model::ScreeningModelFactorsList& HM_Model::getscreeningModelFactorsList()
+{
+	return screeningModelFactorsList;
+}
+
 HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()
 {
 	return screeningModelCoefficientsList;

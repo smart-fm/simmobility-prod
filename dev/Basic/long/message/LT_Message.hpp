@@ -58,6 +58,17 @@ namespace sim_mob {
             BidResponse response;
         };
 
+        class TransferUnit : public messaging::Message
+        {
+            public:
+                TransferUnit(BigSerial _unitId):unitId(_unitId){}
+
+                BigSerial getUnitId() const {return unitId;}
+            private:
+                BigSerial unitId;
+        };
+
+
         class HM_ActionMessage : public sim_mob::messaging::Message {
         public:
         	HM_ActionMessage(BigSerial buildingId,std::tm buildingFutureDemolitionDate);

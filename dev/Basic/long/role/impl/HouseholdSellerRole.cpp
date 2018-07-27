@@ -102,7 +102,6 @@ namespace
         		newBid->setAffordabilityAmount(agent.getHousehold()->getAffordabilityAmount());
         	}
 
-
         	newBid->setHedonicPrice(entry.hedonicPrice);
         	newBid->setAskingPrice(entry.askingPrice);
         	newBid->setTargetPrice(entry.targetPrice);
@@ -266,7 +265,9 @@ void HouseholdSellerRole::update(timeslice now)
             if( getParent()->getId() >= model->FAKE_IDS_START )
             {
                	if( unit->getbiddingMarketEntryDay() == now.ms() )
+				{
                		entryDay = true;
+				}
                	else
                	{
                		entryDay = false;
@@ -299,7 +300,6 @@ void HouseholdSellerRole::update(timeslice now)
             	//0.05 is the lower threshold for the hedonic price
             	if( firstExpectation.hedonicPrice  < 0.05 )
             		continue;
-
 
             	BigSerial tazId = model->getUnitTazId(unitId);
 
@@ -410,6 +410,12 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type, const Message
             handleReceivedBid(msg.getBid(), unitId);
             break;
         }
+
+		case LTMID_HM_TRANSFER_UNIT:
+		{
+			const TransferUnit& msg = MSG_CAST(TransferUnit, message);
+			this->getParent()->addUnitId(msg.getUnitId());
+		}
 
         default:break;
     }

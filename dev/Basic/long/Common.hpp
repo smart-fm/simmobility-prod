@@ -108,6 +108,7 @@ namespace sim_mob {
             // HM internal messages.
             LTMID_HMI_ADD_ENTRY,
             LTMID_HMI_RM_ENTRY,
+            LTMID_HM_TRANSFER_UNIT,
             
             // Messages for biding process
             LTMID_BID,

@@ -13,6 +13,7 @@
 
 #include "HouseholdAgent.hpp"
 #include "message/MessageBus.hpp"
+#include "message/LT_Message.hpp"
 #include "model/HM_Model.hpp"
 #include "role/impl/HouseholdBidderRole.hpp"
 #include "role/impl/HouseholdSellerRole.hpp"
@@ -280,7 +281,7 @@ void HouseholdAgent::TransferUnitToFreelanceAgent()
 
 	int numFreelanceAgents = config.ltParams.workers;
 
-	int agentChosen = rand() / RAND_MAX * numFreelanceAgents;
+	int agentChosen = (float)rand() / RAND_MAX * numFreelanceAgents;
 
 	HouseholdAgent *freelanceAgent = model->getFreelanceAgents()[agentChosen];
 
@@ -292,8 +293,9 @@ void HouseholdAgent::TransferUnitToFreelanceAgent()
 			unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 			unit->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 			unit->setbiddingMarketEntryDay(day + 1);
-			freelanceAgent->addUnitId(uitr->first);
+			
 			this->removeUnitId(uitr->first);
+			MessageBus::PostMessage(freelanceAgent, LTMID_HM_TRANSFER_UNIT, MessageBus::MessagePtr( new TransferUnit(uitr->first)));	
 		}
 
 #ifdef VERBOSE
@@ -385,9 +387,7 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
         		}
         	}
         	break;
-
         }
-
 
         default:break;
     };

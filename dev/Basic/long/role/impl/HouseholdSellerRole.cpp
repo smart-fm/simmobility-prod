@@ -344,32 +344,30 @@ void HouseholdSellerRole::update(timeslice now)
             				break;
             			}
             		}
+
             		if(( unit->getUnitType() >=7 && unit->getUnitType() <=16 ) || ( unit->getUnitType() >= 32 && unit->getUnitType() <= 36 ) )
             		{
             			unit->setDwellingType(600);
             		}
             		else
-            			if( unit->getUnitType() >= 17 && unit->getUnitType() <= 31 )
-            			{
-            				unit->setDwellingType(700);
-            			}
-            			else
-            			{
-            				unit->setDwellingType(800);
-            			}
+					if( unit->getUnitType() >= 17 && unit->getUnitType() <= 31 )
+					{
+						unit->setDwellingType(700);
+					}
+					else
+					{
+						unit->setDwellingType(800);
+					}
+
             		HM_Model::AlternativeList alternative = model->getAlternatives();
             		for( int n = 0; n < alternative.size(); n++)
             		{
             			if( alternative[n]->getDwellingTypeId() == unit->getDwellingType() &&
-            					alternative[n]->getPlanAreaId() 	== planningAreaId )
-            				//alternative[n]->getPlanAreaName() == planningAreaName)
-            				{
-            				unit->setZoneHousingType(alternative[n]->getMapId());
-
-            				//PrintOutV(" " << thisUnit->getId() << " " << alternative[n]->getPlanAreaId() << std::endl );
-            				//unitsByZoneHousingType.insert( std::pair<BigSerial,Unit*>( alternative[n]->getId(), thisUnit ) );
-            				break;
-            				}
+            				alternative[n]->getPlanAreaId() 	== planningAreaId )
+						{
+							unit->setZoneHousingType(alternative[n]->getMapId());
+							break;
+						}
             		}
             	}
 
@@ -517,6 +515,9 @@ void HouseholdSellerRole::removeAllEntries()
 		if(it != sellingUnitsMap.end())
 		{
 			market->removeEntry(unitId);
+#ifdef VERBOSE
+			PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Removing entry to Housing market for unit " << unitId << std::endl);
+#endif
 		}
     }
 }
@@ -551,7 +552,7 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 					PrintOutV("[day " << currentTime.ms() << "] Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
 					#endif
 
-					 sellingUnitsMap.erase(unitId);
+					sellingUnitsMap.erase(unitId);
 
 					market->removeEntry(unitId);
 
@@ -630,7 +631,6 @@ void HouseholdSellerRole::notifyWinnerBidders()
         replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getNewUnitId()));
         //printBid(*getParent(), maxBidOfDay, entry, getCounter(dailyBids, maxBidOfDay.getNewUnitId()), ACCEPTED);
 
-        //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
 		#ifdef VERBOSE
         PrintOutV("[day " << currentTime.ms() << "] Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getNewUnitId() << " at $" << maxBidOfDay.getBidValue() << std::endl );
 		#endif

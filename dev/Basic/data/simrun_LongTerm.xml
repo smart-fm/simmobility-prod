@@ -102,14 +102,14 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="365"/>
+    	<days value="765"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>  
 		<year value = "2012" />   
 		<resume value ="false"/> 
 		<currentOutputSchema value = "baseline_2012_20170811023744"/> <!--if resume is true give the current op schema name-->
-        <opSchemaloadingInterval value = "367"/>
+        <opSchemaloadingInterval value = "367000"/>
         <initialLoading value = "true" />
         <launchBTO value = "false"/>
 		<launchPrivatePresale value = "false" />
@@ -122,8 +122,8 @@
 			<minLotSize value = "100.00" />
 			<constructionStartDay value = "60"/>
         	<saleFromDay value = "180"/>
-			<occupancyFromDay value = "365"/>
-			<constructionCompletedDay value = "365"/>
+			<occupancyFromDay value = "3650000"/>
+			<constructionCompletedDay value = "365000"/>
     	</developerModel>
 		<outputHouseholdLogsums enabled="false">
 	    	<vehicleOwnershipLogsum value ="true"/>
@@ -134,8 +134,8 @@
 	    	<maxTime value ="false"/>
 		</outputHouseholdLogsums>
     	<housingModel enabled="true"> 	    
-            <timeOnMarket value="270"/>
-            <timeOffMarket value="90"/>
+            <timeOnMarket value="27"/>
+            <timeOffMarket value="9"/>
             <timeInterval value="7"/>
 	        <wtpOffsetEnabled value="true"/>
 	        <unitsFiltering value="false"/>
@@ -151,13 +151,13 @@
 		    	<awakenModelShan value="false"/>
 		    	<awakenModelRandom value="false"/>
 		    	<awakenModelJingsi value="true"/>	
-            	<awakeningOffMarketSuccessfulBid value="210"/>
- 	        	<awakeningOffMarketUnsuccessfulBid value="210"/>
+            	<awakeningOffMarketSuccessfulBid value="70"/>
+ 	        	<awakeningOffMarketUnsuccessfulBid value="70"/>
 	        </awakeningModel>
 	    	<vacantUnitActivationProbability value="0.75"/>
 	    	<housingMarketSearchPercentage value="0.15"/>
 	    	<housingMoveInDaysInterval value="30"/>	   
-	    	<householdBiddingWindow value = "30" />
+	    	<householdBiddingWindow value = "10" />
 	    	<householdBTOBiddingWindow value = "5" />
 	    	<householdAwakeningPercentageByBTO value = "0.020" />
 	    	<offsetBetweenUnitBuyingAndSelling value ="30"/>

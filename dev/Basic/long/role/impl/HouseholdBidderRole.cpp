@@ -397,6 +397,7 @@ void HouseholdBidderRole::TakeUnitOwnership()
 	Unit *unit = getParent()->getModel()->getUnitById(unitIdToBeOwned);
 	//update the unit tenure status to "owner occupied" when a household moved to a new unit.
 	unit->setTenureStatus(1);
+	unit->setbiddingMarketEntryDay(day + unit->getTimeOffMarket());
 
 
     biddingEntry.invalidate();
@@ -428,7 +429,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	else
                 		moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
 
-					/*
+#ifdef VERBOSE					
 					PrintOutV("moveInDays " << moveInWaitingTimeInDays
 											<< " occupancy "
 											<< newUnit->getOccupancyFromDate().tm_year
@@ -440,7 +441,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
 											<< simulationDate
 											<< "  "
 											<< endl);
-					*/
+#endif
 
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
@@ -578,115 +579,106 @@ void HouseholdBidderRole::calculateMaxSurplusEntry(const HousingMarket::Entry* e
 	const Household* household = getParent()->getHousehold();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
+	const Unit* unit = model->getUnitById(entry->getUnitId());
+	const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
 
-	if(entry && entry->getOwner()->getId() != getParent()->getId() )
+	bool flatEligibility = true;
+
+	if( unit->getTenureStatus() == 0 && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
+		flatEligibility = false;
+
+	if( unit->getTenureStatus() == 0 && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+		flatEligibility = false;
+
+	if( unit->getTenureStatus() == 0 && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+		flatEligibility = false;
+
+	if( stats && flatEligibility )
 	{
-		const Unit* unit = model->getUnitById(entry->getUnitId());
-		const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
+		const Unit *hhUnit = model->getUnitById( household->getUnitId() );
 
-		bool flatEligibility = true;
+		BigSerial postcodeCurrent = 0;
+		if( hhUnit != NULL )
+			postcodeCurrent = model->getUnitSlaAddressId( hhUnit->getId() );
 
-		if( unit->getTenureStatus() == 0 && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
-			flatEligibility = false;
+		Postcode *oldPC = model->getPostcodeById(postcodeCurrent);
+		Postcode *newPC = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
+		double wtp_e = 0;
 
-		if( unit->getTenureStatus() == 0 && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
-			flatEligibility = false;
-
-		if( unit->getTenureStatus() == 0 && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
-			flatEligibility = false;
-
-
-		if( stats && flatEligibility )
+		//The willingness to pay is in millions of dollars
+		WillingnessToPaySubModel wtp_m;
+		double wp = wtp_m.calculateResidentialWillingnessToPay(unit, household, wtp_e,day, model);
 		{
-			const Unit *hhUnit = model->getUnitById( household->getUnitId() );
+			int unit_type = unit->getUnitType();
 
-			BigSerial postcodeCurrent = 0;
-			if( hhUnit != NULL )
-				postcodeCurrent = model->getUnitSlaAddressId( hhUnit->getId() );
+			UnitType *unitType = model->getUnitTypeById( unit_type );
 
-			Postcode *oldPC = model->getPostcodeById(postcodeCurrent);
-			Postcode *newPC = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
-			double wtp_e = 0;
-
-			//The willingness to pay is in millions of dollars
-			WillingnessToPaySubModel wtp_m;
-			double wp = wtp_m.calculateResidentialWillingnessToPay(unit, household, wtp_e,day, model);
+			//(1-avg(wtp/hedonic)) * hedonic
+			//We need to adjust the willingness to pay
+			//wtpOffset is enabled by default. If you want to have wtpOffset as 0, set this value to false in the xml config file.
+			bool wtpOffsetEnabled = config.ltParams.housingModel.wtpOffsetEnabled;
+			if(wtpOffsetEnabled)
 			{
-				int unit_type = unit->getUnitType();
-
-				UnitType *unitType = model->getUnitTypeById( unit_type );
-
-				//(1-avg(wtp/hedonic)) * hedonic
-				//We need to adjust the willingness to pay
-				//wtpOffset is enabled by default. If you want to have wtpOffset as 0, set this value to false in the xml config file.
-				bool wtpOffsetEnabled = config.ltParams.housingModel.wtpOffsetEnabled;
-				if(wtpOffsetEnabled)
-				{
-					wp += wp * unitType->getWtpOffset();
-				}
+				wp += wp * unitType->getWtpOffset();
 			}
+		}
+
+		//wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
+
+		wp += wtp_e; // adjusted willingness to pay in millions of dollars
+
+		std::string oldPCStr = "empty";
+		std::string newPCStr = "empty";
+
+		if( oldPC )
+			oldPCStr = oldPC->getSlaPostcode();
+
+		if( newPC )
+			newPCStr = newPC->getSlaPostcode();
 
 
-			//wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
+		if( household->getAffordabilityAmount() > household->getCurrentUnitPrice() )
+			maxAffordability = household->getAffordabilityAmount();
+		else
+			maxAffordability = household->getCurrentUnitPrice();
 
-			wp += wtp_e; // adjusted willingness to pay in millions of dollars
+		wp = std::max(0.0, wp );
 
-			std::string oldPCStr = "empty";
-			std::string newPCStr = "empty";
+		double currentBid = 0;
+		double currentSurplus = 0;
 
-			if( oldPC )
-				oldPCStr = oldPC->getSlaPostcode();
-
-			if( newPC )
-				newPCStr = newPC->getSlaPostcode();
-
-
-			if( household->getAffordabilityAmount() > household->getCurrentUnitPrice() )
-				maxAffordability = household->getAffordabilityAmount();
-			else
-				maxAffordability = household->getCurrentUnitPrice();
-
-			wp = std::max(0.0, wp );
-
-			double currentBid = 0;
-			double currentSurplus = 0;
-
-			if( entry->getAskingPrice() != 0 )
+		if( entry->getAskingPrice() != 0 )
+		{
+			//tenure_status = 0 mean it is a BTO unit
+			if( unit->isBto() )
 			{
-				//tenure_status = 0 mean it is a BTO unit
-				if( unit->isBto() )
-				{
-					currentBid = entry->getAskingPrice();
-					currentSurplus = wp - entry->getAskingPrice();
-				}
-				else
-				{
-					computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
-				}
+				currentBid = entry->getAskingPrice();
+				currentSurplus = wp - entry->getAskingPrice();
 			}
 			else
-				PrintOutV("Asking price is zero for unit " << entry->getUnitId() << std::endl );
-
-			printHouseholdBiddingList( day, household->getId(), unit->getId(), oldPCStr, newPCStr, wp, entry->getAskingPrice(), maxAffordability, currentBid, currentSurplus);
-
-			if( currentSurplus > maxSurplus && maxAffordability > currentBid  && currentSurplus > 0)
 			{
-				maxSurplus = currentSurplus;
-				finalBid = currentBid;
-				maxEntryUnitId = entry->getUnitId();
-				maxWp = wp;
-				maxWtpe = wtp_e;
+				computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
 			}
 		}
 		else
+			PrintOutV("Asking price is zero for unit " << entry->getUnitId() << std::endl );
+
+		printHouseholdBiddingList( day, household->getId(), unit->getId(), oldPCStr, newPCStr, wp, entry->getAskingPrice(), maxAffordability, currentBid, currentSurplus);
+
+		if( currentSurplus > maxSurplus && maxAffordability > currentBid  && currentSurplus > 0)
 		{
-			printError( (boost::format("[day %1%]Could not compute bid value for unit %2%. Eligibility: %3% Stats: %4%") % day % unit->getId() % flatEligibility % stats ).str() );
+			maxSurplus = currentSurplus;
+			finalBid = currentBid;
+			maxEntryUnitId = entry->getUnitId();
+			maxWp = wp;
+			maxWtpe = wtp_e;
 		}
 	}
 	else
 	{
-		printError( (boost::format("[day %1%] Entry is invalid for unit id %2%") % day % entry->getUnitId() ).str() );
+		printError( (boost::format("[day %1%]Could not compute bid value for unit %2%. Eligibility: %3% Stats: %4%") % day % unit->getId() % flatEligibility % stats ).str() );
 	}
+
 
 }
 
@@ -729,8 +721,6 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     ScreeningSubModel screeningSubmodel;
     screeningSubmodel.getScreeningProbabilities( household->getId(), householdScreeningProbabilities, model, day);
-
-    //PrintOutV(" size: " << householdScreeningProbabilities.size() << std::endl);
 
     if(householdScreeningProbabilities.size() > 0 )
     	printProbabilityList(household->getId(), householdScreeningProbabilities);

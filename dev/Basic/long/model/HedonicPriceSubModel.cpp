@@ -652,7 +652,7 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
     hedonicPrice = exp( hedonicPrice ) / 1000000.0;
     if(hedonicPrice < 0.01)
     {
-    	PrintOutV("hedonic price is 0 for"<< unit->getId()<<std::endl);
+    	printError((boost::format("hedonic price is 0 for unit %1%") % unit->getId()).str());
     }
 
 

@@ -51,18 +51,12 @@ HouseholdAgent::HouseholdAgent(BigSerial _id, HM_Model* _model, Household* _hous
     if( marketSeller == true )
     	seller->setActive(true);
 
-
     if ( marketSeller == false )
     {
         bidder = new HouseholdBidderRole(this);
     }
 
-
     futureTransitionOwn = false;
-
-	if(id >= model->FAKE_IDS_START)
-		unitIds.reserve(100000);
-
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -156,10 +150,8 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	//The HouseholdBidderRole will, when active, bid on units for sale in the housing market.
 	//The HouseholdSellerRole will, when active, sell the unit (or units for freelance agents) on the housing market
 
-
 	day = now.frame();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	//bool buySellIntervalCompleted = false;
 
 	if( bidder && bidder->isActive() && seller->isActive() == false )
 	{
@@ -186,7 +178,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		}
 
 		//As soon as the bidder becomes active, the seller also becomes active
-
 		//Be advised: The seller's unit will not be on the market until the buySellInterval has been completed
 		//The only reason the seller is active now is so that it's unit can be added to its own choiceset.
 		seller->setActive(true);
@@ -211,8 +202,13 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 				HousingMarket::Entry *entry = const_cast<HousingMarket::Entry*>( getMarket()->getEntryById( unit->getId()) );
 
 				// pointer is not null if unit has been entered into the market
-				if( entry != nullptr)
+				if( entry != nullptr && entry->isBuySellIntervalCompleted() == false)
+				{
 					entry->setBuySellIntervalCompleted(true);
+#ifdef VERBOSE
+					PrintOutV("[ " << day << "] Buysell complete. agent " << getId() << " unit: " << unitId << endl);
+#endif
+				}
 			}
 		}
 	}
@@ -231,31 +227,38 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     }
 
     //decrement the buy sell interval only after a successful bid
-    if( id < model->FAKE_IDS_START && seller->sellingUnitsMap.size() > 0 && bidder->getParent()->getHousehold()->getLastBidStatus() == 1)
+    if (id < model->FAKE_IDS_START)
     {
     	buySellInterval--;
     }
 
 	//If 1) the bidder is active and 2) it is not waiting to move into a unit and 3) it has exceeded it's bidding time frame,
 	//Then it can now go inactive. However if any one of the above three conditions are not true, the bidder has to remain active
-    if( bidder && bidder->isActive() &&  ( bidder->getMoveInWaitingTimeInDays() ==  0 || householdBiddingWindow == 0 ) )
+    if( bidder && bidder->isActive() )
 	{
-		PrintExit( day, household, 0);
-		bidder->setActive(false);
+		if( ( bidder->getMoveInWaitingTimeInDays() ==  -1 &&  householdBiddingWindow == 0 ) || ( bidder->getMoveInWaitingTimeInDays() ==  0))
+		{
+			PrintExit( day, household, 0);
+			bidder->setActive(false);
 
-		seller->removeAllEntries();
+			seller->removeAllEntries();
 
-		//transfer unit to a freelance agent if a household has done a successful bid and has not sold his house during MoveInWaitingTimeInDays.
-		if( id < model->FAKE_IDS_START &&
-			bidder->getParent()->getHousehold()->getLastBidStatus() == 1 &&
-			seller->sellingUnitsMap.size() > 0 )
-				TransferUnitToFreelanceAgent();
+			//transfer unit to a freelance agent if a household has done a successful bid and has not sold his house during MoveInWaitingTimeInDays.
+			if( id < model->FAKE_IDS_START &&
+				bidder->getParent()->getHousehold()->getLastBidStatus() == 1)
+					TransferUnitToFreelanceAgent();
 
-	    //The seller becomes inactive when the bidder is inactive. This is alright
-		//because the bidder has a move in waiting time of 30 days
-	    //This is ample time for a seller role to sell the unit.
-		seller->setActive(false);
-		model->incrementExits();
+#ifdef VERBOSE
+			PrintOutV("[" << day << "] Agent going offline " << getId() << " moveinTime " << bidder->getMoveInWaitingTimeInDays()
+					<< " biddingWindow" << householdBiddingWindow << " lastBid " << bidder->getParent()->getHousehold()->getLastBidStatus() << endl );
+#endif
+
+			//The seller becomes inactive when the bidder is inactive. This is alright
+			//because the bidder has a move in waiting time of 30 days
+			//This is ample time for a seller role to sell the unit.
+			seller->setActive(false);
+			model->incrementExits();
+		}
 	}
 
     int startDay = 0;
@@ -285,17 +288,17 @@ void HouseholdAgent::TransferUnitToFreelanceAgent()
 
 	HouseholdAgent *freelanceAgent = model->getFreelanceAgents()[agentChosen];
 
-	for( auto uitr = seller->sellingUnitsMap.begin(); uitr != seller->sellingUnitsMap.end(); uitr++ )
+	for( int n = 0; n < unitIds.size(); n++)
 	{
-		Unit *unit = model->getUnitById( uitr->first );
+		Unit *unit = model->getUnitById( unitIds[n] );
 		if(unit)
 		{
 			unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 			unit->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 			unit->setbiddingMarketEntryDay(day + 1);
 			
-			this->removeUnitId(uitr->first);
-			MessageBus::PostMessage(freelanceAgent, LTMID_HM_TRANSFER_UNIT, MessageBus::MessagePtr( new TransferUnit(uitr->first)));	
+			this->removeUnitId( unitIds[n] );
+			MessageBus::PostMessage(freelanceAgent, LTMID_HM_TRANSFER_UNIT, MessageBus::MessagePtr( new TransferUnit( unitIds[n] )));	
 		}
 
 #ifdef VERBOSE

@@ -339,15 +339,22 @@ namespace sim_mob
 
 		    	int awakenDay = household->getLastAwakenedDay();
 
-		    	if( household->getLastBidStatus() == 0 && day < awakenDay + household->getTimeOnMarket() )
+		    	if (household->getLastBidStatus() == 0 && day < awakenDay + household->getTimeOnMarket())
 		    		continue;
 
-				if( (household->getLastBidStatus() == 1 ||  household->getLastBidStatus() == 2) && household->getTimeOffMarket() > 0)
+				if (household->getLastBidStatus() == 1)
 				{		
-					continue;
+				    if( awakenDay + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid < day)
+						continue;
 				}
 
-				if(household->getPendingStatusId() == 1)
+				if (household->getLastBidStatus() == 2)
+				{
+					if( awakenDay +  config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid < day)
+						continue;
+				}
+
+				if (household->getPendingStatusId() == 1)
 					continue;
 
                 double futureTransitionRate = 0;

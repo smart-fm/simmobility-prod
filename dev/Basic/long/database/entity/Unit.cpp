@@ -446,16 +446,6 @@ void Unit::setAskingPrice(double askingPrice)
 	this->askingPrice = askingPrice;
 }
 
-void Unit::updateRemainingTimeOnMarket()
-{
-	--this->remainingTimeOnMarket;
-}
-
-void Unit::updateRemainingTimeOffMarket()
-{
-	--this->remainingTimeOffMarket;
-}
-
 int Unit::getRemainingTimeOffMarket() const
 {
 	return remainingTimeOffMarket;

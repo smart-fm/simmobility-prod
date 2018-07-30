@@ -219,12 +219,31 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     }
 
 
-    if (bidder && bidder->isActive() && householdBiddingWindow > 0 && awakeningDay < day)
-    {
-        bidder->update(now);
-        householdBiddingWindow--;
-       	household->updateTimeOnMarket();
+    if (bidder && bidder->isActive())
+	{
+		
+
+		if (householdBiddingWindow > 0 && awakeningDay < day)
+    	{
+			
+			householdBiddingWindow--;
+			household->updateTimeOnMarket();
+
+			bidder->update(now);
+		}
+
+		if(bidder->getMoveInWaitingTimeInDays() > 0 )
+		{
+			int movin = bidder->getMoveInWaitingTimeInDays();
+			movin--;
+			bidder->setMoveInWaitingTimeInDays(movin);
+
+			bidder->update(now);
+
+			//PrintOutV("day[" << day << "] hh " << getId() << " movin " << bidder->moveInWaitingTimeInDays << endl );
+		}
     }
+
 
     //decrement the buy sell interval only after a successful bid
     if (id < model->FAKE_IDS_START)
@@ -236,6 +255,8 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	//Then it can now go inactive. However if any one of the above three conditions are not true, the bidder has to remain active
     if( bidder && bidder->isActive() )
 	{
+		//PrintOutV("Agent " << getId() << " movein " << bidder->getMoveInWaitingTimeInDays() << " bidwindow " << householdBiddingWindow << endl );  
+
 		if( ( bidder->getMoveInWaitingTimeInDays() ==  -1 &&  householdBiddingWindow == 0 ) || ( bidder->getMoveInWaitingTimeInDays() ==  0))
 		{
 			PrintExit( day, household, 0);

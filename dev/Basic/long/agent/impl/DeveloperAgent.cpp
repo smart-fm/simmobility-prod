@@ -662,7 +662,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
 
 
 DeveloperAgent::DeveloperAgent(boost::shared_ptr<Parcel> parcel, DeveloperModel* model)
-: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), (parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear),currentTick(currentTick),parcelDBStatus(false),hasBTO(false),onGoingProjectOnDay0(false)
+: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), (parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(nullptr),simYear(0),currentTick(0),parcelDBStatus(false),hasBTO(false),onGoingProjectOnDay0(false)
 {
 
 }

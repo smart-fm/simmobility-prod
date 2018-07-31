@@ -45,11 +45,11 @@ const Bid& BidMessage::getBid() const {
 }
 
 HM_ActionMessage::HM_ActionMessage(BigSerial buildingId, std::tm futureDemolitionDate)
-: unitId(INVALID_ID),buildingId(buildingId),buildingFutureDemolitionDate(buildingFutureDemolitionDate) ,unit(nullptr),building(nullptr){
+: unitId(INVALID_ID),buildingId(buildingId),buildingFutureDemolitionDate(futureDemolitionDate) ,unit(nullptr),building(nullptr){
 }
 
 HM_ActionMessage::HM_ActionMessage(const HM_ActionMessage& source)
-: unitId(source.unitId),buildingId(source.buildingId), buildingFutureDemolitionDate(source.buildingFutureDemolitionDate),unit(unit),building(building){
+: unitId(source.unitId),buildingId(source.buildingId), buildingFutureDemolitionDate(source.buildingFutureDemolitionDate),unit(source.getUnit()),building(source.building){
 }
 
 HM_ActionMessage::HM_ActionMessage(Unit &unit)

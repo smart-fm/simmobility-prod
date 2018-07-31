@@ -13,7 +13,7 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 
 ExternalEvent::ExternalEvent()
-: day(0), type(ExternalEvent::UNKNOWN), householdId(INVALID_ID), developerId(developerId){
+: day(0), type(ExternalEvent::UNKNOWN), householdId(INVALID_ID), developerId(0){
 }
 
 ExternalEvent::ExternalEvent(const ExternalEvent& orig) {

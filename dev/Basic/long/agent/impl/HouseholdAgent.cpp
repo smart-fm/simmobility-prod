@@ -190,27 +190,25 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	//the waiting time to move in is less than offsetBetweenUnitBuyingAndSellingAdvancedPurchase
 
 	//has X days elapsed since the bidder was activted OR the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
-	if((bidder && bidder->isActive() && buySellInterval == 0) || (acceptedBid  && ( bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
+	if((bidder && bidder->isActive() && buySellInterval == 0) || (acceptedBid  && 
+	   (bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
 	{
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
 			BigSerial unitId = *itr;
 			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
-			if( id < model->FAKE_IDS_START )
-			{
-				HousingMarket::Entry *entry = const_cast<HousingMarket::Entry*>( getMarket()->getEntryById( unit->getId()) );
+			HousingMarket::Entry *entry = const_cast<HousingMarket::Entry*>( getMarket()->getEntryById( unit->getId()) );
 
-				// pointer is not null if unit has been entered into the market
-				if( entry != nullptr && entry->isBuySellIntervalCompleted() == false)
-				{
-					entry->setBuySellIntervalCompleted(true);
-#ifdef VERBOSE
-					PrintOutV("[ " << day << "] Buysell complete. agent " << getId() << " unit: " << unitId << endl);
-#endif
-				}
+			// pointer is not null if unit has been entered into the market
+			if( entry != nullptr && entry->isBuySellIntervalCompleted() == false)
+			{
+				entry->setBuySellIntervalCompleted(true);
+				#ifdef VERBOSE
+				PrintOutV("[ " << day << "] Buysell complete. agent " << getId() << " unit: " << unitId << endl);
+				#endif
 			}
-		}
+			}
 	}
 
     if (seller && seller->isActive())
@@ -218,34 +216,25 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
         seller->update(now);
     }
 
-
     if (bidder && bidder->isActive())
 	{
-		
-
+		if (bidder->getMoveInWaitingTimeInDays() > 0)
+		{
+			getModel()->incrementWaitingToMove();
+			Statistics::increment(Statistics::N_WAITING_TO_MOVE);
+			bidder->setMoveInWaitingTimeInDays(bidder->getMoveInWaitingTimeInDays() - 1);
+		}
+		else
 		if (householdBiddingWindow > 0 && awakeningDay < day)
     	{
-			
 			householdBiddingWindow--;
 			household->updateTimeOnMarket();
-
 			bidder->update(now);
-		}
-
-		if(bidder->getMoveInWaitingTimeInDays() > 0 )
-		{
-			int movin = bidder->getMoveInWaitingTimeInDays();
-			movin--;
-			bidder->setMoveInWaitingTimeInDays(movin);
-
-			bidder->update(now);
-
-			//PrintOutV("day[" << day << "] hh " << getId() << " movin " << bidder->moveInWaitingTimeInDays << endl );
 		}
     }
 
 
-    //decrement the buy sell interval only after a successful bid
+    //decrement the buy sell interval
     if (id < model->FAKE_IDS_START)
     {
     	buySellInterval--;
@@ -253,14 +242,11 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
 	//If 1) the bidder is active and 2) it is not waiting to move into a unit and 3) it has exceeded it's bidding time frame,
 	//Then it can now go inactive. However if any one of the above three conditions are not true, the bidder has to remain active
-    if( bidder && bidder->isActive() )
+    if (bidder && bidder->isActive())
 	{
-		//PrintOutV("Agent " << getId() << " movein " << bidder->getMoveInWaitingTimeInDays() << " bidwindow " << householdBiddingWindow << endl );  
-
-		if( ( bidder->getMoveInWaitingTimeInDays() ==  -1 &&  householdBiddingWindow == 0 ) || ( bidder->getMoveInWaitingTimeInDays() ==  0))
+		if ((bidder->getMoveInWaitingTimeInDays() ==  -1 &&  householdBiddingWindow == 0) || (bidder->getMoveInWaitingTimeInDays() ==  0))
 		{
 			PrintExit( day, household, 0);
-			bidder->setActive(false);
 
 			seller->removeAllEntries();
 
@@ -269,10 +255,15 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 				bidder->getParent()->getHousehold()->getLastBidStatus() == 1)
 					TransferUnitToFreelanceAgent();
 
-#ifdef VERBOSE
+			#ifdef VERBOSE
 			PrintOutV("[" << day << "] Agent going offline " << getId() << " moveinTime " << bidder->getMoveInWaitingTimeInDays()
 					<< " biddingWindow" << householdBiddingWindow << " lastBid " << bidder->getParent()->getHousehold()->getLastBidStatus() << endl );
-#endif
+			#endif
+
+			if (bidder->getMoveInWaitingTimeInDays() ==  0)
+				TakeUnitOwnership();
+
+			bidder->setActive(false);
 
 			//The seller becomes inactive when the bidder is inactive. This is alright
 			//because the bidder has a move in waiting time of 30 days
@@ -297,6 +288,26 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 
+void HouseholdAgent::TakeUnitOwnership()
+{
+	#ifdef VERBOSE
+	PrintOutV("[day " << day << "] Household " << ->getId() << " is moving into unit " << unitIdToBeOwned << " today." << std::endl);
+	#endif
+	addUnitId( bidder->getUnitIdToBeOwned() );
+
+	getHousehold()->setUnitId( bidder->getUnitIdToBeOwned());
+	getHousehold()->setHasMoved(1);
+	getHousehold()->setUnitPending(0);
+	getHousehold()->setTenureStatus(1);
+	Unit *unit = getModel()->getUnitById(bidder->getUnitIdToBeOwned());
+
+	//update the unit tenure status to "owner occupied" when a household moved to a new unit.
+	unit->setTenureStatus(1);
+	unit->setbiddingMarketEntryDay(day + unit->getTimeOffMarket());
+
+    bidder->biddingEntry.invalidate();
+}
+
 void HouseholdAgent::onFrameOutput(timeslice now) {}
 
 void HouseholdAgent::TransferUnitToFreelanceAgent()
@@ -309,22 +320,23 @@ void HouseholdAgent::TransferUnitToFreelanceAgent()
 
 	HouseholdAgent *freelanceAgent = model->getFreelanceAgents()[agentChosen];
 
-	for( int n = 0; n < unitIds.size(); n++)
+	//for( auto itr = seller->sellingUnitsMap.begin; itr != seller->sellingUnitsMap.end(); itr++)
+	for(int n = 0; n < unitIds.size();n++)
 	{
-		Unit *unit = model->getUnitById( unitIds[n] );
+		Unit *unit = model->getUnitById( unitIds[n]);
 		if(unit)
 		{
 			unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 			unit->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 			unit->setbiddingMarketEntryDay(day + 1);
 			
-			this->removeUnitId( unitIds[n] );
-			MessageBus::PostMessage(freelanceAgent, LTMID_HM_TRANSFER_UNIT, MessageBus::MessagePtr( new TransferUnit( unitIds[n] )));	
+			this->removeUnitId(unitIds[n]);
+			MessageBus::PostMessage(freelanceAgent, LTMID_HM_TRANSFER_UNIT, MessageBus::MessagePtr( new TransferUnit(unitIds[n])));	
 		}
 
-#ifdef VERBOSE
+		#ifdef VERBOSE
 		PrintOutV("[day " << day << "] Unit " << unit->getId() << " from Household " << getId() << " transferred to freelance agent " << model->FAKE_IDS_START + agentChosen << std::endl);
-#endif
+		#endif
 	}
 
 	seller->sellingUnitsMap.clear();

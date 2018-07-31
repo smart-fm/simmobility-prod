@@ -515,9 +515,9 @@ void HouseholdSellerRole::removeAllEntries()
 		if(it != sellingUnitsMap.end())
 		{
 			market->removeEntry(unitId);
-#ifdef VERBOSE
+			#ifdef VERBOSE
 			PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Removing entry to Housing market for unit " << unitId << std::endl);
-#endif
+			#endif
 		}
     }
 }

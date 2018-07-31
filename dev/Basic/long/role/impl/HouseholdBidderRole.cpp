@@ -141,7 +141,7 @@ void HouseholdBidderRole::CurrentBiddingEntry::setWtp_e(double value)
 
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0),
-																  moveInWaitingTimeInDays(-1),vehicleBuyingWaitingTimeInDays(0), day(day), initBidderRole(true),year(0),bidComplete(true){}
+																  moveInWaitingTimeInDays(-1),vehicleBuyingWaitingTimeInDays(0), day(0), initBidderRole(true),year(0),bidComplete(true){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -334,46 +334,11 @@ void HouseholdBidderRole::update(timeslice now)
 	//This bidder has a successful bid already.
 	//It's now waiting to move in its new unit.
 	//The bidder role will do nothing else during this period (hence the return at the end of the if function).
-	if( moveInWaitingTimeInDays > 0 )
-	{
-		getParent()->getModel()->incrementWaitingToMove();
-		Statistics::increment(Statistics::N_WAITING_TO_MOVE);
-
-		//Just before we set the bidderRole to inactive, we do the unit ownership switch.
-		if( moveInWaitingTimeInDays == 1 )
-		{
-			TakeUnitOwnership();
-		}
-	}
-	else
-    {
-    	bidUnit(now);
-    	getParent()->getModel()->incrementNumberOfBidders();
-    	Statistics::increment(Statistics::N_BIDDERS);
-    }
+    bidUnit(now);
+    getParent()->getModel()->incrementNumberOfBidders();
+    Statistics::increment(Statistics::N_BIDDERS);
 
     lastTime = now;
-}
-
-void HouseholdBidderRole::TakeUnitOwnership()
-{
-	#ifdef VERBOSE
-	PrintOutV("[day " << day << "] Household " << getParent()->getId() << " is moving into unit " << unitIdToBeOwned << " today." << std::endl);
-	#endif
-	getParent()->addUnitId( unitIdToBeOwned );
-
-	getParent()->getHousehold()->setUnitId(unitIdToBeOwned);
-	getParent()->getHousehold()->setHasMoved(1);
-	getParent()->getHousehold()->setUnitPending(0);
-	getParent()->getHousehold()->setTenureStatus(1);
-	Unit *unit = getParent()->getModel()->getUnitById(unitIdToBeOwned);
-	//update the unit tenure status to "owner occupied" when a household moved to a new unit.
-	unit->setTenureStatus(1);
-	unit->setbiddingMarketEntryDay(day + unit->getTimeOffMarket());
-
-
-    biddingEntry.invalidate();
-   // Statistics::increment(Statistics::N_ACCEPTED_BIDS);
 }
 
 
@@ -904,4 +869,10 @@ void HouseholdBidderRole::setMoveInWaitingTimeInDays(int days)
 void HouseholdBidderRole::setUnitIdToBeOwned(BigSerial unitId)
 {
 	this->unitIdToBeOwned = unitId;
+}
+
+
+BigSerial HouseholdBidderRole::getUnitIdToBeOwned()
+{
+	return unitIdToBeOwned;
 }

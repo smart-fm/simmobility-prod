@@ -1830,7 +1830,7 @@ void HM_Model::startImpl()
 	int waitingToMoveInHouseholdCount = 0;
 	if(initialLoading)
 	{
-		std::vector<BigSerial>assignedUnitsVec;
+	std::vector<BigSerial>assignedUnitsVec;
 	for (HouseholdList::iterator it = households.begin();	it != households.end(); it++)
 	{
 		Household* household = *it;
@@ -1934,8 +1934,7 @@ void HM_Model::startImpl()
 			tempHH->setIndividual(individuals[n]->getId());
 		}
 	}
-
-}
+	}
 
 
 	for(int n  = 0; n < units.size(); n++)
@@ -2275,14 +2274,14 @@ void HM_Model::startImpl()
 		}
 	}
 
-	Household *hh;
-	PopulationPerPlanningArea *popPerPA;
-	Individual *ind;
-	AlternativeHedonicPrice *altHedonicPrice;
-	ZonalLanduseVariableValues *zonalLU_VarVals;
-	DistanceMRT *mrtDistPerHH;
-	Awakening *awakeningPtr;
-	Unit *unit;
+	Household *hh = nullptr;
+	PopulationPerPlanningArea *popPerPA = nullptr;
+	Individual *ind = nullptr;
+	AlternativeHedonicPrice *altHedonicPrice = nullptr;
+	ZonalLanduseVariableValues *zonalLU_VarVals = nullptr;
+	DistanceMRT *mrtDistPerHH = nullptr;
+	Awakening *awakeningPtr = nullptr;
+	Unit *unit = nullptr;
 
 	//save day0 after all the preprocessing
 	if(initialLoading)

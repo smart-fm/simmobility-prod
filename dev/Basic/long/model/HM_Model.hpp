@@ -222,6 +222,7 @@ namespace sim_mob
             typedef std::multimap<OriginDestKey, TravelTime*> TravelTimeMap;
 
             typedef std::vector<StudyArea*> StudyAreaList;
+            typedef boost::unordered_map<BigSerial, StudyArea*> StudyAreaMap;
             typedef std::multimap<string, StudyArea*>StudyAreaMultiMap;
 
             typedef std::vector<JobAssignmentCoeffs*> JobAssignmentCoeffsList;
@@ -518,6 +519,7 @@ namespace sim_mob
 
             void  loadLTVersion(DB_Connection &conn);
             void  loadStudyAreas(DB_Connection &conn);
+            bool isStudyAreaTaz(BigSerial tazId);
 
             StudyAreaList& getStudyAreas();
             StudyAreaMultiMap& getStudyAreaByScenarioName();
@@ -802,6 +804,7 @@ namespace sim_mob
 			TravelTimeMap travelTimeByOriginDestTaz;
 
 			StudyAreaList studyAreas;
+			StudyAreaMap studyAreasByTazId;
 			StudyAreaMultiMap  studyAreaByScenario;
 
 			JobAssignmentCoeffsList jobAssignmentCoeffs;

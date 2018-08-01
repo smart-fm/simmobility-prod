@@ -4270,6 +4270,18 @@ void  HM_Model::loadStudyAreas(DB_Connection &conn)
 	PrintOutV("Number of Study Area rows: " << studyAreas.size() << std::endl );
 }
 
+bool HM_Model::isStudyAreaTaz(BigSerial tazId)
+{
+	StudyAreaMap::const_iterator itr = studyAreasByTazId.find(tazId);
+
+		if (itr != studyAreasByTazId.end())
+		{
+			return true;
+		}
+
+		return false;
+}
+
 void HM_Model::loadJobAssignments(DB_Connection &conn)
 {
 	soci::session sql;

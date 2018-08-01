@@ -470,6 +470,16 @@ public:
 		return simmobNodeId;
 	}
 
+	void setNodeType(unsigned int nodeType)
+	{
+		this->simmobNodeType = nodeType;
+	}
+
+	unsigned int getNodeType() const
+	{
+		return simmobNodeType;
+	}
+
 	void setNodeId(unsigned int aimsunNodeId)
 	{
 		this->simmobNodeId = aimsunNodeId;
@@ -520,6 +530,8 @@ private:
 	int zone;
 	/** simmobility node id */
 	unsigned int simmobNodeId;
+	/** simmobility node type */
+	unsigned int simmobNodeType;
 	/** is this a node with no upstream segments*/
 	bool sourceNode;
 	/** is this a node with no downstream segments*/

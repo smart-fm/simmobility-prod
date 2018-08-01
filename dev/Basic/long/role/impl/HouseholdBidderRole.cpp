@@ -330,7 +330,6 @@ void HouseholdBidderRole::update(timeslice now)
 		init();
 	}
 
-	//reconsiderVehicleOwnershipOption();
 	//This bidder has a successful bid already.
 	//It's now waiting to move in its new unit.
 	//The bidder role will do nothing else during this period (hence the return at the end of the if function).
@@ -384,10 +383,8 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
                 	getParent()->getHousehold()->setLastBidStatus(1);
-
                 	getParent()->getHousehold()->setTimeOffMarket(moveInWaitingTimeInDays + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid);
             		getParent()->setAcceptedBid(true);
-            		//getParent()->setBuySellInterval(config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling);
 
                 	if(simulationEndDay < (moveInWaitingTimeInDays + day))
                 	{

@@ -153,7 +153,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	day = now.frame();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-	if( bidder && bidder->isActive() && seller->isActive() == false )
+	if (bidder && bidder->isActive() && seller->isActive() == false)
 	{
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
@@ -165,15 +165,15 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 			//If we are not dealing with a freelance agent,
 			//then the unit market entry day should be the awakening day of that household.
 			//That's because we want that unit to be available for sale as soon as the bidder role is active
-			if( id < model->FAKE_IDS_START )
+			if (id < model->FAKE_IDS_START)
 			{
 				/*
 				 * beware, next two limits are reset subsequently in householdseller role
 				 * so this for loop is not doing anything beyond initializing limits and the next day as market entry day
 				 */
 				unit->setbiddingMarketEntryDay(day + 1);
-				unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-				unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
+				unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
+				unit->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 			}
 		}
 
@@ -190,8 +190,8 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	//the waiting time to move in is less than offsetBetweenUnitBuyingAndSellingAdvancedPurchase
 
 	//has X days elapsed since the bidder was activted OR the bid has been accepted AND the waiting time is less than the BTO BuySell interval, we can activate the sellers
-	if((bidder && bidder->isActive() && buySellInterval == 0) || (acceptedBid  && 
-	   (bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
+	if ((bidder && bidder->isActive() && buySellInterval == 0) || 
+	    (acceptedBid  && (bidder->getMoveInWaitingTimeInDays() <= config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase)))
 	{
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
@@ -208,7 +208,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 				PrintOutV("[ " << day << "] Buysell complete. agent " << getId() << " unit: " << unitId << endl);
 				#endif
 			}
-			}
+		}
 	}
 
     if (seller && seller->isActive())
@@ -228,7 +228,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		if (householdBiddingWindow > 0 && awakeningDay < day)
     	{
 			householdBiddingWindow--;
-			household->updateTimeOnMarket();
 			bidder->update(now);
 		}
     }
@@ -241,9 +240,14 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     }
 
 	//If 1) the bidder is active and 2) it is not waiting to move into a unit and 3) it has exceeded it's bidding time frame,
-	//Then it can now go inactive. However if any one of the above three conditions are not true, the bidder has to remain active
+	//Then it can now go inactive. However if any one of the above three conditions are not true, the agent has to remain active
     if (bidder && bidder->isActive())
 	{
+		//The ordering here is critical.
+		//First we remove all the entries from the seller
+		//Second we transfer the unsold unit if any to a freelance agent
+		//Third we take ownership of the new unit if any
+		//Fourth we set the bidder and seller to be inactive.
 		if ((bidder->getMoveInWaitingTimeInDays() ==  -1 &&  householdBiddingWindow == 0) || (bidder->getMoveInWaitingTimeInDays() ==  0))
 		{
 			PrintExit( day, household, 0);
@@ -277,12 +281,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
     if(config.ltParams.resume)
     {
     	startDay = model->getLastStoppedDay();
-    }
-
-    //if a bid is accepted, time off the market is set to 210 + 30 days. if not it is set to 210 days. Then this value is decremented each day.
-    if (bidder && household->getTimeOffMarket() > 0)
-    {
-    	household->updateTimeOffMarket();
     }
 
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);

@@ -681,16 +681,6 @@ void Household::setWorkInToaPayoh(bool workInToaPayoh)
 	this->workInToaPayoh = workInToaPayoh;
 }
 
-void Household::updateTimeOffMarket()
-{
-	--this->timeOffMarket;
-
-}
-
-void Household::updateTimeOnMarket()
-{
-	--this->timeOnMarket;
-}
 
 namespace sim_mob
 {

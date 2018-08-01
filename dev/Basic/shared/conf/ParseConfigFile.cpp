@@ -617,14 +617,6 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
 					houseModel, "offsetBetweenUnitBuyingAndSelling"), "value"), (int) 0);
 
-	housingModel.bidderUnitsChoiceSet =
-			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
-					houseModel, "bidderUnitsChoiceSet"), "value"), (int) 0);
-
-	housingModel.bidderBTOUnitsChoiceSet =
-			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
-					houseModel, "bidderBTOUnitsChoiceSet"), "value"), (int) 0);
-
 	housingModel.householdBiddingWindow =
 			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(
 					houseModel, "householdBiddingWindow"), "value"), (int) 0);
@@ -676,6 +668,22 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 	housingModel.hedonicPriceModel.b =
 			ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
 					houseModel, "hedonicPriceModel"), "b"), "value"), (float) 0);
+
+	housingModel.bidderUnitChoiceset.randomChoiceset =
+			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
+						houseModel, "bidderChoiceset"), "randomChoiceset"), "value"), false);
+	housingModel.bidderUnitChoiceset.shanLopezChoiceset =
+			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
+						houseModel, "bidderChoiceset"), "shanLopezChoiceset"), "value"), false);
+
+	housingModel.bidderUnitChoiceset.bidderChoicesetSize =
+			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
+					houseModel, "bidderChoiceset"), "bidderChoicesetSize"), "value"), (int) 0);
+
+	housingModel.bidderUnitChoiceset.bidderBTOChoicesetSize =
+			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
+					houseModel, "bidderChoiceset"), "bidderBTOChoicesetSize"), "value"), (int) 0);
+
 
 	cfg.ltParams.housingModel = housingModel;
 }

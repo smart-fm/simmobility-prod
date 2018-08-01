@@ -159,6 +159,7 @@
     <travel_modes>
 	    <mode name="BusTravel" type="1" num_sharing="1"/>
 	    <mode name="MRT" type="1" num_sharing="1"/>
+	    <mode name="Private Bus" type="1" num_sharing="1"/>
 	    <mode name="Car" type="3" num_sharing="1"/>
 	    <mode name="Car Sharing 2" type="4" num_sharing="2"/>
 	    <mode name="Car Sharing 3" type="4" num_sharing="3"/>
@@ -170,6 +171,7 @@
  	    <mode name="SMS_pool" type="7" num_sharing="1"/>
 	    <mode name="Rail_SMS_pool" type="1" num_sharing="1"/>
     </travel_modes>
+
 
     <!-- Activity types can be configured by adding or removing from the list below. -->
     <activity_types>

@@ -102,7 +102,7 @@ void DeveloperModel::startImpl() {
 
 	if (conn.isConnected())
 	{
-		ParcelsWithHDB *HDB_Parcel;
+		ParcelsWithHDB *HDB_Parcel = nullptr;
 		if(initLoading)
 		{
 			loadData<ParcelsWithHDBDao>(conn,parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
@@ -236,7 +236,7 @@ void DeveloperModel::startImpl() {
 
 
 	PrintOutV("minLotSize"<<minLotSize<<std::endl);
-	Parcel *parcel;
+	Parcel *parcel = nullptr;
 	if(initLoading)
 	{
 		processParcels();

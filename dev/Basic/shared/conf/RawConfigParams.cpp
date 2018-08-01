@@ -26,6 +26,13 @@ sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInter
 													   bidderUnitsChoiceSet(0),bidderBTOUnitsChoiceSet(0),householdBiddingWindow(0), householdBTOBiddingWindow(0),
 													   householdAwakeningPercentageByBTO(0), offsetBetweenUnitBuyingAndSellingAdvancedPurchase(0){}
 
+
+sim_mob::LongTermParams::HousingModel::BidderUnitChoiceset::BidderUnitChoiceset(): enabled(false),
+																			randomChoiceset(false),
+																			shanLopezChoiceset(false),
+																			bidderChoicesetSize(0),
+																			bidderBTOChoicesetSize(0){}
+
 sim_mob::LongTermParams::HousingModel::AwakeningModel::AwakeningModel(): initialHouseholdsOnMarket(0), dailyHouseholdAwakenings(0), awakenModelJingsi(false), awakenModelShan(false), awakenModelRandom(false), awakeningOffMarketSuccessfulBid(0), awakeningOffMarketUnsuccessfulBid(0){}
 
 sim_mob::LongTermParams::HousingModel::HedonicPriceModel::HedonicPriceModel(): a(0), b(0){}

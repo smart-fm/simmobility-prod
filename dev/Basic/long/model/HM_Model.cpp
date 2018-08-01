@@ -47,6 +47,7 @@
 #include "database/dao/OwnerTenantMovingRateDao.hpp"
 #include "database/dao/AlternativeHedonicPriceDao.hpp"
 #include "database/dao/ScreeningModelCoefficientsDao.hpp"
+#include "database/dao/ScreeningModelFactorsDao.hpp"
 #include "database/dao/SimulationStoppedPointDao.hpp"
 #include "database/dao/BidDao.hpp"
 #include "database/dao/VehicleOwnershipChangesDao.hpp"
@@ -1489,8 +1490,6 @@ void HM_Model::startImpl()
 	conn.connect();
 	resume = config.ltParams.resume;
 	conn.setSchema(config.schemas.main_schema);
-	PredayLT_LogsumManager::getInstance();
-
 
 	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
 	conn_calibration.connect();
@@ -1507,6 +1506,10 @@ void HM_Model::startImpl()
 		loadLTVersion(conn);
 		loadStudyAreas(conn);
 		loadResidentialWTP_Coeffs(conn_calibration);
+
+		loadData<ScreeningModelFactorsDao>( conn_calibration, screeningModelFactorsList, screeningModelFactorsMap, &ScreeningModelFactors::getId );
+		PrintOutV("Number of screening Model Factors: " << screeningModelFactorsList.size() << std::endl );
+
 
 		if(config.ltParams.schoolAssignmentModel.enabled)
 		{
@@ -1827,7 +1830,7 @@ void HM_Model::startImpl()
 	int waitingToMoveInHouseholdCount = 0;
 	if(initialLoading)
 	{
-		std::vector<BigSerial>assignedUnitsVec;
+	std::vector<BigSerial>assignedUnitsVec;
 	for (HouseholdList::iterator it = households.begin();	it != households.end(); it++)
 	{
 		Household* household = *it;
@@ -1931,8 +1934,7 @@ void HM_Model::startImpl()
 			tempHH->setIndividual(individuals[n]->getId());
 		}
 	}
-
-}
+	}
 
 
 	for(int n  = 0; n < units.size(); n++)
@@ -2272,14 +2274,14 @@ void HM_Model::startImpl()
 		}
 	}
 
-	Household *hh;
-	PopulationPerPlanningArea *popPerPA;
-	Individual *ind;
-	AlternativeHedonicPrice *altHedonicPrice;
-	ZonalLanduseVariableValues *zonalLU_VarVals;
-	DistanceMRT *mrtDistPerHH;
-	Awakening *awakeningPtr;
-	Unit *unit;
+	Household *hh = nullptr;
+	PopulationPerPlanningArea *popPerPA = nullptr;
+	Individual *ind = nullptr;
+	AlternativeHedonicPrice *altHedonicPrice = nullptr;
+	ZonalLanduseVariableValues *zonalLU_VarVals = nullptr;
+	DistanceMRT *mrtDistPerHH = nullptr;
+	Awakening *awakeningPtr = nullptr;
+	Unit *unit = nullptr;
 
 	//save day0 after all the preprocessing
 	if(initialLoading)
@@ -2589,6 +2591,12 @@ const ResidentialWTP_Coefs* HM_Model::getResidentialWTP_CoefsByPropertyType(stri
 
 }
 
+
+HM_Model::ScreeningModelFactorsList& HM_Model::getscreeningModelFactorsList()
+{
+	return screeningModelFactorsList;
+}
+
 HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()
 {
 	return screeningModelCoefficientsList;
@@ -2626,6 +2634,19 @@ void HM_Model::getLogsumOfIndividuals(BigSerial id)
 
 void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 {
+	HouseHoldHitsSample *hitsSample = nullptr;
+	{
+		boost::mutex::scoped_lock lock( mtx3 );
+
+		hitsSample = this->getHouseHoldHitsById( householdId );
+		indLogsumCounter++;
+
+		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
+			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
+		else
+			return;
+	}
+
 	Household *currentHousehold = getHouseholdById( householdId );
 
 	std::vector<BigSerial> householdIndividualIds = currentHousehold->getIndividuals();
@@ -2645,6 +2666,18 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 		BigSerial tazW = 0;
 		BigSerial tazH = 0;
+
+		int paxId  = -1;
+		int p = 0;
+		for(p = 0; p < hitsIndividualLogsum.size(); p++ )
+		{
+			if (  hitsIndividualLogsum[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
+			{
+				paxId  = hitsIndividualLogsum[p]->getPaxId();
+				break;
+			}
+		}
+
 
 		{
 			PersonParams personParams;
@@ -2702,11 +2735,21 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 			personParams.setIsStudent(isStudent);
 
-			personParams.setActivityAddressId( tazW );
+
+			if( this->getEstablishmentSlaAddressId(establishment->getId()) == 0 )
+			{
+				personParams.setIsStudent(false);		
+				personParams.setHasWorkplace(false);
+			}
+
+			personParams.setActivityAddressId( this->getEstablishmentSlaAddressId(establishment->getId()) );
 
 			//household related
 			personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
-			personParams.setHomeAddressId( tazH );
+			
+			personParams.setHomeAddressId( this->getUnitSlaAddressId(unit->getId()) );
+			
+
 			personParams.setHH_Size( currentHousehold->getSize() );
 			personParams.setHH_NumUnder4( currentHousehold->getChildUnder4());
 			personParams.setHH_NumUnder15( currentHousehold->getChildUnder15());
@@ -2763,23 +2806,33 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 				double logsumTCPlusOne3 = personParams3.getDpbLogsum();
 				double logsumTCPlusOne4 = personParams4.getDpbLogsum();
 				double logsumTCPlusOne5 = personParams5.getDpbLogsum();
+				
+				double denominator0 = (logsumTC0 -logsumTCPlusOne0 );
+				double denominator1 = (logsumTC1 -logsumTCPlusOne1 );
+				double denominator2 = (logsumTC2 -logsumTCPlusOne2 );
+				double denominator3 = (logsumTC3 -logsumTCPlusOne3 );
+				double denominator4 = (logsumTC4 -logsumTCPlusOne4 );
+				double denominator5 = (logsumTC5 -logsumTCPlusOne5 ); 
 
-				double logsumScaledMaxCost0 = (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumTCPlusOne0 );
+
+				double avgDenomenator = (denominator0 + denominator1 + denominator2 + denominator3 + denominator4  + denominator5) / 6.0;
+
+				double logsumScaledMaxCost0 = ( logsumTCZero0 - logsumTC0) / avgDenomenator;
 				logsum.insert(std::make_pair(0,logsumScaledMaxCost0));
 
-				double logsumScaledMaxCost1 = (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumTCPlusOne1 );
+				double logsumScaledMaxCost1 = ( logsumTCZero1 - logsumTC1) / avgDenomenator;
 				logsum.insert(std::make_pair(1,logsumScaledMaxCost1));
 
-				double logsumScaledMaxCost2 = (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumTCPlusOne2 );
+				double logsumScaledMaxCost2 = ( logsumTCZero2 - logsumTC2) / avgDenomenator;
 				logsum.insert(std::make_pair(2,logsumScaledMaxCost2));
 
-				double logsumScaledMaxCost3 = (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumTCPlusOne3 );
+				double logsumScaledMaxCost3 = ( logsumTCZero3 - logsumTC3) / avgDenomenator;
 				logsum.insert(std::make_pair(3,logsumScaledMaxCost3));
 
-				double logsumScaledMaxCost4 = (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumTCPlusOne4 );
+				double logsumScaledMaxCost4 = ( logsumTCZero4 - logsumTC4) / avgDenomenator;
 				logsum.insert(std::make_pair(4,logsumScaledMaxCost4));
 
-				double logsumScaledMaxCost5 = (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumTCPlusOne5 );
+				double logsumScaledMaxCost5 = ( logsumTCZero5 - logsumTC5) / avgDenomenator;
 				logsum.insert(std::make_pair(5,logsumScaledMaxCost5));
 			}
 
@@ -2800,34 +2853,59 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 				double logsumCTPlusOne4 = personParams4.getDpbLogsum();
 				double logsumCTPlusOne5 = personParams5.getDpbLogsum();
 
-				double logsumScaledMaxTime0 =  (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumCTPlusOne0 );
+				double denominator0 = (logsumTC0 -logsumCTPlusOne0 );
+				double denominator1 = (logsumTC1 -logsumCTPlusOne1 );
+				double denominator2 = (logsumTC2 -logsumCTPlusOne2 );
+				double denominator3 = (logsumTC3 -logsumCTPlusOne3 );
+				double denominator4 = (logsumTC4 -logsumCTPlusOne4 );
+				double denominator5 = (logsumTC5 -logsumCTPlusOne5 ); 
+
+
+				double avgDenomenator = (denominator0 + denominator1 + denominator2 + denominator3 + denominator4  + denominator5) / 6.0;
+
+
+				double logsumScaledMaxTime0 =  (logsumTCZero0- logsumTC0) / avgDenomenator;
 				logsum.insert(std::make_pair(0,logsumScaledMaxTime0));
 
-				double logsumScaledMaxTime1 =  (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumCTPlusOne1 );
+				double logsumScaledMaxTime1 =  (logsumTCZero1 - logsumTC1) / avgDenomenator;
 				logsum.insert(std::make_pair(1,logsumScaledMaxTime1));
 
-				double logsumScaledMaxTime2 =  (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumCTPlusOne2 );
+				double logsumScaledMaxTime2 =  (logsumTCZero2 - logsumTC2) / avgDenomenator;
 				logsum.insert(std::make_pair(2,logsumScaledMaxTime2));
 
-				double logsumScaledMaxTime3 =  (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumCTPlusOne3 );
+				double logsumScaledMaxTime3 =  (logsumTCZero3 - logsumTC3) / avgDenomenator;
 				logsum.insert(std::make_pair(3,logsumScaledMaxTime3));
 
-				double logsumScaledMaxTime4 =  (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumCTPlusOne4 );
+				double logsumScaledMaxTime4 =  (logsumTCZero4 - logsumTC4) / avgDenomenator;
 				logsum.insert(std::make_pair(4,logsumScaledMaxTime4));
 
-				double logsumScaledMaxTime5 =  (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumCTPlusOne5 );
+				double logsumScaledMaxTime5 =  (logsumTCZero5 - logsumTC5) / avgDenomenator;
 				logsum.insert(std::make_pair(5,logsumScaledMaxTime5));
 			}
 		}
 
 		simulationStopCounter++;
 
-		printHouseholdHitsLogsumFVO( "", -1, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
+		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
 	}
 }
 
+
 void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::unordered_map<int,double>&logsum)
 {
+
+	HouseHoldHitsSample *hitsSample = nullptr;
+	{
+		boost::mutex::scoped_lock lock( mtx3 );
+
+		hitsSample = this->getHouseHoldHitsById( householdId );
+		indLogsumCounter++;
+
+		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
+			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
+		else
+			return;
+	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
 
@@ -2865,6 +2943,18 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::uno
 			int paxId  = -1;
 			BigSerial tazW = 0;
 			BigSerial tazH = 0;
+
+			int p = 0;
+			for(p = 0; p < hitsIndividualLogsum.size(); p++ )
+			{
+				if (  hitsIndividualLogsum[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
+				{
+					paxId  = hitsIndividualLogsum[p]->getPaxId();
+					break;
+				}
+			}
+
+
 
 			{
 				PersonParams personParams;
@@ -2985,22 +3075,31 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::uno
 					double logsumTCPlusOne4 = personParams4.getDpbLogsum();
 					double logsumTCPlusOne5 = personParams5.getDpbLogsum();
 
-					double logsumScaledMaxCost0 = (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumTCPlusOne0 );
+					double denominator0 = (logsumTC0 -logsumTCPlusOne0 );
+					double denominator1 = (logsumTC1 -logsumTCPlusOne1 );
+					double denominator2 = (logsumTC2 -logsumTCPlusOne2 );
+					double denominator3 = (logsumTC3 -logsumTCPlusOne3 );
+					double denominator4 = (logsumTC4 -logsumTCPlusOne4 );
+					double denominator5 = (logsumTC5 -logsumTCPlusOne5 ); 
+
+					double avgDenomenator = (denominator0 + denominator1 + denominator2 + denominator3 + denominator4  + denominator5) / 6.0;
+
+					double logsumScaledMaxCost0 = (logsumTC0 - logsumTCZero0) / avgDenomenator;
 					logsum.insert(std::make_pair(0,logsumScaledMaxCost0));
 
-					double logsumScaledMaxCost1 = (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumTCPlusOne1 );
+					double logsumScaledMaxCost1 = (logsumTC1 - logsumTCZero1) / avgDenomenator;
 					logsum.insert(std::make_pair(1,logsumScaledMaxCost1));
 
-					double logsumScaledMaxCost2 = (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumTCPlusOne2 );
+					double logsumScaledMaxCost2 = (logsumTC2 - logsumTCZero2) / avgDenomenator;
 					logsum.insert(std::make_pair(2,logsumScaledMaxCost2));
 
-					double logsumScaledMaxCost3 = (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumTCPlusOne3 );
+					double logsumScaledMaxCost3 = (logsumTC3 - logsumTCZero3) / avgDenomenator;
 					logsum.insert(std::make_pair(3,logsumScaledMaxCost3));
 
-					double logsumScaledMaxCost4 = (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumTCPlusOne4 );
+					double logsumScaledMaxCost4 = (logsumTC4 - logsumTCZero4) / avgDenomenator;
 					logsum.insert(std::make_pair(4,logsumScaledMaxCost4));
 
-					double logsumScaledMaxCost5 = (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumTCPlusOne5 );
+					double logsumScaledMaxCost5 = (logsumTC5 - logsumTCZero5) / avgDenomenator;
 					logsum.insert(std::make_pair(5,logsumScaledMaxCost5));
 				}
 
@@ -3021,28 +3120,38 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::uno
 					double logsumCTPlusOne4 = personParams4.getDpbLogsum();
 					double logsumCTPlusOne5 = personParams5.getDpbLogsum();
 
-					double logsumScaledMaxTime0 =  (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumCTPlusOne0 );
+					double denominator0 = (logsumTC0 -logsumCTPlusOne0 );
+					double denominator1 = (logsumTC1 -logsumCTPlusOne1 );
+					double denominator2 = (logsumTC2 -logsumCTPlusOne2 );
+					double denominator3 = (logsumTC3 -logsumCTPlusOne3 );
+					double denominator4 = (logsumTC4 -logsumCTPlusOne4 );
+					double denominator5 = (logsumTC5 -logsumCTPlusOne5 ); 
+
+					double avgDenomenator = (denominator0 + denominator1 + denominator2 + denominator3 + denominator4  + denominator5) / 6.0;
+
+
+					double logsumScaledMaxTime0 =  (logsumTC0 - logsumTCZero0) / avgDenomenator;
 					logsum.insert(std::make_pair(0,logsumScaledMaxTime0));
 
-					double logsumScaledMaxTime1 =  (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumCTPlusOne1 );
+					double logsumScaledMaxTime1 =  (logsumTC1 - logsumTCZero1) / avgDenomenator;
 					logsum.insert(std::make_pair(1,logsumScaledMaxTime1));
 
-					double logsumScaledMaxTime2 =  (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumCTPlusOne2 );
+					double logsumScaledMaxTime2 =  (logsumTC2 - logsumTCZero2) / avgDenomenator;
 					logsum.insert(std::make_pair(2,logsumScaledMaxTime2));
 
-					double logsumScaledMaxTime3 =  (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumCTPlusOne3 );
+					double logsumScaledMaxTime3 =  (logsumTC3 - logsumTCZero3) / avgDenomenator;
 					logsum.insert(std::make_pair(3,logsumScaledMaxTime3));
 
-					double logsumScaledMaxTime4 =  (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumCTPlusOne4 );
+					double logsumScaledMaxTime4 =  (logsumTC4 - logsumTCZero4) / avgDenomenator;
 					logsum.insert(std::make_pair(4,logsumScaledMaxTime4));
 
-					double logsumScaledMaxTime5 =  (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumCTPlusOne5 );
+					double logsumScaledMaxTime5 =  (logsumTC5 - logsumTCZero5) / avgDenomenator;
 					logsum.insert(std::make_pair(5,logsumScaledMaxTime5));
 				}
 
 			}
 
-			printHouseholdHitsLogsumFVO( "", paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
+			printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
 		}
 }
 

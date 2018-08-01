@@ -201,14 +201,11 @@ void PersonParams::fixUpParamsForLtPerson()
 	setFixedWorkLocation(0);
 	if (fixedWorkplace)
 	{
-
-		//setFixedWorkLocation(getTAZCodeForAddressId(activityAddressId));
-		setFixedWorkLocation(activityAddressId);
+		setFixedWorkLocation(getTAZCodeForAddressId(activityAddressId));
 	}
 	if (student)
 	{
-		//setFixedSchoolLocation(getTAZCodeForAddressId(activityAddressId));
-		setFixedSchoolLocation(activityAddressId);
+		setFixedSchoolLocation(getTAZCodeForAddressId(activityAddressId));
 	}
 	setHasDrivingLicence(getCarLicense() || getVanbusLicense());
 	setIsUniversityStudent(studentTypeId == 4);

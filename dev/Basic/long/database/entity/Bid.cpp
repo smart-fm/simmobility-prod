@@ -53,7 +53,7 @@ Bid::Bid(const Bid& source)
     this->accepted = source.accepted;
 }
 
-Bid::Bid(): bidId(bidId),simulationDay(simulationDay),bidderId(INVALID_ID),currentUnitId(INVALID_ID),newUnitId(INVALID_ID),willingnessToPay(0.0),affordabilityAmount(0.0),hedonicPrice(0.0),
+Bid::Bid(): bidId(0),simulationDay(0),bidderId(INVALID_ID),currentUnitId(INVALID_ID),newUnitId(INVALID_ID),willingnessToPay(0.0),affordabilityAmount(0.0),hedonicPrice(0.0),
 		askingPrice(0.0),targetPrice(0.0),bidValue(0.0),isAccepted(0),currentPostcode(INVALID_ID),newPostcode(INVALID_ID),bidder(nullptr),moveInDate(std::tm()), wtpErrorTerm(0),
 		accepted(0), sellerId(INVALID_ID),unitTypeId(INVALID_ID),logsum(0),currentUnitPrice(0),unitFloorArea(0),bidsCounter(0),lagCoefficient(0){}
 

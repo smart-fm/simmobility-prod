@@ -110,6 +110,8 @@ namespace sim_mob
              */
             void processExternalEvent(const ExternalEventArgs& args);
 
+            void TakeUnitOwnership();
+
 
         private:
             HM_Model* model;

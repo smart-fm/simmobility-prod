@@ -107,8 +107,6 @@ namespace sim_mob
             bool isBto() const;
             bool isExistInDb() const ;
             double getAskingPrice() const;
-            void updateRemainingTimeOnMarket();
-            void updateRemainingTimeOffMarket();
 
             template<class Archive>
             void serialize(Archive & ar,const unsigned int version);

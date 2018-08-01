@@ -199,8 +199,14 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 		logsumManager.loadZones();
 		logsumManager.loadCosts();
 
-		ensureContext();
-		PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
+		DB_Config ltDbConfig(LT_DB_CONFIG_FILE);
+		ltDbConfig.load();
+		DB_Connection conn(sim_mob::db::POSTGRES, ltDbConfig);
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+		conn.setSchema(config.schemas.main_schema);
+		conn.connect();
+		PopulationSqlDao ltPopulationDao(conn);
+
 		ltPopulationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
 		ltPopulationDao.getAddresses();
 		logsumManager.dataLoadReqd = false;

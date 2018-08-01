@@ -259,8 +259,6 @@ namespace sim_mob
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Lifestyle 3. Household " << household->getId() << " has been awakened. " << model->getNumberOfBidders() << std::endl);
 				#endif
-
-				model->incrementLifestyle3HHs();
 			}
 
 			IdVector unitIds = agent->getUnitIds();
@@ -341,13 +339,22 @@ namespace sim_mob
 
 		    	int awakenDay = household->getLastAwakenedDay();
 
-		    	if( household->getLastBidStatus() == 0 && day < awakenDay + household->getTimeOnMarket() )
+		    	if (household->getLastBidStatus() == 0 && day < awakenDay + household->getTimeOnMarket())
 		    		continue;
 
-				if( (household->getLastBidStatus() == 1 ||  household->getLastBidStatus() == 2) && household->getTimeOffMarket() > 0)
-					continue;
+				if (household->getLastBidStatus() == 1)
+				{		
+				    if( awakenDay + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid < day)
+						continue;
+				}
 
-				if(household->getPendingStatusId() == 1)
+				if (household->getLastBidStatus() == 2)
+				{
+					if( awakenDay +  config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid < day)
+						continue;
+				}
+
+				if (household->getPendingStatusId() == 1)
 					continue;
 
                 double futureTransitionRate = 0;
@@ -424,10 +431,10 @@ namespace sim_mob
 		    			unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket);
 		    		}
 		    	}
-		    	}
 		    }
+		}
 
 		    return events;
-		}
 	}
+}
 }

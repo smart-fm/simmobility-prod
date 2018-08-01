@@ -141,7 +141,7 @@ void HouseholdBidderRole::CurrentBiddingEntry::setWtp_e(double value)
 
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0),
-																  moveInWaitingTimeInDays(-1),vehicleBuyingWaitingTimeInDays(0), day(day), initBidderRole(true),year(0),bidComplete(true){}
+																  moveInWaitingTimeInDays(-1),vehicleBuyingWaitingTimeInDays(0), day(0), initBidderRole(true),year(0),bidComplete(true){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -234,8 +234,12 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 		HM_Model::HousingInterestRateList *interestRateListX = getParent()->getModel()->getHousingInterestRateList();
 
 		const double quarter = 365.0 / 4.0; // a yearly quarter
-		int index =	day / quarter;
-		double interestRate = (*interestRateListX)[index]->getInterestRate() / 100 / 12.0; // divide by 12 to get the monthly interest rate.
+		const int FirstQuarter2012 = 45;  // index 45 is 1st quarter 2012 in table housing_interest_rate
+		int index =	FirstQuarter2012 + (day / quarter);
+
+		index = index % (*interestRateListX).size();
+
+		double interestRate = (*interestRateListX)[index]->getRate_real() / 100.0 / 12.0; // divide by 12 to get the monthly interest rate.
 
 		//Household affordability formula based on excel PV function:
 		//https://support.office.com/en-ca/article/PV-function-3d25f140-634f-4974-b13b-5249ff823415
@@ -326,77 +330,14 @@ void HouseholdBidderRole::update(timeslice now)
 		init();
 	}
 
-	//reconsiderVehicleOwnershipOption();
 	//This bidder has a successful bid already.
 	//It's now waiting to move in its new unit.
 	//The bidder role will do nothing else during this period (hence the return at the end of the if function).
-	if( moveInWaitingTimeInDays > 0 )
-	{
-		getParent()->getModel()->incrementWaitingToMove();
-		Statistics::increment(Statistics::N_WAITING_TO_MOVE);
-
-		//Just before we set the bidderRole to inactive, we do the unit ownership switch.
-		if( moveInWaitingTimeInDays == 1 )
-		{
-			TakeUnitOwnership();
-		}
-
-		moveInWaitingTimeInDays--;
-
-		//return;
-	}
-
-	//wait x days after move in to a new unit to reconsider the vehicle ownership option.
-//	if( vehicleBuyingWaitingTimeInDays > 0 && moveInWaitingTimeInDays == 0)
-//	{
-//
-//		if( vehicleBuyingWaitingTimeInDays == 1)
-//		{
-//			TimeCheck vehicleOwnershipTiming;
-//
-//			VehicleOwnershipModel vehOwnershipModel(getParent()->getModel());
-//			vehOwnershipModel.reconsiderVehicleOwnershipOption2(*getParent()->getHousehold(),getParent(), day,true,false);
-//
-//			double vehicleOwnershipTime = vehicleOwnershipTiming.getClockTime();
-//
-//			#ifdef VERBOSE_SUBMODEL_TIMING
-//				PrintOutV("vehicleOwnership time for agent " << getParent()->getId() << " is " << vehicleOwnershipTime << std::endl );
-//			#endif
-//		}
-//			vehicleBuyingWaitingTimeInDays--;
-//
-//		//return;
-//	}
-
-    //based on the last bid status a household can't bid again until it passes awakeningOffMarketSuccessfulBid/awakeningOffMarketUnsuccessfulBid
-	if(getParent()->getHousehold()->getTimeOffMarket() <= 0)
-    {
-    	bidUnit(now);
-    	getParent()->getModel()->incrementNumberOfBidders();
-    	Statistics::increment(Statistics::N_BIDDERS);
-    }
+    bidUnit(now);
+    getParent()->getModel()->incrementNumberOfBidders();
+    Statistics::increment(Statistics::N_BIDDERS);
 
     lastTime = now;
-}
-
-void HouseholdBidderRole::TakeUnitOwnership()
-{
-	#ifdef VERBOSE
-	PrintOutV("[day " << day << "] Household " << getParent()->getId() << " is moving into unit " << unitIdToBeOwned << " today." << std::endl);
-	#endif
-	getParent()->addUnitId( unitIdToBeOwned );
-
-	getParent()->getHousehold()->setUnitId(unitIdToBeOwned);
-	getParent()->getHousehold()->setHasMoved(1);
-	getParent()->getHousehold()->setUnitPending(0);
-	getParent()->getHousehold()->setTenureStatus(1);
-	Unit *unit = getParent()->getModel()->getUnitById(unitIdToBeOwned);
-	//update the unit tenure status to "owner occupied" when a household moved to a new unit.
-	unit->setTenureStatus(1);
-
-
-    biddingEntry.invalidate();
-   // Statistics::increment(Statistics::N_ACCEPTED_BIDS);
 }
 
 
@@ -424,7 +365,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 	else
                 		moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
 
-					/*
+#ifdef VERBOSE					
 					PrintOutV("moveInDays " << moveInWaitingTimeInDays
 											<< " occupancy "
 											<< newUnit->getOccupancyFromDate().tm_year
@@ -436,16 +377,14 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
 											<< simulationDate
 											<< "  "
 											<< endl);
-					*/
+#endif
 
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                 	int simulationEndDay = config.ltParams.days;
                 	year = config.ltParams.year;
                 	getParent()->getHousehold()->setLastBidStatus(1);
-
                 	getParent()->getHousehold()->setTimeOffMarket(moveInWaitingTimeInDays + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid);
             		getParent()->setAcceptedBid(true);
-            		getParent()->setBuySellInterval(config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling);
 
                 	if(simulationEndDay < (moveInWaitingTimeInDays + day))
                 	{
@@ -574,115 +513,106 @@ void HouseholdBidderRole::calculateMaxSurplusEntry(const HousingMarket::Entry* e
 	const Household* household = getParent()->getHousehold();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
+	const Unit* unit = model->getUnitById(entry->getUnitId());
+	const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
 
-	if(entry && entry->getOwner()->getId() != getParent()->getId() )
+	bool flatEligibility = true;
+
+	if( unit->getTenureStatus() == 0 && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
+		flatEligibility = false;
+
+	if( unit->getTenureStatus() == 0 && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+		flatEligibility = false;
+
+	if( unit->getTenureStatus() == 0 && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+		flatEligibility = false;
+
+	if( stats && flatEligibility )
 	{
-		const Unit* unit = model->getUnitById(entry->getUnitId());
-		const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
+		const Unit *hhUnit = model->getUnitById( household->getUnitId() );
 
-		bool flatEligibility = true;
+		BigSerial postcodeCurrent = 0;
+		if( hhUnit != NULL )
+			postcodeCurrent = model->getUnitSlaAddressId( hhUnit->getId() );
 
-		if( unit->getTenureStatus() == 0 && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false )
-			flatEligibility = false;
+		Postcode *oldPC = model->getPostcodeById(postcodeCurrent);
+		Postcode *newPC = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
+		double wtp_e = 0;
 
-		if( unit->getTenureStatus() == 0 && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
-			flatEligibility = false;
-
-		if( unit->getTenureStatus() == 0 && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
-			flatEligibility = false;
-
-
-		if( stats && flatEligibility )
+		//The willingness to pay is in millions of dollars
+		WillingnessToPaySubModel wtp_m;
+		double wp = wtp_m.calculateResidentialWillingnessToPay(unit, household, wtp_e,day, model);
 		{
-			const Unit *hhUnit = model->getUnitById( household->getUnitId() );
+			int unit_type = unit->getUnitType();
 
-			BigSerial postcodeCurrent = 0;
-			if( hhUnit != NULL )
-				postcodeCurrent = model->getUnitSlaAddressId( hhUnit->getId() );
+			UnitType *unitType = model->getUnitTypeById( unit_type );
 
-			Postcode *oldPC = model->getPostcodeById(postcodeCurrent);
-			Postcode *newPC = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
-			double wtp_e = 0;
-
-			//The willingness to pay is in millions of dollars
-			WillingnessToPaySubModel wtp_m;
-			double wp = wtp_m.calculateResidentialWillingnessToPay(unit, household, wtp_e,day, model);
+			//(1-avg(wtp/hedonic)) * hedonic
+			//We need to adjust the willingness to pay
+			//wtpOffset is enabled by default. If you want to have wtpOffset as 0, set this value to false in the xml config file.
+			bool wtpOffsetEnabled = config.ltParams.housingModel.wtpOffsetEnabled;
+			if(wtpOffsetEnabled)
 			{
-				int unit_type = unit->getUnitType();
-
-				UnitType *unitType = model->getUnitTypeById( unit_type );
-
-				//(1-avg(wtp/hedonic)) * hedonic
-				//We need to adjust the willingness to pay
-				//wtpOffset is enabled by default. If you want to have wtpOffset as 0, set this value to false in the xml config file.
-				bool wtpOffsetEnabled = config.ltParams.housingModel.wtpOffsetEnabled;
-				if(wtpOffsetEnabled)
-				{
-					wp += wp * unitType->getWtpOffset();
-				}
+				wp += wp * unitType->getWtpOffset();
 			}
+		}
+
+		//wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
+
+		wp += wtp_e; // adjusted willingness to pay in millions of dollars
+
+		std::string oldPCStr = "empty";
+		std::string newPCStr = "empty";
+
+		if( oldPC )
+			oldPCStr = oldPC->getSlaPostcode();
+
+		if( newPC )
+			newPCStr = newPC->getSlaPostcode();
 
 
-			//wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
+		if( household->getAffordabilityAmount() > household->getCurrentUnitPrice() )
+			maxAffordability = household->getAffordabilityAmount();
+		else
+			maxAffordability = household->getCurrentUnitPrice();
 
-			wp += wtp_e; // adjusted willingness to pay in millions of dollars
+		wp = std::max(0.0, wp );
 
-			std::string oldPCStr = "empty";
-			std::string newPCStr = "empty";
+		double currentBid = 0;
+		double currentSurplus = 0;
 
-			if( oldPC )
-				oldPCStr = oldPC->getSlaPostcode();
-
-			if( newPC )
-				newPCStr = newPC->getSlaPostcode();
-
-
-			if( household->getAffordabilityAmount() > household->getCurrentUnitPrice() )
-				maxAffordability = household->getAffordabilityAmount();
-			else
-				maxAffordability = household->getCurrentUnitPrice();
-
-			wp = std::max(0.0, wp );
-
-			double currentBid = 0;
-			double currentSurplus = 0;
-
-			if( entry->getAskingPrice() != 0 )
+		if( entry->getAskingPrice() != 0 )
+		{
+			//tenure_status = 0 mean it is a BTO unit
+			if( unit->isBto() )
 			{
-				//tenure_status = 0 mean it is a BTO unit
-				if( unit->isBto() )
-				{
-					currentBid = entry->getAskingPrice();
-					currentSurplus = wp - entry->getAskingPrice();
-				}
-				else
-				{
-					computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
-				}
+				currentBid = entry->getAskingPrice();
+				currentSurplus = wp - entry->getAskingPrice();
 			}
 			else
-				PrintOutV("Asking price is zero for unit " << entry->getUnitId() << std::endl );
-
-			printHouseholdBiddingList( day, household->getId(), unit->getId(), oldPCStr, newPCStr, wp, entry->getAskingPrice(), maxAffordability, currentBid, currentSurplus);
-
-			if( currentSurplus > maxSurplus && maxAffordability > currentBid  && currentSurplus > 0)
 			{
-				maxSurplus = currentSurplus;
-				finalBid = currentBid;
-				maxEntryUnitId = entry->getUnitId();
-				maxWp = wp;
-				maxWtpe = wtp_e;
+				computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
 			}
 		}
 		else
+			PrintOutV("Asking price is zero for unit " << entry->getUnitId() << std::endl );
+
+		printHouseholdBiddingList( day, household->getId(), unit->getId(), oldPCStr, newPCStr, wp, entry->getAskingPrice(), maxAffordability, currentBid, currentSurplus);
+
+		if( currentSurplus > maxSurplus && maxAffordability > currentBid  && currentSurplus > 0)
 		{
-			printError( (boost::format("[day %1%]Could not compute bid value for unit %2%. Eligibility: %3% Stats: %4%") % day % unit->getId() % flatEligibility % stats ).str() );
+			maxSurplus = currentSurplus;
+			finalBid = currentBid;
+			maxEntryUnitId = entry->getUnitId();
+			maxWp = wp;
+			maxWtpe = wtp_e;
 		}
 	}
 	else
 	{
-		printError( (boost::format("[day %1%] Entry is invalid for unit id %2%") % day % entry->getUnitId() ).str() );
+		printError( (boost::format("[day %1%]Could not compute bid value for unit %2%. Eligibility: %3% Stats: %4%") % day % unit->getId() % flatEligibility % stats ).str() );
 	}
+
 
 }
 
@@ -726,8 +656,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     ScreeningSubModel screeningSubmodel;
     screeningSubmodel.getScreeningProbabilities( household->getId(), householdScreeningProbabilities, model, day);
 
-    //PrintOutV(" size: " << householdScreeningProbabilities.size() << std::endl);
-
     if(householdScreeningProbabilities.size() > 0 )
     	printProbabilityList(household->getId(), householdScreeningProbabilities);
 
@@ -735,21 +663,19 @@ bool HouseholdBidderRole::pickEntryToBid()
 	std::vector<const HousingMarket::Entry*> screenedEntriesVec; //This vector's only purpose is to print the choiceset
 
 
-	//if(config.ltParams.housingModel.randomScreeningModel)
-	if(1)
+	if(config.ltParams.housingModel.bidderUnitChoiceset.randomChoiceset == true)
 	{
-		while (screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet)
+		while (screenedEntries.size() < config.ltParams.housingModel.bidderUnitChoiceset.bidderChoicesetSize)
 		{
 			double randomDraw = (double) rand() / RAND_MAX * entries.size();
 			screenedEntries.insert(entries[randomDraw]);
 		}
 	}
 	else
-	//if(config.ltParams.housingModel.ShanLopezScreeningModel)
+	if(config.ltParams.housingModel.bidderUnitChoiceset.shanLopezChoiceset == true)
 	{
-		for (int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
+		for (int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitChoiceset.bidderChoicesetSize; n++)
 		{
-
 			double randomDraw = (double) rand() / RAND_MAX;
 			int zoneHousingType = -1;
 			double cummulativeProbability = 0.0;
@@ -822,7 +748,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	set<BigSerial> btoEntries = market->getBTOEntries();
 
         //Add x number of BTO units to the screenedUnit vector if the household is eligible for it
-        for(int n = 0; n < config.ltParams.housingModel.bidderBTOUnitsChoiceSet && btoEntries.size() != 0; n++)
+        for(int n = 0; n < config.ltParams.housingModel.bidderUnitChoiceset.bidderBTOChoicesetSize && btoEntries.size() != 0; n++)
         {
         	int offset = (float)rand() / RAND_MAX * ( btoEntries.size() - 1 );
 
@@ -940,4 +866,10 @@ void HouseholdBidderRole::setMoveInWaitingTimeInDays(int days)
 void HouseholdBidderRole::setUnitIdToBeOwned(BigSerial unitId)
 {
 	this->unitIdToBeOwned = unitId;
+}
+
+
+BigSerial HouseholdBidderRole::getUnitIdToBeOwned()
+{
+	return unitIdToBeOwned;
 }

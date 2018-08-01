@@ -49,6 +49,7 @@
 #include "database/entity/HHCoordinates.hpp"
 #include "database/entity/AlternativeHedonicPrice.hpp"
 #include "database/entity/ScreeningModelCoefficients.hpp"
+#include "database/entity/ScreeningModelFactors.hpp"
 #include "database/entity/HouseholdUnit.hpp"
 #include "database/entity/IndvidualEmpSec.hpp"
 #include "database/entity/LtVersion.hpp"
@@ -179,6 +180,9 @@ namespace sim_mob
 
             typedef std::vector<ScreeningModelCoefficients*>ScreeningModelCoefficientsList;
             typedef boost::unordered_map<BigSerial, ScreeningModelCoefficients*> ScreeningModelCoefficicientsMap;
+
+            typedef std::vector<ScreeningModelFactors*>ScreeningModelFactorsList;
+            typedef boost::unordered_map<BigSerial, ScreeningModelFactors*> ScreeningModelFactorsMap;
 
             typedef std::vector<VehicleOwnershipChanges*> VehicleOwnershipChangesList;
             typedef boost::unordered_map<BigSerial, VehicleOwnershipChanges*> VehicleOwnershipChangesMap;
@@ -453,6 +457,8 @@ namespace sim_mob
 
             ScreeningCostTimeList getScreeningCostTime();
             ScreeningCostTime* getScreeningCostTimeInst(std::string key);
+
+            ScreeningModelFactorsList& getscreeningModelFactorsList();
             AccessibilityFixedPzidList getAccessibilityFixedPzid();
 
 
@@ -733,6 +739,10 @@ namespace sim_mob
 
             ScreeningModelCoefficientsList screeningModelCoefficientsList;
             ScreeningModelCoefficicientsMap screeningModelCoefficicientsMap;
+
+            ScreeningModelFactorsList screeningModelFactorsList;
+            ScreeningModelFactorsMap screeningModelFactorsMap;
+
 
             std::vector<SimulationStoppedPoint*> simStoppedPointList;
             std::vector<Bid*> resumptionBids;

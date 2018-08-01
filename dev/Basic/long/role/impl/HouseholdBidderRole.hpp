@@ -110,6 +110,7 @@ namespace sim_mob
             void setMoveInWaitingTimeInDays(int days);
 
             void setUnitIdToBeOwned(BigSerial unitId);
+            BigSerial getUnitIdToBeOwned();
 
             void calculateMaxSurplusEntry(const HousingMarket::Entry* entry,double &maxSurplus, double &finalBid, double &maxWp,double &maxAffordability, double &maxWtpe,BigSerial &maxEntryUnitId);
 

@@ -51,6 +51,8 @@ namespace sim_mob
                 BigSerial getUnitId() const;
                 double getWP() const;
                 double getBestBid() const;
+                void  setBestBid(double val);
+
                 long int getTries() const;
                 bool isValid() const;
                 
@@ -108,6 +110,9 @@ namespace sim_mob
             void setMoveInWaitingTimeInDays(int days);
 
             void setUnitIdToBeOwned(BigSerial unitId);
+            BigSerial getUnitIdToBeOwned();
+
+            void calculateMaxSurplusEntry(const HousingMarket::Entry* entry,double &maxSurplus, double &finalBid, double &maxWp,double &maxAffordability, double &maxWtpe,BigSerial &maxEntryUnitId);
 
         protected:
 

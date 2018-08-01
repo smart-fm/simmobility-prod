@@ -367,7 +367,7 @@ end
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params,dbparams)
-	for i = 1, 5 do 
+	for i = 1, 6 do 
 		availability[i] = dbparams:availability(i)
 	end
 end

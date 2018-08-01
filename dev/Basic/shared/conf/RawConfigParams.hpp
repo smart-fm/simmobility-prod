@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <vector>
 #include <map>
 #include <string>
 
+#include "behavioral/StopType.hpp"
 #include "buffering/Shared.hpp"
 #include "conf/CMakeConfigParams.hpp"
 #include "conf/Constructs.hpp"
@@ -50,6 +52,8 @@ struct LongTermParams
 	std::string geometrySchemaVersion;
 	unsigned int opSchemaloadingInterval;
 	bool initialLoading;
+	bool launchBTO;
+	bool launchPrivatePresale;
 
 	struct DeveloperModel{
 		DeveloperModel();
@@ -60,6 +64,10 @@ struct LongTermParams
 		int initialBuildingId;
 		int initialProjectId;
 		double minLotSize;
+		int constructionStartDay;
+		int saleFromDay;
+		int occupancyFromDay;
+		int constructionCompletedDay;
 	} developerModel;
 
 	struct HousingModel{
@@ -68,6 +76,8 @@ struct LongTermParams
 		unsigned int timeInterval; //time interval before a unit drops its asking price by a certain percentage.
 		unsigned int timeOnMarket; //for units on the housing market
 		unsigned int timeOffMarket;//for units on the housing market
+		bool wtpOffsetEnabled;
+		bool unitsFiltering;
 		float vacantUnitActivationProbability;
 		float housingMarketSearchPercentage;
 		float housingMoveInDaysInterval;
@@ -75,8 +85,19 @@ struct LongTermParams
 		int bidderUnitsChoiceSet;
 		int bidderBTOUnitsChoiceSet;
 		int householdBiddingWindow;
+		int householdBTOBiddingWindow;
 		float householdAwakeningPercentageByBTO;
 		int offsetBetweenUnitBuyingAndSellingAdvancedPurchase;
+
+		struct BidderUnitChoiceset
+		{
+			BidderUnitChoiceset();
+			bool enabled;
+			bool randomChoiceset;
+			bool shanLopezChoiceset;
+			int bidderChoicesetSize;
+			int bidderBTOChoicesetSize;
+		} bidderUnitChoiceset;
 
 		struct AwakeningModel
 		{
@@ -89,6 +110,15 @@ struct LongTermParams
 			int awakeningOffMarketSuccessfulBid;
 			int awakeningOffMarketUnsuccessfulBid;
 		} awakeningModel;
+
+
+		struct HedonicPriceModel
+		{
+			HedonicPriceModel();
+			float a;
+			float b;
+		}hedonicPriceModel;
+
 	} housingModel;
 
 	struct OutputHouseholdLogsums
@@ -98,6 +128,9 @@ struct LongTermParams
 		bool vehicleOwnership;
 		bool fixedHomeVariableWork;
 		bool fixedWorkVariableHome;
+		bool hitsRun;
+		bool maxcCost;
+		bool maxTime;
 	} outputHouseholdLogsums;
 
 	struct VehicleOwnershipModel{
@@ -116,6 +149,12 @@ struct LongTermParams
 		bool enabled;
 		unsigned int schoolChangeWaitingTimeInDays;
 	}schoolAssignmentModel;
+
+	struct JobAssignmentModel{
+		JobAssignmentModel();
+		bool enabled;
+		bool foreignWorkers;
+		}jobAssignmentModel;
 
 
 	struct OutputFiles{
@@ -157,7 +196,8 @@ struct LongTermParams
 		std::string scenarioName;
 		std::string parcelsTable;
 		std::string scenarioSchema;
-
+		bool hedonicModel;
+		bool willingnessToPayModel;
 	} scenario;
 
 };
@@ -294,6 +334,12 @@ public:
     /// Total time (in milliseconds) considered "warmup".
     unsigned int totalWarmupMS;
 
+    /// Seed value for RNG's
+    unsigned int seedValue ;
+
+    /// Operational cost in Dollars/km
+    float operationalCost;
+
     /// When the simulation begins(based on configuration)
     DailyTime simStartTime;
 	
@@ -372,8 +418,18 @@ public:
      */
 	std::string getScriptFileName(std::string key) const
 	{
-        /// at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
-		return scriptFileNameMap.at(key);
+		try
+		{
+			/// at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
+			return scriptFileNameMap.at(key);
+		}
+		catch(const std::out_of_range& oorx)
+		{
+			std::stringstream msg;
+			msg << scriptLanguage << " file for the model \'" << key << "\' not defined in the <model_scripts> section "
+			    << "of the configuration file ";
+			throw std::runtime_error(msg.str());
+		}
 	}
 
     /**
@@ -385,6 +441,11 @@ public:
 	void addScriptFileName(const std::string& key, const std::string& value)
 	{
 		this->scriptFileNameMap[key] = value;
+	}
+
+	const std::map<std::string, std::string>& getScriptsFileNameMap() const
+	{
+		return this->scriptFileNameMap;
 	}
 
 private:
@@ -452,7 +513,7 @@ struct PathSetConf
     /// supply link travel time file name
     std::string supplyLinkFile;
 
-    /// realtime travel time table name
+    /// historical travel time table name
     std::string RTTT_Conf;
 
     /// default travel time table name
@@ -609,6 +670,26 @@ struct TravelTimeConfig {
 	TravelTimeConfig() : intervalMS(0), fileName(""), enabled(false) {}
 };
 
+
+struct ActivityTypeConfig
+{
+    std::string name;
+    std::string withinDayModeChoiceModel;
+    std::string numToursModel;
+    std::string tourModeModel;
+    std::string tourModeDestModel;
+    std::string tourTimeOfDayModel;
+    std::string logsumTableColumn;
+    int type;
+};
+
+struct TravelModeConfig
+{
+    std::string name;
+    int type;
+    int numSharing;
+};
+
 /**
  * Contains the properties of the config file as they appear in, e.g., test_road_network.xml, with
  *   minimal conversion.
@@ -695,6 +776,9 @@ public:
     /// subtrip level travel metrics output enabled
     bool subTripTravelTimeEnabled;
 
+    /// subtrip level zone to zone travel time feedback enabled
+    bool isSubtripTravelTimeFeedbackEnabled;
+
     /// subtrip level travel metrics output file
     std::string subTripLevelTravelTimeOutput;
 
@@ -703,6 +787,22 @@ public:
 
     /// container for lua scripts
 	ModelScriptsMap luaScriptsMap;
+
+    ModelScriptsMap luaScriptsMapTC;
+    ModelScriptsMap luaScriptsMapTimeCostPlusOne;
+    ModelScriptsMap luaScriptsMapCostTimePlusOne;
+    ModelScriptsMap luaScriptsMapTCZeroCostConstants;
+
+	ModelScriptsMap predayLuaScriptsMap;
+
+    /// key:value (travel mode id : travel mode string) map
+    std::unordered_map<int, TravelModeConfig> travelModeMap;
+
+    /// key:value (activity type id : activity type config) map
+    std::unordered_map<StopType, ActivityTypeConfig> activityTypeIdConfigMap;
+
+    /// key:value (activity name : activity type id) map
+    std::unordered_map<std::string, StopType> activityTypeNameIdMap;
 };
 
 

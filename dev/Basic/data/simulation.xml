@@ -9,7 +9,7 @@
             <database id="fm_remote" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
-                <dbname value="simmobility_virtualcity"/>
+                <dbname value="simmobcity"/>
             </database>
 
             <database id="fm_hpchead" dbtype="postgres">
@@ -103,6 +103,10 @@
     </constructs>
 
     <simulation>
+
+        <!-- Preday Seed Value. Currently only the preday is repeatable.  -->
+        <seedValue value = "1331"/>
+
         <!-- Reasonable values for ShortTerm -->
         <!-- <base_granularity   value="100"   units="ms"/> -->
         <!-- <total_runtime      value="14"      units="minutes" /> -->
@@ -113,6 +117,10 @@
 
         <total_warmup       value="10"     units="seconds" />
         <start_time         value="00:00:00"/>
+
+
+        <!--Operational cost per km for car. Default value = 0.147-->
+        <operational_cost value="0.147"/>
 
 
         <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->
@@ -146,4 +154,31 @@
     </generic_props>
 
     <merge_log_files value="true"/>
+
+<!-- type {1: Public Transit, 2: PrivateBus, 3: Private Car, 4: Sharing, 5: Private bike, 6: Walk, 7: Taxi}-->
+    <travel_modes>
+	    <mode name="BusTravel" type="1" num_sharing="1"/>
+	    <mode name="MRT" type="1" num_sharing="1"/>
+	    <mode name="Private Bus" type="1" num_sharing="1"/>
+	    <mode name="Car" type="3" num_sharing="1"/>
+	    <mode name="Car Sharing 2" type="4" num_sharing="2"/>
+	    <mode name="Car Sharing 3" type="4" num_sharing="3"/>
+	    <mode name="Motorcycle" type="5" num_sharing="1"/>
+	    <mode name="Walk" type="6" num_sharing="1"/>
+	    <mode name="Taxi" type="7" num_sharing="1"/>
+	    <mode name="SMS" type="7" num_sharing="1"/>
+	    <mode name="Rail_SMS" type="1" num_sharing="1"/>
+ 	    <mode name="SMS_pool" type="7" num_sharing="1"/>
+	    <mode name="Rail_SMS_pool" type="1" num_sharing="1"/>
+    </travel_modes>
+
+
+    <!-- Activity types can be configured by adding or removing from the list below. -->
+    <activity_types>
+	    <activity_type name="Work" withinday_mode_choice="wdmw" num_tours="ntw" tour_mode_dest="tmdw" tour_mode="tmw" tour_time_of_day="ttdw" type="1" logsum_table_column="work"/>
+	    <activity_type name="Education" withinday_mode_choice="wdme" num_tours="nte" tour_mode_dest="" tour_mode="tme" tour_time_of_day="ttde" type="2" logsum_table_column="education"/>
+	    <activity_type name="Shop" withinday_mode_choice="wdmso" num_tours="nts" tour_mode_dest="tmds" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="shop"/>
+	    <activity_type name="Other" withinday_mode_choice="wdmso" num_tours="nto" tour_mode_dest="tmdo" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="other"/>
+
+    </activity_types>
 </config>

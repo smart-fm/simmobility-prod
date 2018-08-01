@@ -163,7 +163,8 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 	double demolitionCostPerUnit = 0;
 	double constructionCostPerUnit = 0;
 	double totalDemolitionCost = 0;
-	int unitAge = 0;
+	double unitAge = 0;
+	double misAge = 0;
 	const BigSerial fmParcelId = project.getParcel()->getId();
 	bool isEmptyParcel = model->isEmptyParcel(fmParcelId);
 	BigSerial buildingTypeId = 0;
@@ -200,7 +201,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 		if(isEmptyParcel)
 		{
-			unitAge = 0;
+			misAge = 1.0;
 		}
 		else
 		{
@@ -327,13 +328,14 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 			}
 
-			hedonicCoeffObj = model->getHedonicCoeffsByUnitTypeId((*unitsItr).getUnitTypeId());
+			const UnitType *unitType = model->getUnitTypeById((*unitsItr).getUnitTypeId());
+			hedonicCoeffObj = model->getHedonicCoeffsByUnitTypeId(unitType->getAggregatedUnitType());
 		    privateLagTObj = model->getLagPrivateTByUnitTypeId((*unitsItr).getUnitTypeId());
 
 		    HPI = privateLagTObj->getIntercept() + ( privateLagTObj->getT4() * taoValueQ4) + ( privateLagTObj->getT5() * taoValueQ5) + ( privateLagTObj->getT6() * taoValueQ6) + ( privateLagTObj->getT7() * taoValueQ7)
 		    		+ (privateLagTObj->getGdpRate() * taoByUT->getGdpRate()) + (taoByUT->getTreasuryBillYield1Year()- taoByUT->getInflation());
 
-			int ageCapped = 0;
+			double ageCapped = 0;
 			if(unitAge > 50 )
 			{
 				ageCapped = 50;
@@ -346,7 +348,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			double floorArea = (*unitsItr).getFloorArea();
 			double revenue = 0;
 
-			int freehold = model->isFreeholdParcel(fmParcelId);
+			double freehold = model->isFreeholdParcel(fmParcelId);
 
 			double distanceToMall = amenities->getDistanceToMall();
 			double distanceToPMS30 = amenities->getDistanceToPMS30();
@@ -392,10 +394,11 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 			if(hedonicCoeffObj!=nullptr)
 			{
-				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogSqrtArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * freehold) +
+				revenue  = hedonicCoeffObj->getIntercept() + (hedonicCoeffObj->getLogArea() * log(floorArea))+ (hedonicCoeffObj->getFreehold() * freehold) +
 					(hedonicCoeffObj->getLogsumWeighted() * logsum ) + (hedonicCoeffObj->getPms1km() * isDistanceToPMS30) + (hedonicCoeffObj->getDistanceMallKm() * distanceToMall) +
 					(hedonicCoeffObj->getMrt200m()* isMRT_200m) + (hedonicCoeffObj->getMrt2400m() *isMRT_2_400m) + (hedonicCoeffObj->getExpress200m() * isExpress_200m) +
-				    (hedonicCoeffObj->getBusGt400m() * isBus_2_400m) + (hedonicCoeffObj->getBusGt400m() * isBusGt_400m) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getAgeSquared() * (ageCapped*ageCapped));
+				    (hedonicCoeffObj->getBus2400m() * isBus_2_400m) + (hedonicCoeffObj->getBusGt400m() * isBusGt_400m) + (hedonicCoeffObj->getAge() * ageCapped) + (hedonicCoeffObj->getAgeSquared() * (ageCapped*ageCapped))
+					+ (hedonicCoeffObj->getMisage() * misAge) ;//TODO::add storey and storey squared to the calculation. - gishara.
 			}
 
 			double revenuePerUnit = exp(revenue+HPI);
@@ -668,7 +671,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
 
 
 DeveloperAgent::DeveloperAgent(boost::shared_ptr<Parcel> parcel, DeveloperModel* model)
-: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), (parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear),currentTick(currentTick),parcelDBStatus(false),hasBTO(false),onGoingProjectOnDay0(false)
+: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), (parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(nullptr),simYear(0),currentTick(0),parcelDBStatus(false),hasBTO(false),onGoingProjectOnDay0(false)
 {
 
 }
@@ -689,63 +692,70 @@ bool DeveloperAgent::onFrameInit(timeslice now) {
 
 Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
 
-    if (devModel && isActive())
-    {
-    	currentTick = now.ms();
-    	std::tm currentDate = getDateBySimDay(simYear,now.ms());
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	if (devModel && isActive())
+	{
+		currentTick = now.ms();
+		std::tm currentDate = getDateBySimDay(simYear,now.ms());
 
-    	if(!hasBTO)
-    	{
-    	if(this->parcel->getStatus()== 0)
-    	{
-    		int quarter = ((currentDate.tm_mon)/4) + 1;
-    		PotentialProject project;
-    		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,currentDate,currentTick,housingMarketModel);
-    		if(project.getUnits().size()>0)
-    		{
-    			std::vector<PotentialUnit>::iterator unitsItr;
-    			std::vector<PotentialUnit>& potentialUnits = project.getUnits();
-    			for (unitsItr = potentialUnits.begin(); unitsItr != potentialUnits.end(); ++unitsItr)
-    			{
-    				std::tm constructionStartDate = getDateBySimDay(simYear,(now.ms()+60));
-    				//TODO:: construction start date and launch date is temporary. gishara
-    				std::tm launchDate = getDateBySimDay(simYear,(now.ms()+180));
-    				boost::shared_ptr <DevelopmentPlan> devPlan(new DevelopmentPlan(this->parcel->getId(),project.getDevTemplate()->getTemplateId(),(*unitsItr).getUnitTypeId(),
-    						(*unitsItr).getNumUnits(),currentDate,constructionStartDate,launchDate));
-    				devModel->addDevelopmentPlans(devPlan);
-    			}
+		if(!hasBTO && !hasPrivatePresale)
+		{
+			if(this->parcel->getStatus()== 0)
+			{
+				int quarter = ((currentDate.tm_mon)/4) + 1;
+				PotentialProject project;
+				createPotentialProjects(this->parcel->getId(),devModel,project,quarter,currentDate,currentTick, housingMarketModel);
+				if(project.getUnits().size()>0)
+				{
+					std::vector<PotentialUnit>::iterator unitsItr;
+					std::vector<PotentialUnit>& potentialUnits = project.getUnits();
+					int constructionStartDay = config.ltParams.developerModel.constructionStartDay;
+					int launchDay = config.ltParams.developerModel.saleFromDay;
+
+					for (unitsItr = potentialUnits.begin(); unitsItr != potentialUnits.end(); ++unitsItr)
+					{
+						std::tm constructionStartDate = getDateBySimDay(simYear,(now.ms()+constructionStartDay));
+						std::tm launchDate = getDateBySimDay(simYear,(now.ms()+launchDay));
+						boost::shared_ptr <DevelopmentPlan> devPlan(new DevelopmentPlan(this->parcel->getId(),project.getDevTemplate()->getTemplateId(),(*unitsItr).getUnitTypeId(),
+								(*unitsItr).getNumUnits(),currentDate,constructionStartDate,launchDate));
+						devModel->addDevelopmentPlans(devPlan);
+					}
 
 
-    			BigSerial projectId = devModel->getProjectIdForDeveloperAgent();
-    			createUnitsAndBuildings(project,projectId);
-    			createProject(project,projectId);
-    		}
+					BigSerial projectId = devModel->getProjectIdForDeveloperAgent();
+					createUnitsAndBuildings(project,projectId);
+					createProject(project,projectId);
+				}
 
-    	}
-    	else
-    	{
-    		int currTick = this->fmProject->getCurrTick();
-    		currTick++;
-    		this->fmProject->setCurrTick(currTick);
-    		if(onGoingProjectOnDay0)
-    		{
-    			launchOnGoingUnitsOnDay0();
-    		}
-    		else
-    		{
-    			processExistingProjects();
-    		}
-    	}
-    	}
-    	else if(hasBTO)
-    	{
-    		launchBTOUnits(currentDate);
-    	}
+			}
+			else
+			{
+				int currTick = this->fmProject->getCurrTick();
+				currTick++;
+				this->fmProject->setCurrTick(currTick);
+				if(onGoingProjectOnDay0)
+				{
+					launchOnGoingUnitsOnDay0();
+				}
+				else
+				{
+					processExistingProjects();
+				}
+			}
+		}
+		else if(config.ltParams.launchBTO && hasBTO)
+		{
+			launchBTOUnits(currentDate);
+		}
+		else if(config.ltParams.launchPrivatePresale && hasPrivatePresale)
+		{
+			launchPrivatePresaleUnits(currentDate);
+		}
 
-    }
+	}
 
-    //setActive(false);
-    return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
+	//setActive(false);
+	return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 
 void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial projectId)
@@ -816,6 +826,8 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 		{
 			//TODO: Add the BTO unit sla address to building_match and sla_building. 15 Feb 2017. Chetan/Gishara
 			boost::shared_ptr<Unit>unit(new Unit( devModel->getUnitIdForDeveloperAgent(), buildingId, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0,toDate, currentDate,DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, currentDate, 0, currentDate,0));
+			unit->setUnitByDevModel(true);
+			unit->setTazIdByDevModel(this->parcel->getTazId());
 			newUnits.push_back(unit);
 			double profit = (*unitsItr).getUnitProfit();
 			double demolitionCost = (*unitsItr).getDemolitionCostPerUnit();
@@ -970,6 +982,11 @@ bool DeveloperAgent::isHasBto() const
 void DeveloperAgent::setHasBto(bool hasBto)
 {
 		hasBTO = hasBto;
+}
+
+void DeveloperAgent::setHasPrivatePresale(bool privatePresale)
+{
+	hasPrivatePresale = privatePresale;
 }
 
 void DeveloperAgent::onFrameOutput(timeslice now) {
@@ -1161,4 +1178,14 @@ void DeveloperAgent::launchOnGoingUnitsOnDay0()
 			MessageBus::PostMessage(this, LT_STATUS_ID_DEV_ONGOING_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg(unit->getId())), true);
 		}
 	}
+}
+
+void DeveloperAgent::launchPrivatePresaleUnits(std::tm currentDate)
+{
+	std::vector<BigSerial>  presaleUnits = devModel->getPrivatePresaleUnits(currentDate);
+		if(presaleUnits.size()>0)
+		{
+			MessageBus::PostMessage(realEstateAgent, LT_DEV_PRIVATE_PRESALE_UNIT_ADDED, MessageBus::MessagePtr(new HM_ActionMessage((presaleUnits))), true);
+		}
+
 }

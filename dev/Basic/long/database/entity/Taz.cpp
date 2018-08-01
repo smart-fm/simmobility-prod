@@ -14,8 +14,8 @@
 
 using namespace sim_mob::long_term;
 
-Taz::Taz(BigSerial id, const std::string& name, float area, int surcharge, int status_0812, std::string mtzName, std::string subzoneName, std::string planningAreaName):
-		 id(id), name(name), area(area), surcharge(surcharge), status_0812(status_0812), mtzName(mtzName), subzoneName(subzoneName), planningAreaName(planningAreaName) {}
+Taz::Taz(BigSerial id, const std::string& name, float area, int surcharge, int status_0812, std::string mtzName, std::string subzoneName, std::string planningAreaName, std::string hdbTownType):
+		 id(id), name(name), area(area), surcharge(surcharge), status_0812(status_0812), mtzName(mtzName), subzoneName(subzoneName), planningAreaName(planningAreaName),hdbTownType(hdbTownType) {}
 
 Taz::~Taz() {}
 
@@ -72,6 +72,16 @@ std::string Taz::getSubzoneName() const
 std::string Taz::getPlanningAreaName() const
 {
 	return planningAreaName;
+}
+
+std::string Taz::getHdbTownType() const
+{
+	return hdbTownType;
+}
+
+void Taz::setHdbTownType(std::string hdbTownType)
+{
+	this->hdbTownType = hdbTownType;
 }
 
 namespace sim_mob

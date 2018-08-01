@@ -34,7 +34,7 @@ namespace sim_mob
         class HouseholdAgent : public Agent_LT
         {
         public:
-            HouseholdAgent(BigSerial id, HM_Model* model, Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0, int awakeningDay = 0, bool acceptedBid = false);
+            HouseholdAgent(BigSerial id, HM_Model* model, Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0, int awakeningDay = 0, bool acceptedBid = false, int buySellInterval = -1);
             virtual ~HouseholdAgent();
             
             enum VehicleOwnershipOption
@@ -55,6 +55,8 @@ namespace sim_mob
             int getBuySellInterval( ) const;
 
             void setHouseholdBiddingWindow(int value);
+            int getHouseholdBiddingWindow() const;
+
             int getAwakeningDay() const;
 
             void setAwakeningDay(int _day);
@@ -66,7 +68,6 @@ namespace sim_mob
 
             void setAcceptedBid(bool isAccepted);
 
-        
         protected:
             /**
              * Inherited from LT_Agent.
@@ -74,6 +75,7 @@ namespace sim_mob
             bool onFrameInit(timeslice now);
             sim_mob::Entity::UpdateStatus onFrameTick(timeslice now);
             void onFrameOutput(timeslice now);
+            void TransferUnitToFreelanceAgent();
             
             /**
              * Inherited from Entity. 
@@ -107,6 +109,8 @@ namespace sim_mob
              * @param args
              */
             void processExternalEvent(const ExternalEventArgs& args);
+
+            void TakeUnitOwnership();
 
 
         private:

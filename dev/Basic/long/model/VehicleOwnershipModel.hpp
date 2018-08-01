@@ -27,11 +27,11 @@ namespace sim_mob
 			virtual ~VehicleOwnershipModel();
 
 			void reconsiderVehicleOwnershipOption(const Household *household,HouseholdAgent *hhAgent, int day);
-			void reconsiderVehicleOwnershipOption2(Household &household,HouseholdAgent *hhAgent, int day, bool initLoading);
+			void reconsiderVehicleOwnershipOption2(Household &household,HouseholdAgent *hhAgent, int day, bool initLoading, bool initialRun);
 			bool isMotorCycle(int vehicleCategoryId);
 			int getIncomeCategoryId(double income);
 			double getExp(int unitTypeId,double vehicleOwnershipLogsum,VehicleOwnershipCoefficients *coeffsObj,const Household *household);
-			double getExp2(int unitTypeId,double vehicleOwnershipLogsum, VehicleOwnershipCoefficients *coeffsObj, const Household &household,int &numWhiteCollars,int &numWorkers,int & numElderly);
+			double getExp2(int unitTypeId,double vehicleOwnershipLogsum, VehicleOwnershipCoefficients *coeffsObj, const Household &household,int &numWhiteCollars,int &numWorkers,int & numElderly,bool taxiAvailability );
 			bool isToaPayohTaz(BigSerial tazId);
 			double calculateVOLogsumForToaPayohScenario(std::vector<double> &logsumVec);
 

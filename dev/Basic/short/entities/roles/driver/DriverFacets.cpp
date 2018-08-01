@@ -58,7 +58,7 @@ boost::mutex DriverMovement::densityUpdateMutex;
 
 DriverMovement::DriverMovement() :
 MovementFacet(), parentDriver(nullptr), trafficSignal(NULL), targetLaneIndex(0), lcModel(nullptr), cfModel(nullptr), intModel(nullptr),
-intModelBkUp(NULL), targetSpeed(0.0)
+intModelBkUp(NULL), vehLoadingModel(nullptr), targetSpeed(0.0)
 {
 }
 
@@ -67,6 +67,7 @@ DriverMovement::~DriverMovement()
 	safe_delete_item(lcModel);
 	safe_delete_item(cfModel);
 	safe_delete_item(intModel);
+	safe_delete_item(vehLoadingModel);
 
 	//Usually the metrics for the last sub-trip is not manually finalised
 	//if(!travelMetric.finalized)
@@ -91,6 +92,7 @@ void DriverMovement::init()
 	lcModel = new MITSIM_LC_Model(params, &fwdDriverMovement);
 	cfModel = new MITSIM_CF_Model(params, &fwdDriverMovement);
 	intModel = new MITSIM_IntDriving_Model(params);
+	vehLoadingModel = new VehicleLoadingModel(params);
 
 	parentDriver->initReactionTime();
 }
@@ -224,7 +226,6 @@ void DriverMovement::frame_tick()
 bool DriverMovement::findEmptySpaceAhead()
 {
 	bool isSpaceFound = true;
-
 	DriverUpdateParams &driverUpdateParams = parentDriver->getParams();
 
 	//To store the agents that are in the nearby region
@@ -260,10 +261,10 @@ bool DriverMovement::findEmptySpaceAhead()
 					//Make sure we're not checking distance from ourselves or someone in the loading queue
 					//also ensure that the other vehicle is in our lane
 					if (parentDriver != nearbyDriver && nearbyDriver->isVehicleInLoadingQueue == false &&
-							driverUpdateParams.currLane == nearbyDriversParams.currLane)
+					    driverUpdateParams.currLane == nearbyDriversParams.currLane)
 					{
 						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *> (nearbyDriver->Movement());
-						
+
 						//Match the speed of the nearby vehicle
 						parentDriver->getParent()->initialSpeed = nearbyDriversParams.currSpeed;
 						parentDriver->vehicle->setVelocity(parentDriver->getParent()->initialSpeed);
@@ -278,7 +279,7 @@ bool DriverMovement::findEmptySpaceAhead()
 						{
 							//As the gap is positive, there is a vehicle in front of us. We should have enough distance
 							//so as to avoid crashing into it
-							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (cfModel);							
+							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (cfModel);
 							requiredGap = (2 * parentDriver->getVehicleLength()) + (mitsim_cf_model->getHBufferUpper() * parentDriver->getParent()->initialSpeed);
 						}
 						else
@@ -316,7 +317,7 @@ bool DriverMovement::findEmptySpaceAhead()
 		}
 	}
 
-	//If is any driver approaching from behind (also means that we've found space on the road), 
+	//If is any driver approaching from behind (also means that we've found space on the road),
 	//reduce the reaction time
 	if (driverApproachingFromRear.first != NULL)
 	{
@@ -1316,7 +1317,7 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 
 		ST_Config& stCfg = ST_Config::getInstance();
 		std::vector<VehicleType>::const_iterator vehicleTypeIter = std::find(stCfg.vehicleTypes.begin(), stCfg.vehicleTypes.end(), 
-				(*parentDriver->parent->currTripChainItem)->getMode());
+				(*parentDriver->getParent()->currTripChainItem)->getMode());
 		
 		if (vehicleTypeIter != stCfg.vehicleTypes.end())
 		{
@@ -1327,7 +1328,15 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 
 		if (createVehicle)
 		{
-			fwdDriverMovement.setPath(buildPath(path), parentDriver->getParent()->startLaneIndex, parentDriver->getParent()->startSegmentId);
+			vector<WayPoint> builtPath = buildPath(path);
+			auto person = parentDriver->getParent();
+
+			//Choose starting lane and initial speed based on the vehicle loading model
+			vehLoadingModel->chooseStartingLaneAndSpeed(builtPath, &(person->startLaneIndex), person->startSegmentId,
+			                                            &(person->initialSpeed), parentDriver->getParams());
+
+			//Set the path and the current position in the driver path mover
+			fwdDriverMovement.setPath(builtPath, person->startLaneIndex);
 			vehicle = new Vehicle(VehicleBase::CAR, length, width, vehName);
 		}
 	}
@@ -1380,7 +1389,7 @@ void DriverMovement::rerouteWithPath(const std::vector<WayPoint> &path, bool isP
 			//Reset the path and advance the driver to current location
 			builtPath.insert(builtPath.begin(), currWayPt);
 
-			fwdDriverMovement.setPathStartingWithTurningGroup(path, fwdDriverMovement.getCurrTurning()->getFromLane());
+			fwdDriverMovement.setPathStartingWithTurningGroup(builtPath, fwdDriverMovement.getCurrTurning()->getFromLane());
 			fwdDriverMovement.advance(distCovered);
 		}
 	}
@@ -1411,7 +1420,7 @@ void DriverMovement::rerouteWithBlacklist(const std::vector<const Link *> &black
 		//Reset the path and advance the driver to current location
 		double distCovered = fwdDriverMovement.getDistCoveredOnCurrWayPt();
 		unsigned int currLaneIdx = fwdDriverMovement.getCurrLane()->getLaneIndex();		
-		
+
 		fwdDriverMovement.setPath(buildPath(path), currLaneIdx, currWayPt.roadSegment->getRoadSegmentId());
 		fwdDriverMovement.advance(distCovered);
 	}
@@ -1443,12 +1452,6 @@ void DriverMovement::setOrigin(DriverUpdateParams &params)
 	if (params.currLane)
 	{
 		targetLaneIndex = params.currLaneIndex = params.currLane->getLaneIndex();
-	}
-
-	if(parentDriver->getParent()->initialSpeed == 0)
-	{
-		//Vehicles start at 30-60% of road speed limit (or may be given initial speed in configuration file)
-		parentDriver->getParent()->initialSpeed = Utils::generateFloat(0.30 * params.maxLaneSpeed, 0.60 * params.maxLaneSpeed);
 	}
 	
 	parentDriver->vehicle->setVelocity(parentDriver->getParent()->initialSpeed);
@@ -1504,9 +1507,10 @@ double DriverMovement::updatePosition(DriverUpdateParams &params)
 		else
 		{
 			stringstream msg;
-			msg << __func__ << ": Bus driver on incorrect lane " << ex.fromLane->getLaneId() << " trying to go to segment "
-				<< ex.toSegment->getRoadSegmentId()
-				<< " Frame: [" << params.now.frame() << "]";
+			const BusDriver *busDriver = dynamic_cast<const BusDriver*>(parentDriver);
+			msg << __func__ << ": Bus driver driving bus line " << busDriver->getBusLineId() << " on incorrect lane "
+				<< ex.fromLane->getLaneId() << " trying to go to segment " << ex.toSegment->getRoadSegmentId()
+				<< " Frame: [" << params.now.frame()  << "]";
 			throw runtime_error(msg.str());
 		}
 	}
@@ -2188,7 +2192,7 @@ void DriverMovement::updateLateralMovement(DriverUpdateParams &params)
 		//update lane related variables
 		syncLaneInfoPostLateralMove(params);
 
-		if (params.currLane->isPedestrianLane())
+		if (!fwdDriverMovement.isInIntersection() && params.currLane->isPedestrianLane())
 		{
 			std::stringstream msg;
 			msg << __func__ << ": Car has moved onto pedestrian lane. Agent ID: "

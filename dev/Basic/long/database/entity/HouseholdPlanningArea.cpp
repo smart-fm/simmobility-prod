@@ -9,7 +9,7 @@
 
 using namespace sim_mob::long_term;
 
-HouseholdPlanningArea::HouseholdPlanningArea(BigSerial houseHoldId, BigSerial tazId, std::string planningArea): houseHoldId(houseHoldId), tazId(tazId),planningArea(planningArea){}
+HouseholdPlanningArea::HouseholdPlanningArea(BigSerial houseHoldId, BigSerial tazId, BigSerial tazName, std::string planningArea): houseHoldId(houseHoldId), tazId(tazId), tazName(tazName),planningArea(planningArea){}
 
 HouseholdPlanningArea::~HouseholdPlanningArea() {
 }
@@ -36,6 +36,14 @@ BigSerial HouseholdPlanningArea::getTazId() const {
 
 void HouseholdPlanningArea::setTazId(BigSerial tazId) {
 	this->tazId = tazId;
+}
+
+BigSerial HouseholdPlanningArea::getTazName() const {
+	return tazName;
+}
+
+void HouseholdPlanningArea::setTazName(BigSerial tazName) {
+	this->tazName = tazName;
 }
 
 

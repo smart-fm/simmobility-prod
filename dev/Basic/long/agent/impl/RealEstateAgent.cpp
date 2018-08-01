@@ -208,6 +208,7 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	        {
 	            const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
 	            Unit *unit = hmMessage.getUnit();
+	            //unit->setBto(true);
 	           	units.push_back(unit);
 	            unitsById.insert(std::make_pair((unit)->getId(), unit));
 	            break;
@@ -238,8 +239,8 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	            ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	            	if (itr != unitsById.end())
 	            	{
-	            		(itr->second)->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
-	            		(itr->second)->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+	            		(itr->second)->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket );
+	            		(itr->second)->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket );
 	            		(itr->second)->setbiddingMarketEntryDay(day);
 	            	}
 	            changeUnitSaleStatus(hmMessage.getUnitId(),UNIT_LAUNCHED_BUT_UNSOLD);
@@ -253,8 +254,8 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	        	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	        	if (itr != unitsById.end())
 	        	{
-	        		(itr->second)->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
-	        		(itr->second)->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket * (float)rand() / RAND_MAX);
+	        		(itr->second)->setTimeOffMarket(1 + config.ltParams.housingModel.timeOnMarket );
+	        		(itr->second)->setTimeOnMarket(1 + config.ltParams.housingModel.timeOffMarket );
 	        		(itr->second)->setbiddingMarketEntryDay(day);
 	        	}
 	        	changeUnitSaleStatus(hmMessage.getUnitId(),UNIT_LAUNCHED_BUT_UNSOLD);
@@ -310,8 +311,8 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 				{
 					Unit *unit = houseingMarketModel->getUnitById(unitId);
 
-					unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket / 2 + config.ltParams.housingModel.timeOnMarket / 2 * (float)rand() / RAND_MAX );
-					unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket / 2 + config.ltParams.housingModel.timeOffMarket / 2 * (float)rand() / RAND_MAX);
+					unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket );
+					unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket );
 					unit->setbiddingMarketEntryDay(day);
 					unit->setBto(true);
 
@@ -323,6 +324,27 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 
 
 				MessageBus::PublishEvent(LTEID_HM_BTO_UNIT_ADDED,MessageBus::EventArgsPtr(new EventArgs()));
+				break;
+			}
+			case LT_DEV_PRIVATE_PRESALE_UNIT_ADDED:
+			{
+				const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+				std::vector<BigSerial> btoUnitIdVec  = hmMessage.getBtoUnitIdVec();
+				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+				for(BigSerial unitId : btoUnitIdVec)
+				{
+					Unit *unit = houseingMarketModel->getUnitById(unitId);
+
+					unit->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket );
+					unit->setTimeOffMarket( config.ltParams.housingModel.timeOffMarket );
+					unit->setbiddingMarketEntryDay(day);
+
+					units.push_back(unit);
+					unitsById.insert(std::make_pair((unit)->getId(), unit));
+					unitIds.push_back(unitId);
+				}
+				MessageBus::PublishEvent(LTEID_HM_PRIVATE_PRESALE_UNIT_ADDED,MessageBus::EventArgsPtr(new EventArgs()));
 				break;
 			}
 	        default:break;

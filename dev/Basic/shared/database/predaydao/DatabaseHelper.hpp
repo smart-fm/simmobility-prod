@@ -20,19 +20,22 @@ const std::string MAIN_SCHEMA = "synpop12.";
 const std::string CALIBRATION_SCHEMA = "calibration2012.";
 const std::string PUBLIC_SCHEMA = "public.";
 const std::string DEMAND_SCHEMA = "demand.";
+const std::string SUPPLY_SCHEMA = "supply.";
 
 /**
  * Tables
  */
 const std::string DB_TABLE_INCOME_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "income_category");
 const std::string DB_TABLE_VEHICLE_OWNERSHIP_STATUS = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_ownership_status");
-const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_amcosts");
-const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_pmcosts");
-const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_opcosts");
+const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_amcosts_calib");
+const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_pmcosts_calib");
+const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_opcosts_calib");
 const std::string DB_TABLE_TAZ = APPLY_SCHEMA(DEMAND_SCHEMA, "taz_2012");
 const std::string DB_TABLE_TCOST_PVT = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_tcost_car");
 const std::string DB_TABLE_TCOST_PT = APPLY_SCHEMA(DEMAND_SCHEMA, "learned_tcost_bus");
 const std::string DB_TABLE_NODE_ZONE_MAP = APPLY_SCHEMA(DEMAND_SCHEMA, "node_taz_map");
+const std::string DB_TABLE_TAZ_WITHOUT_NODE = APPLY_SCHEMA(DEMAND_SCHEMA, "taz_without_node");
+const std::string DB_TABLE_SUPPLY_NODE = APPLY_SCHEMA(SUPPLY_SCHEMA, "node");
 
 /**
  * Stored procedures for long-term population database
@@ -147,6 +150,9 @@ const std::string DB_FIELD_INTERSECT = "intersection";
 const std::string DB_FIELD_BUS_TERMINUS = "bus_terminus_node";
 const std::string DB_FIELD_TAZ = "taz";
 
+const std::string DB_FIELD_SUPPLY_NODE_ID = "id";
+
+const std::string DB_FIELD_ZONE_WITHOUT_NODE = "taz";
 /** get all individual ids from long-term population database */
 const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_IDS;
 
@@ -187,5 +193,9 @@ const std::string DB_GET_ALL_ZONES = "SELECT * FROM " + DB_TABLE_TAZ;
 
 /** load node to zone mapping */
 const std::string DB_GET_ALL_NODE_ZONE_MAP = "SELECT * FROM " + DB_TABLE_NODE_ZONE_MAP;
+
+/** load zone without node mapping */
+const std::string DB_GET_ZONE_WITHOUT_NODE = "SELECT * FROM " + DB_TABLE_TAZ_WITHOUT_NODE;
+
 
 } // end namespace sim_mob

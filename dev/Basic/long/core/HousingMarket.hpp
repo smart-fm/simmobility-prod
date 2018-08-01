@@ -163,7 +163,7 @@ namespace sim_mob
              */
             virtual UpdateStatus update(timeslice now);
 
-            size_t getEntrySize();
+            size_t getEntrySize(unsigned int currTick);
             size_t getBTOEntrySize();
 
             std::set<BigSerial> getBTOEntries();

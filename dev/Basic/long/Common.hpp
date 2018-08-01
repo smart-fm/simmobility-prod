@@ -36,6 +36,7 @@ namespace sim_mob {
             LTEID_HM_BUILDING_ADDED,
             LTEID_HM_UNIT_READY_FOR_SALE,
 			LTEID_HM_BTO_UNIT_ADDED,
+			LTEID_HM_PRIVATE_PRESALE_UNIT_ADDED,
             
             // External Events
             LTEID_EXT_NEW_JOB,
@@ -50,6 +51,7 @@ namespace sim_mob {
             LT_DEV_BUILDING_ADDED,
             LT_DEV_PROJECT_ADDED,
 			LT_DEV_BTO_UNIT_ADDED,
+			LT_DEV_PRIVATE_PRESALE_UNIT_ADDED,
 
             //developer model status changes events for developer agent
             //units
@@ -106,6 +108,7 @@ namespace sim_mob {
             // HM internal messages.
             LTMID_HMI_ADD_ENTRY,
             LTMID_HMI_RM_ENTRY,
+            LTMID_HM_TRANSFER_UNIT,
             
             // Messages for biding process
             LTMID_BID,
@@ -165,10 +168,13 @@ namespace sim_mob {
         const int ID_DETACHED480 = 27;
         const int ID_DETACHED1199 = 31;
 
+
+        const double EPSILON = 0.0001;
         /*
          * toa payoh scenario conigurations
          */
         const double hedonicLogsumStdDevForTpScenario = 0.03904;
+
         /**
          * Configs
          */
@@ -177,6 +183,8 @@ namespace sim_mob {
         const std::string HM_LUA_DIR = "scripts/lua/long/housing-market";
         const std::string EX_EV_LUA_DIR = "scripts/lua/long/external-events";
         const std::string DEV_LUA_DIR = "scripts/lua/long/developer";
+
+
 
 		//#define VERBOSE
 		//#define VERBOSE_POSTCODE

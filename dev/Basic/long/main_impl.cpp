@@ -45,6 +45,7 @@
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/HouseholdUnitDao.hpp"
 #include "util/HelperFunctions.hpp"
+#include "util/Statistics.hpp"
 
 using std::cout;
 using std::endl;
@@ -206,21 +207,13 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			vehOwnChangeDao.insertVehicleOwnershipChanges(*(*vehOwnChangeItr),currentOutputSchema);
 		}
 
-		std::vector<boost::shared_ptr<Household> > householdsWithBids = housingMarketModel.getHouseholdsWithBids();
-		std::vector<boost::shared_ptr<Household> >::iterator hhItr;
 		HouseholdDao hhDao(conn);
-		for(hhItr = householdsWithBids.begin(); hhItr != householdsWithBids.end(); ++hhItr)
-		{
-			hhDao.insertHousehold(*(*hhItr),currentOutputSchema);
-		}
 
 		HM_Model::HouseholdList *households = housingMarketModel.getHouseholdList();
 		HM_Model::HouseholdList::iterator houseHoldItr;
 		for(houseHoldItr = households->begin(); houseHoldItr != households->end(); ++houseHoldItr)
 		{
 
-			if(housingMarketModel.getHouseholdWithBidsById((*houseHoldItr)->getId()) == nullptr)
-			{
 				if(((*houseHoldItr)->getIsBidder()) || ((*houseHoldItr)->getIsSeller()))
 				{
 					if(housingMarketModel.getResumptionHouseholdById((*houseHoldItr)->getId()) != nullptr)
@@ -229,8 +222,6 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 					}
 					hhDao.insertHousehold(*(*houseHoldItr),currentOutputSchema);
 				}
-
-			}
 		}
 
 		std::vector<boost::shared_ptr<HouseholdUnit> > hhUnits = housingMarketModel.getNewHouseholdUnits();
@@ -240,12 +231,15 @@ void loadDataToOutputSchema(db::DB_Connection& conn,std::string &currentOutputSc
 			hhUnitDao.insertHouseholdUnit(*hhUnit,currentOutputSchema);
 		}
 
-//		std::vector<boost::shared_ptr<Unit> > updatedUnits = housingMarketModel.getUpdatedUnits();
-//		std::vector<boost::shared_ptr<Unit> >::iterator updatedUnitsItr;
-//		for(updatedUnitsItr = units.begin(); updatedUnitsItr != updatedUnits.end(); ++updatedUnitsItr)
-//		{
-//			unitDao.insertUnit(*(*updatedUnitsItr),currentOutputSchema);
-//		}
+		HM_Model::UnitList updatedUnits = housingMarketModel.getUnits();
+		updatedUnits.resize(100);
+		HM_Model::UnitList::iterator updatedUnitsItr;
+		for(updatedUnitsItr = updatedUnits.begin(); updatedUnitsItr != updatedUnits.end(); ++updatedUnitsItr)
+		{
+			(*updatedUnitsItr)->setTimeOnMarket((*updatedUnitsItr)->getRemainingTimeOnMarket());
+			(*updatedUnitsItr)->setTimeOffMarket((*updatedUnitsItr)->getRemainingTimeOffMarket());
+			unitDao.insertUnit(*(*updatedUnitsItr),currentOutputSchema);
+		}
 
 		SimulationStoppedPointDao simStoppedPointDao(conn);
 		simStoppedPointDao.insertSimulationStoppedPoints(*(developerModel.getSimStoppedPointObj(simVersionId)).get(),currentOutputSchema);
@@ -316,10 +310,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
     if(resume)
     {
-    	currentOutputSchema = config.ltParams.currentOutputSchema;
     	if(conn.isConnected())
     	{
-    		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(currentOutputSchema);
+    		simulationStartPointList = simStartPointDao.getAllSimulationStartPoints(config.schemas.main_schema);
     		if(!simulationStartPointList.empty())
     		{
     			simVersionId = simulationStartPointList[simulationStartPointList.size()-1]->getId() + 1;
@@ -403,56 +396,85 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
         PrintOutV("XML Config Settings: " << endl);
         PrintOutV("XML Config lt params enabled " << config.ltParams.enabled << endl);
-        PrintOutV("XML Config calibrationSchemaVersion " << config.ltParams.calibrationSchemaVersion << endl);
-        PrintOutV("XML Config configSchemaVersion  " << config.ltParams.configSchemaVersion << endl);
-       	PrintOutV("XML Config currentOutputSchema " << config.ltParams.currentOutputSchema << endl);
-       	PrintOutV("XML Config days " << config.ltParams.days << endl);
-        PrintOutV("XML Config DeveloperModel " << config.ltParams.developerModel.enabled << endl);
-        PrintOutV("XML Config DeveloperModel initialBuildingId " << config.ltParams.developerModel.initialBuildingId << endl);
-        PrintOutV("XML Config DeveloperModel initialPostcode " << config.ltParams.developerModel.initialPostcode << endl);
-        PrintOutV("XML Config DeveloperModel initialProjectId " << config.ltParams.developerModel.initialProjectId << endl);
-        PrintOutV("XML Config DeveloperModel initialUnitId " << config.ltParams.developerModel.initialUnitId << endl);
-        PrintOutV("XML Config DeveloperModel minLotSize " << config.ltParams.developerModel.minLotSize << endl);
+        PrintOutV("XML Config days " << config.ltParams.days << endl);
+    	PrintOutV("XML Config maxIterations " << config.ltParams.maxIterations << endl);
+        PrintOutV("XML Config workers " << config.ltParams.workers << endl);
+        PrintOutV("XML Config tickStep " << config.ltParams.tickStep << endl);
+        PrintOutV("XML Config year " << config.ltParams.year << endl);
+        PrintOutV("XML Config resume " << config.ltParams.resume << endl);
+        PrintOutV("XML Config currentOutputSchema " << config.ltParams.currentOutputSchema << endl);
+       	PrintOutV("XML Config opSchemaloadingInterval " << config.ltParams.opSchemaloadingInterval << endl);
+        PrintOutV("XML Config initialLoading " << config.ltParams.initialLoading << endl);
+        PrintOutV("XML Config launch BTO " << config.ltParams.launchBTO << endl);
+        PrintOutV("XML Config launch private presale " << config.ltParams.launchPrivatePresale << endl);
+        
+       	PrintOutV("XML Config DeveloperModel " << config.ltParams.developerModel.enabled << endl);
         PrintOutV("XML Config DeveloperModel timeInterval " << config.ltParams.developerModel.timeInterval << endl);
-        PrintOutV("XML Config geometrySchemaVersion " << config.ltParams.geometrySchemaVersion << endl);
-        PrintOutV("XML Config HousingModel bidderBTOUnitsChoiceSet " << config.ltParams.housingModel.bidderBTOUnitsChoiceSet << endl);
-        PrintOutV("XML Config HousingModel bidderUnitsChoiceSet " << config.ltParams.housingModel.bidderUnitsChoiceSet << endl);
+        PrintOutV("XML Config DeveloperModel initialPostcode " << config.ltParams.developerModel.initialPostcode << endl);
+        PrintOutV("XML Config DeveloperModel initialBuildingId " << config.ltParams.developerModel.initialBuildingId << endl);
+        PrintOutV("XML Config DeveloperModel initialUnitId " << config.ltParams.developerModel.initialUnitId << endl);
+        PrintOutV("XML Config DeveloperModel initialProjectId " << config.ltParams.developerModel.initialProjectId << endl);
+        PrintOutV("XML Config DeveloperModel minLotSize " << config.ltParams.developerModel.minLotSize << endl);
+        PrintOutV("XML Config DeveloperModel constructionStartDay " << config.ltParams.developerModel.constructionStartDay << endl );
+        PrintOutV("XML Config DeveloperModel saleFromDay " << config.ltParams.developerModel.saleFromDay << endl );
+        PrintOutV("XML Config DeveloperModel occupancyFromDay " << config.ltParams.developerModel.occupancyFromDay << endl );
+        PrintOutV("XML Config DeveloperModel constructionCompletedDay " << config.ltParams.developerModel.constructionCompletedDay << endl );
 
-        PrintOutV("XML Config HousingModel AwakeningSubModel dailyHouseholdAwakenings " << config.ltParams.housingModel.awakeningModel.dailyHouseholdAwakenings << endl);
-        PrintOutV("XML Config HousingModel AwakeningSubModel initialHouseholdsOnMarket " << config.ltParams.housingModel.awakeningModel.initialHouseholdsOnMarket << endl);
-        PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelRandom " << config.ltParams.housingModel.awakeningModel.awakenModelRandom << endl);
-        PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelShan " << config.ltParams.housingModel.awakeningModel.awakenModelShan << endl);
-        PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelJingsi " << config.ltParams.housingModel.awakeningModel.awakenModelJingsi << endl);
-
-        PrintOutV("XML Config HousingModel enabled " << config.ltParams.housingModel.enabled << endl);
-        PrintOutV("XML Config HousingModel householdBiddingWindow " << config.ltParams.housingModel.householdBiddingWindow << endl);
-        PrintOutV("XML Config HousingModel housingMarketSearchPercentage " << config.ltParams.housingModel.housingMarketSearchPercentage << endl);
-        PrintOutV("XML Config HousingModel housingMoveInDaysInterval " << config.ltParams.housingModel.housingMoveInDaysInterval << endl);
-
-        PrintOutV("XML Config HousingModel offsetBetweenUnitBuyingAndSelling " << config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling << endl);
-        PrintOutV("XML Config HousingModel timeInterval " << config.ltParams.housingModel.timeInterval << endl);
-        PrintOutV("XML Config HousingModel timeOffMarket " << config.ltParams.housingModel.timeOffMarket << endl);
-        PrintOutV("XML Config HousingModel timeOnMarket " << config.ltParams.housingModel.timeOnMarket << endl);
-        PrintOutV("XML Config HousingModel vacantUnitActivationProbability " << config.ltParams.housingModel.vacantUnitActivationProbability << endl);
-        PrintOutV("XML Config HousingModel householdAwakeningPercentageByBTO " << config.ltParams.housingModel.householdAwakeningPercentageByBTO << endl);
-        PrintOutV("XML Config mainSchemaVersion " << config.ltParams.mainSchemaVersion << endl);
-        PrintOutV("XML Config maxIterations " << config.ltParams.maxIterations << endl);
-        PrintOutV("XML Config opSchemaloadingInterval " << config.ltParams.opSchemaloadingInterval << endl);
         PrintOutV("XML Config outputHouseholdLogsums " << config.ltParams.outputHouseholdLogsums.enabled << endl);
         PrintOutV("XML Config outputHouseholdLogsums vehicleOwnership " << config.ltParams.outputHouseholdLogsums.vehicleOwnership << endl);
         PrintOutV("XML Config outputHouseholdLogsums fixedHomeVariableWork " << config.ltParams.outputHouseholdLogsums.fixedHomeVariableWork << endl);
         PrintOutV("XML Config outputHouseholdLogsums fixedWorkVariableHome " << config.ltParams.outputHouseholdLogsums.fixedWorkVariableHome << endl);
-        PrintOutV("XML Config Simulation resumption " << config.ltParams.resume << endl);
-        PrintOutV("XML Config schoolAssignmentModel enabled " << config.ltParams.schoolAssignmentModel.enabled << endl);
-        PrintOutV("XML Config schoolAssignmentModel schoolChangeWaitingTimeInDays " << config.ltParams.schoolAssignmentModel.schoolChangeWaitingTimeInDays << endl);
-        PrintOutV("XML Config simulationScenario " << config.ltParams.scenario.scenarioName << endl);
-        PrintOutV("XML Config simulationScenario parcels table " << config.ltParams.scenario.parcelsTable << endl);
-        PrintOutV("XML Config tickStep " << config.ltParams.tickStep << endl);
+        PrintOutV("XML Config outputHouseholdLogsums hitsRun " << config.ltParams.outputHouseholdLogsums.hitsRun << endl);
+        PrintOutV("XML Config outputHouseholdLogsums maxcCost " << config.ltParams.outputHouseholdLogsums.maxcCost << endl);
+        PrintOutV("XML Config outputHouseholdLogsums maxTime " << config.ltParams.outputHouseholdLogsums.maxTime << endl);
+
+        PrintOutV("XML Config HousingModel enabled " << config.ltParams.housingModel.enabled << endl);
+        PrintOutV("XML Config HousingModel timeOnMarket " << config.ltParams.housingModel.timeOnMarket << endl);
+        PrintOutV("XML Config HousingModel timeOffMarket " << config.ltParams.housingModel.timeOffMarket << endl);
+        PrintOutV("XML Config HousingModel timeInterval " << config.ltParams.housingModel.timeInterval << endl);
+        PrintOutV("XML Config HousingModel wtpOffsetEnabled " << config.ltParams.housingModel.wtpOffsetEnabled << endl);
+        PrintOutV("XML Config HousingModel unitsFiltering " << config.ltParams.housingModel.unitsFiltering << endl);
+        PrintOutV("XML Config HousingModel bidderChoiceset " << config.ltParams.housingModel.bidderUnitChoiceset.enabled << endl);
+        PrintOutV("XML Config HousingModel bidderChoiceset random" << config.ltParams.housingModel.bidderUnitChoiceset.randomChoiceset << endl);
+        PrintOutV("XML Config HousingModel bidderChoiceset shanLopez" << config.ltParams.housingModel.bidderUnitChoiceset.shanLopezChoiceset << endl);        
+        PrintOutV("XML Config HousingModel bidderChoiceset BTOUnitsChoiceset " << config.ltParams.housingModel.bidderUnitChoiceset.bidderBTOChoicesetSize << endl);
+        PrintOutV("XML Config HousingModel bidderChoiceset UnitsChoiceset " << config.ltParams.housingModel.bidderUnitChoiceset.bidderChoicesetSize << endl);
+
+        PrintOutV("XML Config HousingModel AwakeningSubModel initialHouseholdsOnMarket " << config.ltParams.housingModel.awakeningModel.initialHouseholdsOnMarket << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel dailyHouseholdAwakenings " << config.ltParams.housingModel.awakeningModel.dailyHouseholdAwakenings << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelShan " << config.ltParams.housingModel.awakeningModel.awakenModelShan << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelRandom " << config.ltParams.housingModel.awakeningModel.awakenModelRandom << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel AwakenModelJingsi " << config.ltParams.housingModel.awakeningModel.awakenModelJingsi << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel awakeningOffMarketSuccessfulBid " << config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid << endl);
+        PrintOutV("XML Config HousingModel AwakeningSubModel awakeningOffMarketUnsuccessfulBid " << config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid << endl);
+
+        PrintOutV("XML Config HousingModel vacantUnitActivationProbability " << config.ltParams.housingModel.vacantUnitActivationProbability << endl);
+        PrintOutV("XML Config HousingModel housingMarketSearchPercentage " << config.ltParams.housingModel.housingMarketSearchPercentage << endl);
+        PrintOutV("XML Config HousingModel housingMoveInDaysInterval " << config.ltParams.housingModel.housingMoveInDaysInterval << endl);
+        PrintOutV("XML Config HousingModel householdBiddingWindow " << config.ltParams.housingModel.householdBiddingWindow << endl);
+        PrintOutV("XML Config HousingModel householdBTOBiddingWindow " << config.ltParams.housingModel.householdBTOBiddingWindow << endl);
+        PrintOutV("XML Config HousingModel householdAwakeningPercentageByBTO " << config.ltParams.housingModel.householdAwakeningPercentageByBTO << endl);
+        PrintOutV("XML Config HousingModel offsetBetweenUnitBuyingAndSelling " << config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling << endl);
+        PrintOutV("XML Config HousingModel offsetBetweenUnitBuyingAndSellingAdvanceSelling " << config.ltParams.housingModel.offsetBetweenUnitBuyingAndSellingAdvancedPurchase << endl);
+        PrintOutV("XML Config HousingModel bid value a" << config.ltParams.housingModel.hedonicPriceModel.a << endl);
+        PrintOutV("XML COnfig HousingModel bid value b" << config.ltParams.housingModel.hedonicPriceModel.b << endl);
+        
         PrintOutV("XML Config vehicleOwnershipModel " << config.ltParams.vehicleOwnershipModel.enabled << endl);
         PrintOutV("XML Config vehicleOwnershipModel vehicleBuyingWaitingTimeInDays " << config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays << endl);
-        PrintOutV("XML Config workers " << config.ltParams.workers << endl);
-        PrintOutV("XML Config year " << config.ltParams.year << endl);
 
+        PrintOutV("XML Config taxiAccessModel " << config.ltParams.taxiAccessModel.enabled << endl);
+
+        PrintOutV("XML Config schoolAssignmentModel " << config.ltParams.schoolAssignmentModel.enabled << endl);
+        PrintOutV("XML Config schoolAssignmentModel schoolChangeWaitingTimeInDays " << config.ltParams.schoolAssignmentModel.schoolChangeWaitingTimeInDays << endl);
+
+        PrintOutV("XML Config jobAssignmentModel " << config.ltParams.jobAssignmentModel.enabled << endl);
+        PrintOutV("XML Config jobAssignmentModel foreignWorkers " << config.ltParams.jobAssignmentModel.foreignWorkers << endl);
+
+        PrintOutV("XML Config simulationScenario name " << config.ltParams.scenario.scenarioName << endl);
+        PrintOutV("XML Config simulationScenario schema " << config.ltParams.scenario.scenarioSchema << endl);
+        PrintOutV("XML Config simulationScenario parcels table " << config.ltParams.scenario.parcelsTable << endl);
+        PrintOutV("XML Config simulationScenario hedonic model " << config.ltParams.scenario.hedonicModel << endl);
+        PrintOutV("XML Config simulationScenario willingness to pay model " << config.ltParams.scenario.willingnessToPayModel << endl);
 
         //Start work groups and all threads.
         wgMgr.startAllWorkGroups();
@@ -515,23 +537,46 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             	developerModel->wakeUpDeveloperAgents(developerAgents);
             }
 
-            PrintOutV(" Day " << currTick
-            	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize()
-				   << " BTO_Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize())
-				   << " Bidders: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders()
-				   << " Sellers: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers()
-				   << " Bids: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getBids()
-				   << " Accepted: " << (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids()
-				   << " Waiting: "  << (dynamic_cast<HM_Model*>(models[0]))->getWaitingToMove()
-				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
-				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
-				   << " AwakenByBTO: "	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings()
-				   << " " << std::endl );
+            /*
+             * note: this is a temporary modification done to get the correct accpeted bids counters printed on the console.
+             * later a proper barrier should be added, so all the thread updates will be finished once the program reaches this point.
+             */
+            (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize(currTick);
+            (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize());
+            (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders();
+            (dynamic_cast<HM_Model*>(models[0]))->getNumberOfSellers();
+            (dynamic_cast<HM_Model*>(models[0]))->getBids();
+            (dynamic_cast<HM_Model*>(models[0]))->getSuccessfulBids();
+            (dynamic_cast<HM_Model*>(models[0]))->getWaitingToMove();
+            (dynamic_cast<HM_Model*>(models[0]))->getExits();
+            (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter();
+            (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings();
+
 
             if((currTick > 0) && ((currTick+1)%opSchemaloadingInterval == 0))
             {
             	loadDataToOutputSchema(conn,currentOutputSchema,simVersionId,simStoppedTick,*developerModel,*housingMarketModel);
             }
+
+            PrintOutV(" Day " << currTick
+                                   	   << " HUnits: " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize(currTick)
+                       				   << " BTO_Units: " << std::dec << (dynamic_cast<HM_Model*>(models[0])->getMarket()->getBTOEntrySize())
+                       				   << " Bidders: " 	<< Statistics::getValue(Statistics::N_BIDDERS)
+                       				   << " Sellers: " 	<<  Statistics::getValue(Statistics::N_SELLERS)
+                       				   << " Bids: " 	<< Statistics::getValue(Statistics::N_BIDS)
+                       				   << " Accepted: " << Statistics::getValue(Statistics::N_ACCEPTED_BIDS)
+                       				   << " Waiting: "  << Statistics::getValue(Statistics::N_WAITING_TO_MOVE)
+                       				   << " Exits: " 	<< (dynamic_cast<HM_Model*>(models[0]))->getExits()
+                       				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
+                       				   << " AwakenByBTO: "	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings()
+                       				   << " " << std::endl );
+
+            //Statistics::print();
+            Statistics::reset(Statistics::N_WAITING_TO_MOVE);
+            Statistics::reset(Statistics::N_BIDS);
+            Statistics::reset(Statistics::N_ACCEPTED_BIDS);
+            Statistics::reset(Statistics::N_BIDDERS);
+            Statistics::reset(Statistics::N_SELLERS);
 
 
             (dynamic_cast<HM_Model*>(models[0]))->setNumberOfBidders(0);

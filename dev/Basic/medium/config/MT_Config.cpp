@@ -16,8 +16,6 @@ namespace sim_mob
 namespace medium
 {
 
-MongoCollectionsMap::MongoCollectionsMap(const std::string& dbName) : dbName(dbName) {}
-
 PredayCalibrationParams::PredayCalibrationParams() :
 	iterationLimit(0), tolerance(0), initialGradientStepSize(0), algorithmCoefficient2(0),
 	initialStepSize(0), stabilityConstant(0), algorithmCoefficient1(0)
@@ -27,7 +25,7 @@ MT_Config::MT_Config() :
        regionRestrictionEnabled(false), midTermRunMode(MT_Config::MT_NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
 			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::PREDAY_NONE),
 			calibrationMethodology(MT_Config::WSPSA), logsumComputationFrequency(0), supplyUpdateInterval(0),
-			activityScheduleLoadInterval(0), busCapacity(0), populationSource(db::MONGO_DB), granPersonTicks(0),threadsNumInPersonLoader(0)
+			activityScheduleLoadInterval(0), busCapacity(0), populationSource(db::POSTGRES), granPersonTicks(0),threadsNumInPersonLoader(0)
 {
 }
 
@@ -74,6 +72,18 @@ void MT_Config::setActivityScheduleLoadInterval(unsigned activityScheduleLoadInt
 		this->activityScheduleLoadInterval = activityScheduleLoadInterval;
 	}
 }
+	const ModelScriptsMap& MT_Config::getModelScriptsMap() const
+	{
+		return modelScriptsMap;
+	}
+
+	void MT_Config::setModelScriptsMap(const ModelScriptsMap& modelScriptsMap)
+	{
+		if(!configSealed)
+		{
+			this->modelScriptsMap = modelScriptsMap;
+		}
+}
 
 unsigned MT_Config::getSupplyUpdateInterval() const
 {
@@ -119,32 +129,6 @@ void MT_Config::setNumPredayThreads(unsigned numPredayThreads)
 	}
 }
 
-const ModelScriptsMap& MT_Config::getModelScriptsMap() const
-{
-	return modelScriptsMap;
-}
-
-void MT_Config::setModelScriptsMap(const ModelScriptsMap& modelScriptsMap)
-{
-	if(!configSealed)
-	{
-		this->modelScriptsMap = modelScriptsMap;
-	}
-}
-
-
-const MongoCollectionsMap& MT_Config::getMongoCollectionsMap() const
-{
-	return mongoCollectionsMap;
-}
-
-void MT_Config::setMongoCollectionsMap(const MongoCollectionsMap& mongoCollectionsMap)
-{
-	if(!configSealed)
-	{
-		this->mongoCollectionsMap = mongoCollectionsMap;
-	}
-}
 
 void MT_Config::sealConfig()
 {
@@ -298,7 +282,7 @@ void MT_Config::setPopulationSource(const std::string& src)
 	{
 		std::string dataSourceStr = boost::to_upper_copy(src);
 		if(dataSourceStr == "PGSQL") { populationSource = db::POSTGRES; }
-		else { populationSource = db::MONGO_DB; } //default setting
+		else { throw std::runtime_error("DataSource is not recognised"); }
 	}
 }
 
@@ -307,12 +291,13 @@ const std::string& MT_Config::getLogsumTableName() const
 	return logsumTableName;
 }
 
+
 void MT_Config::setLogsumTableName(const std::string& logsumTableName)
 {
 	if(!configSealed)
 	{
 		this->logsumTableName = logsumTableName;
-	}
+    }
 }
 const unsigned int MT_Config::getThreadsNumInPersonLoader() const
 {
@@ -335,6 +320,11 @@ bool MT_Config::RunningMidDemand() const {
     return (midTermRunMode == MT_Config::MT_PREDAY);
 }
 
+bool MT_Config::RunningMidFullLoop() const
+{
+    return (midTermRunMode == MT_Config::MT_FULL);
+}
+
 void MT_Config::setMidTermRunMode(const std::string& runMode)
 {
     if(runMode.empty()) { return; }
@@ -346,6 +336,10 @@ void MT_Config::setMidTermRunMode(const std::string& runMode)
     {
         midTermRunMode = MT_Config::MT_PREDAY;
     }
+	else if (runMode == "full")
+	{
+		midTermRunMode = MT_Config::MT_FULL;
+	}
     else
     {
         throw std::runtime_error("inadmissible value for mid_term_run_mode. Must be either 'supply' or 'preday'");

@@ -100,7 +100,7 @@ void ScreenLineCounter::updateScreenLineCount(unsigned int segId, double entryTi
     {
         return;
     }
-    TimeInterval timeInterval = ScreenLineCounter::getTimeInterval(entryTimeSec + (double)simStartTime.getValue()/1000);
+    TimeInterval timeInterval = ScreenLineCounter::getTimeInterval(entryTimeSec);
     {
 		boost::unique_lock<boost::mutex> lock(instanceMutex);
 		screenlineMap[timeInterval][segId][travelMode].count++; //increment count for the relevant time interval, segment and mode
@@ -130,7 +130,8 @@ void ScreenLineCounter::exportScreenLineCount() const
         const TimeInterval& timeInterval = travelTimeIter->first;
         const std::string& startTime = minTimes[timeInterval-1];
         const std::string& endTime = minTimes[timeInterval];
-
+        std::string actualClockStartTime = (DailyTime(startTime) + simStartTime).getStrRepr();
+        std::string actualClockEndTime = (DailyTime(endTime) + simStartTime).getStrRepr();
         for(RoadSegmentCountMap::const_iterator segCountIt = travelTimeIter->second.begin();
                 segCountIt != travelTimeIter->second.end(); segCountIt++)
         {
@@ -138,7 +139,7 @@ void ScreenLineCounter::exportScreenLineCount() const
                     countIter != segCountIt->second.end(); countIter++)
             {
                 screenLineLogger << segCountIt->first << "\t" <<
-                    startTime << "\t" << endTime <<
+                        actualClockStartTime<< "\t" << actualClockEndTime <<
                     "\t" << countIter->first <<
                     "\t" << countIter->second.count << "\n";
             }

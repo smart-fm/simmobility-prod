@@ -31,7 +31,7 @@ HedonicPrice_SubModel::~HedonicPrice_SubModel() {}
 double HedonicPrice_SubModel::ComputeLagCoefficient()
 {
 	//Current Quarter
-	double currentQuarter = int((day / 365 * 4) + 1);
+	int currentQuarter = int((int(day) % 365) / 365.0 * 4.0) + 1;
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	std::string quarterStr = boost::lexical_cast<std::string>(config.ltParams.year)+"Q"+boost::lexical_cast<std::string>(currentQuarter);
@@ -156,29 +156,113 @@ void HedonicPrice_SubModel::ComputeHedonicPrice( HouseholdSellerRole::SellingUni
     }
 }
 
+void HedonicPrice_SubModel::ComputeHedonicPrice( RealEstateSellerRole::SellingUnitInfo &info, RealEstateSellerRole::UnitsInfoMap &sellingUnitsMap, BigSerial agentId)
+{
+	double finalCoefficient = ComputeLagCoefficient();
+
+		unit->setLagCoefficient(finalCoefficient);
+		lagCoefficient = finalCoefficient;
+
+	    info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
+
+	    ComputeExpectation(info.numExpectations, info.expectations);
+
+	    //number of expectations should match
+	    if (info.expectations.size() == info.numExpectations)
+	    {
+	        sellingUnitsMap.erase(unit->getId());
+	        sellingUnitsMap.insert(std::make_pair(unit->getId(), info));
+
+	        //just revert the expectations order.
+	        for (int i = 0; i < info.expectations.size() ; i++)
+	        {
+	            int dayToApply = day + (i * info.interval);
+	            printExpectation( day, dayToApply, unit->getId(), agentId, info.expectations[i]);
+	        }
+	    }
+	    else
+	    {
+	    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "[unit %1%] Expectations is empty.") % unit->getId()).str());
+	    }
+}
+
 
 void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector<ExpectationEntry> &expectations )
 {
 	const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
 
-	BigSerial tazId = hmModel->getUnitTazId( unit->getId() );
-	/*
-	Taz *tazObj = hmModel->getTazById( tazId );
+	BigSerial tazId = 0;
+	BigSerial addressId = 0;
+	if(unit->isUnitByDevModel())
+	{
+		tazId = unit->getTazIdByDevModel();
+		const Postcode *postcode = devModel->getPostcodeByTaz(tazId);
+		if(postcode != nullptr)
+		{
+			addressId = devModel->getPostcodeByTaz(tazId)->getAddressId();
+		}
+		else
+		{
+			return;
+		}
 
-	std::string tazStr;
-	if( tazObj != NULL )
-		tazStr = tazObj->getName();
+	}
+	else
+	{
+		tazId = hmModel->getUnitTazId( unit->getId() );
+		addressId = hmModel->getUnitSlaAddressId( unit->getId() );
+	}
 
-	BigSerial taz = std::atoi( tazStr.c_str() );
-	*/
-
-	//double logsum =  model->ComputeHedonicPriceLogsumFromMidterm( taz );
-	double logsum = hmModel->ComputeHedonicPriceLogsumFromDatabase( tazId );
+	double logsum = hmModel->ComputeHedonicPriceLogsumFromDatabase(tazId);
 
 	lagCoefficient = ComputeLagCoefficient();
 
 	if( logsum < 0.0000001)
 		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "LOGSUM FOR UNIT %1% is 0.") %  unit->getId()).str());
+
+	const Building *building = DataManagerSingleton::getInstance().getBuildingById(unit->getBuildingId());
+
+	const Postcode *postcode = DataManagerSingleton::getInstance().getPostcodeById(addressId);
+
+	const PostcodeAmenities *amenities = DataManagerSingleton::getInstance().getAmenitiesById(addressId);
+
+	expectations = CalculateUnitExpectations(unit, numExpectations, logsum, lagCoefficient, building, postcode, amenities);
+}
+
+void HedonicPrice_SubModel::computeInitialHedonicPrice(BigSerial unitIdFromModel)
+{
+	static bool wasExecuted = false;
+	if (!wasExecuted)
+	{
+		wasExecuted = true;
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+		DB_Config dbConfig(LT_DB_CONFIG_FILE);
+		dbConfig.load();
+
+		// Connect to database and load data for this model.
+		DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+		conn.setSchema(config.schemas.main_schema);
+		conn.connect();
+
+		DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
+		conn_calibration.setSchema(config.schemas.calibration_schema);
+		conn_calibration.connect();
+
+		devModel->loadTAO(conn_calibration);
+		devModel->loadHedonicCoeffsByUnitType(conn);
+		devModel->loadPrivateLagT(conn);
+		devModel->loadPrivateLagTByUT(conn);
+		devModel->loadTaoByUnitType(conn);
+	}
+	Unit *unitFromModel = hmModel->getUnitById(unitIdFromModel);
+	BigSerial tazId = hmModel->getUnitTazId( unitIdFromModel );
+	double logsum = hmModel->ComputeHedonicPriceLogsumFromDatabase( tazId );
+
+	double lagCoeff = ComputeLagCoefficient();
+
+	if( logsum < 0.0000001)
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "LOGSUM FOR UNIT %1% is 0.") %  unitIdFromModel).str());
 
 	const Building *building = DataManagerSingleton::getInstance().getBuildingById(unit->getBuildingId());
 
@@ -188,10 +272,16 @@ void HedonicPrice_SubModel::ComputeExpectation( int numExpectations, std::vector
 
 	const PostcodeAmenities *amenities = DataManagerSingleton::getInstance().getAmenitiesById(addressId);
 
-	expectations = CalculateUnitExpectations(unit, numExpectations, logsum, lagCoefficient, building, postcode, amenities);
+	double  hedonicPrice = CalculateHedonicPrice(unitFromModel, building, postcode, amenities, logsum, lagCoeff);
+
+
+	hedonicPrice = exp( hedonicPrice ) / 1000000.0;
+
+	if (hedonicPrice > 0)
+	{
+		writeUnitHedonicPriceToFile(unitIdFromModel,hedonicPrice);
+	}
 }
-
-
 
 double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Building *building, const Postcode *postcode, const PostcodeAmenities *amenities, double logsum, double lagCoefficient)
 {
@@ -225,80 +315,92 @@ double HedonicPrice_SubModel::CalculateHDB_HedonicPrice(Unit *unit, const Buildi
 	double ZZ_dis_mall = amenities->getDistanceToMall();
 
 
-	if( amenities->hasPms_1km() == true )
+	float distancePMS = amenities->getDistanceToPMS30();
+	if(distancePMS > 100)
+	{
+		distancePMS = distancePMS/1000.0;
+	}
+
+	if( distancePMS <= 1 )
 		ZZ_pms1km = 1;
 
 
-	if( amenities->hasMRT_200m() == true )
+	float distanceMRT = amenities->getDistanceToMRT();
+	if(distanceMRT > 100)
+	{
+		distanceMRT = distanceMRT/1000.0;
+	}
+
+	if( distanceMRT <= 0.2)
+	{
 		ZZ_mrt_200m = 1;
-
-
-	if( amenities->hasMRT_400m() == true )
+	}
+	else if(distanceMRT <=0.4)
+	{
 		ZZ_mrt_400m = 1;
+	}
 
+	float distanceExpress = amenities->getDistanceToExpress();
+	if(distanceExpress > 100)
+	{
+		distanceExpress = distanceExpress/1000.0;
+	}
 
-	if( amenities->hasExpress_200m() == true )
+	if( distanceExpress <= 0.2 )
 		ZZ_express_200m = 1;
 
+	float distanceBus = amenities->getDistanceToBus();
 
-	if( amenities->hasBus_200m() == true )
+	if( distanceBus <= 0.2 )
+	{
 		ZZ_bus_200m = 1;
-
-
-	if( amenities->hasBus_400m() == true)
+	}
+	else if(distanceBus <= 0.4)
+	{
 		ZZ_bus_400m = 1;
+	}
 
 
-	if( unit->getUnitType() <= 2 || unit->getUnitType() == 65 )
-		ZZ_hdb12 = 1;
+	UnitType *unitType = hmModel->getUnitTypeById(unit->getUnitType());
+	HedonicCoeffsByUnitType *coeffs = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(unitType->getAggregatedUnitType()));;
+	BigSerial tazId = hmModel->getUnitTazId( unit->getId() );
+	Taz* unitTaz =  hmModel->getTazById(tazId);
+	float otherMature = 0;
+	float nonMature = 0;
 
+	if (unitTaz->getHdbTownType().compare("other-mature")==0)
+	{
+		otherMature = 1.0;
+	}
+	else if(unitTaz->getHdbTownType().compare("non-mature")==0)
+	{
+		nonMature = 1.0;
+	}
 
-	if( unit->getUnitType() == 3 )
-		ZZ_hdb3 = 1;
-
-
-	if( unit->getUnitType() == 4 )
-		ZZ_hdb4 = 1;
-
-
-	if( unit->getUnitType() == 5 )
-		ZZ_hdb5m = 1;
-
-
-	HedonicCoeffs *coeffs = nullptr;
-
-
-	//-----------------------------
-	//-----------------------------
-	if (ZZ_hdb12 == 1)
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(7));
-	else
-	if (ZZ_hdb3 == 1)
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(8));
-	else
-	if (ZZ_hdb4 == 1)
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(9));
-	else
-	if (ZZ_hdb5m == 1)
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(10));
-	else
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(11));
+	float storey = unit->getStorey();
 
 	hedonicPrice =  coeffs->getIntercept() 	+
-					coeffs->getLogSqrtArea() 	*	DD_logsqrtarea 	+
+					coeffs->getLogArea() 	    *	DD_logsqrtarea 	+
 					coeffs->getLogsumWeighted() *	ZZ_logsum 		+
 					coeffs->getPms1km() 		*	ZZ_pms1km 		+
 					coeffs->getDistanceMallKm() *	ZZ_dis_mall 	+
 					coeffs->getMrt200m() 		*	ZZ_mrt_200m 	+
-					coeffs->getMrt_2_400m() 	*	ZZ_mrt_400m 	+
+					coeffs->getMrt2400m() 	    *	ZZ_mrt_400m 	+
 					coeffs->getExpress200m() 	* 	ZZ_express_200m	+
-					coeffs->getBus400m() 		*	ZZ_bus_400m 	+
+					coeffs->getBus2400m() 		*	ZZ_bus_400m 	+
 					coeffs->getAge() 			*	age 			+
-					coeffs->getLogAgeSquared() 	*	ageSquared;
+					coeffs->getAgeSquared() 	*	ageSquared      +
+					coeffs->getNonMature()      *   nonMature       +
+					coeffs->getOtherMature()    *   otherMature     +
+					coeffs->getStorey()         * storey            ;
 
 
 
 	hedonicPrice = hedonicPrice + lagCoefficient;
+	if(hedonicPrice == 0)
+	{
+		PrintOutV("hedonic price is 0 for"<< unit->getId()<<std::endl);
+	}
 
     return hedonicPrice;
 }
@@ -326,25 +428,38 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 	double ZZ_mrt_200m = 0;
 	double ZZ_mrt_400m = 0;
 	double ZZ_express_200m = 0;
-	double ZZ_bus_200m = 0;
-
-
+	double ZZ_bus_2400m = 0;
 	double ZZ_freehold = 0;
 	double ZZ_logsum = logsum;
-	double ZZ_bus_400m = 0;
 	double ZZ_bus_gt400m = 0;
 
-	double age = ( HITS_SURVEY_YEAR - 1900 ) - unit->getOccupancyFromYear();
-
-	if( age > 25 )
-	    age = 25;
-
-	if( age < 0 )
-	    age = 0;
-
-	double  ageSquared =  age *  age;
+	ZZ_freehold = building->getFreehold();
 
 	double misage = 0;
+	double age  = 0;
+
+	if( (unit->getOccupancyFromDate().tm_year == 8099)|| (unit->getOccupancyFromDate().tm_year == 0))
+	{
+		misage = 1;
+	}
+	else
+	{
+		age= HITS_SURVEY_YEAR  - 1900  - unit->getOccupancyFromDate().tm_year;
+	}
+
+
+	if( age > 50 )
+	{
+		age = 50;
+	}
+
+	if( age < 0 )
+	{
+		age = 0;
+		misage = 1.0;
+	}
+
+	double  ageSquared =  age *  age;
 
 	DD_logarea  = log(unit->getFloorArea());
 	ZZ_dis_cbd  = amenities->getDistanceToCBD();
@@ -355,67 +470,56 @@ double HedonicPrice_SubModel::CalculatePrivate_HedonicPrice( Unit *unit, const B
 
 
 	if( amenities->getDistanceToMRT() < 0.200 )
+	{
 		ZZ_mrt_200m = 1;
-	else
-	if( amenities->getDistanceToMRT() < 0.400 )
+	}
+	else if( amenities->getDistanceToMRT() > 0.200 && amenities->getDistanceToMRT() < 0.400 )
+	{
 		ZZ_mrt_400m = 1;
+	}
 
 
 	if( amenities->getDistanceToExpress() < 0.200 )
 		ZZ_express_200m = 1;
 
 
-	if( amenities->getDistanceToBus() < 0.200 )
-		ZZ_bus_200m = 1;
-	else
-	if( amenities->getDistanceToBus() < 0.400 )
-		ZZ_bus_400m = 1;
-	else
+	if( amenities->getDistanceToBus() < 0.200 &&  amenities->getDistanceToBus() < 0.400 )
+	{
+		ZZ_bus_2400m = 1;
+	}
+	else if( amenities->getDistanceToBus() > 0.400 )
+	{
 		ZZ_bus_gt400m = 1;
+	}
 
+	bool condoApartment = false;
+	UnitType *unitType = hmModel->getUnitTypeById(unit->getUnitType());
+	HedonicCoeffsByUnitType *coeffsByUT = const_cast<HedonicCoeffsByUnitType*>(devModel->getHedonicCoeffsByUnitTypeId(unitType->getAggregatedUnitType()));
 
-	HedonicCoeffs *coeffs = nullptr;
+	float storey = unit->getStorey();
+	hedonicPrice =  coeffsByUT->getIntercept() 	+
+			coeffsByUT->getLogArea()	    *	DD_logarea	 	+
+			coeffsByUT->getFreehold()		* 	ZZ_freehold 	+
+			coeffsByUT->getLogsumWeighted() *	ZZ_logsum 		+
+			coeffsByUT->getPms1km() 		*	ZZ_pms1km 		+
+			coeffsByUT->getDistanceMallKm() *	ZZ_dis_mall 	+
+			coeffsByUT->getMrt200m() 		*	ZZ_mrt_200m 	+
+			coeffsByUT->getMrt2400m() 	    *	ZZ_mrt_400m 	+
+			coeffsByUT->getExpress200m() 	* 	ZZ_express_200m	+
+			coeffsByUT->getBus2400m()	    *	ZZ_bus_2400m 	+
+			coeffsByUT->getBusGt400m()      *   ZZ_bus_gt400m   +
+			coeffsByUT->getAge() 			*	age 			+
+			coeffsByUT->getAgeSquared() 	*	ageSquared		+
+			coeffsByUT->getMisage()			*	misage          +
+			coeffsByUT->getStorey()         * storey            +
+			coeffsByUT->getStoreySquared()  *  (storey * storey);
 
-	//-----------------------------
-	//-----------------------------
-	if( (unit->getUnitType() >= 12 && unit->getUnitType()  <= 16 ) ||
-		(unit->getUnitType() >= 32 && unit->getUnitType()  <= 36 ) ||
-		(unit->getUnitType() >= 37 && unit->getUnitType()  <= 51 ))		//condo
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(1));
-	else
-	if( (unit->getUnitType() >= 7 && unit->getUnitType()  <= 11) || unit->getUnitType() == 64) //then --"Apartment"
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(2));
-	else
-	if (unit->getUnitType() >= 17 && unit->getUnitType()  <= 21 ) //then --"Terrace House"
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(3));
-	else
-	if ( unit->getUnitType() >= 22 && unit->getUnitType() <= 26 ) //then --"Semi-Detached House"
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(4));
-	else
-	if ( unit->getUnitType() >= 27 && unit->getUnitType()  <= 31 ) ///then --"Detached House"
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(5));
-	else
-		coeffs = const_cast<HedonicCoeffs*>(devModel->getHedonicCoeffsByPropertyTypeId(6));
-
-	hedonicPrice =  coeffs->getIntercept() 	+
-					coeffs->getLogSqrtArea() 	*	DD_logarea	 	+
-					coeffs->getFreehold()		* 	ZZ_freehold 	+
-					coeffs->getLogsumWeighted() *	ZZ_logsum 		+
-					coeffs->getPms1km() 		*	ZZ_pms1km 		+
-					coeffs->getDistanceMallKm() *	ZZ_dis_mall 	+
-					coeffs->getMrt200m() 		*	ZZ_mrt_200m 	+
-					coeffs->getMrt_2_400m() 	*	ZZ_mrt_400m 	+
-					coeffs->getExpress200m() 	* 	ZZ_express_200m	+
-					coeffs->getBus400m() 		*	ZZ_bus_400m 	+
-					coeffs->getAge() 			*	age 			+
-					coeffs->getLogAgeSquared() 	*	ageSquared		+
-					coeffs->getMisage()			*	misage;
-
-
-	//------------------------------------------
-	//------------------------------------------
 
 	hedonicPrice = hedonicPrice + lagCoefficient;
+	if(hedonicPrice == 0)
+	{
+		PrintOutV("hedonic price is 0 for"<< unit->getId()<<std::endl);
+	}
 
 	return hedonicPrice;
 }
@@ -505,17 +609,26 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 
 
     const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	bool bToaPayohScenario = false;
 
-	if( config.ltParams.scenario.enabled && config.ltParams.scenario.scenarioName == "ToaPayohScenario")
-		 bToaPayohScenario = true;
 
-    if(bToaPayohScenario)
-    {
+	if( config.ltParams.scenario.enabled )
+	{
+		std::multimap<string, StudyArea*> scenario = hmModel->getStudyAreaByScenarioName();
+		auto itr_range = scenario.equal_range( config.ltParams.scenario.scenarioName );
 
-    	tazId = hmModel->getUnitTazId( unit->getId() );
+		bool bHomeTaz = false;
 
-		if(tazId==682||tazId==683||tazId==684||tazId==697||tazId==698||tazId==699||tazId==700||tazId==702||tazId==703||tazId==927||tazId==928||tazId==929||tazId==930||tazId==931||tazId==932||tazId==1255||tazId==1256)
+		int dist = distance(itr_range.first, itr_range.second);
+
+		tazId = hmModel->getUnitTazId( unit->getId() );
+
+		for(auto itr = itr_range.first; itr != itr_range.second; itr++)
+		{
+			if( itr->second->getFmTazId()  == tazId )
+				bHomeTaz = true;
+		}
+
+		if( bHomeTaz)
 		{
 			amenities.setDistanceToJob(amenities.getDistanceToJob() );
 			amenities.setDistanceToMall(amenities.getDistanceToMall() / 2.0);
@@ -524,17 +637,25 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
 			amenities.setDistanceToExpress(amenities.getDistanceToExpress() );
 			amenities.setDistanceToBus(amenities.getDistanceToBus() / 2.0);
 			amenities.setDistanceToMrt(amenities.getDistanceToMRT() / 2.0);
+
+
+			logsum += halfStandardDeviation;
 		}
 
-		if(tazId==682||tazId==683||tazId==684||tazId==697||tazId==698||tazId==699||tazId==700||tazId==702||tazId==703||tazId==927||tazId==928||tazId==929||tazId==930||tazId==931||tazId==932||tazId==1255||tazId==1256)
-			logsum += 0.03904;//0.07808;
-    }
+
+	}
 
 
     double  hedonicPrice = CalculateHedonicPrice(unit, building, postcode, &amenities, logsum, lagCoefficient);
 
 
     hedonicPrice = exp( hedonicPrice ) / 1000000.0;
+    if(hedonicPrice < 0.01)
+    {
+    	printError((boost::format("hedonic price is 0 for unit %1%") % unit->getId()).str());
+    }
+
+
 
     if (hedonicPrice > 0)
     {
@@ -546,18 +667,21 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
         double crit = 0.0001; // -- criteria
         double maxIterations = 20; // --number of iterations
 
+        const double lowerBound = 0.85;
+
         for(int i=1; i <= timeOnMarket; i++)
         {
         	ExpectationEntry entry = ExpectationEntry(); //--entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
 
             if( unit->isBto() )
             {
-            	entry.hedonicPrice = unit->getTotalPrice();
-  	            entry.askingPrice = unit->getTotalPrice();
-                entry.targetPrice = unit->getTotalPrice();
+            	entry.hedonicPrice = unit->getBTOPrice();
+  	            entry.askingPrice = unit->getBTOPrice();
+                entry.targetPrice = unit->getBTOPrice();
             }
             else
             {
+            	/*
                  a = 1.5 * reservationPrice;
                  x0 = 1.4 * reservationPrice;
 
@@ -566,10 +690,17 @@ vector<ExpectationEntry> HedonicPrice_SubModel::CalculateUnitExpectations (Unit 
                  entry.targetPrice = CalculateExpectation(entry.askingPrice, reservationPrice, a, b, cost );
 
                  reservationPrice = entry.targetPrice;
-                 expectations.push_back(entry);
+                 expectationsReverse.push_back(entry);
+                */
+
+            	 entry.hedonicPrice = hedonicPrice;
+            	 entry.targetPrice  = hedonicPrice *  lowerBound;
+            	 entry.askingPrice  = hedonicPrice * (lowerBound + ((double)timeOnMarket - i) / timeOnMarket * 0.2);
+            	 expectations.push_back(entry);
             }
     	}
     }
+
 
     return expectations;
 }

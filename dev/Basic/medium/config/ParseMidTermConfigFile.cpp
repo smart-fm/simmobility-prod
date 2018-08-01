@@ -88,8 +88,16 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 		processRegionRestrictionNode(GetSingleElementByName(rootNode, "region_restriction"));
 		processPathSetFileName(GetSingleElementByName(rootNode, "pathset_config_file", true));
 		processTripChainOutputNode(GetSingleElementByName(rootNode, "trip_chain_output"));
+		processActivityTypesNode(GetSingleElementByName(rootNode, "activity_types", true));
+		processTravelModesNode(GetSingleElementByName(rootNode, "travel_modes", true));
 
-		if (mtCfg.RunningMidSupply())
+
+		if (mtCfg.RunningMidFullLoop())
+		{
+			processPredayNode(GetSingleElementByName(rootNode, "preday", true));
+			processSupplyNode(GetSingleElementByName(rootNode, "supply", true));
+		}
+		else if (mtCfg.RunningMidSupply())
 		{
 			processSupplyNode(GetSingleElementByName(rootNode, "supply", true));
 		}
@@ -147,7 +155,7 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 	childNode = GetSingleElementByName(node, "threads", true);
 	mtCfg.setNumPredayThreads(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true), DEFAULT_NUM_THREADS_DEMAND));
 
-	if(mtCfg.runningPredaySimulation())
+	if(mtCfg.runningPredaySimulation() || mtCfg.RunningMidFullLoop())
 	{
 		childNode = GetSingleElementByName(node, "output_activity_schedule", true);
 		mtCfg.setFileOutputEnabled(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
@@ -159,8 +167,14 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 	childNode = GetSingleElementByName(node, "logsum_table", true);
 	mtCfg.setLogsumTableName(ParseString(GetNamedAttributeValue(childNode, "name", true)));
 
+	childNode = GetSingleElementByName(node, "activity_schedule_table", true);
+	mtCfg.dasConfig.schema = ParseString(GetNamedAttributeValue(childNode, "schema", true));
+	mtCfg.dasConfig.table = ParseString(GetNamedAttributeValue(childNode, "table", true));
+	mtCfg.dasConfig.updateProc = ParseString(GetNamedAttributeValue(childNode, "procedure", true));
+	mtCfg.dasConfig.fileName = ParseString(GetNamedAttributeValue(childNode, "fileName", true));
+
 	ModelScriptsMap luaModelsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
-	mtCfg.setModelScriptsMap(luaModelsMap);
+	cfg.predayLuaScriptsMap = luaModelsMap;
 
 	processCalibrationNode(GetSingleElementByName(node, "calibration", true));
 }
@@ -290,6 +304,12 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 	child = GetSingleElementByName(node, "link_travel_time", true);
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
 	cfg.setLinkTravelTimesFile(value);
+	cfg.setLinkTravelTimeFeedback(ParseBoolean(GetNamedAttributeValue(child, "feedback")));
+	if (cfg.isLinkTravelTimeFeedbackEnabled())
+	{
+		cfg.setAlphaValueForLinkTTFeedback(ParseFloat(GetNamedAttributeValue(child, "alpha")));
+	}
+
 }
 
 void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* node)
@@ -564,6 +584,10 @@ void ParseMidTermConfigFile::processSubtripTravelMetricsOutputNode(xercesc::DOME
 			cfg.subTripTravelTimeEnabled = true;
 			cfg.subTripLevelTravelTimeOutput =
 					ParseString(GetNamedAttributeValue(node, "file"), "subtrip_travel_times.csv");
+			if(ParseBoolean(GetNamedAttributeValue(node, "feedback")))
+			{
+				cfg.isSubtripTravelTimeFeedbackEnabled = true;
+			}
 		}
 	}
 }
@@ -724,17 +748,92 @@ void ParseMidTermConfigFile::processPathSetFileName(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processTripChainOutputNode(DOMElement *node)
 {
-	if (!node)
-	{
-		return;
-	}
-	mtCfg.tripChainOutput.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+		if (!node)
+		{
+			return;
+		}
+		mtCfg.tripChainOutput.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
 
-	if (mtCfg.tripChainOutput.enabled)
-	{
-		mtCfg.tripChainOutput.subTripsFile = ParseString(GetNamedAttributeValue(node, "sub_trips_file"), "subtrips.csv");
-		mtCfg.tripChainOutput.tripActivitiesFile = ParseString(GetNamedAttributeValue(node, "trip_activities_file"), "trip_activities.csv");
-	}
+		if (mtCfg.tripChainOutput.enabled)
+		{
+			mtCfg.tripChainOutput.subTripsFile = ParseString(GetNamedAttributeValue(node, "sub_trips_file"), "subtrips.csv");
+			mtCfg.tripChainOutput.tripActivitiesFile = ParseString(GetNamedAttributeValue(node, "trip_activities_file"), "trip_activities.csv");
+		}
+}
+void ParseMidTermConfigFile::processTravelModesNode(DOMElement *node)
+{
+    if (!node)
+    {
+        return;
+    }
+
+    ///Loop through and save child attributes.
+    unsigned int modeId = 1;
+    for (DOMElement* mapItem = node->getFirstElementChild(); mapItem; mapItem = mapItem->getNextElementSibling(), ++modeId)
+    {
+        if (TranscodeString(mapItem->getNodeName())!="mode")
+        {
+            Warn() <<"Invalid travel_modes child node.\n";
+            continue;
+        }
+
+        TravelModeConfig travelModeConfig;
+
+        travelModeConfig.name = ParseString(GetNamedAttributeValue(mapItem, "name"), "");
+        travelModeConfig.type = ParseInteger(GetNamedAttributeValue(mapItem, "type"), 3);
+        travelModeConfig.numSharing = ParseInteger(GetNamedAttributeValue(mapItem, "num_sharing"), 1);
+        if (travelModeConfig.name.empty())
+        {
+            Warn() <<"\"travel_modes -> mode\" name cannot be empty";
+            continue;
+        }
+
+        cfg.travelModeMap[modeId] = travelModeConfig;
+    }
+}
+
+void ParseMidTermConfigFile::processActivityTypesNode(DOMElement *node)
+{
+    if (!node)
+    {
+        return;
+    }
+
+    ///Loop through and save child attributes.
+    unsigned int activityTypeId = 1;
+    for (DOMElement* mapItem = node->getFirstElementChild(); mapItem; mapItem = mapItem->getNextElementSibling(), ++activityTypeId)
+    {
+        if (TranscodeString(mapItem->getNodeName())!="activity_type")
+        {
+            Warn() <<"Invalid activity_types child node.\n";
+            continue;
+        }
+
+        ActivityTypeConfig actTypeConf;
+        actTypeConf.name = ParseString(GetNamedAttributeValue(mapItem, "name"), "");
+        actTypeConf.withinDayModeChoiceModel = ParseString(GetNamedAttributeValue(mapItem, "withinday_mode_choice"), "");
+        actTypeConf.numToursModel = ParseString(GetNamedAttributeValue(mapItem, "num_tours"), "");
+        actTypeConf.tourModeModel = ParseString(GetNamedAttributeValue(mapItem, "tour_mode"), "");
+        actTypeConf.tourModeDestModel = ParseString(GetNamedAttributeValue(mapItem, "tour_mode_dest"), "");
+        actTypeConf.tourTimeOfDayModel = ParseString(GetNamedAttributeValue(mapItem, "tour_time_of_day"), "");
+        actTypeConf.logsumTableColumn = ParseString(GetNamedAttributeValue(mapItem, "logsum_table_column"), "");
+        actTypeConf.type = ParseInteger(GetNamedAttributeValue(mapItem, "type") );
+        if (actTypeConf.name.empty())
+        {
+            Warn() <<"\"preday -> activity_types -> activity_type\" name cannot be empty";
+            continue;
+        }
+
+        if (actTypeConf.logsumTableColumn.empty())
+        {
+            Warn() <<"\"preday -> activity_types -> activity_type\" logsum_table_column cannot be empty";
+            continue;
+        }
+
+        cfg.activityTypeIdConfigMap[activityTypeId] = actTypeConf;
+        cfg.activityTypeNameIdMap[actTypeConf.name] = activityTypeId;
+    }
+
 }
 
 }

@@ -32,7 +32,7 @@ namespace sim_mob
         class RealEstateSellerRole
         {
         public:
-            RealEstateSellerRole(Agent_LT* parent);
+            RealEstateSellerRole(RealEstateAgent* parent);
             virtual ~RealEstateSellerRole();
 
             bool isActive() const;
@@ -44,7 +44,7 @@ namespace sim_mob
              */
             virtual void update(timeslice currTime);
 
-            Agent_LT* getParent();
+            RealEstateAgent* getParent();
 
             /**
              * Inherited from LT_Role
@@ -82,17 +82,17 @@ namespace sim_mob
         public:
             typedef boost::unordered_map<BigSerial, unsigned int> CounterMap;
 
-        private:
+        public:
             typedef std::vector<ExpectationEntry> ExpectationList;
 
             struct SellingUnitInfo
             {
                 SellingUnitInfo();
                 ExpectationList expectations;
-                unsigned int startedDay; //day when the unit was added on market.
-                unsigned int daysOnMarket; //number of days to stay on market.
-                unsigned int interval; //interval to re-evaluate the expectation.
-                unsigned int numExpectations; //ceil(daysOnMarket/interval) to re-evaluate the expectation.
+                int startedDay; //day when the unit was added on market.
+                int daysOnMarket; //number of days to stay on market.
+                int interval; //interval to re-evaluate the expectation.
+                int numExpectations; //ceil(daysOnMarket/interval) to re-evaluate the expectation.
             };
 
             typedef boost::unordered_map<BigSerial, SellingUnitInfo> UnitsInfoMap;
@@ -110,7 +110,7 @@ namespace sim_mob
             int timeOffMarket;
             int marketLifespan;
 
-            Agent_LT *parent;
+            RealEstateAgent *parent;
             bool active;
         };
     }

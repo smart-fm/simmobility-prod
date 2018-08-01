@@ -94,7 +94,7 @@ SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, dou
 	numVehicleLanes = 0;
 
 	// initialize LaneAgents in the map
-	std::vector<Lane*>::const_iterator laneIt = rdSeg->getLanes().begin();
+	std::vector<const Lane*>::const_iterator laneIt = rdSeg->getLanes().begin();
 	while (laneIt != rdSeg->getLanes().end())
 	{
 		LaneStats* lnStats = new LaneStats(*laneIt, length);
@@ -450,8 +450,8 @@ unsigned int SegmentStats::numAgentsInLane(const Lane* lane) const
 unsigned int SegmentStats::numMovingInSegment(bool hasVehicle) const
 {
 	unsigned int movingCounts = 0;
-	const std::vector<Lane*>& segLanes = roadSegment->getLanes();
-	std::vector<Lane*>::const_iterator laneIt = segLanes.begin();
+	const std::vector<const Lane*>& segLanes = roadSegment->getLanes();
+	std::vector<const Lane*>::const_iterator laneIt = segLanes.begin();
 	while (laneIt != segLanes.end())
 	{
 		if ((hasVehicle && !(*laneIt)->isPedestrianLane()) || (!hasVehicle && (*laneIt)->isPedestrianLane()))
@@ -542,6 +542,25 @@ double SegmentStats::getDensity(bool hasVehicle)
 	return density;
 }
 
+//density will be computed in vehicles/meter-lane for the moving part of the lane
+double LaneStats::getDensity()
+{
+	double density = 0.0;
+	double queueLength = getQueueLength();
+	double movingPartLength = length - queueLength;
+	double movingPCUs = getMovingLength() / PASSENGER_CAR_UNIT;
+
+	if (movingPartLength > PASSENGER_CAR_UNIT)
+	{
+		density = movingPCUs / movingPartLength;
+	}
+	else
+	{
+		density = 1 / PASSENGER_CAR_UNIT;
+	}
+	return density;
+}
+
 //density will be computed in vehicles/lane-km for the full segment
 double SegmentStats::getTotalDensity(bool hasVehicle)
 {
@@ -555,8 +574,8 @@ double SegmentStats::getTotalDensity(bool hasVehicle)
 unsigned int SegmentStats::numQueuingInSegment(bool hasVehicle) const
 {
 	unsigned int queuingCounts = 0;
-	const std::vector<Lane*>& segLanes = roadSegment->getLanes();
-	std::vector<Lane*>::const_iterator lane = segLanes.begin();
+	const std::vector<const Lane*>& segLanes = roadSegment->getLanes();
+	std::vector<const Lane*>::const_iterator lane = segLanes.begin();
 	while (lane != segLanes.end())
 	{
 		if ((hasVehicle && !(*lane)->isPedestrianLane()) || (!hasVehicle && (*lane)->isPedestrianLane()))
@@ -773,9 +792,10 @@ void LaneStats::updateOutputFlowRate(double newFlowRate)
 
 void LaneStats::updateOutputCounter()
 {
-	double tick_size = ConfigManager::GetInstance().FullConfig().baseGranSecond();
-	int tmp = int(laneParams->outputFlowRate * tick_size);
-	laneParams->fraction += laneParams->outputFlowRate * tick_size - tmp;
+	double updateInterval = MT_Config::getInstance().getSupplyUpdateInterval() *
+			ConfigManager::GetInstance().FullConfig().baseGranSecond();
+	int tmp = int(laneParams->outputFlowRate * updateInterval);
+	laneParams->fraction += laneParams->outputFlowRate * updateInterval - tmp;
 	if (laneParams->fraction >= 1.0)
 	{
 		laneParams->fraction -= 1.0;
@@ -879,9 +899,11 @@ void SegmentStats::updateLaneParams(timeslice frameNumber)
 		//filtering out the pedestrian lanes for now
 		if (!(it->first)->isPedestrianLane())
 		{
-			(it->second)->updateOutputCounter();
-			(it->second)->updateAcceptRate(segVehicleSpeed, numVehicleLanes);
-			(it->second)->setInitialQueueLength(it->second->getQueueLength());
+			LaneStats *laneStats = it->second;
+			laneStats->setLaneVehSpeed(speedDensityFunction(laneStats->getDensity()));
+			laneStats->updateOutputCounter();
+			laneStats->updateAcceptRate(segVehicleSpeed, numVehicleLanes);
+			laneStats->setInitialQueueLength(laneStats->getQueueLength());
 		}
 	}
 }
@@ -977,6 +999,11 @@ void SegmentStats::setPositionOfLastUpdatedAgentInLane(double positionOfLastUpda
 	laneIt->second->setPositionOfLastUpdatedAgent(positionOfLastUpdatedAgentInLane);
 }
 
+std::map<const Lane*, LaneStats*> SegmentStats::getLaneStats() const
+{
+	return laneStatsMap;
+}
+
 double SegmentStats::getInitialQueueLength(const Lane* lane) const
 {
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
@@ -1012,7 +1039,7 @@ unsigned int SegmentStats::computeExpectedOutputPerTick()
 	{
 		count += i->second->laneParams->getOutputFlowRate() * ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	}
-	return std::floor(count);
+	return std::ceil(count);
 }
 
 void SegmentStats::updateLinkDrivingTimes(double drivingTimeToEndOfLink)
@@ -1024,7 +1051,7 @@ void SegmentStats::updateLinkDrivingTimes(double drivingTimeToEndOfLink)
 		speed = INFINITESIMAL_DOUBLE;
 	}
 
-	for (std::vector<Lane*>::const_iterator lnIt = roadSegment->getLanes().begin(); lnIt != roadSegment->getLanes().end(); lnIt++)
+	for (auto lnIt = roadSegment->getLanes().begin(); lnIt != roadSegment->getLanes().end(); lnIt++)
 	{
 		PersonList& lnAgents = laneStatsMap.find(*lnIt)->second->laneAgents;
 		for (PersonList::const_iterator pIt = lnAgents.begin(); pIt != lnAgents.end(); pIt++)
@@ -1179,7 +1206,7 @@ void LaneStats::printAgents() const
 	debugMsgs << "Lane: " << lane->getLaneId();
 	for (PersonList::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++)
 	{
-		debugMsgs << "|" << (*i)->getId() ;
+		debugMsgs << "|" << (*i)->getDatabaseId() ;
 		if((*i)->getPrevRole()){
 			debugMsgs << "(" << (*i)->getPrevRole()->getRoleName() << ")";
 		}
@@ -1243,7 +1270,7 @@ Person_MT* SegmentStats::dequeue(const Person_MT* person, const Lane* lane, bool
 	{
 		printAgents();
 		std::stringstream debugMsgs;
-		debugMsgs << "Error: Person " << person->getId() << "|" << person->getDatabaseId() << " (" << person->getRole()->getRoleName() << ")"
+		debugMsgs << "Error: Person " << person->getDatabaseId() << " (" << person->getRole()->getRoleName() << ")"
 				<< " was not found in lane " << lane->getLaneId() << std::endl;
 		throw std::runtime_error(debugMsgs.str());
 	}
@@ -1255,7 +1282,8 @@ Person_MT* LaneStats::dequeue(const Person_MT* person, bool isQueuingBfrUpdate, 
 	if (laneAgents.size() == 0)
 	{
 		std::stringstream debugMsgs;
-		debugMsgs << "Trying to dequeue Person " << person->getId() << " from empty lane." << std::endl;
+		debugMsgs << "Trying to dequeue Person " << person->getDatabaseId() << " from empty lane." << std::endl;
+		Print() << debugMsgs.str();
 		return nullptr;
 	}
 	Person_MT* dequeuedPerson = nullptr;

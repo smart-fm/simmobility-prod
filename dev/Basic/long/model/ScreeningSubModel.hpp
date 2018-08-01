@@ -34,7 +34,6 @@ namespace sim_mob
 
 				void getScreeningProbabilities(int hhId, std::vector<double> &probabilities, HM_Model *model, int day);
 
-				BigSerial ComputeWorkPlanningArea(PlanningArea *planningAreaWork);
 				BigSerial ComputeHomePlanningArea(PlanningArea *planningAreaWork, Household *household);
 				void ComputeHeadOfHousehold(Household* household);
 				int  GetDwellingType(int unitType);

@@ -201,6 +201,16 @@ public:
 
     bool RunningLongTerm() const;
 
+    const std::string& getTravelModeStr(int travelModeId) const;
+    const TravelModeConfig& getTravelModeConfig(int travelModeId) const;
+    int getNumTravelModes() const;
+
+    const std::string& getActivityTypeStr(int activityTypeId) const;
+    const std::unordered_map<std::string, StopType>& getActivityTypeStrMap() const;
+    const ActivityTypeConfig& getActivityTypeConfig(StopType activityTypeId) const;
+    StopType getActivityTypeId(const std::string& activityName) const;
+    const std::unordered_map<StopType, ActivityTypeConfig>& getActivityTypeConfigMap() const;
+
 private:
     /**
      * Constructor
@@ -250,6 +260,12 @@ private:
 
 	/**link travel time file name*/
 	std::string linkTravelTimesFile;
+
+	/**whether link travel time feedback is enabled*/
+	bool linktravelTimeFeedbackEnabled;
+
+	/**value of alpha for link travel time feedback*/
+	float alphaForLinkTTFeedback;
 
 public:
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -366,6 +382,22 @@ public:
     bool isWorkerPublisherEnabled() const;
 
     void setWorkerPublisherEnabled(bool value);
+
+    /**
+    * Sets the value of seed for RNG's
+    *
+    * @param value: seed value as given in the config file
+    */
+    void setSeedValueForRNG(unsigned int value);
+
+
+    /**
+    * Retrieves the value of seed for RNG's
+    *
+    * @return seed value as given in the config file
+    */
+    unsigned int getSeedValueForRNG() const;
+
 
     bool isGenerateBusRoutes() const;
 
@@ -486,6 +518,35 @@ public:
 	 * @param linkTravelTimesFile filename to be set
 	 */
 	void setLinkTravelTimesFile(const std::string &linkTravelTimesFile);
+
+	/**
+	 * Sets the link travel time feedback true or false
+	 *
+	 * @param value true or false to be sent
+	 */
+	void setLinkTravelTimeFeedback(const bool value);
+
+	/**
+	 * sets the value of alpha for link travel time feedback
+	 *
+	 * @param alpha: value of alpha as read from the config file
+	 */
+	void setAlphaValueForLinkTTFeedback(const float alpha);
+
+	/**
+	 * Returns whether the link travel travel feedback is enabled or disabled
+	 *
+	 * @return true if link travel travel feedback is enabled
+	 */
+	bool isLinkTravelTimeFeedbackEnabled();
+
+	/**
+	 * Returns value of alpha for link travel time feedback
+	 *
+	 * @return the value of alpha
+	 */
+	float getAlphaValueForLinkTTFeedback();
+
 };
 
 

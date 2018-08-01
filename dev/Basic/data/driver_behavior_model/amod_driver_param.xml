@@ -425,4 +425,12 @@
 	<!-- Density (default value) - Calculated by SimMobility!!!-->
 	<param name="density" value="0.0"/> <!-- veh/km/lane -->
 
+	<!-- Initial speed assignment model-->
+	<!-- ST classifies the driver’s regime into three categories with distance (metre) headway threshold as:
+    Regime 1 (bounded traffic): t1 < d <= t2
+    Regime 2 (Partially bounded traffic): t2 < d <= t3
+    Regime 3 (Unbounded traffic): t > d3 -->
+	<!--t1	t2	t3-->
+	<param name="thresholds" value="4	14	40"/>
+
 </parameters>

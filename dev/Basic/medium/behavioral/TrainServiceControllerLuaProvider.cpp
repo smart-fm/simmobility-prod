@@ -38,10 +38,10 @@ namespace
         		modelCtx->traincontrollerModel->initialize();
         		threadContext.reset(modelCtx);
         	}
-        	catch (const std::out_of_range& oorx)
-        	{
-        		throw std::runtime_error("missing service controller script rsc.lua");
-        	}
+	        catch (const std::runtime_error& ex)
+	        {
+		        throw ex;
+	        }
         }
     }
 }

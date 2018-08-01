@@ -31,3 +31,11 @@ void PostcodeDao::fromRow(Row& result, Postcode& outObj)
 }
 
 void PostcodeDao::toRow(Postcode& data, Parameters& outParams, bool update) {}
+
+std::vector<Postcode*> PostcodeDao::getPostcodeByTaz()
+{
+	const std::string queryStr = "SELECT distinct on(taz_id)* FROM " + connection.getSchema() + "sla_addresses where address_id != 999999";
+	std::vector<Postcode*> postcodeByTaz;
+	getByQuery(queryStr,postcodeByTaz);
+	return postcodeByTaz;
+}

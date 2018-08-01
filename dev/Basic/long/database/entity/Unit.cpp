@@ -20,13 +20,14 @@ using namespace sim_mob::long_term;
 
 Unit::Unit( BigSerial id, BigSerial building_id, int unit_type, int storey_range, int constructionStatus, double floor_area, int storey,
 			double monthlyRent, std::tm sale_from_date, std::tm occupancyFromDate, int sale_status, int occupancyStatus, std::tm lastChangedDate,
-			double totalPrice,std::tm valueDate,int tenureStatus,int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket, double lagCoefficient, int zoneHousingType,
-			int dwellingType, bool isBTO)
+			double totalPrice,std::tm valueDate,int tenureStatus,int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket, double askingPrice,double lagCoefficient, int zoneHousingType,
+			int dwellingType, bool existInDB, bool isBTO, double _btoPrice,int remainingTimeOnMarket, int remainingTimeOffMarket,bool unitByDevModel,BigSerial tazIdByDevModel)
 		   : id(id), building_id(building_id), unit_type(unit_type), storey_range(storey_range), constructionStatus(constructionStatus),
 		     floor_area(floor_area), storey(storey), monthlyRent(monthlyRent), sale_from_date(sale_from_date), occupancyFromDate(occupancyFromDate),
 			 sale_status(sale_status), occupancyStatus(occupancyStatus), lastChangedDate(lastChangedDate),totalPrice(totalPrice),valueDate(valueDate),tenureStatus(tenureStatus),
-			 biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket), lagCoefficient(lagCoefficient),
-			 zoneHousingType(zoneHousingType), dwellingType(dwellingType),isBTO(isBTO),existInDB(0){}
+			 biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket), askingPrice(0),lagCoefficient(lagCoefficient),
+			 zoneHousingType(zoneHousingType), dwellingType(dwellingType), existInDB(existInDB),isBTO(isBTO),btoPrice(_btoPrice),remainingTimeOnMarket(remainingTimeOnMarket),remainingTimeOffMarket(remainingTimeOffMarket),
+			 unitByDevModel(false),tazIdByDevModel(INVALID_ID){}
 
 
 Unit::Unit(const Unit& source)
@@ -55,6 +56,12 @@ Unit::Unit(const Unit& source)
     this->dwellingType = source.dwellingType;
     this->existInDB = source.existInDB;
     this->isBTO = source.isBTO;
+    this->btoPrice = source.btoPrice;
+    this->askingPrice = source.askingPrice;
+    this->remainingTimeOnMarket = source.remainingTimeOnMarket;
+    this->remainingTimeOffMarket = source.remainingTimeOffMarket;
+    this->unitByDevModel = source.unitByDevModel;
+    this->tazIdByDevModel = source.tazIdByDevModel;
 }
 
 Unit::~Unit() {}
@@ -85,6 +92,12 @@ Unit& Unit::operator=(const Unit& source)
     this->dwellingType = source.dwellingType;
     this->existInDB = source.existInDB;
     this->isBTO = source.isBTO;
+    this->btoPrice = source.btoPrice;
+    this->askingPrice = source.askingPrice;
+    this->remainingTimeOnMarket = source.remainingTimeOnMarket;
+    this->remainingTimeOffMarket = source.remainingTimeOffMarket;
+    this->unitByDevModel = source.unitByDevModel;
+    this->tazIdByDevModel = source.tazIdByDevModel;
 
     return *this;
 }
@@ -120,6 +133,7 @@ void Unit::serialize(Archive & ar,const unsigned int version)
 	lastChangedDate.tm_year = lastChangedDate.tm_year+1900;
 
 	ar & totalPrice;
+	ar & btoPrice;
 
 	ar & BOOST_SERIALIZATION_NVP(valueDate.tm_year);
 	ar & BOOST_SERIALIZATION_NVP(valueDate.tm_mon);
@@ -135,6 +149,10 @@ void Unit::serialize(Archive & ar,const unsigned int version)
 	ar & dwellingType;
 	ar & existInDB;
 	ar & isBTO;
+	ar & askingPrice;
+	ar & remainingTimeOnMarket;
+	ar & remainingTimeOffMarket;
+
 
 }
 
@@ -406,6 +424,62 @@ bool Unit::isExistInDb() const
 void Unit::setExistInDb(bool existInDb)
 {
 	existInDB = existInDb;
+}
+
+double Unit::getBTOPrice() const
+{
+	return btoPrice;
+}
+
+void Unit::setBTOPrice(double p)
+{
+	btoPrice = p;
+}
+
+double Unit::getAskingPrice() const
+{
+	return askingPrice;
+}
+
+void Unit::setAskingPrice(double askingPrice)
+{
+	this->askingPrice = askingPrice;
+}
+
+int Unit::getRemainingTimeOffMarket() const
+{
+	return remainingTimeOffMarket;
+}
+
+void Unit::setRemainingTimeOffMarket(int remainingTimeOffMarket)
+{
+	this->remainingTimeOffMarket = remainingTimeOffMarket;
+}
+
+int Unit::getRemainingTimeOnMarket() const
+{
+	return remainingTimeOnMarket;
+}
+
+void Unit::setRemainingTimeOnMarket(int remainingTimeOnMarket)
+{
+	this->remainingTimeOnMarket = remainingTimeOnMarket;
+}
+
+BigSerial Unit::getTazIdByDevModel() const {
+	return tazIdByDevModel;
+}
+
+void Unit::setTazIdByDevModel(BigSerial tazIdByDevModel) {
+	this->tazIdByDevModel = tazIdByDevModel;
+}
+
+bool Unit::isUnitByDevModel() const {
+	return unitByDevModel;
+}
+
+void Unit::setUnitByDevModel(bool unitByDevModel) {
+	this->unitByDevModel = unitByDevModel;
 }
 
 namespace sim_mob

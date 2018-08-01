@@ -112,11 +112,11 @@ const int sim_mob::BusTrip::getBusTripStopIndex(const BusStop* stop) const {
 bool sim_mob::BusTrip::setBusRouteInfo(const std::vector<const RoadSegment*>& roadSegment_vec, const std::vector<const BusStop*>& busStop_vec)
 {
 	if(roadSegment_vec.empty()) {
-		Warn() << "Error: no roadSegments!!!" << std::endl;
+		Warn() << "Error: no road segments for route " << this->getBusRouteInfo().getBusRouteId() << std::endl;
 		return false;
 	}
 	if(busStop_vec.empty()) {
-		Warn() << "Error: no busStops!!!" << std::endl;
+		Warn() << "Error: no bus stops for route " << this->getBusRouteInfo().getBusRouteId() << std::endl;
 		return false;
 	}
 	for(std::vector<const RoadSegment*>::const_iterator it=roadSegment_vec.begin(); it!=roadSegment_vec.end(); it++) {

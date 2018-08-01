@@ -12,6 +12,7 @@
 #include "behavioral/params/LogsumTourModeDestinationParams.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "conf/ParseConfigFile.hpp"
 #include "database/DB_Config.hpp"
 #include "database/DB_Connection.hpp"
 #include "database/predaydao/DatabaseHelper.hpp"
@@ -26,7 +27,10 @@ namespace
 {
 
 const std::string LT_DB_CONFIG_FILE = "private/lt-db.ini";
-
+const std::string configFileName = "data/simulation.xml";
+//Parse the config file (this *does not* create anything, it just reads it.).
+bool longTerm = false;
+ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig(), longTerm );
 
 /**
  * wrapper struct for thread local storage
@@ -39,7 +43,7 @@ public:
 	 */
 	PopulationSqlDao ltPopulationDao;
 
-	LT_PopulationSqlDaoContext(const DB_Config& ltDbConfig, DB_Connection conn): ltDbConnection(conn), ltPopulationDao(conn)
+	LT_PopulationSqlDaoContext(const DB_Config& ltDbConfig, DB_Connection &conn): ltDbConnection(conn), ltPopulationDao(conn)
 	{
 		ltDbConnection.connect();
 		if(!ltDbConnection.isConnected()) { throw std::runtime_error("LT database connection failure!"); }
@@ -64,6 +68,8 @@ void ensureContext()
 		DB_Config ltDbConfig(LT_DB_CONFIG_FILE);
 		ltDbConfig.load();
 		DB_Connection conn(sim_mob::db::POSTGRES, ltDbConfig);
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+		conn.setSchema(config.schemas.main_schema);
 		LT_PopulationSqlDaoContext* ltPopulationSqlDaoCtx = new LT_PopulationSqlDaoContext(ltDbConfig, conn);
 		threadContext.reset(ltPopulationSqlDaoCtx);
 	}
@@ -193,19 +199,28 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 		logsumManager.loadZones();
 		logsumManager.loadCosts();
 
-		ensureContext();
-		PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
+		DB_Config ltDbConfig(LT_DB_CONFIG_FILE);
+		ltDbConfig.load();
+		DB_Connection conn(sim_mob::db::POSTGRES, ltDbConfig);
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+		conn.setSchema(config.schemas.main_schema);
+		conn.connect();
+		PopulationSqlDao ltPopulationDao(conn);
+
 		ltPopulationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
-		ltPopulationDao.getAddresses(PersonParams::getAddressLookup(), PersonParams::getZoneAddresses());
+		ltPopulationDao.getAddresses();
 		logsumManager.dataLoadReqd = false;
 	}
 	return logsumManager;
 }
 
-PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation, int vehicleOwnership, PersonParams *personParamsFromLT) const
+PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation, int vehicleOwnership, PersonParams *personParamsFromLT,const std::string& luaDir) const
 {
 	ensureContext();
 	PersonParams personParams;
+
+
+    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
 
 	if( personParamsFromLT != nullptr)
 	{
@@ -240,7 +255,14 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 
 	bool printedError = false;
 
-	if(personParams.hasFixedWorkPlace())
+	//set the activity logsum default as 0 for work and education logsums to prevent null values. The simillar thing is done at mid term side.
+	personParams.setActivityLogsum(1,0);
+	personParams.setActivityLogsum(2,0);
+
+	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, cfg.getNumTravelModes());
+	PredayLogsumLuaProvider::getPredayModel(luaDir).computeTourModeDestinationLogsum(personParams, cfg.getActivityTypeConfigMap(), tmdParams, zoneMap.size());
+
+	if(personParams.hasFixedWorkPlace() || personParams.isStudent())
 	{
 		int workLoc = workLoc = personParams.getFixedWorkLocation();
 		ZoneParams* orgZnParams = nullptr;
@@ -305,12 +327,20 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 			}
 
 		}
-		LogsumTourModeParams tmParams(orgZnParams, destZnParams, amCostParams, pmCostParams, personParams, WORK);
-		PredayLogsumLuaProvider::getPredayModel().computeTourModeLogsum(personParams, tmParams);
+
+		if(personParams.hasFixedWorkPlace())
+		{
+			LogsumTourModeParams tmParams(orgZnParams, destZnParams, amCostParams, pmCostParams, personParams, cfg.getActivityTypeId("Work"));
+			PredayLogsumLuaProvider::getPredayModel(luaDir).computeTourModeLogsum(personParams, cfg.getActivityTypeConfigMap(), tmParams);
+		}
+
+        if(personParams.isStudent())
+        {
+        	LogsumTourModeParams tmParams(orgZnParams, destZnParams, amCostParams, pmCostParams, personParams, cfg.getActivityTypeId("Education"));
+        	PredayLogsumLuaProvider::getPredayModel(luaDir).computeTourModeLogsum(personParams, cfg.getActivityTypeConfigMap(), tmParams);
+        }
 
 	}
-
-	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
 
 	try
 	{
@@ -324,10 +354,8 @@ PersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, i
 		printedError = true;
 	}
 
-
-	PredayLogsumLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams, zoneMap.size());
-	PredayLogsumLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);
-	PredayLogsumLuaProvider::getPredayModel().computeDayPatternBinaryLogsums(personParams);
+	PredayLogsumLuaProvider::getPredayModel(luaDir).computeDayPatternLogsums(personParams);
+	PredayLogsumLuaProvider::getPredayModel(luaDir).computeDayPatternBinaryLogsums(personParams);
 
 	return personParams;
 }

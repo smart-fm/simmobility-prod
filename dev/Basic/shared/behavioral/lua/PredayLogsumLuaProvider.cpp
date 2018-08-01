@@ -28,36 +28,78 @@ struct ModelContext
 
 boost::thread_specific_ptr<ModelContext> threadContext;
 
-void ensureContext()
+void ensureContext(const std::string &luaDir)
 {
-	if (!threadContext.get())
-	{
+	//note::the threadcontext is commented because now we load the preday model based on the given lua directory for each thread.
+	//if (!threadContext.get())
+	//{
 		try
 		{
-			const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMap;
-			const std::string& scriptsPath = extScripts.getPath();
-			ModelContext* modelCtx = new ModelContext();
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpb"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpt"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dps"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmw"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdw"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmds"));
-			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdo"));
-			modelCtx->predayModel.initialize();
-			threadContext.reset(modelCtx);
+
+			if(luaDir.compare("TC")==0)
+			{
+				const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMapTC;
+				const std::string& scriptsPath = extScripts.getPath();
+				const std::map<std::string, std::string>& predayScriptsName = extScripts.getScriptsFileNameMap();
+				ModelContext* modelCtx = new ModelContext();
+				for (const auto& item : predayScriptsName)
+				{
+					modelCtx->predayModel.loadFile(scriptsPath + item.second);
+				}
+				modelCtx->predayModel.initialize();
+				threadContext.reset(modelCtx);
+			}
+			else if(luaDir.compare("TCPlusOne")==0)
+			{
+				const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMapTimeCostPlusOne;
+				const std::string& scriptsPath = extScripts.getPath();
+				const std::map<std::string, std::string>& predayScriptsName = extScripts.getScriptsFileNameMap();
+				ModelContext* modelCtx = new ModelContext();
+				for (const auto& item : predayScriptsName)
+				{
+					modelCtx->predayModel.loadFile(scriptsPath + item.second);
+				}
+				modelCtx->predayModel.initialize();
+				threadContext.reset(modelCtx);
+			}
+			else if(luaDir.compare("CTPlusOne")==0)
+			{
+				const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMapCostTimePlusOne;
+				const std::string& scriptsPath = extScripts.getPath();
+				const std::map<std::string, std::string>& predayScriptsName = extScripts.getScriptsFileNameMap();
+				ModelContext* modelCtx = new ModelContext();
+				for (const auto& item : predayScriptsName)
+				{
+					modelCtx->predayModel.loadFile(scriptsPath + item.second);
+				}
+				modelCtx->predayModel.initialize();
+				threadContext.reset(modelCtx);
+			}
+			else if(luaDir.compare("TCZero")==0)
+			{
+				const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMapTCZeroCostConstants;
+				const std::string& scriptsPath = extScripts.getPath();
+				const std::map<std::string, std::string>& predayScriptsName = extScripts.getScriptsFileNameMap();
+				ModelContext* modelCtx = new ModelContext();
+				for (const auto& item : predayScriptsName)
+				{
+					modelCtx->predayModel.loadFile(scriptsPath + item.second);
+				}
+				modelCtx->predayModel.initialize();
+				threadContext.reset(modelCtx);
+			}
+
 		} 
 		catch (const std::out_of_range& oorx)
 		{
 			throw std::runtime_error("missing or invalid generic property 'external_scripts'");
 		}
-	}
+	//}
 }
 }
 
-const PredayLogsumLuaModel& PredayLogsumLuaProvider::getPredayModel()
+const PredayLogsumLuaModel& PredayLogsumLuaProvider::getPredayModel(const std::string &luaDir)
 {
-	ensureContext();
+	ensureContext(luaDir);
 	return threadContext.get()->predayModel;
 }

@@ -105,7 +105,7 @@ local beta_logsum_work_3= 0
 local beta_cons_work_2 = -9.92
 local beta_cons_work_3=0
 
-
+local activity_types = { ["Work"] = 1, ["Education"] = 2, ["Shop"] = 3, ["Others"] = 4 }
 
 --choiceset
 local choice = {
@@ -130,10 +130,10 @@ local function computeUtilities(params)
 	local income_mid = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
 	local work_at_home_dummy = params.work_at_home_dummy
 	local veh_own_cat = params.vehicle_ownership_category
-	local worklogsum = params.worklogsum
-	local edulogsum = params.edulogsum
-	local shoplogsum = params.shoplogsum
-	local otherlogsums = params.otherlogsum
+	local worklogsum = params:activity_logsum(activity_types.Work)
+	local edulogsum = params:activity_logsum(activity_types.Education)
+	local shoplogsum = params:activity_logsum(activity_types.Shop)
+	local otherlogsum = params:activity_logsum(activity_types.Others)
 
 	-- person type related variables
 	local fulltime,parttime,selfemployed,universitystudent,homemaker,retired,unemployed,nationalservice,voluntary,domestic,otherworker,student16,student515,child4 = 0,0,0,0,0,0,0,0,0,0,0,0,0,0

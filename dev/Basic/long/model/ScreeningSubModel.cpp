@@ -16,7 +16,6 @@ namespace sim_mob
 {
 	namespace long_term
 	{
-
 		ScreeningSubModel::ScreeningSubModel()
 		{
 			model 			= nullptr;
@@ -24,38 +23,6 @@ namespace sim_mob
 		}
 
 		ScreeningSubModel::~ScreeningSubModel(){}
-
-		BigSerial ScreeningSubModel::ComputeWorkPlanningArea(PlanningArea *planningAreaWork)
-		{
-				Job  *headOfHhJob = model->getJobById( (headOfHousehold)->getJobId());
-				Establishment *headOfHhEstablishment = model->getEstablishmentById(headOfHhJob->getEstablishmentId());
-
-				BigSerial establishmentSlaAddressId = model->getEstablishmentSlaAddressId(headOfHhJob->getEstablishmentId());
-
-				Postcode *slaAddressWork = model->getPostcodeById(establishmentSlaAddressId);
-
-				int tazIdWork = slaAddressWork->getTazId();
-				Taz *tazWork  = model->getTazById(tazIdWork);
-				int mtzIdWork = model->getMtzIdByTazId(tazIdWork);
-				Mtz *mtzWork  = model->getMtzById(mtzIdWork);
-
-				PlanningSubzone *planningSubzoneWork = nullptr;
-
-				if(mtzWork)
-					planningSubzoneWork = model->getPlanningSubzoneById( mtzWork->getPlanningSubzoneId() );
-
-				if(planningSubzoneWork)
-					planningAreaWork = (model->getPlanningAreaById(planningSubzoneWork->getPlanningAreaId()));
-
-				if(!planningAreaWork)
-				{
-					AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "Planning Area null for Taz id  %1%.") %  tazIdWork).str());
-					return 0;
-				}
-
-				return planningSubzoneWork->getPlanningAreaId();
-
-		}
 
 		BigSerial ScreeningSubModel::ComputeHomePlanningArea(PlanningArea* planningArea, Household *household)
 		{
@@ -84,14 +51,14 @@ namespace sim_mob
 		void ScreeningSubModel::ComputeHeadOfHousehold(Household* household)
 		{
 			std::vector<BigSerial> individuals = household->getIndividuals();
+
 			for(int n = 0; n < individuals.size(); n++)
 			{
 				Individual *tempIndividual = model->getIndividualById(individuals[n]);
 
-				if( tempIndividual->getHouseholdHead() == true )
+				if( tempIndividual->getHouseholdHead()== true )
 				{
 					headOfHousehold = tempIndividual;
-					break;
 				}
 			}
 		}
@@ -131,19 +98,14 @@ namespace sim_mob
 
 			ComputeHeadOfHousehold(household);
 
-			PlanningArea *planningAreaWork = nullptr;
-			BigSerial id1 = ComputeWorkPlanningArea(planningAreaWork );
-
-			planningAreaWork = model->getPlanningAreaById( id1 );
-
 			PlanningArea* planningArea = nullptr;
-			BigSerial id2 = ComputeHomePlanningArea(planningArea, household);
+			BigSerial id = ComputeHomePlanningArea(planningArea, household);
 
-			planningArea = model->getPlanningAreaById(id2);
+			planningArea = model->getPlanningAreaById(id);
 
-			if(!planningArea || !planningAreaWork)
+			if(!planningArea)
 				return;
-
+			
 			std::vector<PopulationPerPlanningArea*> populationPerPlanningArea = model->getPopulationByPlanningAreaId(planningArea->getId());
 
 			double populationTotal 	 = 0;
@@ -283,18 +245,23 @@ namespace sim_mob
 					income = 3.0 * 1000000.0 * household->getCurrentUnitPrice() / ( 30 * 12 );
 				}
 
-
 				if ( zonalLanduseVariableValues == nullptr)
 					continue;
 
 				double logPopulationByHousingType	= log((double)unitTypeCounter);	//1 logarithm of population by housing type in the zone 	persons
 				double populationDensity			= (double)unitTypeCounter / (double)sumFloorArea * 100.0;	//2 population density	persons per hectare
-				double commercialLandFraction		= zonalLanduseVariableValues->getFLocCom();	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point
-				double residentialLandFraction		= zonalLanduseVariableValues->getFLocRes();	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point
-				double openSpaceFraction			= zonalLanduseVariableValues->getFLocOpen();	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point
-				double oppurtunityDiversityIndex	= zonalLanduseVariableValues->getOdi10Loc();	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)
-				double distanceToMrt				= zonalLanduseVariableValues->getDis2mrt();	//7 zonal average distance to the nearest MRT station	in kilometer
-				double distanceToExp				= zonalLanduseVariableValues->getDis2exp();	//8 zonal average distance to the nearest express way	in kilometer
+
+				double commercialLandFraction			= model->getscreeningModelFactorsList()[n]->getF_loc_com(); //3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point
+				double residentialLandFraction			= model->getscreeningModelFactorsList()[n]->getF_loc_res(); //4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point
+				double openSpaceFraction				= model->getscreeningModelFactorsList()[n]->getF_loc_open();//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point 
+				double oppurtunityDiversityIndex		= model->getscreeningModelFactorsList()[n]->getOdi10_loc(); //6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)
+				double distanceToMrt					= model->getscreeningModelFactorsList()[n]->getDis2mrt();   //7 zonal average distance to the nearest MRT station	in kilometer
+				double distanceToExp 					= model->getscreeningModelFactorsList()[n]->getDis2exp();   //8 zonal average distance to the nearest express way	in kilometer
+				double accessbilityManufacturJobs		= model->getscreeningModelFactorsList()[n]->getAcc_t_mfg();	
+				double accessibilityOfficeJobs			= model->getscreeningModelFactorsList()[n]->getAcc_t_off();
+				double publicTransitTime				= model->getscreeningModelFactorsList()[n]->getTime_ave();
+				double publicTransitCost				= model->getscreeningModelFactorsList()[n]->getCost_ave();
+				
 				double fractionYoungerThan4			= ( populationYoungerThan4 / populationTotal ) * bHouseholdMemberYoungerThan4;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point
 				double fractionBetween5And19		= ( population5To19 / populationTotal ) * bHouseholdMember5To19;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point
 				double fractionOlderThan65			= ( populationGreaterThan65 / populationTotal ) * bHouseholdMemberGreaterThan65;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point
@@ -307,13 +274,7 @@ namespace sim_mob
 				double privateCondoHhSizeOne		= 0.0;	//19 = 1, if household size is 1, living in private condo/apartment
 				double landedPropertyHhSizeOne		= 0.0;	//20 = 1, if household size is 1, living in landed property
 				double otherHousingHhSizeOne		= 0.0; 	//21 = 1, if household size is 1, living in other types of housing units
-				double publicTransitTime 			= 0.0;
-				double publicTransitCost 			= 0.0;
-				double accessbilityManufacturJobs	= 0.0;
-				double accessibilityOfficeJobs 		= 0.0;
 				double hdb45						= 0.0;
-
-
 
 				if( model->getAlternatives()[n]->getDwellingTypeId() == 600 )
 				{
@@ -339,52 +300,13 @@ namespace sim_mob
 
 				BigSerial id = 0;
 
-				if( planningAreaWork )
-					(*planningAreaWork).getId();
-
-				std::string key = std::to_string( model->getAlternatives()[n]->getPlanAreaId() ) + "-" + std::to_string( (*planningAreaWork).getId());
-				ScreeningCostTime* costTime = model->getScreeningCostTimeInst(key);
-
-				if(costTime)
-				{
-					publicTransitCost = costTime->getCost();
-					publicTransitTime = costTime->getTime();
-				}
-				else
-				{
-					for(int m = 0; m < model->getScreeningCostTime().size(); m++ )
-					{
-						if( model->getScreeningCostTime()[m]->getPlanningAreaOrigin() 	   == model->getAlternatives()[n]->getPlanAreaId() &&
-							model->getScreeningCostTime()[m]->getPlanningAreaDestination() == (*planningAreaWork).getId() )
-						{
-							publicTransitCost = model->getScreeningCostTime()[m]->getCost();
-							publicTransitTime = model->getScreeningCostTime()[m]->getTime();
-						}
-					}
-				}
-
-				if( !planningAreaWork )
-				{
-					publicTransitCost = 0;
-					publicTransitTime = 0;
-				}
-
-				for( int m = 0; m < model->getAccessibilityFixedPzid().size(); m++)
-				{
-					if( model->getAlternatives()[n]->getPlanAreaId() == model->getAccessibilityFixedPzid()[m]->getPlanningAreaId() )
-					{
-						accessbilityManufacturJobs	= model->getAccessibilityFixedPzid()[m]->getAccTMfg();
-						accessibilityOfficeJobs 	= model->getAccessibilityFixedPzid()[m]->getAccTOff();
-					}
-				}
 
 				if( model->getAlternatives()[n]->getMedianHedonicPrice() > 0.000001 )
 				{
-					logZonalMedianHousingPrice =  model->getAlternatives()[n]->getMedianHedonicPrice();// / sumFloorArea / 1000;
+					logZonalMedianHousingPrice =  model->getAlternatives()[n]->getMedianHedonicPrice();
 				}
 				else
 				{
-
 					string strId = to_string(model->getAlternatives()[n]->getPlanAreaId()) + to_string(model->getAlternatives()[n]->getDwellingTypeId());
 					int key = std::atoi( strId.c_str());
 
@@ -399,17 +321,20 @@ namespace sim_mob
 						count++;
 					}
 
-					auto it = its.first;
-					std::advance(it, count/2);
+					if(count > 0)
+					{
+						auto it = its.first;
+						std::advance(it, count/2);
 
-					logZonalMedianHousingPrice = it->second->getTotalPrice();
+						logZonalMedianHousingPrice = it->second->getTotalPrice();
+					}
 
 					model->getAlternatives()[n]->setMedianHedonicPrice( logZonalMedianHousingPrice );
 				}
 
 				int m = 0;
 
-				double probability =( logPopulationByHousingType* model->getScreeningModelCoefficientsList()[m]->getln_popdwl()	) +
+				double oddsRatio =  ( logPopulationByHousingType* model->getScreeningModelCoefficientsList()[m]->getln_popdwl()	) +
 									( populationDensity			* model->getScreeningModelCoefficientsList()[m]->getden_respop_ha() 	) +
 									( commercialLandFraction	* model->getScreeningModelCoefficientsList()[m]->getf_loc_com() 		) +
 									( residentialLandFraction	* model->getScreeningModelCoefficientsList()[m]->getf_loc_res()		 	) +
@@ -460,11 +385,11 @@ namespace sim_mob
 									 otherHousingHhSizeOne		<< " l " << DWL800  << std::endl);
 				*/
 
-				if( std::isnan(probability) )
-					probability = 0.0;
+				if( std::isnan(oddsRatio) )
+					oddsRatio = 0.0;
 
-				if( std::isinf( probability) )
-					probability = 0.0;
+				if( std::isinf( oddsRatio) )
+					oddsRatio = 0.0;
 
 
 				 const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -473,6 +398,8 @@ namespace sim_mob
 				 if( config.ltParams.scenario.enabled && config.ltParams.scenario.scenarioName == "ToaPayohScenario")
 					 bToaPayohScenario = true;
 
+				 double probability = exp(oddsRatio);
+
 				if(  bToaPayohScenario  && model->getAlternatives()[n]->getPlanAreaId() == 50 )
 				{
 					probability = probability * 2.0;
@@ -480,12 +407,12 @@ namespace sim_mob
 
 				probabilities.push_back(probability);
 
-				probabilitySum += exp(probability);
+				probabilitySum += probability;
 			}
 
 			for( int n = 0; n < probabilities.size(); n++)
 			{
-				probabilities[n] = exp(probabilities[n])/ probabilitySum;
+				probabilities[n] = probabilities[n]/ probabilitySum;
 			}
 
 

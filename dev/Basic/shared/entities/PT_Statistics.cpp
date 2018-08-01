@@ -85,6 +85,12 @@ void PT_Statistics::HandleMessage(Message::MessageType type, const Message& mess
 		waitingCounts.push_back(msg.waitingCnt);
 		break;
 	}
+	case STORE_PERSON_ALIGHTING:
+	{
+		const PT_PassengerAlightInfoMessage& msg = MSG_CAST(PT_PassengerAlightInfoMessage, message);
+		stopStatsMgr.addStopStats(msg.personAlightTimeInfo);
+	break;
+	}
 	default:
 	{
 		break;
@@ -235,7 +241,7 @@ std::string PT_RerouteInfo::getCSV() const
 }
 std::string PersonTravelTime::getCSV() const
 {
-	char csvArray[200];
+	char csvArray[600];
 	sprintf(csvArray, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%.2f\n",
 			personId.c_str(),
 			tripStartPoint.c_str(),
@@ -263,14 +269,15 @@ std::string WaitingCount::getCSV() const
 std::string StopStats::getCSV() const
 {
 	char csvArray[100];
-	sprintf(csvArray, "%u,%s,%s,%.2f,%.2f,%.2f,%.2f\n",
+	sprintf(csvArray, "%u,%s,%s,%.2f,%.2f,%.2f,%.2f,%.2f\n",
 			interval,
 			stopCode.c_str(),
 			serviceLine.c_str(),
 			((waitingCount<=0)? 0 : (waitingTime / waitingCount)),
 			((numArrivals<=0)? 0 : (dwellTime / numArrivals)),
 			numArrivals,
-			numBoarding);
+			numBoarding,
+			numAlighting);
 	return std::string(csvArray);
 }
 
@@ -285,7 +292,11 @@ unsigned int StopStatsManager::getTimeInSecs(const std::string& time) const
 
 void StopStatsManager::addStopStats(const PT_ArrivalTime& arrivalInfo)
 {
-	unsigned int interval = getTimeInSecs(arrivalInfo.arrivalTime) / intervalWidth;
+	unsigned int interval = 0;
+    if(intervalWidth!=0)
+    {
+        interval = getTimeInSecs(arrivalInfo.arrivalTime) / intervalWidth;
+    }
 	StopStats& stats = stopStatsMap[interval][arrivalInfo.stopNo][arrivalInfo.serviceLine]; //an entry to be created if not in the map already
 	if(stats.needsInitialization)
 	{
@@ -298,6 +309,25 @@ void StopStatsManager::addStopStats(const PT_ArrivalTime& arrivalInfo)
 	stats.dwellTime = stats.dwellTime + arrivalInfo.dwellTimeSecs;
 }
 
+
+void StopStatsManager::addStopStats(const PT_PassengerAlightInfo& personAlightTimeInfo)
+{
+    unsigned int interval = 0;
+    if(intervalWidth!=0)
+    {
+        interval = getTimeInSecs(personAlightTimeInfo.alightTime) / intervalWidth;
+    }
+	StopStats& stats = stopStatsMap[interval][personAlightTimeInfo.stopNo][personAlightTimeInfo.serviceLine]; //an entry to be created if not in the map already
+	if(stats.needsInitialization)
+	{
+		stats.interval = interval;
+		stats.stopCode = personAlightTimeInfo.stopNo;
+		stats.serviceLine = personAlightTimeInfo.serviceLine;
+		stats.needsInitialization = false;
+	}
+	stats.numAlighting++;
+}
+
 void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
 {
 	unsigned int personBoardingTime = getTimeInSecs(personWaiting.currentTime);
@@ -305,7 +335,11 @@ void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
 	{
 		throw std::runtime_error("invalid currentTime passed with person waiting message");
 	}
-	unsigned int boardingInterval = personBoardingTime / intervalWidth;
+	unsigned int boardingInterval = 0;
+    if(intervalWidth!=0)
+    {
+        boardingInterval = personBoardingTime / intervalWidth;
+    }
 	StopStats& boardingStats = stopStatsMap[boardingInterval][personWaiting.busStopNo][personWaiting.busLineBoarded]; //an entry to be created if not in the map already
 	if(boardingStats.needsInitialization)
 	{
@@ -318,12 +352,29 @@ void StopStatsManager::addStopStats(const PersonWaitingTime& personWaiting)
 
 	std::vector<std::string> lines;
 	boost::split(lines, personWaiting.busLines, boost::is_any_of("/"));
-	unsigned int personArrivalTime = personBoardingTime - personWaiting.waitingTime;
+	unsigned int personArrivalTime;
+	if (personWaiting.waitingTime >personBoardingTime) // This is the case when current tick crosses mid night time 00:00:00
+	{
+		personArrivalTime = (unsigned int )SECONDS_IN_DAY -(personWaiting.waitingTime - personBoardingTime);
+	}
+	else
+	{
+		personArrivalTime = personBoardingTime - personWaiting.waitingTime;
+	}
+
 	if(personArrivalTime > SECONDS_IN_DAY) // personWaiting.waitingTime > personWaiting.currentTime(from start of day)
 	{
-		throw std::runtime_error("invalid currentTime or waiting time passed with person waiting message");
+		std::stringstream msg;
+		msg << "Invalid currentTime or waiting time passed with person waiting message! "
+		    << "\npersonBoardingTime: " << personBoardingTime << ", waitingTime: " << personWaiting.waitingTime
+		    << "\npersonArrivalTime: " << personArrivalTime;
+		throw std::runtime_error(msg.str());
 	}
-	unsigned int interval = personArrivalTime / intervalWidth;
+    unsigned int interval = 0;
+    if(intervalWidth!=0)
+    {
+        interval= personArrivalTime / intervalWidth;
+    }
 	for(const std::string& line : lines)
 	{
 		StopStats& stats = stopStatsMap[interval][personWaiting.busStopNo][line]; //an entry to be created if not in the map already
@@ -377,7 +428,11 @@ void StopStatsManager::loadHistoricalStopStats()
 
 double StopStatsManager::getDwellTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const
 {
-	unsigned int interval = time / intervalWidth;
+	unsigned int interval = 0;
+    if(intervalWidth!=0)
+    {
+        interval = time / intervalWidth;
+    }
 	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(interval);
 	if(histMapIt == historicalStopStatsMap.end())
 	{
@@ -400,7 +455,11 @@ double StopStatsManager::getDwellTime(unsigned int time, const std::string& stop
 
 double StopStatsManager::getWaitingTime(unsigned int time, const std::string& stopCode, const std::string& serviceLine) const
 {
-	unsigned int interval = time / intervalWidth;
+	unsigned int interval = 0;
+    if(intervalWidth!=0)
+    {
+        interval = time / intervalWidth;
+    }
 	std::map<unsigned int, std::map<std::string, std::map<std::string, StopStats> > >::const_iterator histMapIt = historicalStopStatsMap.find(interval);
 	if(histMapIt == historicalStopStatsMap.end())
 	{

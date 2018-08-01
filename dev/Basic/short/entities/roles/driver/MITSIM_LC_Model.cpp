@@ -1863,11 +1863,12 @@ int MITSIM_LC_Model::checkForEventsAhead(DriverUpdateParams& params)
 		needDLC = true;
 	}
 	
-	if (connectedLanes.size() > 0)
+	if (!connectedLanes.empty())
 	{
 		//stop point lane maybe not in targetLanes, so just assign to targetLanes
 		params.targetLanes = connectedLanes;
 	}
+
 	if (params.stopPointState == DriverUpdateParams::STOP_POINT_FOUND || params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT ||
 			params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT || params.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT)
 	{
@@ -1920,7 +1921,7 @@ int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<
 	if (fwdDriverMovement->getNextSegment())
 	{
 		//Fill targetLanes - select only lanes that are connected to the next segment
-		std::vector<Lane *>::const_iterator itLanes = currLane->getParentSegment()->getLanes().begin();
+		std::vector<const Lane *>::const_iterator itLanes = currLane->getParentSegment()->getLanes().begin();
 		while (itLanes != currLane->getParentSegment()->getLanes().end())
 		{
 			//Check the physical lane connectors
@@ -2145,11 +2146,11 @@ int MITSIM_LC_Model::getConnectedLanesInLookAheadDistance(DriverUpdateParams &pa
 	}
 	
 	//Lanes in the current segment
-	const std::vector<Lane *> &lanes = fwdDriverMovement->getCurrSegment()->getLanes();	
+	const std::vector<const Lane *> &lanes = fwdDriverMovement->getCurrSegment()->getLanes();
 	end = wayPtsInLookAheadDist.end();
 	
 	//Check the connectivity of each of the lanes to the way points in the look ahead distance
-	for(std::vector<Lane *>::const_iterator itLanes = lanes.begin(); itLanes != lanes.end(); ++itLanes)
+	for(std::vector<const Lane *>::const_iterator itLanes = lanes.begin(); itLanes != lanes.end(); ++itLanes)
 	{
 		//The way points in the look ahead distance
 		itWayPts = wayPtsInLookAheadDist.begin() + 1;

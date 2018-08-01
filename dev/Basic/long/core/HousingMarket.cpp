@@ -16,6 +16,7 @@
 #include "entities/Agent_LT.hpp"
 #include "DataManager.hpp"
 #include "util/HelperFunctions.hpp"
+#include "util/PrintLog.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -225,7 +226,10 @@ void HousingMarket::getAvailableEntries(const IdVector& tazIds, HousingMarket::C
             //copy lists.
             for (HousingMarket::EntryMap::iterator itMap = map.begin(); itMap != map.end(); itMap++)
             {
-                outList.push_back(itMap->second);
+            	if(itMap->second->isBuySellIntervalCompleted())
+            	{
+            		outList.push_back(itMap->second);
+            	}
             }
         }
     }
@@ -233,16 +237,26 @@ void HousingMarket::getAvailableEntries(const IdVector& tazIds, HousingMarket::C
 
 void HousingMarket::getAvailableEntries(ConstEntryList& outList)
 {
-    copy(entriesById, outList);
+    //copy(entriesById, outList);
+    for( auto itr = entriesById.begin(); itr != entriesById.end(); itr++)
+    {
+    	if( (*itr).second->isBuySellIntervalCompleted() == true)
+    	{
+    		outList.push_back((*itr).second);
+    	}
+    }
 }
 
-size_t HousingMarket::getEntrySize()
+size_t HousingMarket::getEntrySize(unsigned int currTick)
 {
 	size_t size = 0;
 	for( auto itr = entriesById.begin(); itr != entriesById.end(); itr++)
 	{
 		if( (*itr).second->isBuySellIntervalCompleted() == true)
+		{
+			writeDailyHousingMarketUnitsToFile(currTick,(*itr).second->getUnitId());
 			size++;
+		}
 	}
 
 	return size;
@@ -311,7 +325,9 @@ void HousingMarket::HandleMessage(Message::MessageType type, const Message& mess
                 //MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId)));
 
                if( newEntry->isBTO() )
+               {
             	   btoEntries.insert(unitId);
+               }
 
                unitsByZoneHousingType.insert(std::make_pair<int,BigSerial>( msg.entry.getZoneHousingType(), msg.entry.getUnitId()));
             }

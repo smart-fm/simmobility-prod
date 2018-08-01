@@ -758,7 +758,7 @@ namespace {
         PrintOut(fmtr.str() << endl);
         PrintOut(endl);
         size_t numThreads = threadContexts.size();
-        long long int balance = abs(totalProcessed - totalReceived - (totalEvents * numThreads)) - totalRemaining;
+        long long int balance = abs((long long int)((totalProcessed - totalReceived - (totalEvents * numThreads)) - totalRemaining));
         PrintOut("Balance (Should be 0):  " << balance << std::endl); 
         PrintOut(endl);
         PrintOut("##############################################################" << endl);

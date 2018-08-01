@@ -22,6 +22,7 @@
 #include "partitions/UnPackageUtils.hpp"
 #include "message/MessageBus.hpp"
 #include "message/ST_Message.hpp"
+#include "entities/PT_Statistics.hpp"
 
 using namespace sim_mob;
 
@@ -107,6 +108,9 @@ void BusDriver::alightPassenger(Person_ST *passenger)
 	passengerList.remove(passenger);
 	
 	currAlightingTime += passenger->getAlightingCharacteristics();
+    //Send alighting message to passenger
+    messaging::MessageBus::PostMessage(passenger, MSG_ALIGHT_BUS, messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
+    storeAlightInfo(passenger,getBusLineId());
 }
 
 double BusDriver::getPositionX() const
@@ -134,3 +138,32 @@ BusStopAgent* BusDriver::getCurrBusStopAgent() const
 	return currBusStopAgent;
 }
 
+void BusDriver::storeAlightInfo(Person_ST *passenger,const std::string &BusLineId )
+{
+
+    PT_PassengerAlightInfo personAlightTimeInfo;
+    std::string busStopNo;
+    const BusStop *busStop = getCurrBusStopAgent()->getBusStop();
+    const unsigned int currMS = getParams().now.ms();
+
+    if(busStop->isVirtualStop())
+    {
+        busStopNo = busStop->getTwinStop()->getStopCode();
+    }
+    else
+    {
+        busStopNo = busStop->getStopCode();
+    }
+    /** id of person who submitted this waiting time record*/
+    if(passenger!= nullptr)
+    {
+        personAlightTimeInfo.personId = passenger->getDatabaseId();
+        personAlightTimeInfo.stopNo = busStopNo;
+        personAlightTimeInfo.serviceLine = BusLineId;
+        personAlightTimeInfo.alightTime = DailyTime(currMS +
+                                                    ConfigManager::GetInstance().FullConfig().simStartTime().getValue()).getStrRepr();;    //person allight time (==current time)
+        messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_ALIGHTING,
+                                           messaging::MessageBus::MessagePtr(
+                                                   new PT_PassengerAlightInfoMessage(personAlightTimeInfo)));
+    }
+}

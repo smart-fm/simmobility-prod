@@ -343,7 +343,7 @@ void LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> co
 	size_t count = roads.size();
 	size_t createdLDs = 0;
 	RoadSegment const * road = roads[count - 1]; //create LD only for the last road segment in the vector
-	std::vector<Lane *> const & lanes = road->getLanes();
+	std::vector<const Lane *> const & lanes = road->getLanes();
 
 	if (!lanes.size())
 	{

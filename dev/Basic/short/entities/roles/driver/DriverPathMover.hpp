@@ -161,10 +161,10 @@ public:
 	 * Sets the driving path and initialises the internal members to point to the elements in the path
 	 *
      * @param path the path retrieved from the street directory or the path set manager
-     * @param startLaneIndex the index of the starting lane (optional)
-	 * @param startSegmentId the id of starting segment (optional)
+     * @param startLaneIndex the index of the starting lane (slowest lane by default)
+	 * @param startSegmentId the id of starting segment (first segment in path by default)
      */
-	void setPath(const std::vector<WayPoint> &path, int startLaneIndex = -1, int startSegmentId = 0);
+	void setPath(const std::vector<WayPoint> &path, int startLaneIndex = 0, int startSegmentId = 0);
 	
 	/**
 	 * Sets the driving path that begins with a turning group and initialises the internal members to 

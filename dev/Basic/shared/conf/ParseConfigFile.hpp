@@ -105,6 +105,12 @@ private:
 	void processSchoolAssignmentModelNode(DOMElement *schoolAssignModel);
 
 	/**
+	 * Processes the jobAssignmentModel element in the config file
+	 * @param node node corresponding to the jobAssignmentModel element in the xml file
+	 */
+	void processJobAssignmentModelNode(DOMElement *jobAssignModel);
+
+	/**
 	 * Processes the scenario element in the config file
 	 * @param node node corresponding to the scenario element in the xml file
 	 */
@@ -140,6 +146,14 @@ private:
 	 * @param node node correspoding to the workgroup_assignment element in the xml file
 	 */
 	void processWorkgroupAssignmentNode(xercesc::DOMElement *node);
+
+	/**
+	 * Processes the operational cost in the config file
+	 *
+	 * @param node node correspoding to the operational cost element in the simulation.xml file
+	 */
+	void processOperationalCostNode(xercesc::DOMElement *node);
+
 
 	/**
 	 * Processes the closed_loop element in the config file
@@ -202,6 +216,29 @@ private:
 	 * @param node node corresponding to the model_scripts element in the xml file
 	 */
 	void processModelScriptsNode(xercesc::DOMElement *node);
+
+	/**
+	 * Processes the model_scripts_ABA element in the config file
+	 *
+	 * @param node node corresponding to the model_scripts_ABA element in the xml file
+	 */
+	void processModelScriptsNodeABA(xercesc::DOMElement *node);
+
+	void processModelScriptNodeABAFIles(xercesc::DOMElement *node, std::string tagName, ModelScriptsMap &scriptsMap);
+
+	/**
+	 * Processes the travel modes element in config xml
+	 *
+	 * @param node node corresponding to the travel modes element inside xml file
+	 */
+	void processTravelModesNode(xercesc::DOMElement* node);
+
+	/**
+	 * Processes the activity types element in config xml
+	 *
+	 * @param node node corresponding to the activity types element inside xml file
+	 */
+	void processActivityTypesNode(xercesc::DOMElement* node);
 
 private:
 	//The config file we are currently loading

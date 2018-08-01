@@ -8,6 +8,7 @@
 #include <vector>
 #include <utility>
 
+#include "behavioral/StopType.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
@@ -22,37 +23,6 @@ namespace sim_mob
 namespace medium
 {
 class ParseMidTermConfigFile;
-
-class MongoCollectionsMap
-{
-public:
-	MongoCollectionsMap(const std::string& dbName = "");
-
-	std::string getCollectionName(std::string key) const
-	{
-		//at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
-		return collectionNameMap.at(key);
-	}
-
-	const std::map<std::string, std::string>& getCollectionsMap() const
-	{
-		return collectionNameMap;
-	}
-
-	void addCollectionName(const std::string& key, const std::string& value)
-	{
-		this->collectionNameMap[key] = value;
-	}
-
-	const std::string& getDbName() const
-	{
-		return dbName;
-	}
-
-private:
-	std::string dbName;
-	std::map<std::string, std::string> collectionNameMap; //key=>value
-};
 
 class PredayCalibrationParams
 {
@@ -312,7 +282,7 @@ private:
 };
 
 /**
- * Simple struct to store configuration setting related to TripChain outputs
+ * Structure to store das table config information
  */
 struct TripChainOutputConfig
 {
@@ -325,7 +295,23 @@ struct TripChainOutputConfig
 
 	TripChainOutputConfig() : enabled(false), tripActivitiesFile(""), subTripsFile("")
 	{}
+
 };
+
+/**
+ * Structure to store das table config information
+ */
+struct DAS_Config
+{
+	DAS_Config() : schema(""), table(""), updateProc(""), fileName("")
+	{}
+
+	std::string schema;
+	std::string table;
+	std::string updateProc;
+	std::string fileName;
+};
+
 
 /**
  * Singleton class to hold Mid-term related configurations
@@ -366,6 +352,28 @@ public:
 	 * @param pedestrianWalkSpeed speed to be set
 	 */
 	void setPedestrianWalkSpeed(double pedestrianWalkSpeed);
+/**
+-	 * Retrieves model scripts map
+-	 *
+-	 * @return model scritps map
+-	 */
+			const ModelScriptsMap& getModelScriptsMap() const;
+
+			/**
+-	 * Sets model scripts map
+-	 *
+-	 * @param modelScriptsMap model scripts map to be set
+-	 */
+			void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
+
+	ModelScriptsMap modelScriptsMap;
+
+		/**
+	@@ -785,9 +772,6 @@ class MT_Config : private ProtectedCopyable
+ 	/// flag to indicate whether console output is required
+ 	bool consoleOutput;
+
+	/// Container for lua scripts
 
 	/**
 	 * Retrieves number of threads allocated for Preday
@@ -380,34 +388,6 @@ public:
 	 * @param numPredayThreads number of threads
 	 */
 	void setNumPredayThreads(unsigned numPredayThreads);
-
-	/**
-	 * Retrieves model scripts map
-	 *
-	 * @return model scritps map
-	 */
-	const ModelScriptsMap& getModelScriptsMap() const;
-
-	/**
-	 * Sets model scripts map
-	 *
-	 * @param modelScriptsMap model scripts map to be set
-	 */
-	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
-
-	/**
-	 * Retrieves Mongo Collection map
-	 *
-	 * @return mongo collections map
-	 */
-	const MongoCollectionsMap& getMongoCollectionsMap() const;
-
-	/**
-	 * Sets mongo collection map
-	 *
-	 * @param mongoCollectionsMap mongo collections map to be set
-	 */
-	void setMongoCollectionsMap(const MongoCollectionsMap& mongoCollectionsMap);
 
 	/**
 	 * the object of this class gets sealed when this function is called. No more changes will be allowed via the  setters
@@ -691,6 +671,8 @@ public:
 	 */
 	bool RunningMidDemand() const;
 
+	bool RunningMidFullLoop() const;
+
 	/**
 	 * Sets the mid term run mode
 	 *
@@ -770,7 +752,7 @@ public:
 	 */
 	enum MidTermRunMode
 	{
-		MT_NONE, MT_SUPPLY, MT_PREDAY
+		MT_NONE, MT_SUPPLY, MT_PREDAY, MT_FULL
 	};
 
 	/// Mid term run mode identifier
@@ -787,6 +769,9 @@ public:
 
 	/// Configuration for trip chain output
 	TripChainOutputConfig tripChainOutput;
+
+	/// Day Activity Schedule config information
+	DAS_Config dasConfig;
 
 private:
 	/**
@@ -824,14 +809,8 @@ private:
 	/// flag to indicate whether console output is required
 	bool consoleOutput;
 
-	/// Container for lua scripts
-	ModelScriptsMap modelScriptsMap;
-
 	/// Container for service controller script
 	ModelScriptsMap ServiceControllerScriptsMap;
-
-	/// container for mongo collections
-	MongoCollectionsMap mongoCollectionsMap;
 
 	/** default capacity for bus*/
 	unsigned int busCapacity;

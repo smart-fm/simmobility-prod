@@ -46,6 +46,7 @@
 #include "database/dao/ProjectDao.hpp"
 #include "database/dao/BuildingAvgAgePerParcelDao.hpp"
 #include "database/dao/ROILimitsDao.hpp"
+#include "database/dao/PostcodeDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "util/SharedFunctions.hpp"
@@ -101,7 +102,7 @@ void DeveloperModel::startImpl() {
 
 	if (conn.isConnected())
 	{
-		ParcelsWithHDB *HDB_Parcel;
+		ParcelsWithHDB *HDB_Parcel = nullptr;
 		if(initLoading)
 		{
 			loadData<ParcelsWithHDBDao>(conn,parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
@@ -135,6 +136,11 @@ void DeveloperModel::startImpl() {
 			freeholdParcelsById.insert(std::make_pair((*it)->getId(), *it));
 		}
 
+		PostcodeDao postcodeDao(conn);
+		postcodes = postcodeDao.getPostcodeByTaz();
+		for (PostcodeList::iterator it = postcodes.begin(); it != postcodes.end(); it++) {
+			postcodeByTaz.insert(std::make_pair((*it)->getTazId(), *it));
+		}
 		//load DevelopmentType-Templates
 		loadData<DevelopmentTypeTemplateDao>(conn, developmentTypeTemplates);
 		//load Template - UnitType
@@ -151,8 +157,9 @@ void DeveloperModel::startImpl() {
 		//commented as this is not used in 2012 now.
 		//loadData<LogsumForDevModelDao>(conn,accessibilityList,accessibilityByTazId,&LogsumForDevModel::gettAZ2012Id);
 
-		loadData<TAO_Dao>(conn_calibration,taoList,taoByQuarterStr,&TAO::getQuarter);
-		PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
+		//loadData<TAO_Dao>(conn_calibration,taoList,taoByQuarterStr,&TAO::getQuarter);
+		//PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
+		loadTAO(conn_calibration);
 
 		loadData<UnitPriceSumDao>(conn,unitPriceSumList,unitPriceSumByParcelId,&UnitPriceSum::getFmParcelId);
 		PrintOutV("unit price sums loaded " << unitPriceSumList.size() << std::endl);
@@ -167,16 +174,23 @@ void DeveloperModel::startImpl() {
 
 		std::tm currentSimYear = getDateBySimDay(simYear,0);
 		UnitDao unitDao(conn);
-		btoUnits = unitDao.getBTOUnits(currentSimYear);
+		if(config.ltParams.launchBTO)
+		{
+			btoUnits = unitDao.getBTOUnits(currentSimYear);
+		}
+		if(config.ltParams.launchPrivatePresale)
+		{
+			privatePresaleUnits = unitDao.getPrivatePresaleUnits();
+		}
 		//ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
 
 		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 
 		if(resume)
 		{
-			outputSchema = config.ltParams.currentOutputSchema;
+			outputSchema = config.schemas.main_schema;
 			SimulationStoppedPointDao simStoppedPointDao(conn);
-			const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema+ "."+"simulation_stopped_point;";
+			const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema +"simulation_stopped_point;";
 			simStoppedPointDao.getByQuery(getAllSimStoppedPointParams,simStoppedPointList);
 			if(!simStoppedPointList.empty())
 			{
@@ -186,7 +200,7 @@ void DeveloperModel::startImpl() {
 				projectIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getProjectId();
 			}
 
-			parcelsWithOngoingProjects = parcelDao.getParcelsWithOngoingProjects(outputSchema);
+			parcelsWithOngoingProjects = parcelDao.getParcelsWithOngoingProjects(config.schemas.main_schema);
 			//Index all parcels with ongoing projects.
 			for (ParcelList::iterator it = parcelsWithOngoingProjects.begin(); it != parcelsWithOngoingProjects.end(); it++) {
 				parcelsWithOngoingProjectsById.insert(std::make_pair((*it)->getId(), *it));
@@ -194,12 +208,14 @@ void DeveloperModel::startImpl() {
 
 			//load projects
 			ProjectDao projectDao(conn);
-			projects = projectDao.loadOngoingProjects(outputSchema);
+			projects = projectDao.loadOngoingProjects(config.schemas.main_schema);
 			for (ProjectList::iterator it = projects.begin(); it != projects.end(); it++) {
 				existingProjectIds.push_back((*it)->getProjectId());
 				projectByParcelId.insert(std::make_pair((*it)->getParcelId(),*it));
 			}
 
+			PrintOutV("Total number of projects loaded from previous run: "<<existingProjectIds.size()<<std::endl);
+			PrintOutV("Total number of parcels with ongoing projects: "<<parcelsWithOngoingProjects.size()<<std::endl);
 		}
 		else
 		{
@@ -220,7 +236,7 @@ void DeveloperModel::startImpl() {
 
 
 	PrintOutV("minLotSize"<<minLotSize<<std::endl);
-	Parcel *parcel;
+	Parcel *parcel = nullptr;
 	if(initLoading)
 	{
 		processParcels();
@@ -242,7 +258,14 @@ void DeveloperModel::startImpl() {
 	createDeveloperAgents(parcelsWithProjectsList,true,false);
 	createDeveloperAgents(parcelsWithDay0Projects,false,true);
 	PrintOutV("Created dev agents"<<std::endl);
-	createBTODeveloperAgents();
+	if(config.ltParams.launchBTO)
+	{
+		createBTODeveloperAgents();
+	}
+	if(config.ltParams.launchPrivatePresale)
+	{
+		createPrivatePresaleDeveloperAgents();
+	}
 	wakeUpDeveloperAgents(getDeveloperAgents());
 	PrintOutV("Wokeup dev agents"<<std::endl);
 
@@ -254,6 +277,7 @@ void DeveloperModel::startImpl() {
 	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
 	PrintOutV("Parcel Amenities " << parcelsWithHDB.size() << std::endl);
 	PrintOutV("BTO units " << btoUnits.size() << std::endl);
+	PrintOutV("Private presale units " << privatePresaleUnits.size() << std::endl);
 	PrintOutV("Parcels with units to launch on Day 0 " << parcelsWithDay0Projects.size() << std::endl);
 
 	addMetadata("Time Interval", timeInterval);
@@ -498,6 +522,22 @@ void DeveloperModel::createBTODeveloperAgents()
 	agents.push_back(devAgent);
 	developers.push_back(devAgent);
 	workGroup.assignAWorker(devAgent);
+}
+
+void DeveloperModel::createPrivatePresaleDeveloperAgents()
+{
+	DeveloperAgent* devAgent = new DeveloperAgent(nullptr, this);
+	AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
+	RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
+	devAgent->setRealEstateAgent(realEstateAgent);
+	devAgent->setHousingMarketModel(housingMarketModel);
+	devAgent->setSimYear(simYear);
+	devAgent->setHasPrivatePresale(true);
+	devAgent->setActive(true);
+	agents.push_back(devAgent);
+	developers.push_back(devAgent);
+	workGroup.assignAWorker(devAgent);
+
 }
 
 void DeveloperModel::wakeUpDeveloperAgents(DeveloperList devAgentList)
@@ -971,6 +1011,19 @@ std::vector<BigSerial> DeveloperModel::getBTOUnits(std::tm currentDate)
 	return btoUnitsForSale;
 }
 
+std::vector<BigSerial>  DeveloperModel::getPrivatePresaleUnits(std::tm currentDate)
+{
+	std::vector<BigSerial> privatePresaleUnitsToLaunch;
+	for(Unit *unit : privatePresaleUnits)
+	{
+		if(compareTMDates(unit->getSaleFromDate(),currentDate))
+		{
+			privatePresaleUnitsToLaunch.push_back(unit->getId());
+		}
+	}
+	return privatePresaleUnitsToLaunch;
+}
+
 void DeveloperModel::loadHedonicCoeffs(DB_Connection &conn)
 {
 	soci::session sql;
@@ -989,6 +1042,7 @@ void DeveloperModel::loadHedonicCoeffs(DB_Connection &conn)
 		hedonicCoefficientsByPropertyTypeId.insert(std::make_pair(coeef->getPropertyTypeId(), coeef));
 
 	}
+	PrintOutV("Hedonic coeffs by property type rows"<< hedonicCoefficientsList.size()<<std::endl);
 }
 
 const HedonicCoeffs* DeveloperModel::getHedonicCoeffsByPropertyTypeId(BigSerial propertyId) const
@@ -1020,6 +1074,7 @@ void DeveloperModel::loadHedonicCoeffsByUnitType(DB_Connection &conn)
 			hedonicCoefficientsByUnitTypeId.insert(std::make_pair(coeef->getUnitTypeId(), coeef));
 
 		}
+		PrintOutV("Hedonic coeffs by unit type rows"<< hedonicCoefficientsByUnitTypeList.size()<<std::endl);
 
 }
 
@@ -1152,6 +1207,13 @@ void DeveloperModel::loadPrivateLagTByUT(DB_Connection &conn)
 	}
 }
 
+void DeveloperModel::loadTAO(DB_Connection &conn)
+{
+	loadData<TAO_Dao>(conn,taoList,taoByQuarterStr,&TAO::getQuarter);
+	PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
+
+}
+
 const LagPrivate_TByUnitType* DeveloperModel::getLagPrivateTByUnitTypeId(BigSerial unitTypeId)
 {
 	LagPrivateTByUTMap::const_iterator itr = ptivateLagsByUnitTypeId.find(unitTypeId);
@@ -1166,4 +1228,34 @@ const std::string &DeveloperModel::getScenario()
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	return config.ltParams.scenario.scenarioName;
+}
+
+bool DeveloperModel::isToaPayohTaz(BigSerial tazId)
+{
+	std::multimap<string, StudyArea*> scenario = housingMarketModel->getStudyAreaByScenarioName();
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	auto itr_range = scenario.equal_range( config.ltParams.scenario.scenarioName );
+
+	bool isToaPayohTaz = false;
+
+	int dist = distance(itr_range.first, itr_range.second);
+
+	for(auto itr = itr_range.first; itr != itr_range.second; itr++)
+	{
+		if( itr->second->getFmTazId()  == tazId )
+			isToaPayohTaz = true;
+	}
+	return isToaPayohTaz;
+
+}
+
+const Postcode* DeveloperModel::getPostcodeByTaz(BigSerial tazId)
+{
+	PostcodeByTazMap::const_iterator itr = postcodeByTaz.find(tazId);
+	if (itr != postcodeByTaz.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+
 }

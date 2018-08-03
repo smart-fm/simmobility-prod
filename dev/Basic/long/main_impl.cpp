@@ -527,8 +527,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
             wgMgr.waitAllGroups();
 
-
-
             DeveloperModel::ParcelList parcels;
             DeveloperModel::DeveloperList developerAgents;
             if((currTick+1)%7 == 0)
@@ -570,6 +568,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
                        				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
                        				   << " AwakenByBTO: "	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings()
                        				   << " " << std::endl );
+
 
             //Statistics::print();
             Statistics::reset(Statistics::N_WAITING_TO_MOVE);

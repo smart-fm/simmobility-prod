@@ -85,7 +85,6 @@ Entity::UpdateStatus EventsInjector::update(timeslice now)
     vector<ExternalEvent> events;
     AwakeningSubModel awakenings;
 
-    cout << "id " << this->GetId() << endl;
     events = awakenings.DailyAwakenings( now.ms(), getModel() );
 
     AgentsLookup& lookup = AgentsLookupSingleton::getInstance();

@@ -641,10 +641,7 @@ HousingMarket* HM_Model::getMarket()
 
 void HM_Model::incrementAwakeningCounter()
 {
-	mtx.lock();
 	initialHHAwakeningCounter++;
-	PrintOutV(  " initialHHAwakeningCounter " << initialHHAwakeningCounter << endl);
-	mtx.unlock();
 }
 
 int HM_Model::getAwakeningCounter() const

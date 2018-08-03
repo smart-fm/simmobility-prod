@@ -384,8 +384,8 @@ namespace sim_mob
 		    	AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
 		    	const HouseholdAgent *householdAgent = lookup.getHouseholdAgentById(household->getId());
 		    	(const_cast<HouseholdAgent*>(householdAgent))->setHouseholdBiddingWindow(householdBiddingWindow);
-                model->incrementAwakeningCounter();
-
+                
+				model->incrementAwakeningCounter();
 		    	printAwakeningJingsi(day, household, futureTransitionRate, futureTransitionRandomDraw, movingRate, movingRateRandomDraw);
 
 		    	extEv.setDay(day + 1);
@@ -395,9 +395,6 @@ namespace sim_mob
 
 		    	events.push_back(extEv);
 		    }
-
-			//PrintOutV( *this << " n: " << n << endl);
-
 
 		    int simYear = config.ltParams.year;
 		    std::tm currentDate = getDateBySimDay(simYear,day);

@@ -219,7 +219,7 @@ void AMOD_Controller::matchSingleRiderReq()
 	{
 		//Assign the start node
 		const Node *startNode = (*request).startNode;
-		const Person *feasibleDriver = findClosestDriver(startNode);
+		const Person *feasibleDriver;
 		for (const Person *driver : availableDrivers)
 		{
 			const Node *driverNode = driver->exportServiceDriver()->getCurrentNode(); 

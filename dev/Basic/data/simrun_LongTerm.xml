@@ -125,7 +125,7 @@
 			<occupancyFromDay value = "3650000"/>
 			<constructionCompletedDay value = "365000"/>
     	</developerModel>
-		<outputHouseholdLogsums enabled="false">
+		<outputHouseholdLogsums enabled="true">
 	    	<vehicleOwnershipLogsum value ="true"/>
 	    	<fixedHomeVariableWork value ="false"/>
 	    	<fixedWorkVariableHome value ="false"/>
@@ -232,7 +232,7 @@
 	<pathTC name="scripts/lua/mid/behavior_SG_20032018_12_4_Base_case_new/" format="lua" />
 	<pathTCPlusOne name="scripts/lua/mid/behavior_SG_20032018_12_4_Base_case_new_cost_plus1/" format="lua" />
 	<pathCTPlusOne name="scripts/lua/mid/behavior_SG_20032018_12_4_Base_case_new_time_plus1/" format="lua" />
-	<pathTCZero name="scripts/lua/mid/behavior_SG_20032018_12_4_Base_case_new_1000_cost_and_time/" format="lua" />
+	<pathTCZero name="scripts/lua/mid/behavior_SG_20032018_12_4_Benchmark_WalkOnly/" format="lua" />
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

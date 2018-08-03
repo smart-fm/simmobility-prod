@@ -36,7 +36,7 @@ local beta2_tt_share2 = -1000
 local beta2_tt_share3 = -1000
 local beta2_tt_motor = -1000
 
-local beta_tt_walk = -1000
+local beta_tt_walk = -3.72
 local beta_tt_taxi = -1000
 local beta_tt_SMS = -1000
 local beta_tt_SMS_Pool = -1000
@@ -370,19 +370,19 @@ local function computeUtilities(params,dbparams)
 	local residential_size=resident_size/origin_area/10000.0
 	local school_attraction=education_op/destination_area/10000.0
 
-	utility[1] = beta_cons_bus + beta1_1_tt * tt_bus_ivt + beta1_2_tt * tt_bus_walk + beta1_3_tt * tt_bus_wait + beta_cost * cost_bus + beta_central_bus * central_dummy + beta_transfer * average_transfer_number + beta_female_bus * female_dummy + age_over_15 * beta_age_over_15_bus + university_student * beta_university_student_bus
-	utility[2] = beta_cons_mrt + beta1_1_tt * tt_mrt_ivt + beta1_2_tt * tt_mrt_walk + beta1_3_tt * tt_mrt_wait + beta_cost * cost_mrt + beta_central_mrt * central_dummy + beta_transfer * average_transfer_number + beta_female_mrt * female_dummy + age_over_15 * beta_age_over_15_mrt + university_student * beta_university_student_mrt
-	utility[3] = beta_cons_privatebus + beta_private_1_tt * tt_privatebus_ivt + beta_cost * cost_privatebus + beta_central_privatebus * central_dummy + beta_distance*(d1+d2) + beta_residence * residential_size + beta_attraction * school_attraction + beta_residence_2*math.pow(residential_size,2)+beta_attraction_2*math.pow(school_attraction,2)+beta_female_privatebus* female_dummy + age_over_15 * beta_age_over_15_private_bus + university_student * beta_university_student_private_bus
-	utility[4] = beta_cons_drive1 + beta2_tt_drive1 * tt_cardriver_all + beta_cost * cost_cardriver + beta_female_drive1 * female_dummy + beta_zero_drive1 * zero_car + beta_oneplus_drive1 * one_plus_car + beta_twoplus_drive1 * two_plus_car + beta_threeplus_drive1 * three_plus_car + age_over_15 * beta_age_over_15_drive1 + university_student * beta_university_student_drive1
-	utility[5] = beta_cons_share2 + beta2_tt_share2 * tt_carpassenger_all + beta_cost * cost_carpassenger/2.0  + beta_central_share2 * central_dummy + beta_female_share2 * female_dummy + beta_zero_share2 * zero_car + beta_oneplus_share2 * one_plus_car + beta_twoplus_share2 * two_plus_car + beta_threeplus_share2 * three_plus_car + age_over_15*beta_age_over_15_share2 + university_student * beta_university_student_share2
-	utility[6] = beta_cons_share3 + beta2_tt_share3 * tt_carpassenger_all + beta_cost * cost_carpassenger/3.0  + beta_central_share3 * central_dummy + beta_female_share3 * female_dummy + beta_zero_share3 * zero_car + beta_oneplus_share3 * one_plus_car + beta_twoplus_share3 * two_plus_car + beta_threeplus_share3 * three_plus_car + age_over_15*beta_age_over_15_share3 + university_student * beta_university_student_share3
-	utility[7] = beta_cons_motor + beta2_tt_motor * tt_motor_all + beta_cost * cost_motor + beta_central_motor * central_dummy + beta_zero_motor * zero_motor + beta_oneplus_motor * one_plus_motor + beta_twoplus_motor * two_plus_motor + beta_threeplus_motor * three_plus_motor + beta_female_motor * female_dummy + age_over_15*beta_age_over_15_motor + university_student * beta_university_student_motor + beta_distance_motor * (d1+d2)
+	utility[1] = -1000
+	utility[2] = -1000
+	utility[3] = -1000
+	utility[4] = -1000
+	utility[5] = -1000
+	utility[6] = -1000
+	utility[7] = -1000
 	utility[8] = beta_cons_walk  + beta_tt_walk * tt_walk + beta_central_walk * central_dummy+ beta_female_walk * female_dummy + age_over_15*beta_age_over_15_walk + university_student * beta_university_student_walk
-	utility[9] = beta_cons_taxi + beta_tt_taxi * tt_taxi_all + beta_cost * cost_taxi + beta_central_taxi * central_dummy + beta_female_taxi * female_dummy + age_over_15*beta_age_over_15_taxi + university_student * beta_university_student_taxi
-	utility[10] = beta_cons_SMS + beta_tt_SMS * tt_SMS_all + beta_cost * cost_SMS + beta_central_SMS * central_dummy + beta_female_SMS * female_dummy + age_over_15*beta_age_over_15_SMS + university_student * beta_university_student_SMS
-	utility[11] = beta_cons_Rail_SMS + beta1_1_tt * tt_Rail_SMS_ivt + beta1_2_tt * tt_Rail_SMS_walk + beta1_3_tt * tt_Rail_SMS_wait + beta_cost * cost_Rail_SMS + beta_central_Rail_SMS * central_dummy + beta_transfer * average_transfer_number + beta_female_Rail_SMS * female_dummy + age_over_15 * beta_age_over_15_Rail_SMS + university_student * beta_university_student_Rail_SMS
-	utility[12] = beta_cons_SMS_Pool + beta_tt_SMS_Pool * tt_SMS_Pool_all + beta_cost * cost_SMS_Pool + beta_central_SMS_Pool * central_dummy + beta_female_SMS_Pool * female_dummy + age_over_15*beta_age_over_15_SMS_Pool + university_student * beta_university_student_SMS_Pool
-	utility[13] = beta_cons_Rail_SMS_Pool + beta1_1_tt * tt_Rail_SMS_Pool_ivt + beta1_2_tt * tt_Rail_SMS_Pool_walk + beta1_3_tt * tt_Rail_SMS_Pool_wait + beta_cost * cost_Rail_SMS_Pool + beta_central_Rail_SMS_Pool * central_dummy + beta_transfer * average_transfer_number + beta_female_Rail_SMS_Pool * female_dummy + age_over_15 * beta_age_over_15_Rail_SMS_Pool + university_student * beta_university_student_Rail_SMS_Pool
+	utility[9] = -1000
+	utility[10] = -1000
+	utility[11] = -1000
+	utility[12] = -1000
+	utility[13] = -1000
 end
 
 --availability

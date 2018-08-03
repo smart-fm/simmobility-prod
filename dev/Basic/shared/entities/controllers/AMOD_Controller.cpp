@@ -219,9 +219,18 @@ void AMOD_Controller::matchSingleRiderReq()
 	{
 		//Assign the start node
 		const Node *startNode = (*request).startNode;
-		const Person *bestDriver = findClosestDriver(startNode);
+		const Person *feasibleDriver = findClosestDriver(startNode);
+		for (const Person *driver : availableDrivers)
+		{
+			const Node *driverNode = driver->exportServiceDriver()->getCurrentNode(); 
+			if (getTT(driverNode, startNode, ttEstimateType) <= maxWaitingTime &&
+					(isCruising(driver) || isParked(driver))) {
+				feasibleDriver = driver;
+				break;
+			}
+		}
 
-		if (bestDriver)
+		if (feasibleDriver)
 		{
             Schedule schedule;
 			const ScheduleItem pickUpScheduleItem(PICKUP, *request);
@@ -243,8 +252,8 @@ void AMOD_Controller::matchSingleRiderReq()
                 }
             }
 
-			ControllerLog()<<"SingleRideRequest: is prepared  for Driver "<<bestDriver->getDatabaseId()<<" at time "<<currTick<<" ."<<endl;
-            assignSchedule(bestDriver, schedule);
+			ControllerLog()<<"SingleRideRequest: is prepared  for Driver "<<feasibleDriver->getDatabaseId()<<" at time "<<currTick<<" ."<<endl;
+            assignSchedule(feasibleDriver, schedule);
 #ifndef NDEBUG
 			if (currTick < request->timeOfRequest)
 			{

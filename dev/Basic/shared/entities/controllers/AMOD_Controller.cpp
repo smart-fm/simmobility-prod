@@ -219,12 +219,13 @@ void AMOD_Controller::matchSingleRiderReq()
 	{
 		//Assign the start node
 		const Node *startNode = (*request).startNode;
-		const Person *feasibleDriver;
+		const Person *feasibleDriver = nullptr;
 		for (const Person *driver : availableDrivers)
 		{
 			const Node *driverNode = driver->exportServiceDriver()->getCurrentNode(); 
-			if (getTT(driverNode, startNode, ttEstimateType) <= maxWaitingTime &&
-					(isCruising(driver) || isParked(driver))) {
+			const double deadline = request->timeOfRequest.getSeconds() + maxWaitingTime;
+			const double arrival = currTick.getSeconds() + getTT(driverNode, startNode, ttEstimateType);
+			if ((arrival <= deadline) && (isCruising(driver) || isParked(driver))) {
 				feasibleDriver = driver;
 				break;
 			}

@@ -513,6 +513,10 @@ void HouseholdBidderRole::calculateMaxSurplusEntry(const HousingMarket::Entry* e
 	const Household* household = getParent()->getHousehold();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
+	//Do not bid on your own unit.
+	if (entry && entry->getOwner()->getId() == getParent()->getId())
+		return;
+
 	const Unit* unit = model->getUnitById(entry->getUnitId());
 	const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
 

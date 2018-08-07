@@ -471,7 +471,9 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 
 		if(unit && stats)
 		{
-			if (entry->getOwner() && biddingEntry.getBestBid() > 0.0f)
+			if (entry->getOwner() && biddingEntry.getBestBid() > 0.0f &&
+				entry->getOwner()->getId() == getParent()->getId()) //Do not bid on your own unit
+
 			{
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << biddingEntry.getBestBid() << "[wp:$" << biddingEntry.getWP() << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
@@ -512,10 +514,6 @@ void HouseholdBidderRole::calculateMaxSurplusEntry(const HousingMarket::Entry* e
 	HM_Model* model = getParent()->getModel();
 	const Household* household = getParent()->getHousehold();
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
-	//Do not bid on your own unit.
-	if (entry && entry->getOwner()->getId() == getParent()->getId())
-		return;
 
 	const Unit* unit = model->getUnitById(entry->getUnitId());
 	const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());

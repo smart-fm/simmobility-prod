@@ -405,8 +405,9 @@ namespace sim_mob
 			}
 
 		}
-		//hitsId , paxId , householdId , individualId , memberId , tazH , tazW , logsum[0] , logsum[1] ,logsum[2] , logsum[3] ,logsum[4] , logsum[5] ,travelProbability[0] , travelProbability[1] , travelProbability[2] , travelProbability[3] ,travelProbability[4] , travelProbability[5] ,tripsExpected[0] , tripsExpected[1], tripsExpected[2] , tripsExpected[3], tripsExpected[4] , tripsExpected[5]
-		inline void printHouseholdHitsLogsumFVO( std::string hitsId, int paxId, BigSerial householdId, BigSerial individualId, int memberId, int tazH, int tazW, std::unordered_map<int,double> &logsum)
+		inline void printHouseholdHitsLogsumFVO( std::string hitsId, int paxId, BigSerial householdId, BigSerial individualId, 
+												BigSerial employmentStatusId, BigSerial ageCategoryId, float income, int fixed_workplace,
+												int memberId, int tazH, int tazW, std::unordered_map<int,double> &logsum)
 		{
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			if(!config.ltParams.outputFiles.log_individual_logsum_vo)
@@ -448,8 +449,10 @@ namespace sim_mob
 			}
 
 
-			boost::format fmtr = boost::format( "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%")
-												 % hitsId % paxId % householdId % individualId % memberId % tazH % tazW
+			boost::format fmtr = boost::format( "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13% %14% %15% %16% %17%")
+												 % hitsId % paxId % householdId % individualId 
+												 % employmentStatusId % ageCategoryId % income % fixed_workplace
+												 % memberId % tazH % tazW
 												 % logsum0 % logsum1 % logsum2 % logsum3 % logsum4 % logsum5;
 			AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_LOGSUM_VO, fmtr.str());
 			std::cout << fmtr.str() << std::endl;

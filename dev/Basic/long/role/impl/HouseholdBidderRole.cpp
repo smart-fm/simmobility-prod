@@ -473,7 +473,6 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 		{
 			if (entry->getOwner() && biddingEntry.getBestBid() > 0.0f &&
 				entry->getOwner()->getId() != getParent()->getId()) //Do not bid on your own unit
-
 			{
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << biddingEntry.getBestBid() << "[wp:$" << biddingEntry.getWP() << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );

@@ -2809,23 +2809,24 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 				double logsumTCPlusOne4 = personParams4.getDpbLogsum();
 				double logsumTCPlusOne5 = personParams5.getDpbLogsum();
 
+				double avgDenominator= (logsumTCPlusOne0 + logsumTCPlusOne1 + logsumTCPlusOne2 + logsumTCPlusOne3 + logsumTCPlusOne4 + logsumTCPlusOne5 ) / 6.0;
 
-				double logsumScaledMaxCost0 = ( logsumTC0 - logsumTCZero0) / (logsumTC0 - logsumTCPlusOne0);
+				double logsumScaledMaxCost0 = ( logsumTC0 - logsumTCZero0) / avgDenominator;
 				logsum.insert(std::make_pair(0,logsumScaledMaxCost0));
 
-				double logsumScaledMaxCost1 = ( logsumTC1 - logsumTCZero1) / (logsumTC1 - logsumTCPlusOne1);
+				double logsumScaledMaxCost1 = ( logsumTC1 - logsumTCZero1) / avgDenominator;
 				logsum.insert(std::make_pair(1,logsumScaledMaxCost1));
 
-				double logsumScaledMaxCost2 = ( logsumTC2 - logsumTCZero2) / (logsumTC2 - logsumTCPlusOne2);
+				double logsumScaledMaxCost2 = ( logsumTC2 - logsumTCZero2) / avgDenominator;
 				logsum.insert(std::make_pair(2,logsumScaledMaxCost2));
 
-				double logsumScaledMaxCost3 = ( logsumTC3 - logsumTCZero3) / (logsumTC3 - logsumTCPlusOne3);
+				double logsumScaledMaxCost3 = ( logsumTC3 - logsumTCZero3) / avgDenominator);
 				logsum.insert(std::make_pair(3,logsumScaledMaxCost3));
 
-				double logsumScaledMaxCost4 = ( logsumTC4 - logsumTCZero4) / (logsumTC4 - logsumTCPlusOne4);
+				double logsumScaledMaxCost4 = ( logsumTC4 - logsumTCZero4) / avgDenominator;
 				logsum.insert(std::make_pair(4,logsumScaledMaxCost4));
 
-				double logsumScaledMaxCost5 = ( logsumTC5 - logsumTCZero5) / (logsumTC5 - logsumTCPlusOne5);
+				double logsumScaledMaxCost5 = ( logsumTC5 - logsumTCZero5) / avgDenominator;
 				logsum.insert(std::make_pair(5,logsumScaledMaxCost5));
 			}
 
@@ -2869,7 +2870,14 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 		simulationStopCounter++;
 
-		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
+		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, 
+									 currentHousehold->getId(), 
+									 householdIndividualIds[n], 
+									 thisIndividual->getEmploymentStatusId(),
+									 thisIndividual->getAgeCategoryId(),
+									 thisIndividual->getIncome(),
+									 thisIndividual->getFixed_workplace(),
+									 thisIndividual->getMemberId(), tazH, tazW, logsum );
 	}
 }
 
@@ -3134,7 +3142,13 @@ void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::uno
 
 			}
 
-			printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
+			printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, 
+										 currentHousehold->getId(), householdIndividualIds[n],
+										 thisIndividual->getEmploymentStatusId(),
+									 	 thisIndividual->getAgeCategoryId(),
+									 	 thisIndividual->getIncome(),
+									 	 thisIndividual->getFixed_workplace(), 
+										 thisIndividual->getMemberId(), tazH, tazW, logsum );
 		}
 }
 
@@ -3359,7 +3373,13 @@ void HM_Model::getLogsumOfHitsHouseholdVO(BigSerial householdId)
 		}
 
 		simulationStopCounter++;
-		printHouseholdHitsLogsumFVO( hitsIndividualLogsum[p]->getHitsId(), paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum );
+		printHouseholdHitsLogsumFVO( hitsIndividualLogsum[p]->getHitsId(), paxId, 
+									 currentHousehold->getId(), householdIndividualIds[n], 
+									 thisIndividual->getEmploymentStatusId(),
+									 thisIndividual->getAgeCategoryId(),
+									 thisIndividual->getIncome(),
+									 thisIndividual->getFixed_workplace(),
+									 thisIndividual->getMemberId(), tazH, tazW, logsum );
 
 	}
 

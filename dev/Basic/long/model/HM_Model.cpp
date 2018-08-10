@@ -2761,11 +2761,11 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 			const std::string luaDirTC = "TC";
 			PersonParams personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTC );
-			PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTC);
-			PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTC);
-			PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTC );
-			PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTC );
-			PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTC);
+			PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams ,luaDirTC);
+			PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams ,luaDirTC);
+			PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTC );
+			PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTC );
+			PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams ,luaDirTC);
 
 			double logsumTC0 = personParams0.getDpbLogsum();
 			double logsumTC1 = personParams1.getDpbLogsum();
@@ -2809,7 +2809,14 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 				double logsumTCPlusOne4 = personParams4.getDpbLogsum();
 				double logsumTCPlusOne5 = personParams5.getDpbLogsum();
 
-				double avgDenominator= (logsumTCPlusOne0 + logsumTCPlusOne1 + logsumTCPlusOne2 + logsumTCPlusOne3 + logsumTCPlusOne4 + logsumTCPlusOne5 ) / 6.0;
+				double denominator0 = (logsumTC0 -logsumTCPlusOne0 );
+				double denominator1 = (logsumTC1 -logsumTCPlusOne1 );
+				double denominator2 = (logsumTC2 -logsumTCPlusOne2 );
+				double denominator3 = (logsumTC3 -logsumTCPlusOne3 );
+				double denominator4 = (logsumTC4 -logsumTCPlusOne4 );
+				double denominator5 = (logsumTC5 -logsumTCPlusOne5 ); 
+
+				double avgDenominator = (denominator0 + denominator1 + denominator2 + denominator3 + denominator4  + denominator5) / 6.0;
 
 				double logsumScaledMaxCost0 = ( logsumTC0 - logsumTCZero0) / avgDenominator;
 				logsum.insert(std::make_pair(0,logsumScaledMaxCost0));
@@ -2820,7 +2827,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 				double logsumScaledMaxCost2 = ( logsumTC2 - logsumTCZero2) / avgDenominator;
 				logsum.insert(std::make_pair(2,logsumScaledMaxCost2));
 
-				double logsumScaledMaxCost3 = ( logsumTC3 - logsumTCZero3) / avgDenominator);
+				double logsumScaledMaxCost3 = ( logsumTC3 - logsumTCZero3) / avgDenominator;
 				logsum.insert(std::make_pair(3,logsumScaledMaxCost3));
 
 				double logsumScaledMaxCost4 = ( logsumTC4 - logsumTCZero4) / avgDenominator;

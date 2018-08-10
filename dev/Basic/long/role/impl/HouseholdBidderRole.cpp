@@ -472,7 +472,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 		if(unit && stats)
 		{
 			if (entry->getOwner() && biddingEntry.getBestBid() > 0.0f &&
-				entry->getOwner()->getId() == getParent()->getId()) //Do not bid on your own unit
+				entry->getOwner()->getId() != getParent()->getId()) //Do not bid on your own unit
 
 			{
 				#ifdef VERBOSE

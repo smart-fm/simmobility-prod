@@ -1,0 +1,145 @@
+packages:
+- dplyr
+- ggplot2
+- RPostgreSQL
+- ineq
+
+sources:
+- R/check_bids.R
+- R/check_inventory.R
+- R/check_screening.R
+- R/function.R
+
+targets:
+
+
+  all:
+    depends:
+      - dummy.draw_bids_generic
+      - dummy.draw_seller
+      - dummy.draw_buyer
+      - dummy.draw_buyer_success
+      - dummy.compare_units
+      - dummy.compare_bidders
+      - dummy.check_bidder_unit_on_market
+      - dummy.check_day_on_market_units
+      - dummy.check_day_on_market_bidders
+      - df.units_by_seller_type
+#      - df.screen_gini
+#      - df.screenprobs
+#      - df.choice_set_daily_units
+#      - df.unit_alternative
+
+
+
+  pth.results:
+    cleanup_level: purge
+    command: set_result_folder(I('./'))
+
+  pth.figure:
+    command: create_figure_folder(pth.results)
+
+  df.bids:
+    command: get_bids_file(pth.results)
+  
+  df.hh_choiceset:
+    command: load_csv(pth.results,I("HHChoiceSet.csv"))
+    
+  df.screenprobs:
+    command: load_csv(pth.results,I("ScreeningProbabilities.csv"))
+  
+  df.hh_choiceset_clean:
+    command: clean_hh_choiceset(df.hh_choiceset)
+  
+  df.daily_units:
+    command: load_csv(pth.results,I("dailyHousingMarketUnits.csv"))
+  
+  df.bids.success:
+    command: get_successful_bids(df.bids)
+  
+  df.bids.units:
+    command: get_bids_units(df.bids)
+
+  dummy.draw_bids_generic:
+    cleanup_level: purge
+    command: draw_bids_generic(df.bids,pth.figure)
+
+    
+  dummy.draw_seller:
+    command: draw_seller(df.bids.units,pth.figure,I('Unique'),I('unique'))
+    cleanup_level: purge
+    
+  dummy.draw_buyer:
+    command: draw_buyer(df.bids,pth.figure,I('All'),I('all'))
+  
+  dummy.draw_buyer_success:
+    command: draw_buyer(df.bids.success,pth.figure,I('Successful'),I('success'))
+  
+  df.console_output:
+    cleanup_level: purge
+    command: draw_market_from_console(pth.results)
+
+  
+  df.hh_choiceset_stats:
+    command: summarize_hh_choiceset(df.hh_choiceset_clean)
+    
+  dummy.compare_units:
+    command: compare_units(df.console_output, df.daily_units, 
+                           df.hh_choiceset_clean, df.bids, 
+                           pth.figure)
+  dummy.compare_bidders:
+    command: compare_bidders(df.console_output,df.hh_choiceset_clean,
+                            df.bids, pth.figure)
+    
+  df.fm_unit_res:
+    command: load_table(I('fm_unit_res'))
+  
+  df.household:
+    command: load_table(I('household'))
+    
+  df.unit_type:
+    command: load_table(I('unit_type'))
+  
+  df.view_building_sla_address:
+    command: load_table(I('view_building_sla_address'))
+    
+    
+  df.alternative:
+    command: load_table(I('alternative'),I('calibration2012'))
+    
+  
+  df.unit_alternative:
+    command: link_unit_alternative(df.fm_unit_res, df.unit_type,
+                                  df.alternative, df.view_building_sla_address)
+  
+  
+  dummy.check_bidder_unit_on_market:
+    command: check_bidder_unit_on_market(df.hh_choiceset_clean,df.daily_units,
+                              df.bids,df.household,df.fm_unit_res,pth.results)
+                                        
+                                        
+  dummy.check_day_on_market_units:
+    command: check_day_on_market_units(df.bids,df.daily_units,
+                                        pth.figure,df.household)
+    
+    
+  dummy.check_day_on_market_bidders:
+    command: check_day_on_market_bidders(df.bids,df.hh_choiceset_clean,
+                                              pth.figure)
+  
+  df.units_by_seller_type:
+    command: check_daily_units_by_seller(df.bids,df.daily_units,
+                                      df.hh_choiceset_clean,
+                                      pth.figure,df.household)
+                                      
+                                      
+  df.choice_set_daily_units:
+    command: units_in_choice_set_each_day(df.hh_choiceset_clean)
+  
+  df.screen_gini:
+    command: check_screen_probability(df.screenprobs,df.hh_choiceset_clean,
+                                     df.daily_units,df.choice_set_daily_units,
+                                     df.unit_alternative,pth.figure)
+
+
+                           

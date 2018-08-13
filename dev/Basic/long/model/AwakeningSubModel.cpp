@@ -373,6 +373,12 @@ namespace sim_mob
 		    	if (movingRateRandomDraw > movingRate)
 					continue;
 
+		    	AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
+		    	const HouseholdAgent *householdAgent = lookup.getHouseholdAgentById(household->getId());	
+
+				if(householdAgent == nullptr)
+					continue;
+
 		    	n++;
 
 				household->setLastBidStatus(0);
@@ -381,9 +387,7 @@ namespace sim_mob
 		    	int householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow;
 		    	household->setTimeOnMarket(householdBiddingWindow);
 
-		    	AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
-		    	const HouseholdAgent *householdAgent = lookup.getHouseholdAgentById(household->getId());
-		    	(const_cast<HouseholdAgent*>(householdAgent))->setHouseholdBiddingWindow(householdBiddingWindow);
+				(const_cast<HouseholdAgent*>(householdAgent))->setHouseholdBiddingWindow(householdBiddingWindow);
                 
 				model->incrementAwakeningCounter();
 		    	printAwakeningJingsi(day, household, futureTransitionRate, futureTransitionRandomDraw, movingRate, movingRateRandomDraw);

@@ -635,7 +635,7 @@ void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMet
 			restrictedRegion.str() << "\n"; /* MIXED CBD Information */
 
 	csv << res.str();
-	csv.flush();
+	//csv.flush();
 
 	int cbdStartNode = 0, cbdEndNode = 0;
 	if (subtripMetrics.cbdOrigin.type == WayPoint::NODE)

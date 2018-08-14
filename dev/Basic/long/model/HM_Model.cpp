@@ -2566,7 +2566,7 @@ const TravelTime* HM_Model::getTravelTimeByOriginDestTaz(BigSerial originTaz, Bi
 {
 	HM_Model::OriginDestKey originDestKey= make_pair(originTaz, destTaz);
 	auto range = travelTimeByOriginDestTaz.equal_range(originDestKey);
-	size_t sz = distance(range.first, range.second);
+	size_t sz = std::distance(range.first, range.second);
 	if(sz==0)
 	{
 		return nullptr;
@@ -4486,7 +4486,7 @@ void HM_Model::addSchoolDeskToStudent(BigSerial individualId, int schoolId)
 		//boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
 
 		auto range = schoolDesksBySchoolId.equal_range(schoolId);
-		size_t sz = distance(range.first, range.second);
+		size_t sz = std::distance(range.first, range.second);
 
 		if(sz==0)
 		{
@@ -4625,7 +4625,7 @@ bool HM_Model::checkJobsInTazAndIndustry(BigSerial tazId, BigSerial industryId)
 		boost::unique_lock<boost::shared_mutex> lock(sharedMtx1);
 		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(tazId, industryId);
 		auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
-		size_t sz = distance(range.first, range.second);
+		size_t sz = std::distance(range.first, range.second);
 		if(sz > 0)
 		{
 			return true;
@@ -4644,7 +4644,7 @@ bool HM_Model::assignIndividualJob(BigSerial individualId, BigSerial selectedTaz
 		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
 	HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
 	auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
-	size_t sz = distance(range.first, range.second);
+	size_t sz = std::distance(range.first, range.second);
 	if(sz==0)
 	{
 		//this part should not be reached with proper data. If you get this message please check whether you have enough jobs for individuals in each industry id.

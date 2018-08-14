@@ -1,3 +1,7 @@
+clear_df <- function(){
+  #change the value of x to any value to force a refresh
+  x = 0
+}
 
 load_csv <- function(results,filename){
   df = read.csv(paste0(results,filename), stringsAsFactors = F)
@@ -8,13 +12,10 @@ set_result_folder <- function(folder){
 }
 
 create_figure_folder <- function(pth.results){
-  pth.figure = paste0(pth.results,'/figure/')
+  pth.figure = paste0(pth.results,'figure/')
   dir.create((pth.figure))
   pth.figure
 }
-
-#pth.results = "./Results/180525/Release/"
-
 
 get_bids_file <- function(pth.results) {
   doc.bids = "bids.csv"
@@ -28,8 +29,6 @@ get_bids_file <- function(pth.results) {
   
   df.bids$unit.type = factor(df.bids$type_id)
   df.bids$bid.status = factor(df.bids$bid_status)
-  #df.bids$freelancer = ifelse(df.bids$seller_id>9000000,0,1)
-  #colnames(df.bids)
   
   df.bids$asking.hp.ratio = df.bids$asking_price/df.bids$hedonicprice
   df.bids$target.hp.ratio = df.bids$target_price/df.bids$hedonicprice
@@ -241,8 +240,6 @@ draw_market_from_console <- function(pth.results){
   folder = pth.results
   pth.figure = paste0(pth.results,'/figure/')
 
-  print("")  
-
   filenames = dir(pth.results)
   pattern = 'simlt.+\\.txt'
   
@@ -278,7 +275,6 @@ draw_market_from_console <- function(pth.results){
     xlab('Day') + ylab('Count')  +
     scale_color_discrete(name = "Bids", labels = c("All", "Success"))
   
-  print(folder)
   doc.plt = paste0(folder,'console_','line_bids_count.png')
   ggsave(doc.plt, width = 10, height = 5, units = "cm", scale = 3 )
   

@@ -1,2 +1,3 @@
 library(remake)
 make()
+warnings()

@@ -14,8 +14,8 @@ load_table <- function(table_name,schema_name="synpop12"){
   drv <- dbDriver("PostgreSQL")
   # creates a connection to the postgres database
   # note that "con" will be used later in each connection to the database
-  con <- dbConnect(drv, dbname = "simmobility_sg12_2a.1.1",
-                   host = "172.25.184.14", port = 5432,
+  con <- dbConnect(drv, dbname = "simmobility_sg12_2d.1.1",
+                   host = "localhost", port = 5432,
                    user = "fmstaff", password = pw)
   
   myTable <- dbReadTable(con, c(schema_name,table_name))

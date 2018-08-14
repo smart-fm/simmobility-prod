@@ -5,16 +5,19 @@ packages:
 - ineq
 
 sources:
-- R/check_bids.R
-- R/check_inventory.R
-- R/check_screening.R
-- R/function.R
+- check_bids.R
+- check_inventory.R
+- check_screening.R
+- function.R
 
 targets:
 
-
   all:
     depends:
+      - pth.results
+      - pth.figure
+      - df.bids
+      - df.hh_choiceset
       - dummy.draw_bids_generic
       - dummy.draw_seller
       - dummy.draw_buyer
@@ -30,116 +33,175 @@ targets:
 #      - df.choice_set_daily_units
 #      - df.unit_alternative
 
+  pth.refresh:
+    cleanup_level: purge
+    command: clear_df()
 
 
   pth.results:
     cleanup_level: purge
-    command: set_result_folder(I('./'))
+    command: set_result_folder(I('../'))
+    depends: pth.refresh
+
 
   pth.figure:
+    cleanup_level: purge
     command: create_figure_folder(pth.results)
+    depends: pth.refresh
 
   df.bids:
     command: get_bids_file(pth.results)
+    depends: pth.refresh
+    cleanup_level: purge
+
   
   df.hh_choiceset:
     command: load_csv(pth.results,I("HHChoiceSet.csv"))
+    depends: pth.refresh
+    cleanup_level: purge
     
   df.screenprobs:
     command: load_csv(pth.results,I("ScreeningProbabilities.csv"))
+    depends: pth.refresh
+    cleanup_level: purge
   
   df.hh_choiceset_clean:
     command: clean_hh_choiceset(df.hh_choiceset)
+    depends: pth.refresh
+    cleanup_level: purge
   
   df.daily_units:
     command: load_csv(pth.results,I("dailyHousingMarketUnits.csv"))
+    depends: pth.refresh
+    cleanup_level: clean
   
   df.bids.success:
     command: get_successful_bids(df.bids)
+    depends: pth.refresh
+    cleanup_level: purge
   
   df.bids.units:
     command: get_bids_units(df.bids)
+    depends: pth.refresh
+    cleanup_level: purge
 
   dummy.draw_bids_generic:
     cleanup_level: purge
     command: draw_bids_generic(df.bids,pth.figure)
+    depends: pth.refresh
 
-    
   dummy.draw_seller:
     command: draw_seller(df.bids.units,pth.figure,I('Unique'),I('unique'))
+    depends: pth.refresh
     cleanup_level: purge
     
   dummy.draw_buyer:
     command: draw_buyer(df.bids,pth.figure,I('All'),I('all'))
+    depends: pth.refresh
+    cleanup_level: purge
   
   dummy.draw_buyer_success:
     command: draw_buyer(df.bids.success,pth.figure,I('Successful'),I('success'))
+    depends: pth.refresh
+    cleanup_level: purge
   
   df.console_output:
     cleanup_level: purge
+    depends: pth.refresh
     command: draw_market_from_console(pth.results)
 
   
   df.hh_choiceset_stats:
     command: summarize_hh_choiceset(df.hh_choiceset_clean)
-    
+    depends: pth.refresh
+    cleanup_level: purge
+
   dummy.compare_units:
     command: compare_units(df.console_output, df.daily_units, 
                            df.hh_choiceset_clean, df.bids, 
                            pth.figure)
+    cleanup_level: purge
+    depends: pth.refresh
+
   dummy.compare_bidders:
     command: compare_bidders(df.console_output,df.hh_choiceset_clean,
                             df.bids, pth.figure)
+    cleanup_level: purge
+    depends: pth.refresh
     
   df.fm_unit_res:
     command: load_table(I('fm_unit_res'))
+    depends: pth.refresh
+    cleanup_level: purge
   
   df.household:
     command: load_table(I('household'))
+    depends: pth.refresh
+    cleanup_level: purge
     
   df.unit_type:
     command: load_table(I('unit_type'))
+    depends: pth.refresh
+    cleanup_level: purge
   
   df.view_building_sla_address:
     command: load_table(I('view_building_sla_address'))
+    depends: pth.refresh
+    cleanup_level: purge
     
     
   df.alternative:
     command: load_table(I('alternative'),I('calibration2012'))
+    depends: pth.refresh
+    cleanup_level: purge
     
   
   df.unit_alternative:
     command: link_unit_alternative(df.fm_unit_res, df.unit_type,
                                   df.alternative, df.view_building_sla_address)
+    depends: pth.refresh
+    cleanup_level: purge
   
   
   dummy.check_bidder_unit_on_market:
     command: check_bidder_unit_on_market(df.hh_choiceset_clean,df.daily_units,
                               df.bids,df.household,df.fm_unit_res,pth.results)
+    depends: pth.refresh    
+    cleanup_level: purge
                                         
                                         
   dummy.check_day_on_market_units:
     command: check_day_on_market_units(df.bids,df.daily_units,
                                         pth.figure,df.household)
+    cleanup_level: purge
+    depends: pth.refresh
     
     
   dummy.check_day_on_market_bidders:
     command: check_day_on_market_bidders(df.bids,df.hh_choiceset_clean,
                                               pth.figure)
+    cleanup_level: purge
+    depends: pth.refresh
   
   df.units_by_seller_type:
     command: check_daily_units_by_seller(df.bids,df.daily_units,
                                       df.hh_choiceset_clean,
                                       pth.figure,df.household)
+    cleanup_level: purge
+    depends: pth.refresh
                                       
                                       
   df.choice_set_daily_units:
     command: units_in_choice_set_each_day(df.hh_choiceset_clean)
+    depends: pth.refresh
+    cleanup_level: purge
   
   df.screen_gini:
     command: check_screen_probability(df.screenprobs,df.hh_choiceset_clean,
                                      df.daily_units,df.choice_set_daily_units,
                                      df.unit_alternative,pth.figure)
+    cleanup_level: purge
+    depends: pth.refresh
 
 
                            

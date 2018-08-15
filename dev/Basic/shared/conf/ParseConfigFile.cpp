@@ -672,9 +672,9 @@ void ParseConfigFile::processHousingModelNode(xercesc::DOMElement *houseModel)
 	housingModel.bidderUnitChoiceset.randomChoiceset =
 			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
 						houseModel, "bidderChoiceset"), "randomChoiceset"), "value"), false);
-	housingModel.bidderUnitChoiceset.shanLopezChoiceset =
+	housingModel.bidderUnitChoiceset.shanRobertoChoiceset =
 			ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(
-						houseModel, "bidderChoiceset"), "shanLopezChoiceset"), "value"), false);
+						houseModel, "bidderChoiceset"), "shanRobertoChoiceset"), "value"), false);
 
 	housingModel.bidderUnitChoiceset.bidderChoicesetSize =
 			ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName(

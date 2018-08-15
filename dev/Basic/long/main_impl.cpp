@@ -436,7 +436,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config HousingModel unitsFiltering " << config.ltParams.housingModel.unitsFiltering << endl);
         PrintOutV("XML Config HousingModel bidderChoiceset " << config.ltParams.housingModel.bidderUnitChoiceset.enabled << endl);
         PrintOutV("XML Config HousingModel bidderChoiceset random" << config.ltParams.housingModel.bidderUnitChoiceset.randomChoiceset << endl);
-        PrintOutV("XML Config HousingModel bidderChoiceset shanLopez" << config.ltParams.housingModel.bidderUnitChoiceset.shanLopezChoiceset << endl);        
+        PrintOutV("XML Config HousingModel bidderChoiceset shanRoberto" << config.ltParams.housingModel.bidderUnitChoiceset.shanRobertoChoiceset << endl);        
         PrintOutV("XML Config HousingModel bidderChoiceset BTOUnitsChoiceset " << config.ltParams.housingModel.bidderUnitChoiceset.bidderBTOChoicesetSize << endl);
         PrintOutV("XML Config HousingModel bidderChoiceset UnitsChoiceset " << config.ltParams.housingModel.bidderUnitChoiceset.bidderChoicesetSize << endl);
 

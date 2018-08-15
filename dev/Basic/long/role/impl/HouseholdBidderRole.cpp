@@ -673,7 +673,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 		}
 	}
 	else
-	if(config.ltParams.housingModel.bidderUnitChoiceset.shanLopezChoiceset == true)
+	if(config.ltParams.housingModel.bidderUnitChoiceset.shanRobertoChoiceset == true)
 	{
 		for (int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitChoiceset.bidderChoicesetSize; n++)
 		{

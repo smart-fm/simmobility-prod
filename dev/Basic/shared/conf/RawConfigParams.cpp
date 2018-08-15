@@ -29,7 +29,7 @@ sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInter
 
 sim_mob::LongTermParams::HousingModel::BidderUnitChoiceset::BidderUnitChoiceset(): enabled(false),
 																			randomChoiceset(false),
-																			shanLopezChoiceset(false),
+																			shanRobertoChoiceset(false),
 																			bidderChoicesetSize(0),
 																			bidderBTOChoicesetSize(0){}
 

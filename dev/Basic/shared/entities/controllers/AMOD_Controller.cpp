@@ -45,7 +45,8 @@ void AMOD_Controller::computeSchedules()
 
 		// Number of requests that we have aggregated so far
 		unsigned aggregatedRequests = 0;
-        unsigned int remainingCapacity = (min(maxAggregatedRequests,driver->getPassengerCapacity())) - driver->exportServiceDriver()->getPassengerCount();
+		//Number of passengers in the car is 0 at this point
+        unsigned int remainingCapacity = (min(maxAggregatedRequests,driver->getPassengerCapacity()));
         schedule = buildSchedule(remainingCapacity, maxWaitingTime, driverNode, schedule, &aggregatedRequests);
 
 #ifndef NDEBUG
@@ -131,7 +132,6 @@ void AMOD_Controller::matchDriversServingSharedReq()
 		while (driver_Iter!=driversServingSharedReq.end() && !sharedRideRequests.empty())// aditi added to save computation time if there are no more requests,need to test
 		{
 			const Person* driver = *driver_Iter;
-            unsigned int maxAggRequests = (min(maxAggregatedRequests,driver->getPassengerCapacity())) - driver->exportServiceDriver()->getPassengerCount();
 			//The node in which the driver is currently located
 			const Node *driverNode = driver->exportServiceDriver()->getCurrentNode();
 
@@ -141,6 +141,19 @@ void AMOD_Controller::matchDriversServingSharedReq()
 #endif
 			//Get the schedule assigned to the driver
 			Schedule orgSchedule = driverSchedules[driver];
+
+			//Obtain the maximum number of Schedule Items that can be added
+			//This is equal to the number of pick ups + 1
+			unsigned numPickups = 1;
+			for (auto item : orgSchedule)
+			{
+				if (item.scheduleItemType == PICKUP)
+				{
+					numPickups++;
+				}
+			}
+
+			unsigned int maxAggRequests = (min(maxAggregatedRequests,driver->getPassengerCapacity())) - numPickups;
 
 #ifndef NDEBUG
 			ControllerLog() << "matchDriversServingSharedReq(): driverSchedules.size() = "

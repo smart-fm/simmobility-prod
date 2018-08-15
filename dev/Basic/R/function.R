@@ -2,13 +2,26 @@
 
 load_table <- function(table_name,schema_name="synpop12"){
   require("RPostgreSQL")
-  
-  # create a connection
-  # save the password that we can "hide" it as best as we can by collapsing it
-  pw <- {
-    'fm4trans'
+
+  print("Looking for database credentials in ../private/lt-db.ini")
+  con = file("../private/lt-db.ini", "r")
+  while ( TRUE ) {
+    line = readLines(con, n = 1)
+    if ( length(line) == 0 ) {
+      break
     }
-  #readline(prompt="Enter the password: ")
+
+    if( substr(line, 0,9 ) == "password=")
+    {
+      pw <- substr(line, 10, 1000000)
+      print("password=********")
+    }
+    else
+    {
+      print(line)
+    }
+  }
+  close(con)
   
   # loads the PostgreSQL driver
   drv <- dbDriver("PostgreSQL")

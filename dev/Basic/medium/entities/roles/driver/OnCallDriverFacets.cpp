@@ -341,21 +341,12 @@ void OnCallDriverMovement::beginCruising(const Node *node)
 	}
 	else
 	{
-		route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+        route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
 	}
-
-
 	//Get shortest path if path is not found in the path-set
 	if(route.empty())
 	{
-		if(currLink)
-		{
-			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
-		}
-		else
-		{
 			route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
-		}
 	}
 
 #ifndef NDEBUG

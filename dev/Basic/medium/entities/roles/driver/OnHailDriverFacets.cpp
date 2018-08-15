@@ -385,22 +385,15 @@ void OnHailDriverMovement::beginDriveToTaxiStand(const TaxiStand *taxiStand)
 	}
 	else
 	{
-		route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Link>(*currLink, *taxiStandLink);
-	}
-
-	//Get shortest path if path is not found in the path-set
-	if(route.empty())
-	{
 		if(currLink)
-		{
-			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Link>(*currLink, *taxiStandLink);
-		}
-		else
-		{
-			route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Link>(*currNode, *taxiStandLink);
-		}
+        	{
+            		route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Link>(*currLink, *taxiStandLink);
+        	}
+       		else
+        	{
+            		route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Link>(*currNode, *taxiStandLink);
+        	}
 	}
-
 	if(route.empty())
 	{
 		stringstream msg;
@@ -442,14 +435,16 @@ void OnHailDriverMovement::beginCruising(const Node *node)
 	{
 		currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
 	}
-   
-	auto	route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
-	//Get shortest path if path is not found in the path-set
-	if(route.empty())
+	std::vector<WayPoint> route = {};
+	//Get route to the node
+	if(currLink)
 	{
-		route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
+        	route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
 	}
-
+    	else
+    	{
+        	route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
+	}
 	if(route.empty())
 	{
 		stringstream msg;

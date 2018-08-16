@@ -267,7 +267,7 @@ void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personPara
 	}
 	else
 	{
-		//Day pattern stops
+		//Day pattern tours
 		LuaRef chooseDPT = getGlobal(state.get(), "choose_dpt");
 		LuaRef retValT = chooseDPT(&personParams);
 		if (retValT.isTable())
@@ -282,14 +282,14 @@ void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personPara
 			throw std::runtime_error("Error in day pattern tours prediction. Unexpected return value");
 		}
 
-		//Day pattern tours
+		//Day pattern stops
 		LuaRef chooseDPS = getGlobal(state.get(), "choose_dps");
 		LuaRef retValS = chooseDPS(&personParams);
 		if (retValS.isTable())
 		{
             for (const auto& activityType : activityTypes)
             {
-                dayPatternStops[activityType.first] = retValT[activityType.first].cast<int>();
+                dayPatternStops[activityType.first] = retValS[activityType.first].cast<int>();
             }
 		}
 		/*else

@@ -1238,7 +1238,7 @@ bool DeveloperModel::isToaPayohTaz(BigSerial tazId)
 
 	bool isToaPayohTaz = false;
 
-	int dist = distance(itr_range.first, itr_range.second);
+	int dist = std::distance(itr_range.first, itr_range.second);
 
 	for(auto itr = itr_range.first; itr != itr_range.second; itr++)
 	{

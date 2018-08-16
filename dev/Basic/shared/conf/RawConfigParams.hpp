@@ -94,7 +94,7 @@ struct LongTermParams
 			BidderUnitChoiceset();
 			bool enabled;
 			bool randomChoiceset;
-			bool shanLopezChoiceset;
+			bool shanRobertoChoiceset;
 			int bidderChoicesetSize;
 			int bidderBTOChoicesetSize;
 		} bidderUnitChoiceset;

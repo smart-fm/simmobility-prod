@@ -471,7 +471,8 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 
 		if(unit && stats)
 		{
-			if (entry->getOwner() && biddingEntry.getBestBid() > 0.0f)
+			if (entry->getOwner() && biddingEntry.getBestBid() > 0.0f &&
+				entry->getOwner()->getId() != getParent()->getId()) //Do not bid on your own unit
 			{
 				#ifdef VERBOSE
 				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << biddingEntry.getBestBid() << "[wp:$" << biddingEntry.getWP() << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
@@ -672,7 +673,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 		}
 	}
 	else
-	if(config.ltParams.housingModel.bidderUnitChoiceset.shanLopezChoiceset == true)
+	if(config.ltParams.housingModel.bidderUnitChoiceset.shanRobertoChoiceset == true)
 	{
 		for (int n = 0; n < entries.size() && screenedEntries.size() < config.ltParams.housingModel.bidderUnitChoiceset.bidderChoicesetSize; n++)
 		{

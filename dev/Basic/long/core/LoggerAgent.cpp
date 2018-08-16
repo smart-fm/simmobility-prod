@@ -237,7 +237,7 @@ LoggerAgent::LoggerAgent() : Entity(-1)
 		//individual hits logsum for vehicle ownership
 		std::ofstream* individualHitsLogsumForVOFile = new std::ofstream("IndividualHitsLogsum4VO.csv");
 		streams.insert(std::make_pair(LOG_INDIVIDUAL_LOGSUM_VO, individualHitsLogsumForVOFile));
-		*individualHitsLogsumForVOFile << "hitsId , paxId , householdId , individualId , memberId , tazH , tazW , vo_logsum0 , vo_logsum1 ,vo_logsum2 , vo_logsum3 ,vo_logsum4 , vo_logsum5" << std::endl;
+		*individualHitsLogsumForVOFile << "hitsId, paxId, householdId, individualId, employmentStatusId, ageCategoryId, income, fixed_workplace, memberId, tazH, tazW, vo_logsum0, vo_logsum1, vo_logsum2, vo_logsum3, vo_logsum4, vo_logsum5" << std::endl;
     }
 
 

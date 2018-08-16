@@ -102,7 +102,7 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="765"/>
+    	<days value="365"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>  
@@ -141,7 +141,7 @@
 	        <unitsFiltering value="false"/>
 		    <bidderChoiceset enabled="true">
 				<randomChoiceset value="false"/>
-				<shanLopezChoiceset value="true"/>
+				<shanRobertoChoiceset value="true"/>
 				<bidderChoicesetSize value = "50"/>
 	   		    <bidderBTOChoicesetSize value = "10"/>
 			</bidderChoiceset>
@@ -232,7 +232,7 @@
 	<pathTC name="scripts/lua/mid/behavior_SG_20032018_12_4_Base_case_new/" format="lua" />
 	<pathTCPlusOne name="scripts/lua/mid/behavior_SG_20032018_12_4_Base_case_new_cost_plus1/" format="lua" />
 	<pathCTPlusOne name="scripts/lua/mid/behavior_SG_20032018_12_4_Base_case_new_time_plus1/" format="lua" />
-	<pathTCZero name="scripts/lua/mid/behavior_SG_20032018_12_4_Base_case_new_1000_cost_and_time/" format="lua" />
+	<pathTCZero name="scripts/lua/mid/behavior_SG_20032018_12_4_Benchmark_WalkOnly/" format="lua" />
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

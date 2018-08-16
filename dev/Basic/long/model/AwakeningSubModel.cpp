@@ -323,18 +323,19 @@ namespace sim_mob
 			std::vector<ExternalEvent> events;
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-
 			int dailyAwakenings = config.ltParams.housingModel.awakeningModel.dailyHouseholdAwakenings;
 
-		    for( int n = 0; n < dailyAwakenings; )
+			int n = 0;
+
+		    for( ; n < dailyAwakenings; )
 		    {
 		    	ExternalEvent extEv;
 
 		    	BigSerial householdId = (double)rand()/RAND_MAX * model->getHouseholdList()->size();
 
-		    	Household *household = model->getHouseholdById( householdId );
+		    	Household *household = model->getHouseholdById(householdId);
 
-		    	if( !household)
+		    	if (!household)
 		    		continue;
 
 		    	int awakenDay = household->getLastAwakenedDay();
@@ -344,13 +345,13 @@ namespace sim_mob
 
 				if (household->getLastBidStatus() == 1)
 				{		
-				    if( awakenDay + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid < day)
+				    if (awakenDay + config.ltParams.housingModel.awakeningModel.awakeningOffMarketSuccessfulBid < day)
 						continue;
 				}
 
 				if (household->getLastBidStatus() == 2)
 				{
-					if( awakenDay +  config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid < day)
+					if (awakenDay +  config.ltParams.housingModel.awakeningModel.awakeningOffMarketUnsuccessfulBid < day)
 						continue;
 				}
 
@@ -362,14 +363,20 @@ namespace sim_mob
 
 				bool success = ComputeFutureTransition(household, model, futureTransitionRate, futureTransitionRandomDraw );
 
-				if( success == false)
+				if (success == false)
 					continue;
 
 		    	double movingRate = movingProbability(household, model, false ) / 100.0;
 
 		    	double movingRateRandomDraw = (double)rand()/RAND_MAX;
 
-		    	if( movingRateRandomDraw > movingRate )
+		    	if (movingRateRandomDraw > movingRate)
+					continue;
+
+		    	AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
+		    	const HouseholdAgent *householdAgent = lookup.getHouseholdAgentById(household->getId());	
+
+				if(householdAgent == nullptr)
 					continue;
 
 		    	n++;
@@ -380,16 +387,14 @@ namespace sim_mob
 		    	int householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow;
 		    	household->setTimeOnMarket(householdBiddingWindow);
 
-		    	AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
-		    	const HouseholdAgent *householdAgent = lookup.getHouseholdAgentById(household->getId());
-		    	(const_cast<HouseholdAgent*>(householdAgent))->setHouseholdBiddingWindow(householdBiddingWindow);
-                model->incrementAwakeningCounter();
-
+				(const_cast<HouseholdAgent*>(householdAgent))->setHouseholdBiddingWindow(householdBiddingWindow);
+                
+				model->incrementAwakeningCounter();
 		    	printAwakeningJingsi(day, household, futureTransitionRate, futureTransitionRandomDraw, movingRate, movingRateRandomDraw);
 
-		    	extEv.setDay( day + 1 );
-		    	extEv.setType( ExternalEvent::NEW_JOB );
-		    	extEv.setHouseholdId( household->getId());
+		    	extEv.setDay(day + 1);
+		    	extEv.setType(ExternalEvent::NEW_JOB);
+		    	extEv.setHouseholdId(household->getId());
 		    	extEv.setDeveloperId(0);
 
 		    	events.push_back(extEv);
@@ -406,35 +411,35 @@ namespace sim_mob
 
 		    	if(newUnit != nullptr)
 		    	{
-		    	boost::gregorian::date moveInDate = boost::gregorian::date_from_tm(newUnit->getOccupancyFromDate());
-		    	boost::gregorian::date simulationDate(HITS_SURVEY_YEAR, 1, 1);
-		    	boost::gregorian::date_duration dt(day);
-		    	simulationDate = simulationDate + dt;
-		    	int moveInWaitingTimeInDays = ( moveInDate - simulationDate ).days();
+					boost::gregorian::date moveInDate = boost::gregorian::date_from_tm(newUnit->getOccupancyFromDate());
+					boost::gregorian::date simulationDate(HITS_SURVEY_YEAR, 1, 1);
+					boost::gregorian::date_duration dt(day);
+					simulationDate = simulationDate + dt;
+					int moveInWaitingTimeInDays = (moveInDate - simulationDate).days();
 
-		    	if(moveInWaitingTimeInDays <= config.ltParams.housingModel.housingMoveInDaysInterval)
-		    	{
-		    		//set the last bid status to 1 as this house has already done a successful bid and waiting to move in.
-		    		household->setLastBidStatus(1);
-		    		household->setAwakenedDay(day);
-		    		household->setLastAwakenedDay(day);
+					if(moveInWaitingTimeInDays <= config.ltParams.housingModel.housingMoveInDaysInterval)
+					{
+						//set the last bid status to 1 as this house has already done a successful bid and waiting to move in.
+						household->setLastBidStatus(1);
+						household->setAwakenedDay(day);
+						household->setLastAwakenedDay(day);
 
-		    		IdVector unitIds = householdAgent->getUnitIds();
+						IdVector unitIds = householdAgent->getUnitIds();
 
-		    		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
-		    		{
-		    			BigSerial unitId = *itr;
-		    			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+						for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+						{
+							BigSerial unitId = *itr;
+							Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
-		    			unit->setbiddingMarketEntryDay(day);
-		    			unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket);
-		    			unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket);
-		    		}
+							unit->setbiddingMarketEntryDay(day);
+							unit->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket);
+							unit->setTimeOffMarket( 1 + config.ltParams.housingModel.timeOffMarket);
+						}
+					}
 		    	}
-		    }
-		}
+			}
 
 		    return events;
+		}
 	}
-}
 }

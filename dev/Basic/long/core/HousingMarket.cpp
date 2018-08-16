@@ -342,7 +342,15 @@ void HousingMarket::HandleMessage(Message::MessageType type, const Message& mess
                 if( entry->isBTO() )
                 	btoEntries.erase(entry->getUnitId());
 
-                unitsByZoneHousingType.erase( unitsByZoneHousingType.find(entry->getUnitId()), unitsByZoneHousingType.end() );
+                auto itr = unitsByZoneHousingType.equal_range(entry->getZoneHousingType());
+                for (auto it = itr.first; it != itr.second; it++)
+                {
+                    if (it->second == entry->getUnitId())
+                    {
+                        unitsByZoneHousingType.erase(it);
+                        break;
+                    }
+                }
 
                 BigSerial tazId = entry->getTazId();
                 //remove from the map by Taz.

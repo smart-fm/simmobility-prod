@@ -436,7 +436,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("XML Config HousingModel unitsFiltering " << config.ltParams.housingModel.unitsFiltering << endl);
         PrintOutV("XML Config HousingModel bidderChoiceset " << config.ltParams.housingModel.bidderUnitChoiceset.enabled << endl);
         PrintOutV("XML Config HousingModel bidderChoiceset random" << config.ltParams.housingModel.bidderUnitChoiceset.randomChoiceset << endl);
-        PrintOutV("XML Config HousingModel bidderChoiceset shanLopez" << config.ltParams.housingModel.bidderUnitChoiceset.shanLopezChoiceset << endl);        
+        PrintOutV("XML Config HousingModel bidderChoiceset shanRoberto" << config.ltParams.housingModel.bidderUnitChoiceset.shanRobertoChoiceset << endl);        
         PrintOutV("XML Config HousingModel bidderChoiceset BTOUnitsChoiceset " << config.ltParams.housingModel.bidderUnitChoiceset.bidderBTOChoicesetSize << endl);
         PrintOutV("XML Config HousingModel bidderChoiceset UnitsChoiceset " << config.ltParams.housingModel.bidderUnitChoiceset.bidderChoicesetSize << endl);
 
@@ -527,8 +527,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
             wgMgr.waitAllGroups();
 
-
-
             DeveloperModel::ParcelList parcels;
             DeveloperModel::DeveloperList developerAgents;
             if((currTick+1)%7 == 0)
@@ -570,6 +568,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
                        				   << " Awaken: "	<< (dynamic_cast<HM_Model*>(models[0]))->getAwakeningCounter()
                        				   << " AwakenByBTO: "	<< (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBTOAwakenings()
                        				   << " " << std::endl );
+
 
             //Statistics::print();
             Statistics::reset(Statistics::N_WAITING_TO_MOVE);

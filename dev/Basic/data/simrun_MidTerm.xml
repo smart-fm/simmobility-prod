@@ -4,8 +4,8 @@
 
 <config>
     <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
-    <!-- Admissible values are "preday", "withinday", "supply", and "full". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.-->
-    <mid_term_run_mode value="preday"/>
+    <!-- Admissible values are "logsum","activityschedule","predayfull", "withinday", "supply", and "midtermfull". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.-->
+    <mid_term_run_mode value="predayfull"/>
 
     <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
 
@@ -280,8 +280,6 @@
     <!-- ======================= PRE-DAY ======================== -->
     <!-- config specific to PRE-DAY simulator -->
     <preday>
-        <!-- Control variable to run simulation or logsum computation. Admissible values are "simulation" and "logsum" -->
-        <run_mode value="logsum"/>
         <!-- Number of threads to create for processing the population in-->
         <!-- the preday demand simulator -->
         <threads value="1"/>

@@ -195,8 +195,7 @@ void PersonParams::fixUpParamsForLtPerson()
 		setMissingIncome(0);
 	}
 	setHouseholdFactor(1); // no scaling of persons when generating day activity schedule
-	//setHomeLocation(getTAZCodeForAddressId(homeAddressId));
-	setHomeLocation(homeAddressId);
+	setHomeLocation(getTAZCodeForAddressId(homeAddressId));
 	setFixedSchoolLocation(0);
 	setFixedWorkLocation(0);
 	if (fixedWorkplace)

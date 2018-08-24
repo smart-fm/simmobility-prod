@@ -826,15 +826,6 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		//Close the connection
 		sql.close();
 
-		if(sim_mob::ConfigManager::GetInstance().FullConfig().isStudyAreaEnabled())
-		{
-			populateStudyArea();
-		}
-		else
-		{
-			Print()<< "Warning : Since  Study Area is not enable , so  controller's studyAreaEnabledController Param will be treated as false"<<endl;
-		}
-
 		roadNetwork->loadLoopNodesOfNetwork();
 
 		isNetworkLoaded = true;

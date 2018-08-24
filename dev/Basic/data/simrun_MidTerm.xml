@@ -157,9 +157,6 @@
 <!-- config used for enabling region restriction for private vehicles. The region must be pre-defined and kept in the database. The corresponding functions must be provided in the proc_map -->
 <region_restriction enabled="false"/>
 
-<!-- config used for enabling study Area for private vehicles. The region must be pre-defined and kept in the database. The corresponding functions must be provided in the proc_map -->
-    <study_area enabled = "true"/>
-
 <!-- the time interval in seconds for collection of link travel times -->
 <travel_time_update interval="300" />
 

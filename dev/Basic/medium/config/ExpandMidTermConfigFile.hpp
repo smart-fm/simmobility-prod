@@ -27,6 +27,7 @@ private:
 
 	void loadNetworkFromDatabase();
 
+	void loadStudyAreaNetwork();
 	void loadPublicTransitNetworkFromDatabase();
 
 	void verifyIncidents();

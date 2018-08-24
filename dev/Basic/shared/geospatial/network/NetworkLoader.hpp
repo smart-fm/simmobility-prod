@@ -151,8 +151,6 @@ private:
 	 */
 	void loadSurveillanceStns(const std::string& storedProc);
 
-	void populateStudyArea();
-
 public:
 	virtual ~NetworkLoader();
 
@@ -167,6 +165,8 @@ public:
 	 * @param storedProcs - the map of stored procedures
 	 */
 	void loadNetwork(const string& connectionStr, const map<string, string>& storedProcs);
+
+	void populateStudyArea();
 
 	/**
 	 * This method does post processing on the road network

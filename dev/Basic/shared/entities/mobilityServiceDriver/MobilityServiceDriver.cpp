@@ -57,18 +57,18 @@ bool MobilityServiceDriver::isDriverControllerStudyAreaEnabled()
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	std::vector<MobilityServiceController *> driverSubscribedToControllers = getSubscribedControllers();
-	bool studyAreaEnabledAmodController = false;
+	bool studyAreaEnabledAmodControllerOfDriver = false;
 
 	for (auto thisDriverController : driverSubscribedToControllers)
 	{
 		if(thisDriverController->controllerServiceType == MobilityServiceControllerType::SERVICE_CONTROLLER_AMOD
-			&& config.isStudyAreaEnabled() && thisDriverController->studyAreaEnabledController)
+			&& thisDriverController->studyAreaEnabledController)
 		{
-			studyAreaEnabledAmodController = true;
+			studyAreaEnabledAmodControllerOfDriver = true;
 			break;
 		}
 	}
-	return studyAreaEnabledAmodController;
+	return studyAreaEnabledAmodControllerOfDriver;
 }
 
 const std::string MobilityServiceDriver::getSubscribedControllerTypesStr() const

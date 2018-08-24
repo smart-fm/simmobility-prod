@@ -54,6 +54,7 @@ void ExpandMidTermConfigFile::processConfig()
 
 	loadNetworkFromDatabase();
 
+	int flagForStudyAreaEnable = false;
 	//register and initialize MobilityServiceControllers
 	if (cfg.mobilityServiceController.enabled)
 	{
@@ -87,8 +88,24 @@ void ExpandMidTermConfigFile::processConfig()
 				<< "\nUnable to add Mobility Service Controller";
 				throw std::runtime_error(msg.str());
 			}
+
+			if(!flagForStudyAreaEnable && studyAreaEnabledController)
+			{
+				flagForStudyAreaEnable = true;
+			}
 		}
 	}
+
+	if(flagForStudyAreaEnable)
+	{
+		loadStudyAreaNetwork();
+		cfg.setStudyAreaEnabled(true);
+	}
+	else
+	{
+		Print()<< "Warning: Please note Study Area for this simulation is NOT enabled and NOT populated because all controller's studyAreaEnabledController param set as false."<<endl;
+	}
+
 
 	TravelTimeManager::getInstance()->loadTravelTimes();
 
@@ -175,6 +192,12 @@ void ExpandMidTermConfigFile::loadNetworkFromDatabase()
 
 	//Post processing on the network
 	loader->processNetwork();
+}
+
+void ExpandMidTermConfigFile::loadStudyAreaNetwork()
+{
+	NetworkLoader *loader = NetworkLoader::getInstance();
+	loader->populateStudyArea();
 }
 
 void ExpandMidTermConfigFile::loadPublicTransitNetworkFromDatabase()

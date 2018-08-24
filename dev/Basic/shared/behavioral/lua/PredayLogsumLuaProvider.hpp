@@ -20,7 +20,7 @@ public:
 	 *
 	 * @return Lua preday model reference.
 	 */
-	static const PredayLogsumLuaModel& getPredayModel();
+	static const PredayLogsumLuaModel& getPredayModel(const std::string &luaDir);
 };
 }
 

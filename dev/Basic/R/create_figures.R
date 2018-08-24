@@ -1,0 +1,3 @@
+library(remake)
+make()
+warnings()

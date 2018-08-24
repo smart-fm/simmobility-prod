@@ -88,13 +88,13 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 		processRegionRestrictionNode(GetSingleElementByName(rootNode, "region_restriction"));
 		processPathSetFileName(GetSingleElementByName(rootNode, "pathset_config_file", true));
 		processTripChainOutputNode(GetSingleElementByName(rootNode, "trip_chain_output"));
-    	processActivityTypesNode(GetSingleElementByName(rootNode, "activity_types", true));
-    	processTravelModesNode(GetSingleElementByName(rootNode, "travel_modes", true));
+		processActivityTypesNode(GetSingleElementByName(rootNode, "activity_types", true));
+		processTravelModesNode(GetSingleElementByName(rootNode, "travel_modes", true));
 		processOnCallTaxiTrajectoryNode(GetSingleElementByName(rootNode, "onCallTaxiTrajectory"));
 		processOnHailTaxiTrajectoryNode(GetSingleElementByName(rootNode, "onHailTaxiTrajectory"));
 
 
-		if (mtCfg.RunningMidFullLoop())
+		if (mtCfg.RunningMidFullLoop() || mtCfg.RunningMidPredayFull())
 		{
 			processPredayNode(GetSingleElementByName(rootNode, "preday", true));
 			processSupplyNode(GetSingleElementByName(rootNode, "supply", true));
@@ -103,7 +103,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 		{
 			processSupplyNode(GetSingleElementByName(rootNode, "supply", true));
 		}
-		else if (mtCfg.RunningMidDemand())
+		else if ( mtCfg.RunningMidPredayLogsum() || mtCfg.RunningMidPredaySimulation() )
 		{
 			processPredayNode(GetSingleElementByName(rootNode, "preday", true));
 		}
@@ -151,8 +151,14 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 {
 	DOMElement* childNode = nullptr;
 
-	childNode = GetSingleElementByName(node, "run_mode", true);
-	mtCfg.setPredayRunMode(ParseString(GetNamedAttributeValue(childNode, "value", true), "simulation"));
+	if (mtCfg.RunningMidPredayLogsum())
+	{
+		mtCfg.setPredayRunMode("logsum");
+	}
+	else if (mtCfg.RunningMidPredaySimulation())
+	{
+		mtCfg.setPredayRunMode("simulation");
+	}
 
 	childNode = GetSingleElementByName(node, "threads", true);
 	mtCfg.setNumPredayThreads(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true), DEFAULT_NUM_THREADS_DEMAND));

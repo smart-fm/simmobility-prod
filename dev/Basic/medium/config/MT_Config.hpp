@@ -282,7 +282,7 @@ private:
 };
 
 /**
- * Simple struct to store configuration setting related to TripChain outputs
+ * Structure to store das table config information
  */
 struct TripChainOutputConfig
 {
@@ -665,12 +665,31 @@ public:
 	bool RunningMidSupply() const;
 
 	/**
-	 * Checks whether mid term demand is running
+	 * Checks whether mid term preday simulation is running
 	 *
-	 * @return true if mid term demand is running, else false
+	 * @return true if mid term preday simulation is running, else false
 	 */
-	bool RunningMidDemand() const;
+	bool RunningMidPredaySimulation() const;
 
+	/**
+	 * Checks whether mid term preday logsum is running
+	 *
+	 * @return true if mid term preday logsum is running, else false
+	 */
+	bool RunningMidPredayLogsum() const;
+
+    /**
+	 * Checks whether preday full mode is running
+	 *
+	 * @return true if preday full mode  is running, else false
+	 */
+    bool RunningMidPredayFull() const;
+
+	/**
+	 * Checks whether mid term full mode is running
+	 *
+	 * @return true if mid term full mode  is running, else false
+	 */
 	bool RunningMidFullLoop() const;
 
 	/**
@@ -752,7 +771,7 @@ public:
 	 */
 	enum MidTermRunMode
 	{
-		MT_NONE, MT_SUPPLY, MT_PREDAY, MT_FULL
+		MT_NONE, MT_SUPPLY, MT_PREDAY_LOGSUM, MT_PREDAY_SIMULATION, MT_PREDAY_FULL,MT_FULL
 	};
 
 	/// Mid term run mode identifier

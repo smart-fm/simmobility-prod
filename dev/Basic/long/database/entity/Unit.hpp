@@ -31,7 +31,8 @@ namespace sim_mob
             	  int story_range = 0, int constructionStatus = 0, double floor_area = .0f, int storey = 0, double monthlyRent = .0f, std::tm sale_from_date = std::tm(),
             	  std::tm occupancyFromDate = std::tm(), int sale_status = 0, int occupancyStatus = 0, std::tm lastChangedDate = std::tm(),double totalPrice = 0,
             	  std::tm valueDate = std::tm(),int tenureStatus = 0,int biddingMarketEntryDay = 0, int timeOnMarket = 0, int timeOffMarket = 0, double askingPrice = 0,double lagCoefficent = 0,
-				  int zoneHousingType = 0, int dwellingType = 0,bool existInDB = false, bool isBTO = false, double btoPrice = 0, int remainingTimeOnMarket = 0, int remainingTimeOffMarket = 0);
+				  int zoneHousingType = 0, int dwellingType = 0,bool existInDB = false, bool isBTO = false, double btoPrice = 0, int remainingTimeOnMarket = 0, int remainingTimeOffMarket = 0, bool unitByDevModel = false,
+				  BigSerial tazIdByDevModel = INVALID_ID);
 
             Unit( const Unit& source );
 
@@ -106,8 +107,6 @@ namespace sim_mob
             bool isBto() const;
             bool isExistInDb() const ;
             double getAskingPrice() const;
-            void updateRemainingTimeOnMarket();
-            void updateRemainingTimeOffMarket();
 
             template<class Archive>
             void serialize(Archive & ar,const unsigned int version);
@@ -119,6 +118,12 @@ namespace sim_mob
 
             int getRemainingTimeOnMarket() const;
             void setRemainingTimeOnMarket(int remainingTimeOnMarket);
+
+            BigSerial getTazIdByDevModel() const;
+            void setTazIdByDevModel(BigSerial tazIdByDevModel);
+
+            bool isUnitByDevModel() const;
+            void setUnitByDevModel(bool unitByDevModel);
             /**
              * Operator to print the Unit data.  
              */
@@ -159,6 +164,8 @@ namespace sim_mob
             double askingPrice;
             int remainingTimeOnMarket;
             int remainingTimeOffMarket;
+            bool unitByDevModel;
+            BigSerial tazIdByDevModel;
 
 
             static constexpr auto filename = "units";

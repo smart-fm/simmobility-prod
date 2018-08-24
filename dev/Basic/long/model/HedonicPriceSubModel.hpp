@@ -17,7 +17,8 @@
 #include "DeveloperModel.hpp"
 #include "database/entity/Unit.hpp"
 #include "database/entity/PostcodeAmenities.hpp"
-#include <role/impl/HouseholdSellerRole.hpp>
+#include "role/impl/HouseholdSellerRole.hpp"
+#include "role/impl/RealEstateSellerRole.hpp"
 #include <core/LoggerAgent.hpp>
 #include <core/AgentsLookup.hpp>
 
@@ -36,7 +37,9 @@ namespace sim_mob
 
 			double ComputeLagCoefficient();
 			void ComputeHedonicPrice( HouseholdSellerRole::SellingUnitInfo &info, HouseholdSellerRole::UnitsInfoMap &sellingUnitsMap, BigSerial agentId);
+			void ComputeHedonicPrice( RealEstateSellerRole::SellingUnitInfo &info, RealEstateSellerRole::UnitsInfoMap &sellingUnitsMap, BigSerial agentId);
 			void ComputeExpectation( int numExpectations, std::vector<ExpectationEntry> &expectations);
+			void computeInitialHedonicPrice(BigSerial unitIdFromModel);
 
 			double CalculateSpeculation(ExpectationEntry entry, double unitBids);
 

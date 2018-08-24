@@ -71,7 +71,8 @@
 //      access to cout if output is disabled.
 #include <entities/FleetController_MT.hpp>
 #include <entities/ParkingAgent.hpp>
-
+#include <iostream>
+#include <path/ParsePathXmlConfig.hpp>
 using std::cout;
 using std::endl;
 using std::vector;
@@ -254,11 +255,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//NOTE: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not okay.
 	const MutexStrategy& mtx = ConfigManager::GetInstance().FullConfig().mutexStategy();
-	
+
 	//Create an instance of role factory
 	RoleFactory<Person_MT>* rf = new RoleFactory<Person_MT>();
 	RoleFactory<Person_MT>::setInstance(rf);
-	
+
 	rf->registerRole("driver", new sim_mob::medium::Driver(nullptr));
 	rf->registerRole("activityRole", new sim_mob::ActivityPerformer<Person_MT>(nullptr));
 	rf->registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, mtx));
@@ -684,6 +685,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	return true;
 }
 
+
 /**
  * The preday demand simulator
  */
@@ -708,7 +710,7 @@ bool performMainDemand()
 	std::string pathToLuaFile =  mtConfig.modelScriptsMap.getPath() + string("logit.lua") ;
 	std::string systemCommandToUpdateSeedInLuaFile = string("sed -i 's/local A1=.*/local A1=") + std::to_string(seedValue)+ string("/g' ")  + pathToLuaFile ;
 	int resultOfSysCall = system(systemCommandToUpdateSeedInLuaFile.c_str());
-	std::cout<<systemCommandToUpdateSeedInLuaFile;
+	std::cout<<systemCommandToUpdateSeedInLuaFile<<"\n";
 
 	if(mtConfig.runningPredaySimulation() && mtConfig.isFileOutputEnabled())
 	{
@@ -729,6 +731,40 @@ bool performMainDemand()
 	}
 	return true;
 }
+
+bool performPredayFullLoop(const std::string& configFileName, std::list<std::string>& resLogFiles)
+{
+
+	Print() << "Mid-Term demand: Started\n";
+
+	PredayManager predayManager;
+	predayManager.loadZones();
+	predayManager.loadCosts();
+	predayManager.loadPersonIds();
+	predayManager.loadUnavailableODs();
+
+
+	Print() << "LogSum computation: Started\n";
+	predayManager.runLogSumComputation();
+	Print() << "LogSum computation: Completed\n";
+
+	predayManager.loadZoneNodes();
+	predayManager.loadPostcodeNodeMapping();
+	PersonParams::removeInvalidAddress();
+
+	Print() << "Preday simulation: Started\n";
+	predayManager.runPredaySimulation();
+	Print() << "Preday simulation: Completed\n";
+
+	Print() << "Update Day Activity Schedule: Started\n";
+	predayManager.updateDayActivityScheduleTable();
+	Print() << "Update Day Activity Schedule: Completed\n";
+
+	Print() << "Mid-Term demand: Completed\n";
+
+	return true;
+}
+
 
 bool performMidFullLoop(const std::string& configFileName, std::list<std::string>& resLogFiles)
 {
@@ -843,28 +879,36 @@ bool performMainMed(const std::string& configFileName, const std::string& mtConf
 		ControllerLog::Ignore();
 	}
 
-    if (MT_Config::getInstance().RunningMidSupply())
+	if (MT_Config::getInstance().RunningMidSupply())
 	{
 		Print() << "Mid-term run mode: supply\n" << endl;
 		return performMainSupply(configFileName, resLogFiles);
 	}
-    else if (MT_Config::getInstance().RunningMidDemand())
+	else if (MT_Config::getInstance().RunningMidPredaySimulation()  || MT_Config::getInstance().RunningMidPredayLogsum() )
 	{
-		Print() << "Mid-term run mode: preday" << endl;
+		Print() << "Mid-term run mode: preday\n" << endl;
 		Print() << "Number of threads: " << MT_Config::getInstance().getNumPredayThreads()
 		        << std::endl << std::endl;
 		return performMainDemand();
 	}
 	else if (MT_Config::getInstance().RunningMidFullLoop())
 	{
-		Print() << "Mid-term run mode: Full" << endl;
+		Print() << "Mid-term run mode: Mid term Full" << endl;
 		Print() << "Number of threads: " << MT_Config::getInstance().getNumPredayThreads()
 				<< std::endl << std::endl;
 		return performMidFullLoop(configFileName, resLogFiles);
 	}
+	else if (MT_Config::getInstance().RunningMidPredayFull())
+	{
+		Print() << "Mid-term run mode: Preday Full" << endl;
+		Print() << "Number of threads: " << MT_Config::getInstance().getNumPredayThreads()
+				<< std::endl << std::endl;
+		return performPredayFullLoop(configFileName, resLogFiles);
+	}
 	else
 	{
-		throw std::runtime_error("Invalid Mid-term run mode. Admissible values are \"demand\", \"supply\" and \"full\" ");
+		throw std::runtime_error("Invalid Mid-term run mode. Admissible values are \"predaylogsum\",\"predaysimulation\",\" predayfull\" "
+										 "\"supply\" and \"full\" ");
 	}
 }
 

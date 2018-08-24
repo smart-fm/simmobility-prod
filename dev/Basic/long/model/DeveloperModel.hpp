@@ -38,6 +38,7 @@
 #include "database/entity/HedonicLogsums.hpp"
 #include "database/entity/TAOByUnitType.hpp"
 #include "database/entity/LagPrivate_TByUnitType.hpp"
+#include "database/entity/Postcode.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
@@ -77,6 +78,7 @@ namespace sim_mob {
             typedef std::vector<LagPrivateT*>LagPrivateTList;
             typedef std::vector<HedonicLogsums*>HedonicLogsumsList;
             typedef std::vector<LagPrivate_TByUnitType*>LagPrivateTByUTList;
+            typedef std::vector<Postcode*>PostcodeList;
 
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
@@ -98,6 +100,7 @@ namespace sim_mob {
             typedef boost::unordered_map<BigSerial,LagPrivateT*>LagPrivateTMap;
             typedef boost::unordered_map<BigSerial,HedonicLogsums*>HedonicLogsumsMap;
             typedef boost::unordered_map<BigSerial,LagPrivate_TByUnitType*>LagPrivateTByUTMap;
+            typedef boost::unordered_map<BigSerial,Postcode*>PostcodeByTazMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -113,6 +116,11 @@ namespace sim_mob {
              * create developer agent for BTO launching
              */
             void createBTODeveloperAgents();
+
+            /*
+             * create devloper agents to launch private presale units
+             */
+            void createPrivatePresaleDeveloperAgents();
 
             void wakeUpDeveloperAgents(DeveloperList devAgentList);
 
@@ -286,6 +294,8 @@ namespace sim_mob {
 
             std::vector<BigSerial> getBTOUnits(std::tm currentDate);
 
+            std::vector<BigSerial> getPrivatePresaleUnits(std::tm currentDate);
+
             void loadHedonicCoeffs(DB_Connection &conn);
 
             const HedonicCoeffs* getHedonicCoeffsByPropertyTypeId(BigSerial propertyId) const;
@@ -313,6 +323,12 @@ namespace sim_mob {
             const LagPrivate_TByUnitType* getLagPrivateTByUnitTypeId(BigSerial unitTypeId);
 
             const std::string &getScenario();
+
+            void loadTAO(DB_Connection &conn);
+
+            bool isToaPayohTaz(BigSerial tazId);
+
+            const Postcode* getPostcodeByTaz(BigSerial tazId);
 
 
         protected:
@@ -405,6 +421,7 @@ namespace sim_mob {
             ROILimitsMap roiLimitsByDevTypeId;
             UnitList btoUnits;
             UnitList ongoingBtoUnits;
+            UnitList privatePresaleUnits;
             HedonicCoeffsList hedonicCoefficientsList;
             HedonicCoeffsByUnitTypeList hedonicCoefficientsByUnitTypeList;
             HedonicCoeffsMap hedonicCoefficientsByPropertyTypeId;
@@ -418,6 +435,8 @@ namespace sim_mob {
             TAOByIdMap taoUTById;
             LagPrivateTByUTList lagPrivateTByUTList;
             LagPrivateTByUTMap ptivateLagsByUnitTypeId;
+            PostcodeList postcodes;
+            PostcodeByTazMap postcodeByTaz;
 
         };
     }

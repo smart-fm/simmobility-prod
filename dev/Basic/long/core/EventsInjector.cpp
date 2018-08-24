@@ -81,11 +81,10 @@ void EventsInjector::onWorkerEnter() {}
 void EventsInjector::onWorkerExit() {}
 
 Entity::UpdateStatus EventsInjector::update(timeslice now)
-{
-    const ExternalEventsModel& model = LuaProvider::getExternalEventsModel();
-    
+{    
     vector<ExternalEvent> events;
     AwakeningSubModel awakenings;
+
     events = awakenings.DailyAwakenings( now.ms(), getModel() );
 
     AgentsLookup& lookup = AgentsLookupSingleton::getInstance();

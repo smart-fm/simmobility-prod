@@ -21,7 +21,8 @@ enum PT_StatsMessage
 	STORE_PERSON_WAITING,
 	STORE_WAITING_PERSON_COUNT,
 	STORE_PERSON_TRAVEL_TIME,
-	STORE_PERSON_REROUTE
+	STORE_PERSON_REROUTE,
+	STORE_PERSON_ALIGHTING
 };
 
 /**
@@ -97,6 +98,18 @@ struct PT_ArrivalTime
 	std::string getCSV() const;
 };
 
+struct PT_PassengerAlightInfo
+{
+	/** id of person who submitted this waiting time record*/
+	std::string  personId;
+	/** bus stop number*/
+	std::string stopNo;
+	/** bus line*/
+	std::string serviceLine;
+	/** arrival time at bus stop in hh:mi:ss format*/
+	std::string alightTime;    //person alight time (==current time)
+};
+
 /**
  * Message to transfer bus arrival time at bus stop
  */
@@ -107,6 +120,15 @@ public:
 	virtual ~PT_ArrivalTimeMessage() {}
 	PT_ArrivalTime arrivalInfo;
 };
+
+class PT_PassengerAlightInfoMessage : public messaging::Message
+{
+public:
+	PT_PassengerAlightInfoMessage(const PT_PassengerAlightInfo& personAlightTimeInfo) : personAlightTimeInfo(personAlightTimeInfo) {}
+	virtual ~PT_PassengerAlightInfoMessage() {}
+	PT_PassengerAlightInfo personAlightTimeInfo;
+};
+
 
 struct PT_RerouteInfo
 {
@@ -230,7 +252,7 @@ class StopStats
 {
 public:
 	StopStats() : needsInitialization(true), serviceLine(std::string()), stopCode(std::string()), interval(0),
-		waitingTime(0), waitingCount(0), dwellTime(0), numArrivals(0), numBoarding(0)
+		waitingTime(0), waitingCount(0), dwellTime(0), numArrivals(0), numBoarding(0),numAlighting(0)
 	{}
 
 	/** initialization flag */
@@ -251,6 +273,8 @@ public:
 	double numArrivals;
 	/** number of persons boarding in each interval at this stop and service_line */
 	double numBoarding;
+	/** number of persons alighting in each interval at this stop and service_line */
+	double numAlighting;
 
 	/**
 	 * constructs a string of comma separated values to be printed in output files
@@ -303,6 +327,12 @@ public:
 	 * @param personWaiting person's waiting related info
 	 */
 	void addStopStats(const PersonWaitingTime& personWaiting);
+
+	/**
+ 	* registers person Alight time and count for a stop, bus line and interval
+ 	* @param personAlighting person's alighting related info
+ 	*/
+	void addStopStats(const PT_PassengerAlightInfo& personAlightTimeInfo);
 
 	/**
 	 * dumps collected stats into file

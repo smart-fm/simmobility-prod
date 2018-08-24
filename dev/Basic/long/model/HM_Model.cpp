@@ -47,6 +47,7 @@
 #include "database/dao/OwnerTenantMovingRateDao.hpp"
 #include "database/dao/AlternativeHedonicPriceDao.hpp"
 #include "database/dao/ScreeningModelCoefficientsDao.hpp"
+#include "database/dao/ScreeningModelFactorsDao.hpp"
 #include "database/dao/SimulationStoppedPointDao.hpp"
 #include "database/dao/BidDao.hpp"
 #include "database/dao/VehicleOwnershipChangesDao.hpp"
@@ -78,7 +79,8 @@
 #include <DatabaseHelper.hpp>
 #include "model/VehicleOwnershipModel.hpp"
 #include "model/JobAssignmentModel.hpp"
-
+#include "model/HedonicPriceSubModel.hpp"
+#include "model/SchoolAssignmentSubModel.hpp"
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -217,7 +219,7 @@ double HM_Model::TazStats::getAvgHHSize() const
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),
 											householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr), startDay(0), bidId(0), numberOfBids(0), numberOfExits(0),	numberOfSuccessfulBids(0),
 											unitSaleId(0), numberOfSellers(0), numberOfBiddersWaitingToMove(0), resume(0), lastStoppedDay(0), numberOfBTOAwakenings(0),initialLoading(false),jobAssignIndCount(0), isConnected(false),
-											numPrimarySchoolAssignIndividuals(0),numPreSchoolAssignIndividuals(0){}
+											numPrimarySchoolAssignIndividuals(0),numPreSchoolAssignIndividuals(0),indLogsumCounter(0){}
 
 HM_Model::~HM_Model()
 {
@@ -236,17 +238,26 @@ void HM_Model::setNumberOfSellers(int number)
 
 void HM_Model::incrementNumberOfSellers()
 {
-	numberOfSellers++;
+	{
+		boost::mutex::scoped_lock lock( mtx);
+		numberOfSellers++;
+	}
 }
 
 void HM_Model::incrementNumberOfBidders()
 {
-	numberOfBidders++;
+	{
+			boost::mutex::scoped_lock lock( mtx);
+			numberOfBidders++;
+	}
 }
 
 void HM_Model::incrementWaitingToMove()
 {
-	numberOfBiddersWaitingToMove++;
+	{
+			boost::mutex::scoped_lock lock( mtx);
+			numberOfBiddersWaitingToMove++;
+	}
 }
 
 int HM_Model::getWaitingToMove()
@@ -271,17 +282,26 @@ int HM_Model::getNumberOfBidders()
 
 void HM_Model::incrementBids()
 {
-	numberOfBids++;
+	{
+			boost::mutex::scoped_lock lock( mtx);
+			numberOfBids++;
+	}
 }
 
 void HM_Model::incrementExits()
 {
-	numberOfExits++;
+	{
+			boost::mutex::scoped_lock lock( mtx);
+			numberOfExits++;
+	}
 }
 
 void HM_Model::incrementSuccessfulBids()
 {
-	numberOfSuccessfulBids++;
+	{
+			boost::mutex::scoped_lock lock( mtx);
+			numberOfSuccessfulBids++;
+	}
 }
 
 int HM_Model::getNumberOfBTOAwakenings()
@@ -296,7 +316,10 @@ void HM_Model::setNumberOfBTOAwakenings(int number)
 
 void HM_Model::incrementNumberOfBTOAwakenings()
 {
-	numberOfBTOAwakenings++;
+	{
+			boost::mutex::scoped_lock lock( mtx);
+			numberOfBTOAwakenings++;
+	}
 }
 
 void HM_Model::resetBAEStatistics() //BAE is Bids, Awakenings and Exits
@@ -1467,11 +1490,7 @@ void HM_Model::startImpl()
 	conn.connect();
 	resume = config.ltParams.resume;
 	conn.setSchema(config.schemas.main_schema);
-	if(config.ltParams.outputHouseholdLogsums.enabled)
-	{
-		PredayLT_LogsumManager::getInstance();
-	}
-
+	PredayLT_LogsumManager::getInstance();
 	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
 	conn_calibration.connect();
 	conn_calibration.setSchema(config.schemas.calibration_schema);
@@ -1486,12 +1505,32 @@ void HM_Model::startImpl()
 	{
 		loadLTVersion(conn);
 		loadStudyAreas(conn);
+		loadResidentialWTP_Coeffs(conn_calibration);
+
+		loadData<ScreeningModelFactorsDao>( conn_calibration, screeningModelFactorsList, screeningModelFactorsMap, &ScreeningModelFactors::getId );
+		PrintOutV("Number of screening Model Factors: " << screeningModelFactorsList.size() << std::endl );
+
 
 		if(config.ltParams.schoolAssignmentModel.enabled)
 		{
-		loadPrimarySchools(conn);
-		loadPreSchools(conn);
-		loadTravelTime(conn_calibration);
+			loadSchools(conn);
+			loadTravelTime(conn_calibration);
+			loadEzLinkStops(conn_calibration);
+			loadStudentStops(conn_calibration);
+			loadSchoolDesks(conn);
+
+			loadData<HouseholdPlanningAreaDao>( conn, hhPlanningAreaList, hhPlanningAreaMap, &HouseholdPlanningArea::getHouseHoldId);
+			PrintOutV("Number of household planning area rows: " << hhPlanningAreaList.size() << std::endl );
+
+			loadData<HHCoordinatesDao>( conn, hhCoordinates, hhCoordinatesById, &HHCoordinates::getHouseHoldId);
+			PrintOutV("Number of household coordinate rows: " << hhCoordinates.size() << std::endl );
+
+			loadData<SchoolAssignmentCoefficientsDao>( conn_calibration, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
+			PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
+
+			assignNearestUniToEzLinkStops();
+			assignNearestPolytechToEzLinkStops();
+
 		}
 
 		if(config.ltParams.jobAssignmentModel.enabled)
@@ -1603,25 +1642,55 @@ void HM_Model::startImpl()
 
 		//Load units
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
+		if(config.ltParams.launchPrivatePresale)
+		{
+			UnitDao unitDao(conn);
+			privatePresaleUnits =  unitDao.getPrivatePresaleUnits();
+			for (UnitList::const_iterator it = privatePresaleUnits.begin(); it != privatePresaleUnits.end(); it++)
+			{
+				privatePresaleUnitsMap.insert(std::make_pair((*it)->getId(), (*it)->getId()));
+			}
+		}
+
 		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
+
+		HouseholdDao hhDao(conn);
+		std::tm currentSimYear = getDateBySimDay(simYear,0);
+		std::tm lastDayOfCurrentSimYear = getDateBySimDay(simYear,364);
+		pendingHouseholds = hhDao.getPendingHouseholds(currentSimYear,lastDayOfCurrentSimYear);
 
 
 		//Load unit types
 		loadData<UnitTypeDao>(conn, unitTypes, unitTypesById, &UnitType::getId);
 		PrintOutV("Number of unit types: " << unitTypes.size() << std::endl);
 
-		IndividualDao indDao(conn);
-		primarySchoolIndList = indDao.getPrimarySchoolIndividual(currentSimYear);
-		//Index all primary school inds.
-		for (IndividualList::iterator it = primarySchoolIndList.begin(); it != primarySchoolIndList.end(); it++) {
-			primarySchoolIndById.insert(std::make_pair((*it)->getId(), *it));
-		}
+		if(config.ltParams.schoolAssignmentModel.enabled)
+		{
+			IndividualDao indDao(conn);
+			primarySchoolIndList = indDao.getPrimarySchoolIndividual(currentSimYear);
+			//Index all primary school inds.
+			for (IndividualList::iterator it = primarySchoolIndList.begin(); it != primarySchoolIndList.end(); it++) {
+				primarySchoolIndById.insert(std::make_pair((*it)->getId(), *it));
+			}
 
-		preSchoolIndList = indDao.getPreSchoolIndividual(currentSimYear);
-		//Index all pre school inds.
-		for (IndividualList::iterator it = preSchoolIndList.begin(); it != preSchoolIndList.end(); it++) {
-			preSchoolIndById.insert(std::make_pair((*it)->getId(), *it));
+			preSchoolIndList = indDao.getPreSchoolIndividual(currentSimYear);
+			//Index all pre school inds.
+			for (IndividualList::iterator it = preSchoolIndList.begin(); it != preSchoolIndList.end(); it++) {
+				preSchoolIndById.insert(std::make_pair((*it)->getId(), *it));
 
+			}
+
+			loadData<HouseholdPlanningAreaDao>( conn, hhPlanningAreaList, hhPlanningAreaMap, &HouseholdPlanningArea::getHouseHoldId);
+			PrintOutV("Number of household planning area rows: " << hhPlanningAreaList.size() << std::endl );
+
+			loadData<HHCoordinatesDao>( conn, hhCoordinates, hhCoordinatesById, &HHCoordinates::getHouseHoldId);
+			PrintOutV("Number of household coordinate rows: " << hhCoordinates.size() << std::endl );
+
+			loadData<SchoolAssignmentCoefficientsDao>( conn_calibration, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
+			PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
+
+			loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
+			PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
 		}
 
 		PrintOutV("Number of pre school individuals: " << preSchoolIndList.size() << std::endl );
@@ -1695,15 +1764,6 @@ void HM_Model::startImpl()
 		loadData<OwnerTenantMovingRateDao>( conn_calibration, ownerTenantMovingRate, ownerTenantMovingRateById, &OwnerTenantMovingRate::getId );
 		PrintOutV("Number of Owner Tenant Moving Rate rows: " << ownerTenantMovingRate.size() << std::endl );
 
-		loadData<HouseholdPlanningAreaDao>( conn, hhPlanningAreaList, hhPlanningAreaMap, &HouseholdPlanningArea::getHouseHoldId);
-	    PrintOutV("Number of household planning area rows: " << hhPlanningAreaList.size() << std::endl );
-
-	    loadData<HHCoordinatesDao>( conn, hhCoordinates, hhCoordinatesById, &HHCoordinates::getHouseHoldId);
-	    PrintOutV("Number of household coordinate rows: " << hhCoordinates.size() << std::endl );
-
-	    loadData<SchoolAssignmentCoefficientsDao>( conn_calibration, schoolAssignmentCoefficients, SchoolAssignmentCoefficientsById, &SchoolAssignmentCoefficients::getParameterId);
-	    PrintOutV("Number of School Assignment Coefficients rows: " << schoolAssignmentCoefficients.size() << std::endl );
-
 		loadData<IndvidualEmpSecDao>( conn, indEmpSecList, indEmpSecbyIndId, &IndvidualEmpSec::getIndvidualId );
 		PrintOutV("Number of Indvidual Emp Sec rows: " << indEmpSecList.size() << std::endl );
 
@@ -1718,11 +1778,11 @@ void HM_Model::startImpl()
 	}
 
 
-	if(!resume)
+	if(!resume && config.ltParams.housingModel.unitsFiltering)
 	{
 		unitsFiltering();
 	}
-	else
+	else if(resume)
 	{
 		BidDao bidDao(conn);
 		db::Parameters params;
@@ -1770,17 +1830,31 @@ void HM_Model::startImpl()
 	int waitingToMoveInHouseholdCount = 0;
 	if(initialLoading)
 	{
+	std::vector<BigSerial>assignedUnitsVec;
 	for (HouseholdList::iterator it = households.begin();	it != households.end(); it++)
 	{
 		Household* household = *it;
 		BigSerial unitIdToBeOwned = INVALID_ID;
+		const Unit* hhUnit = getUnitById(household->getUnitId());
+		if (hhUnit)
+		{
+			assignedUnits.insert(std::make_pair(hhUnit->getId(), hhUnit->getId()));
+			assignedUnitsVec.push_back(hhUnit->getId());
+			if( hhUnit->getUnitType() <= 6  || hhUnit->getUnitType() == 65 )
+				logSqrtFloorAreahdb.push_back( log(sqrt(hhUnit->getFloorArea())));
+			else
+				logSqrtFloorAreacondo.push_back( log(sqrt(hhUnit->getFloorArea())));
+		}
 
 
 		//These households with tenure_status 3 are considered to be occupied by foreign workers
 		const int FROZEN_HH = 3;
-		//note::if you want to run job assignment model or school assignment model with foreign workers population, please comment this line.
-		if( household->getTenureStatus() == FROZEN_HH )
-			continue;
+		//school assignment model and foreign job assignment needs foriegn households as well.
+		if(!config.ltParams.schoolAssignmentModel.enabled && !config.ltParams.jobAssignmentModel.foreignWorkers)
+		{
+			if( household->getTenureStatus() == FROZEN_HH )
+				continue;
+		}
 
 		HouseholdAgent* hhAgent = new HouseholdAgent(household->getId(), this,	household, &market, false, startDay, config.ltParams.housingModel.householdBiddingWindow,0);
 
@@ -1819,12 +1893,6 @@ void HM_Model::startImpl()
 		if (unit)
 		{
 			hhAgent->addUnitId(unit->getId());
-			assignedUnits.insert(std::make_pair(unit->getId(), unit->getId()));
-
-			if( unit->getUnitType() <= 6  || unit->getUnitType() == 65 )
-				logSqrtFloorAreahdb.push_back( log(sqrt(unit->getFloorArea())));
-			else
-				logSqrtFloorAreacondo.push_back( log(sqrt(unit->getFloorArea())));
 		}
 		else
 		{
@@ -1866,8 +1934,7 @@ void HM_Model::startImpl()
 			tempHH->setIndividual(individuals[n]->getId());
 		}
 	}
-
-}
+	}
 
 
 	for(int n  = 0; n < units.size(); n++)
@@ -1919,20 +1986,45 @@ void HM_Model::startImpl()
 	//assign empty units to freelance housing agents
 	//if(!resume)
 	//{
-		for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
+
+	UnitList vacanciesVec;
+	///this unit is a vacancy
+	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
+	{
+		if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() == 1)
 		{
-			boost::gregorian::date saleDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
-			boost::gregorian::date simulationDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
+			if(privatePresaleUnitsMap.find((*it)->getId()) == privatePresaleUnitsMap.end())
+			{
+				vacanciesVec.push_back((*it));
+			}
+		}
+	}
+	int btoCount = 0;
+
+		for (UnitList::const_iterator it = vacanciesVec.begin(); it != vacanciesVec.end(); it++)
+		{
+			HedonicPrice_SubModel hpSubmodel(0, this, (*it));
+			hpSubmodel.computeInitialHedonicPrice((*it)->getId());
+
+			boost::gregorian::date saleFromDate = boost::gregorian::date_from_tm((*it)->getSaleFromDate());
+			boost::gregorian::date simulationStartDate = boost::gregorian::date(HITS_SURVEY_YEAR, 1, 1);
+			boost::gregorian::date simulationEndDate = boost::gregorian::date(HITS_SURVEY_YEAR, 12, 31);
+
+			//select * from synpop12.fm_unit_res where unit_type < 7 and sale_from_date > '20120101'::date and sale_from_date <= '20121231'::date
+
 			int unitStartDay = startDay;
 
 			(*it)->setBto(false);
 
-			if( saleDate > simulationDate )
+			if( saleFromDate > simulationStartDate and saleFromDate <= simulationEndDate )
 			{
-				unitStartDay = (saleDate - simulationDate).days();
+				//unitStartDay = (saleDate - simulationDate).days();
 
-				if( (*it)->getUnitType() < 6 )
+				if( (*it)->getUnitType() < 7 )
+				{
 					(*it)->setBto(true);
+					btoCount++;
+				}
 			}
 
 
@@ -1957,14 +2049,8 @@ void HM_Model::startImpl()
 				(*it)->setbiddingMarketEntryDay(999999);
 				(*it)->setRemainingTimeOnMarket(timeOnMarket);
 				(*it)->setRemainingTimeOffMarket(timeOffMarket);
-
-				writeUnitTimesToFile((*it)->getId(),(*it)->getTimeOnMarket(), (*it)->getTimeOffMarket(), (*it)->getbiddingMarketEntryDay());
 			}
-
-			//this unit is a vacancy
-			if( assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getTenureStatus() != 3)
-			{
-				if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->isBto() == false )
+				if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY && (*it)->isBto()== false)
 				{
 					if(!resume)
 					{
@@ -2009,8 +2095,10 @@ void HM_Model::startImpl()
 
 					freelanceAgents[vacancies % numWorkers]->addUnitId((*it)->getId());
 					vacancies++;
-				}
+				//}
 			}
+
+			writeUnitTimesToFile((*it)->getId(),(*it)->getTimeOnMarket(), (*it)->getTimeOffMarket(), (*it)->getbiddingMarketEntryDay());
 
 
 
@@ -2105,11 +2193,12 @@ void HM_Model::startImpl()
 					//PrintOutV(" " << thisUnit->getId() << " " << thisUnit->getDwellingType() << " " << planningAreaName << std::endl );
 				}
 			}
-		}
+		//}
 
-	//}
+	}
 
-	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
+	PrintOutV("Initial Vacant units: " << vacancies  << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
+	//PrintOutV("bto units: " << btoCount << std::endl);
 
 
 	addMetadata("Initial Units", units.size());
@@ -2120,6 +2209,44 @@ void HM_Model::startImpl()
 
 	for (size_t n = 0; n < households.size(); n++)
 	{
+		if(config.ltParams.schoolAssignmentModel.enabled)
+		{
+			std::vector<BigSerial> individuals = households[n]->getIndividuals();
+			std::vector<BigSerial>::iterator individualsItr;
+			for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+			{
+				const Individual* individual = getIndividualById((*individualsItr));
+				SchoolAssignmentSubModel schoolAssignmentModel(this);
+				if (individual!= nullptr)
+				{
+					switch(individual->getEducationId())
+					{
+					case 1:
+						incrementPreSchoolAssignIndividualCount();
+						schoolAssignmentModel.assignPreSchool(households[n],individual->getId(),nullptr, 0);
+						PrintOutV("number of individuals assigned for pre schools " << getPreSchoolAssignIndividualCount()<< std::endl);
+						break;
+					case 2:
+						incrementPrimarySchoolAssignIndividualCount();
+						schoolAssignmentModel.assignPrimarySchool(households[n],individual->getId(),nullptr, 0);
+						PrintOutV("number of individuals assigned for primary schools " <<getPrimaySchoolAssignIndividualCount()<< std::endl);
+						break;
+					case 3:
+						schoolAssignmentModel.assignSecondarySchool(households[n],individual->getId(),nullptr, 0);
+						break;
+					case 5:
+						schoolAssignmentModel.assignPolyTechnic(households[n],individual->getId(),nullptr, 0);
+						break;
+					case 6:
+						schoolAssignmentModel.assignUniversity(households[n],individual->getId(),nullptr, 0);
+						break;
+
+					}
+				}
+
+			}
+		}
+
 		hdbEligibilityTest(n);
 		if(config.ltParams.taxiAccessModel.enabled)
 		{
@@ -2142,19 +2269,19 @@ void HM_Model::startImpl()
 			if(households[n]->getTenureStatus() != 3)
 			{
 				VehicleOwnershipModel vehOwnershipModel(this);
-				vehOwnershipModel.reconsiderVehicleOwnershipOption2(*households[n],nullptr, 0,initialLoading);
+				vehOwnershipModel.reconsiderVehicleOwnershipOption2(*households[n],nullptr, 0,initialLoading,true);
 			}
 		}
 	}
 
-	Household *hh;
-	PopulationPerPlanningArea *popPerPA;
-	Individual *ind;
-	AlternativeHedonicPrice *altHedonicPrice;
-	ZonalLanduseVariableValues *zonalLU_VarVals;
-	DistanceMRT *mrtDistPerHH;
-	Awakening *awakeningPtr;
-	Unit *unit;
+	Household *hh = nullptr;
+	PopulationPerPlanningArea *popPerPA = nullptr;
+	Individual *ind = nullptr;
+	AlternativeHedonicPrice *altHedonicPrice = nullptr;
+	ZonalLanduseVariableValues *zonalLU_VarVals = nullptr;
+	DistanceMRT *mrtDistPerHH = nullptr;
+	Awakening *awakeningPtr = nullptr;
+	Unit *unit = nullptr;
 
 	//save day0 after all the preprocessing
 	if(initialLoading)
@@ -2249,11 +2376,12 @@ void HM_Model::startImpl()
 						if((*it)->getTenureStatus() != 3)
 						{
 							VehicleOwnershipModel vehOwnershipModel(this);
-							vehOwnershipModel.reconsiderVehicleOwnershipOption2(*(*it),nullptr, 0,initialLoading);
+							vehOwnershipModel.reconsiderVehicleOwnershipOption2(*(*it),nullptr, 0,initialLoading,true);
 						}
 					}
 		}
 	}
+
 
 	PrintOutV("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
 	PrintOutV("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);
@@ -2295,45 +2423,45 @@ void  HM_Model::loadLTVersion(DB_Connection &conn)
 	PrintOutV("LT Database Baseline user id: " << ltVersionList.back()->getUser_id() << endl);
 }
 
-void HM_Model::loadPrimarySchools(DB_Connection &conn)
+void HM_Model::loadEzLinkStops(DB_Connection &conn)
 {
 	soci::session sql;
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
-	std::string tableName = "school";
+	std::string tableName = "ez_link_stop";
 
 	//SQL statement
-	soci::rowset<School> primarySchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where school_type = 'primary_school'");
+	soci::rowset<EzLinkStop> ezLinkStopObjs = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
 
-	for (soci::rowset<School>::const_iterator itPrimarySchool = primarySchoolObjs.begin(); itPrimarySchool != primarySchoolObjs.end(); ++itPrimarySchool)
+	for (soci::rowset<EzLinkStop>::const_iterator itEzLink = ezLinkStopObjs.begin(); itEzLink != ezLinkStopObjs.end(); ++itEzLink)
 	{
-		School* primarySchool = new School(*itPrimarySchool);
-		primarySchools.push_back(primarySchool);
-		primarySchoolById.insert(std::pair<BigSerial, School*>( primarySchool->getId(), primarySchool ));
+		EzLinkStop* ezLinkStop = new EzLinkStop(*itEzLink);
+		ezLinkStops.push_back(ezLinkStop);
+		//ezLinkStopById.insert(std::pair<BigSerial, EzLinkStop*>( ezLinkStop->getId(), ezLinkStop ));
 	}
 
-	PrintOutV("Number of Primary School rows: " << primarySchools.size() << std::endl );
+	PrintOutV("Number of ezLink Stop rows: " << ezLinkStops.size() << std::endl );
 
 }
 
-void HM_Model::loadPreSchools(DB_Connection &conn)
+void HM_Model::loadStudentStops(DB_Connection &conn)
 {
 	soci::session sql;
 	sql.open(soci::postgresql, conn.getConnectionStr());
 
-	std::string tableName = "school";
+	std::string tableName = "student_stop";
 
 	//SQL statement
-	soci::rowset<School> preSchoolObjs = (sql.prepare << "select * from synpop12."  + tableName + " where school_type = 'pre_school'");
+	soci::rowset<StudentStop> studentStopObjs = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
 
-	for (soci::rowset<School>::const_iterator itPreSchool = preSchoolObjs.begin(); itPreSchool != preSchoolObjs.end(); ++itPreSchool)
+	for (soci::rowset<StudentStop>::const_iterator itStudentStop = studentStopObjs.begin(); itStudentStop != studentStopObjs.end(); ++itStudentStop)
 	{
-		School* preSchool = new School(*itPreSchool);
-		preSchools.push_back(preSchool);
-		preSchoolById.insert(std::pair<BigSerial, School*>( preSchool->getId(), preSchool ));
+		StudentStop* stStop = new StudentStop(*itStudentStop);
+		studentStops.push_back(stStop);
 	}
 
-	PrintOutV("Number of Pre School rows: " << preSchools.size() << std::endl );
+	PrintOutV("Number of Student Stop rows: " << studentStops.size() << std::endl );
+
 }
 
 void HM_Model::loadTravelTime(DB_Connection &conn)
@@ -2352,11 +2480,93 @@ void HM_Model::loadTravelTime(DB_Connection &conn)
 
 }
 
+void HM_Model::loadResidentialWTP_Coeffs(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string storedProc = "residential_willingness_to_pay_coefficients";
+
+	//SQL statement
+	soci::rowset<ResidentialWTP_Coefs> residentialWTP_Coeffs = (sql.prepare << "select * from " + conn.getSchema() + storedProc);
+
+	for (soci::rowset<ResidentialWTP_Coefs>::const_iterator itWtpCoeffs = residentialWTP_Coeffs.begin(); itWtpCoeffs != residentialWTP_Coeffs.end(); ++itWtpCoeffs)
+	{
+		ResidentialWTP_Coefs* wtpCoeffs = new ResidentialWTP_Coefs(*itWtpCoeffs);
+		resWTP_Coeffs.push_back(wtpCoeffs);
+		resWTP_CeoffsByPropertyType.insert(std::make_pair(wtpCoeffs->getPropertyType(), wtpCoeffs));
+	}
+
+	PrintOutV("Number of residential wtp coeffs rows: " << resWTP_Coeffs.size() << std::endl );
+}
+
+void HM_Model::loadSchoolDesks(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "school_desk";
+
+	//SQL statement
+	soci::rowset<SchoolDesk> schoolDeskObjs = (sql.prepare << "select * from "  +  conn.getSchema() + tableName);
+
+	for (soci::rowset<SchoolDesk>::const_iterator itSchoolDesk = schoolDeskObjs.begin(); itSchoolDesk != schoolDeskObjs.end(); ++itSchoolDesk)
+	{
+		SchoolDesk* schoolDesk = new SchoolDesk(*itSchoolDesk);
+		schoolDesksBySchoolId.insert(std::pair<BigSerial, SchoolDesk*>( schoolDesk->getSchoolId(), schoolDesk ));
+	}
+
+	PrintOutV("Number of School Desksrows: " << schoolDesksBySchoolId.size() << std::endl );
+}
+
+void HM_Model::loadSchools(DB_Connection &conn)
+{
+	soci::session sql;
+	sql.open(soci::postgresql, conn.getConnectionStr());
+
+	std::string tableName = "school";
+
+	//SQL statement
+	soci::rowset<School> schoolObjs = (sql.prepare << "select * from "  + conn.getSchema() + tableName);
+
+	for (soci::rowset<School>::const_iterator itSchool = schoolObjs.begin(); itSchool != schoolObjs.end(); ++itSchool)
+	{
+		School* school = new School(*itSchool);
+		schools.push_back(school);
+		schoolById.insert(std::pair<BigSerial, School*>( school->getId(), school ));
+
+		if(school->getSchoolType().compare("pre_school") == 0)
+		{
+			preSchools.push_back(school);
+		}
+		else if(school->getSchoolType().compare("primary_school") == 0)
+		{
+			primarySchools.push_back(school);
+		}
+		else if(school->getSchoolType().compare("secondary_school") == 0)
+		{
+			secondarySchools.push_back(school);
+		}
+
+		else if(school->getSchoolType().compare("university") == 0)
+		{
+			universities.push_back(school);
+		}
+
+		else if(school->getSchoolType().compare("polytechnic") == 0)
+		{
+			polyTechnics.push_back(school);
+		}
+	}
+
+	PrintOutV("Number of school rows: " << schools.size() << std::endl );
+}
+
 const TravelTime* HM_Model::getTravelTimeByOriginDestTaz(BigSerial originTaz, BigSerial destTaz)
 {
 	HM_Model::OriginDestKey originDestKey= make_pair(originTaz, destTaz);
 	auto range = travelTimeByOriginDestTaz.equal_range(originDestKey);
-	size_t sz = distance(range.first, range.second);
+	size_t sz = std::distance(range.first, range.second);
 	if(sz==0)
 	{
 		return nullptr;
@@ -2367,6 +2577,24 @@ const TravelTime* HM_Model::getTravelTimeByOriginDestTaz(BigSerial originTaz, Bi
 		return travelTime;
 	}
 
+}
+
+const ResidentialWTP_Coefs* HM_Model::getResidentialWTP_CoefsByPropertyType(string propertyType)
+{
+	HM_Model::ResidentialWTP_CoeffsMap::const_iterator itr = resWTP_CeoffsByPropertyType.find(propertyType);
+
+	if (itr != resWTP_CeoffsByPropertyType.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+
+}
+
+
+HM_Model::ScreeningModelFactorsList& HM_Model::getscreeningModelFactorsList()
+{
+	return screeningModelFactorsList;
 }
 
 HM_Model::ScreeningModelCoefficientsList HM_Model::getScreeningModelCoefficientsList()
@@ -2411,48 +2639,45 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 		boost::mutex::scoped_lock lock( mtx3 );
 
 		hitsSample = this->getHouseHoldHitsById( householdId );
+		indLogsumCounter++;
 
-		//if( !hitsSample )
-		//	return;
-
-//		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
-//			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
-//		else
-//			return;
+		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
+			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
+		else
+			return;
 	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
 
 	std::vector<BigSerial> householdIndividualIds = currentHousehold->getIndividuals();
-
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
 
-		vector<double> logsum;
-		vector<double> travelProbability;
-		vector<double> tripsExpected;
-
-		int tazIdW = -1;
-		int tazIdH = -1;
-		int paxId  = -1;
-
-//		int p = 0;
-//		for(p = 0; p < hitsIndividualLogsum.size(); p++ )
-//		{
-//			if (  hitsIndividualLogsum[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
-//			{
-//				tazIdW = hitsIndividualLogsum[p]->getWorkTaz();
-//				tazIdH = hitsIndividualLogsum[p]->getHomeTaz();
-//				paxId  = hitsIndividualLogsum[p]->getPaxId();
-//				break;
-//			}
-//		}
-
-
+		std::unordered_map<int,double> logsum;
+		std::unordered_map<int,double> travelProbability;
+		std::unordered_map<int,double> tripsExpected;
+		std::unordered_map<int, double> activityLogsums0;
+		std::unordered_map<int, double> activityLogsums1;
+		std::unordered_map<int, double> activityLogsums2;
+		std::unordered_map<int, double> activityLogsums3;
+		std::unordered_map<int, double> activityLogsums4;
+		std::unordered_map<int, double> activityLogsums5;
 
 		BigSerial tazW = 0;
 		BigSerial tazH = 0;
+
+		int paxId  = -1;
+		int p = 0;
+		for(p = 0; p < hitsIndividualLogsum.size(); p++ )
+		{
+			if (  hitsIndividualLogsum[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
+			{
+				paxId  = hitsIndividualLogsum[p]->getPaxId();
+				break;
+			}
+		}
+
 
 		{
 			PersonParams personParams;
@@ -2462,8 +2687,9 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
 
 
-			int work_taz_id = this->getEstablishmentTazId( establishment->getId() );
-			Taz *tazObjW = getTazById( work_taz_id );
+			int workTazId = this->getEstablishmentTazId( establishment->getId() );
+			Postcode *workPostcodeObj = this->getPostcodeById( workTazId);
+			Taz *tazObjW = getTazById( workTazId );
 			std::string tazStrW;
 			if( tazObjW != NULL )
 				tazStrW = tazObjW->getName();
@@ -2477,8 +2703,6 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			tazH = std::atoi( tazStrH.c_str() );
 
 			BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getId());
-
-
 			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
 			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());
 			personParams.setGenderId(thisIndividual->getGenderId());
@@ -2511,6 +2735,531 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 
 			personParams.setIsStudent(isStudent);
 
+
+			if( this->getEstablishmentSlaAddressId(establishment->getId()) == 0 )
+			{
+				personParams.setIsStudent(false);		
+				personParams.setHasWorkplace(false);
+			}
+
+			personParams.setActivityAddressId( this->getEstablishmentSlaAddressId(establishment->getId()) );
+
+			//household related
+			personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
+			
+			personParams.setHomeAddressId( this->getUnitSlaAddressId(unit->getId()) );
+			
+			personParams.setHH_Size( currentHousehold->getSize() );
+			personParams.setHH_NumUnder4( currentHousehold->getChildUnder4());
+			personParams.setHH_NumUnder15( currentHousehold->getChildUnder15());
+			personParams.setHH_NumAdults( currentHousehold->getAdult());
+			personParams.setHH_NumWorkers( currentHousehold->getWorkers());
+
+			//infer params
+			personParams.fixUpParamsForLtPerson();
+
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			const std::string luaDirTC = "TC";
+			PersonParams personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTC );
+			PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams ,luaDirTC);
+			PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams ,luaDirTC);
+			PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTC );
+			PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTC );
+			PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams ,luaDirTC);
+
+			double logsumTC0 = personParams0.getDpbLogsum();
+			double logsumTC1 = personParams1.getDpbLogsum();
+			double logsumTC2 = personParams2.getDpbLogsum();
+			double logsumTC3 = personParams3.getDpbLogsum();
+			double logsumTC4 = personParams4.getDpbLogsum();
+			double logsumTC5 = personParams5.getDpbLogsum();
+
+			int currentVO = currentHousehold->getVehicleOwnershipOptionId();
+
+
+			const std::string luaDirTCZero = "TCZero";
+			personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, currentVO, &personParams,luaDirTCZero);
+			personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, currentVO, &personParams,luaDirTCZero);
+			personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, currentVO, &personParams,luaDirTCZero);
+			personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, currentVO, &personParams,luaDirTCZero);
+			personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, currentVO, &personParams,luaDirTCZero);
+			personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, currentVO, &personParams,luaDirTCZero);
+
+			double logsumTCZero0 = personParams0.getDpbLogsum();
+			double logsumTCZero1 = personParams1.getDpbLogsum();
+			double logsumTCZero2 = personParams2.getDpbLogsum();
+			double logsumTCZero3 = personParams3.getDpbLogsum();
+			double logsumTCZero4 = personParams4.getDpbLogsum();
+			double logsumTCZero5 = personParams5.getDpbLogsum();
+
+			if(config.ltParams.outputHouseholdLogsums.maxcCost)
+			{
+				const std::string luaDirTCPlusOne = "TCPlusOne";
+				personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTCPlusOne );
+				personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTCPlusOne);
+				personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTCPlusOne);
+				personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTCPlusOne );
+				personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTCPlusOne );
+				personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTCPlusOne);
+
+				double logsumTCPlusOne0 = personParams0.getDpbLogsum();
+				double logsumTCPlusOne1 = personParams1.getDpbLogsum();
+				double logsumTCPlusOne2 = personParams2.getDpbLogsum();
+				double logsumTCPlusOne3 = personParams3.getDpbLogsum();
+				double logsumTCPlusOne4 = personParams4.getDpbLogsum();
+				double logsumTCPlusOne5 = personParams5.getDpbLogsum();
+
+				double denominator0 = (logsumTC0 -logsumTCPlusOne0 );
+				double denominator1 = (logsumTC1 -logsumTCPlusOne1 );
+				double denominator2 = (logsumTC2 -logsumTCPlusOne2 );
+				double denominator3 = (logsumTC3 -logsumTCPlusOne3 );
+				double denominator4 = (logsumTC4 -logsumTCPlusOne4 );
+				double denominator5 = (logsumTC5 -logsumTCPlusOne5 ); 
+
+				double avgDenominator = (denominator0 + denominator1 + denominator2 + denominator3 + denominator4  + denominator5) / 6.0;
+
+				double logsumScaledMaxCost0 = ( logsumTC0 - logsumTCZero0) / avgDenominator;
+				logsum.insert(std::make_pair(0,logsumScaledMaxCost0));
+
+				double logsumScaledMaxCost1 = ( logsumTC1 - logsumTCZero1) / avgDenominator;
+				logsum.insert(std::make_pair(1,logsumScaledMaxCost1));
+
+				double logsumScaledMaxCost2 = ( logsumTC2 - logsumTCZero2) / avgDenominator;
+				logsum.insert(std::make_pair(2,logsumScaledMaxCost2));
+
+				double logsumScaledMaxCost3 = ( logsumTC3 - logsumTCZero3) / avgDenominator;
+				logsum.insert(std::make_pair(3,logsumScaledMaxCost3));
+
+				double logsumScaledMaxCost4 = ( logsumTC4 - logsumTCZero4) / avgDenominator;
+				logsum.insert(std::make_pair(4,logsumScaledMaxCost4));
+
+				double logsumScaledMaxCost5 = ( logsumTC5 - logsumTCZero5) / avgDenominator;
+				logsum.insert(std::make_pair(5,logsumScaledMaxCost5));
+			}
+
+			if(config.ltParams.outputHouseholdLogsums.maxTime)
+			{
+				const std::string luaDirCTlusOne = "CTPlusOne";
+				personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirCTlusOne );
+				personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirCTlusOne);
+				personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirCTlusOne);
+				personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirCTlusOne );
+				personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirCTlusOne );
+				personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirCTlusOne);
+
+				double logsumCTPlusOne0 = personParams0.getDpbLogsum();
+				double logsumCTPlusOne1 = personParams1.getDpbLogsum();
+				double logsumCTPlusOne2 = personParams2.getDpbLogsum();
+				double logsumCTPlusOne3 = personParams3.getDpbLogsum();
+				double logsumCTPlusOne4 = personParams4.getDpbLogsum();
+				double logsumCTPlusOne5 = personParams5.getDpbLogsum();
+
+
+				double logsumScaledMaxTime0 =  (logsumTCZero0- logsumTC0) / (logsumTC5 - logsumCTPlusOne0);
+				logsum.insert(std::make_pair(0,logsumScaledMaxTime0));
+
+				double logsumScaledMaxTime1 =  (logsumTCZero1 - logsumTC1) / (logsumTC5 - logsumCTPlusOne1);
+				logsum.insert(std::make_pair(1,logsumScaledMaxTime1));
+
+				double logsumScaledMaxTime2 =  (logsumTCZero2 - logsumTC2) / (logsumTC5 - logsumCTPlusOne2);
+				logsum.insert(std::make_pair(2,logsumScaledMaxTime2));
+
+				double logsumScaledMaxTime3 =  (logsumTCZero3 - logsumTC3) / (logsumTC5 - logsumCTPlusOne3);
+				logsum.insert(std::make_pair(3,logsumScaledMaxTime3));
+
+				double logsumScaledMaxTime4 =  (logsumTCZero4 - logsumTC4) / (logsumTC5 - logsumCTPlusOne4);
+				logsum.insert(std::make_pair(4,logsumScaledMaxTime4));
+
+				double logsumScaledMaxTime5 =  (logsumTCZero5 - logsumTC5) / (logsumTC5 - logsumCTPlusOne5);
+				logsum.insert(std::make_pair(5,logsumScaledMaxTime5));
+			}
+		}
+
+		simulationStopCounter++;
+
+		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, 
+									 currentHousehold->getId(), 
+									 householdIndividualIds[n], 
+									 thisIndividual->getEmploymentStatusId(),
+									 thisIndividual->getAgeCategoryId(),
+									 thisIndividual->getIncome(),
+									 thisIndividual->getFixed_workplace(),
+									 thisIndividual->getMemberId(), tazH, tazW, logsum );
+	}
+}
+
+
+void HM_Model::getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::unordered_map<int,double>&logsum)
+{
+
+	HouseHoldHitsSample *hitsSample = nullptr;
+	{
+		boost::mutex::scoped_lock lock( mtx3 );
+
+		hitsSample = this->getHouseHoldHitsById( householdId );
+		indLogsumCounter++;
+
+		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
+			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
+		else
+			return;
+	}
+
+	Household *currentHousehold = getHouseholdById( householdId );
+
+	std::vector<BigSerial> householdIndividualIds = currentHousehold->getIndividuals();
+	float income = this->getIndividualById(householdIndividualIds[0])->getIncome();
+	BigSerial maxIncomeInd =  householdIndividualIds[0];
+	for( int n = 1; n < householdIndividualIds.size(); n++ )
+	{
+		if(this->getIndividualById(householdIndividualIds[n])->getIncome() > income)
+		{
+			maxIncomeInd = householdIndividualIds[n];
+			income = this->getIndividualById(householdIndividualIds[n])->getIncome();
+		}
+
+	}
+
+	for( int n = 0; n < householdIndividualIds.size(); n++ )
+	{
+		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
+
+		if(thisIndividual->getId() == maxIncomeInd)
+		{
+			std::unordered_map<int,double> logsum;
+			std::unordered_map<int,double> travelProbability;
+			std::unordered_map<int,double> tripsExpected;
+			std::unordered_map<int, double> activityLogsums0;
+			std::unordered_map<int, double> activityLogsums1;
+			std::unordered_map<int, double> activityLogsums2;
+			std::unordered_map<int, double> activityLogsums3;
+			std::unordered_map<int, double> activityLogsums4;
+			std::unordered_map<int, double> activityLogsums5;
+
+			int tazIdW = -1;
+			int tazIdH = -1;
+			int paxId  = -1;
+			BigSerial tazW = 0;
+			BigSerial tazH = 0;
+
+			int p = 0;
+			for(p = 0; p < hitsIndividualLogsum.size(); p++ )
+			{
+				if (  hitsIndividualLogsum[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
+				{
+					paxId  = hitsIndividualLogsum[p]->getPaxId();
+					break;
+				}
+			}
+
+
+
+			{
+				PersonParams personParams;
+
+				Job *job = this->getJobById(thisIndividual->getJobId());
+				Establishment *establishment = this->getEstablishmentById(	job->getEstablishmentId());
+				const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
+
+
+				int work_taz_id = this->getEstablishmentTazId( establishment->getId() );
+				Taz *tazObjW = getTazById( work_taz_id );
+				std::string tazStrW;
+				if( tazObjW != NULL )
+					tazStrW = tazObjW->getName();
+				tazW = std::atoi( tazStrW.c_str() );
+
+				Postcode *postcode = this->getPostcodeById( this->getUnitSlaAddressId(unit->getId()));
+				Taz *tazObjH = getTazById( postcode->getTazId() );
+				std::string tazStrH;
+				if( tazObjH != NULL )
+					tazStrH = tazObjH->getName();
+				tazH = std::atoi( tazStrH.c_str() );
+
+
+				BigSerial establishmentSlaAddressId = getEstablishmentSlaAddressId(establishment->getId());
+
+				personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
+				personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());
+				personParams.setGenderId(thisIndividual->getGenderId());
+				personParams.setStudentTypeId(thisIndividual->getEducationId());
+				personParams.setVehicleOwnershipCategory(currentHousehold->getVehicleOwnershipOptionId());
+				personParams.setAgeId(thisIndividual->getAgeCategoryId());
+				personParams.setIncomeIdFromIncome(thisIndividual->getIncome());
+				personParams.setWorksAtHome(thisIndividual->getWorkAtHome());
+				personParams.setCarLicense(thisIndividual->getCarLicense());
+				personParams.setMotorLicense(thisIndividual->getMotorLicense());
+				personParams.setVanbusLicense(thisIndividual->getVanBusLicense());
+
+				bool fixedHours = false;
+				if( thisIndividual->getFixed_hours() == 1)
+					fixedHours = true;
+
+				personParams.setHasFixedWorkTiming(fixedHours);
+
+				bool fixedWorkplace = true;
+
+				//if( thisIndividual->getFixed_workplace() == 1 )
+				//	fixedWorkplace = true;
+
+				personParams.setHasWorkplace( fixedWorkplace );
+
+				bool isStudent = false;
+
+				if( thisIndividual->getStudentId() > 0)
+					isStudent = true;
+
+				personParams.setIsStudent(isStudent);
+
+				personParams.setActivityAddressId( tazW );
+
+				//household related
+				personParams.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
+				personParams.setHomeAddressId( tazH );
+				personParams.setHH_Size( currentHousehold->getSize() );
+				personParams.setHH_NumUnder4( currentHousehold->getChildUnder4());
+				personParams.setHH_NumUnder15( currentHousehold->getChildUnder15());
+				personParams.setHH_NumAdults( currentHousehold->getAdult());
+				personParams.setHH_NumWorkers( currentHousehold->getWorkers());
+
+				//infer params
+				personParams.fixUpParamsForLtPerson();
+
+				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+				const std::string luaDirTC = "TC";
+				PersonParams personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTC );
+				PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTC);
+				PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTC);
+				PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTC );
+				PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTC );
+				PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTC);
+
+				double logsumTC0 = personParams0.getDpbLogsum();
+				double logsumTC1 = personParams1.getDpbLogsum();
+				double logsumTC2 = personParams2.getDpbLogsum();
+				double logsumTC3 = personParams3.getDpbLogsum();
+				double logsumTC4 = personParams4.getDpbLogsum();;
+				double logsumTC5 = personParams5.getDpbLogsum();
+
+				const std::string luaDirTCZero = "TCZero";
+				personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTCZero );
+				personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTCZero);
+				personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTCZero);
+				personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTCZero );
+				personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTCZero );
+				personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTCZero);
+
+				double logsumTCZero0 = personParams0.getDpbLogsum();
+				double logsumTCZero1 = personParams1.getDpbLogsum();
+				double logsumTCZero2 = personParams2.getDpbLogsum();
+				double logsumTCZero3 = personParams3.getDpbLogsum();
+				double logsumTCZero4 = personParams4.getDpbLogsum();
+				double logsumTCZero5 = personParams5.getDpbLogsum();
+
+				if(config.ltParams.outputHouseholdLogsums.maxcCost)
+				{
+					const std::string luaDirTCPlusOne = "TCPlusOne";
+					personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTCPlusOne );
+					personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTCPlusOne);
+					personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTCPlusOne);
+					personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTCPlusOne );
+					personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTCPlusOne );
+					personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTCPlusOne);
+
+					double logsumTCPlusOne0 = personParams0.getDpbLogsum();
+					double logsumTCPlusOne1 = personParams1.getDpbLogsum();
+					double logsumTCPlusOne2 = personParams2.getDpbLogsum();
+					double logsumTCPlusOne3 = personParams3.getDpbLogsum();
+					double logsumTCPlusOne4 = personParams4.getDpbLogsum();
+					double logsumTCPlusOne5 = personParams5.getDpbLogsum();
+
+					double denominator0 = (logsumTC0 -logsumTCPlusOne0 );
+					double denominator1 = (logsumTC1 -logsumTCPlusOne1 );
+					double denominator2 = (logsumTC2 -logsumTCPlusOne2 );
+					double denominator3 = (logsumTC3 -logsumTCPlusOne3 );
+					double denominator4 = (logsumTC4 -logsumTCPlusOne4 );
+					double denominator5 = (logsumTC5 -logsumTCPlusOne5 ); 
+
+					double avgDenomenator = (denominator0 + denominator1 + denominator2 + denominator3 + denominator4  + denominator5) / 6.0;
+
+					double logsumScaledMaxCost0 = (logsumTC0 - logsumTCZero0) / avgDenomenator;
+					logsum.insert(std::make_pair(0,logsumScaledMaxCost0));
+
+					double logsumScaledMaxCost1 = (logsumTC1 - logsumTCZero1) / avgDenomenator;
+					logsum.insert(std::make_pair(1,logsumScaledMaxCost1));
+
+					double logsumScaledMaxCost2 = (logsumTC2 - logsumTCZero2) / avgDenomenator;
+					logsum.insert(std::make_pair(2,logsumScaledMaxCost2));
+
+					double logsumScaledMaxCost3 = (logsumTC3 - logsumTCZero3) / avgDenomenator;
+					logsum.insert(std::make_pair(3,logsumScaledMaxCost3));
+
+					double logsumScaledMaxCost4 = (logsumTC4 - logsumTCZero4) / avgDenomenator;
+					logsum.insert(std::make_pair(4,logsumScaledMaxCost4));
+
+					double logsumScaledMaxCost5 = (logsumTC5 - logsumTCZero5) / avgDenomenator;
+					logsum.insert(std::make_pair(5,logsumScaledMaxCost5));
+				}
+
+				if(config.ltParams.outputHouseholdLogsums.maxTime)
+				{
+					const std::string luaDirCTlusOne = "CTPlusOne";
+					personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirCTlusOne );
+					personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirCTlusOne);
+					personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirCTlusOne);
+					personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirCTlusOne );
+					personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirCTlusOne );
+					personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirCTlusOne);
+
+					double logsumCTPlusOne0 = personParams0.getDpbLogsum();
+					double logsumCTPlusOne1 = personParams1.getDpbLogsum();
+					double logsumCTPlusOne2 = personParams2.getDpbLogsum();
+					double logsumCTPlusOne3 = personParams3.getDpbLogsum();
+					double logsumCTPlusOne4 = personParams4.getDpbLogsum();
+					double logsumCTPlusOne5 = personParams5.getDpbLogsum();
+
+					double denominator0 = (logsumTC0 -logsumCTPlusOne0 );
+					double denominator1 = (logsumTC1 -logsumCTPlusOne1 );
+					double denominator2 = (logsumTC2 -logsumCTPlusOne2 );
+					double denominator3 = (logsumTC3 -logsumCTPlusOne3 );
+					double denominator4 = (logsumTC4 -logsumCTPlusOne4 );
+					double denominator5 = (logsumTC5 -logsumCTPlusOne5 ); 
+
+					double avgDenomenator = (denominator0 + denominator1 + denominator2 + denominator3 + denominator4  + denominator5) / 6.0;
+
+
+					double logsumScaledMaxTime0 =  (logsumTC0 - logsumTCZero0) / avgDenomenator;
+					logsum.insert(std::make_pair(0,logsumScaledMaxTime0));
+
+					double logsumScaledMaxTime1 =  (logsumTC1 - logsumTCZero1) / avgDenomenator;
+					logsum.insert(std::make_pair(1,logsumScaledMaxTime1));
+
+					double logsumScaledMaxTime2 =  (logsumTC2 - logsumTCZero2) / avgDenomenator;
+					logsum.insert(std::make_pair(2,logsumScaledMaxTime2));
+
+					double logsumScaledMaxTime3 =  (logsumTC3 - logsumTCZero3) / avgDenomenator;
+					logsum.insert(std::make_pair(3,logsumScaledMaxTime3));
+
+					double logsumScaledMaxTime4 =  (logsumTC4 - logsumTCZero4) / avgDenomenator;
+					logsum.insert(std::make_pair(4,logsumScaledMaxTime4));
+
+					double logsumScaledMaxTime5 =  (logsumTC5 - logsumTCZero5) / avgDenomenator;
+					logsum.insert(std::make_pair(5,logsumScaledMaxTime5));
+				}
+
+			}
+
+			printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, 
+										 currentHousehold->getId(), householdIndividualIds[n],
+										 thisIndividual->getEmploymentStatusId(),
+									 	 thisIndividual->getAgeCategoryId(),
+									 	 thisIndividual->getIncome(),
+									 	 thisIndividual->getFixed_workplace(), 
+										 thisIndividual->getMemberId(), tazH, tazW, logsum );
+		}
+}
+
+}
+
+void HM_Model::getLogsumOfHitsHouseholdVO(BigSerial householdId)
+{
+	HouseHoldHitsSample *hitsSample = nullptr;
+	{
+		boost::mutex::scoped_lock lock( mtx3 );
+
+		hitsSample = this->getHouseHoldHitsById( householdId );
+		indLogsumCounter++;
+
+		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
+			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
+		else
+			return;
+	}
+
+	Household *currentHousehold = getHouseholdById( householdId );
+
+	std::vector<BigSerial> householdIndividualIds = currentHousehold->getIndividuals();
+	for( int n = 0; n < householdIndividualIds.size(); n++ )
+	{
+		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
+
+		std::unordered_map<int,double> logsum;
+		std::unordered_map<int,double> travelProbability;
+		std::unordered_map<int,double> tripsExpected;
+		std::unordered_map<int, double> activityLogsums0;
+		std::unordered_map<int, double> activityLogsums1;
+		std::unordered_map<int, double> activityLogsums2;
+		std::unordered_map<int, double> activityLogsums3;
+		std::unordered_map<int, double> activityLogsums4;
+		std::unordered_map<int, double> activityLogsums5;
+
+		int workTazId = -1;
+		int homeTazId = -1;
+		int paxId  = -1;
+
+		int p = 0;
+		for(p = 0; p < hitsIndividualLogsum.size(); p++ )
+		{
+			if (  hitsIndividualLogsum[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
+			{
+				workTazId = hitsIndividualLogsum[p]->getWorkTaz();
+				homeTazId = hitsIndividualLogsum[p]->getHomeTaz();
+				paxId  = hitsIndividualLogsum[p]->getPaxId();
+				break;
+			}
+		}
+
+
+
+		BigSerial tazW = 0;
+		BigSerial tazH = 0;
+
+		{
+			PersonParams personParams;
+			Taz *tazObjH = getTazById( homeTazId );
+			std::string tazStrWork;
+			Taz *tazObjWork = getTazById( workTazId );
+			if( tazObjWork != NULL )
+			{
+				tazStrWork = tazObjWork->getName();
+			}
+			tazW = std::atoi( tazStrWork.c_str() );
+
+			std::string tazStrHome;
+			Taz *tazObjHome = getTazById( homeTazId );
+			if( tazObjHome != NULL )
+			{
+				tazStrHome = tazObjHome->getName();
+			}
+			tazH = std::atoi( tazStrHome.c_str() );
+
+			personParams.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
+			personParams.setPersonTypeId(thisIndividual->getEmploymentStatusId());
+			personParams.setGenderId(thisIndividual->getGenderId());
+			personParams.setStudentTypeId(thisIndividual->getEducationId());
+			personParams.setVehicleOwnershipCategory(currentHousehold->getVehicleOwnershipOptionId());
+			personParams.setAgeId(thisIndividual->getAgeCategoryId());
+			personParams.setIncomeIdFromIncome(thisIndividual->getIncome());
+			personParams.setWorksAtHome(thisIndividual->getWorkAtHome());
+			personParams.setCarLicense(thisIndividual->getCarLicense());
+			personParams.setMotorLicense(thisIndividual->getMotorLicense());
+			personParams.setVanbusLicense(thisIndividual->getVanBusLicense());
+
+			bool fixedHours = false;
+			if( thisIndividual->getFixed_hours() == 1)
+				fixedHours = true;
+
+			personParams.setHasFixedWorkTiming(fixedHours);
+
+			bool fixedWorkplace = true;
+			personParams.setHasWorkplace( fixedWorkplace );
+
+			bool isStudent = false;
+			if( thisIndividual->getStudentId() > 0)
+				isStudent = true;
+
+			personParams.setIsStudent(isStudent);
+
 			personParams.setActivityAddressId( tazW );
 
 			//household related
@@ -2525,131 +3274,122 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId)
 			//infer params
 			personParams.fixUpParamsForLtPerson();
 
-			PersonParams personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams );
-			PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams );
-			PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams );
-			PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams );
-			PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams );
-			PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams );
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+			const std::string luaDirTC = "TC";
+			PersonParams personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTC );
+			PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTC);
+			PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTC);
+			PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTC );
+			PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTC );
+			PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTC);
 
-			logsum.push_back( personParams0.getDpbLogsum());
-			travelProbability.push_back(personParams0.getTravelProbability());
-			tripsExpected.push_back(personParams0.getTripsExpected());
+			double logsumTC0 = personParams0.getDpbLogsum();
+			double logsumTC1 = personParams1.getDpbLogsum();
+			double logsumTC2 = personParams2.getDpbLogsum();
+			double logsumTC3 = personParams3.getDpbLogsum();
+			double logsumTC4 = personParams4.getDpbLogsum();;
+			double logsumTC5 = personParams5.getDpbLogsum();
 
-			logsum.push_back( personParams1.getDpbLogsum());
-			travelProbability.push_back(personParams1.getTravelProbability());
-			tripsExpected.push_back(personParams1.getTripsExpected());
+			const std::string luaDirTCZero = "TCZero";
+			personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTCZero );
+			personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTCZero);
+			personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTCZero);
+			personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTCZero );
+			personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTCZero );
+			personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTCZero);
 
-			logsum.push_back( personParams2.getDpbLogsum());
-			travelProbability.push_back(personParams2.getTravelProbability());
-			tripsExpected.push_back(personParams2.getTripsExpected());
+			double logsumTCZero0 = personParams0.getDpbLogsum();
+			double logsumTCZero1 = personParams1.getDpbLogsum();
+			double logsumTCZero2 = personParams2.getDpbLogsum();
+			double logsumTCZero3 = personParams3.getDpbLogsum();
+			double logsumTCZero4 = personParams4.getDpbLogsum();
+			double logsumTCZero5 = personParams5.getDpbLogsum();
 
-			logsum.push_back( personParams3.getDpbLogsum());
-			travelProbability.push_back(personParams3.getTravelProbability());
-			tripsExpected.push_back(personParams3.getTripsExpected());
+			if(config.ltParams.outputHouseholdLogsums.maxcCost)
+			{
+				const std::string luaDirTCPlusOne = "TCPlusOne";
+				personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirTCPlusOne );
+				personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirTCPlusOne);
+				personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirTCPlusOne);
+				personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirTCPlusOne );
+				personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirTCPlusOne );
+				personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirTCPlusOne);
 
-			logsum.push_back( personParams4.getDpbLogsum());
-			travelProbability.push_back(personParams4.getTravelProbability());
-			tripsExpected.push_back(personParams4.getTripsExpected());
+				double logsumTCPlusOne0 = personParams0.getDpbLogsum();
+				double logsumTCPlusOne1 = personParams1.getDpbLogsum();
+				double logsumTCPlusOne2 = personParams2.getDpbLogsum();
+				double logsumTCPlusOne3 = personParams3.getDpbLogsum();
+				double logsumTCPlusOne4 = personParams4.getDpbLogsum();
+				double logsumTCPlusOne5 = personParams5.getDpbLogsum();
 
-			logsum.push_back( personParams5.getDpbLogsum());
-			travelProbability.push_back(personParams5.getTravelProbability());
-			tripsExpected.push_back(personParams5.getTripsExpected());
+				double logsumScaledMaxCost0 = (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumTCPlusOne0 );
+				logsum.insert(std::make_pair(0,logsumScaledMaxCost0));
+
+				double logsumScaledMaxCost1 = (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumTCPlusOne1 );
+				logsum.insert(std::make_pair(1,logsumScaledMaxCost1));
+
+				double logsumScaledMaxCost2 = (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumTCPlusOne2 );
+				logsum.insert(std::make_pair(2,logsumScaledMaxCost2));
+
+				double logsumScaledMaxCost3 = (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumTCPlusOne3 );
+				logsum.insert(std::make_pair(3,logsumScaledMaxCost3));
+
+				double logsumScaledMaxCost4 = (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumTCPlusOne4 );
+				logsum.insert(std::make_pair(4,logsumScaledMaxCost4));
+
+				double logsumScaledMaxCost5 = (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumTCPlusOne5 );
+				logsum.insert(std::make_pair(5,logsumScaledMaxCost5));
+			}
+
+			if(config.ltParams.outputHouseholdLogsums.maxTime)
+			{
+				const std::string luaDirCTlusOne = "CTPlusOne";
+				personParams0 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 , &personParams,luaDirCTlusOne );
+				personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 , &personParams ,luaDirCTlusOne);
+				personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 , &personParams ,luaDirCTlusOne);
+				personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 , &personParams,luaDirCTlusOne );
+				personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 , &personParams,luaDirCTlusOne );
+				personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 , &personParams ,luaDirCTlusOne);
+
+				double logsumCTPlusOne0 = personParams0.getDpbLogsum();
+				double logsumCTPlusOne1 = personParams1.getDpbLogsum();
+				double logsumCTPlusOne2 = personParams2.getDpbLogsum();
+				double logsumCTPlusOne3 = personParams3.getDpbLogsum();
+				double logsumCTPlusOne4 = personParams4.getDpbLogsum();
+				double logsumCTPlusOne5 = personParams5.getDpbLogsum();
+
+				double logsumScaledMaxTime0 =  (logsumTC0 - logsumTCZero0) / (logsumTC0 -logsumCTPlusOne0 );
+				logsum.insert(std::make_pair(0,logsumScaledMaxTime0));
+
+				double logsumScaledMaxTime1 =  (logsumTC1 - logsumTCZero1) / (logsumTC1 -logsumCTPlusOne1 );
+				logsum.insert(std::make_pair(1,logsumScaledMaxTime1));
+
+				double logsumScaledMaxTime2 =  (logsumTC2 - logsumTCZero2) / (logsumTC2 -logsumCTPlusOne2 );
+				logsum.insert(std::make_pair(2,logsumScaledMaxTime2));
+
+				double logsumScaledMaxTime3 =  (logsumTC3 - logsumTCZero3) / (logsumTC3 -logsumCTPlusOne3 );
+				logsum.insert(std::make_pair(3,logsumScaledMaxTime3));
+
+				double logsumScaledMaxTime4 =  (logsumTC4 - logsumTCZero4) / (logsumTC4 -logsumCTPlusOne4 );
+				logsum.insert(std::make_pair(4,logsumScaledMaxTime4));
+
+				double logsumScaledMaxTime5 =  (logsumTC5 - logsumTCZero5) / (logsumTC5 -logsumCTPlusOne5 );
+				logsum.insert(std::make_pair(5,logsumScaledMaxTime5));
+			}
+
 		}
 
-		/*
-		PersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 );
-
-		Job *job = this->getJobById(thisIndividual->getJobId());
-		Establishment *establishment = this->getEstablishmentById(	job->getEstablishmentId());
-		const Unit *unit = this->getUnitById(currentHousehold->getUnitId());
-		personParams1.setPersonId(boost::lexical_cast<std::string>(thisIndividual->getId()));
-		personParams1.setPersonTypeId(thisIndividual->getEmploymentStatusId());
-		personParams1.setGenderId(thisIndividual->getGenderId());
-		personParams1.setStudentTypeId(thisIndividual->getEducationId());
-		personParams1.setVehicleOwnershipCategory(currentHousehold->getVehicleOwnershipOptionId());
-		personParams1.setAgeId(thisIndividual->getAgeCategoryId());
-		personParams1.setIncomeIdFromIncome(thisIndividual->getIncome());
-		personParams1.setWorksAtHome(thisIndividual->getWorkAtHome());
-		personParams1.setCarLicense(thisIndividual->getCarLicense());
-		personParams1.setMotorLicense(thisIndividual->getMotorLicense());
-		personParams1.setVanbusLicense(thisIndividual->getVanBusLicense());
-		personParams1.setHasFixedWorkTiming(job->getTimeRestriction());
-		personParams1.setHasWorkplace( job->getFixedWorkplace() );
-		personParams1.setIsStudent(job->getIsStudent());
-		personParams1.setActivityAddressId( establishment->getSlaAddressId() );
-		//household related
-		personParams1.setHhId(boost::lexical_cast<std::string>( currentHousehold->getId() ));
-		personParams1.setHomeAddressId( unit->getSlaAddressId() );
-		personParams1.setHH_Size( currentHousehold->getSize() );
-		personParams1.setHH_NumUnder4( currentHousehold->getChildUnder4());
-		personParams1.setHH_NumUnder15( currentHousehold->getChildUnder15());
-		personParams1.setHH_NumAdults( currentHousehold->getAdult());
-		personParams1.setHH_NumWorkers( currentHousehold->getWorkers());
-		//infer params
-		personParams1.fixUpParamsForLtPerson();
-
-
-
-		double logsumNoVehicle	= personParams1.getDpbLogsum();
-		double travelProbNV		= personParams1.getTravelProbability();
-		double tripsExpectedNV 	= personParams1.getTripsExpected();
-		logsum.push_back(logsumNoVehicle);
-		travelProbability.push_back(travelProbNV);
-		tripsExpected.push_back(tripsExpectedNV);
-
-		PersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 );
-		double logsumVehicle	= personParams2.getDpbLogsum();
-		double travelProbV		= personParams2.getTravelProbability();
-		double tripsExpectedV 	= personParams2.getTripsExpected();
-		logsum.push_back(logsumVehicle);
-		travelProbability.push_back(travelProbV);
-		tripsExpected.push_back(tripsExpectedV);
-
-		PersonParams personParams3 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 2 );
-		logsumVehicle	= personParams3.getDpbLogsum();
-		travelProbV		= personParams3.getTravelProbability();
-		tripsExpectedV 	= personParams3.getTripsExpected();
-		logsum.push_back(logsumVehicle);
-		travelProbability.push_back(travelProbV);
-		tripsExpected.push_back(tripsExpectedV);
-
-		PersonParams personParams4 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 3 );
-		logsumVehicle	= personParams4.getDpbLogsum();
-		travelProbV		= personParams4.getTravelProbability();
-		tripsExpectedV 	= personParams4.getTripsExpected();
-		logsum.push_back(logsumVehicle);
-		travelProbability.push_back(travelProbV);
-		tripsExpected.push_back(tripsExpectedV);
-
-		PersonParams personParams5 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 4 );
-		logsumVehicle	= personParams5.getDpbLogsum();
-		travelProbV		= personParams5.getTravelProbability();
-		tripsExpectedV 	= personParams5.getTripsExpected();
-		logsum.push_back(logsumVehicle);
-		travelProbability.push_back(travelProbV);
-		tripsExpected.push_back(tripsExpectedV);
-
-		PersonParams personParams6 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 5 );
-		logsumVehicle	= personParams6.getDpbLogsum();
-		travelProbV		= personParams6.getTravelProbability();
-		tripsExpectedV 	= personParams6.getTripsExpected();
-		logsum.push_back(logsumVehicle);
-		travelProbability.push_back(travelProbV);
-		tripsExpected.push_back(tripsExpectedV);
-		*/
-
 		simulationStopCounter++;
-
-		printHouseholdHitsLogsumFVO( "", paxId, currentHousehold->getId(), householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
-//		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << currentHousehold->getId() << ", " << thisIndividual->getMemberId()
-//										 << ", " << householdIndividualIds[n] << ", " << tazH << ", " << tazW << ", "
-//										 << std::setprecision(5)
-//										 << logsum[0]  << ", " << logsum[1] << ", " << logsum[2] << ", " << logsum[3] << ", "<< logsum[4]  << ", " << logsum[5] << ", "
-//										 << tripsExpected[0] << ", " << tripsExpected[1] << ", " << tripsExpected[2] << ", " << tripsExpected[3] << ", "<< tripsExpected[4] << ", " << tripsExpected[5] << ", "
-//										 << travelProbability[0] << ", " << travelProbability[1] << ", "  << travelProbability[2] << ", " << travelProbability[3] << ", "  << travelProbability[4] << ", " << travelProbability[5] <<std::endl );
+		printHouseholdHitsLogsumFVO( hitsIndividualLogsum[p]->getHitsId(), paxId, 
+									 currentHousehold->getId(), householdIndividualIds[n], 
+									 thisIndividual->getEmploymentStatusId(),
+									 thisIndividual->getAgeCategoryId(),
+									 thisIndividual->getIncome(),
+									 thisIndividual->getFixed_workplace(),
+									 thisIndividual->getMemberId(), tazH, tazW, logsum );
 
 	}
+
 }
 
 void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
@@ -2657,27 +3397,18 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 	HouseHoldHitsSample *hitsSample = nullptr;
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
+	hitsSample = this->getHouseHoldHitsById( householdId );
+	if(config.ltParams.outputHouseholdLogsums.hitsRun)
 	{
 		boost::mutex::scoped_lock lock( mtx3 );
-
-		hitsSample = this->getHouseHoldHitsById( householdId );
-
-		if( !hitsSample )
-			return;
-
 		Household *currentHousehold = getHouseholdById( householdId );
-
 		if( !currentHousehold )
 			return;
-
-
-		/*
-		if(logsumUniqueCounter.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter.end())
-			logsumUniqueCounter.insert(hitsSample->getHouseholdHitsId());
+		if(logsumUniqueCounter_str.find(hitsSample->getHouseholdHitsId()) == logsumUniqueCounter_str.end())
+			logsumUniqueCounter_str.insert(hitsSample->getHouseholdHitsId());
 		else
 			return;
-		*/
+
 	}
 
 	Household *currentHousehold = getHouseholdById( householdId );
@@ -2689,26 +3420,26 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
 
 
-		/*
-		 *This commented code lumps individuals by their person param unique characteristics to speed up logsum computation
-        {
 
-			if(!( thisIndividual->getId() >= 0 && thisIndividual->getId() < 10000000 ))
-				continue;
+		//This commented code lumps individuals by their person param unique characteristics to speed up logsum computation
+//        {
+//
+//			if(!( thisIndividual->getId() >= 0 && thisIndividual->getId() < 10000000 ))
+//				continue;
+//
+//			boost::mutex::scoped_lock lock( mtx6 );
+//
+//			auto groupId = workersGrpByLogsumParamsById.find(thisIndividual->getId());
+//
+//			if( groupId == workersGrpByLogsumParamsById.end())
+//					continue;
+//
+//			if( logsumUniqueCounter.find(groupId->second->getLogsumCharacteristicsGroupId()) == logsumUniqueCounter.end())
+//					logsumUniqueCounter.insert( groupId->second->getLogsumCharacteristicsGroupId() );
+//			else
+//					continue;
+//        }
 
-			boost::mutex::scoped_lock lock( mtx6 );
-
-			auto groupId = workersGrpByLogsumParamsById.find(thisIndividual->getId());
-
-			if( groupId == workersGrpByLogsumParamsById.end())
-					continue;
-
-			if( logsumUniqueCounter.find(groupId->second->getLogsumCharacteristicsGroupId()) == logsumUniqueCounter.end())
-					logsumUniqueCounter.insert( groupId->second->getLogsumCharacteristicsGroupId() );
-			else
-					continue;
-        }
-        */
 
 
 
@@ -2722,6 +3453,10 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 		//	continue;
 
 		vector<double> logsum;
+		vector<double> workLogsum;
+		vector<double> eduLogsum;
+		vector<double> shopLogsum;
+		vector<double> otherLogsum;
 		vector<double> travelProbability;
 		vector<double> tripsExpected;
 
@@ -2847,19 +3582,73 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			//infer params
 			personParams.fixUpParamsForLtPerson();
 
+			double logsumTC = 0;
+			double logsumTCPlusOne = 0;
+			double logsumCTPlusOne = 0;
+			double logsumTCZero = 0;
+
 			if( config.ltParams.outputHouseholdLogsums.fixedHomeVariableWork )
-				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams );
-			else
-			if( config.ltParams.outputHouseholdLogsums.fixedWorkVariableHome )
+			{
+				const std::string luaDirTC = "TC";
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirTC);
+				logsumTC = personParams.getDpbLogsum();
+
+				const std::string luaDirTCZero = "TCZero";
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirTCZero);
+				logsumTCZero = personParams.getDpbLogsum();
+
+				if(config.ltParams.outputHouseholdLogsums.maxcCost)
+				{
+					const std::string luaDirTCPlusOne = "TCPlusOne";
+					personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirTCPlusOne);
+					logsumTCPlusOne = personParams.getDpbLogsum();
+
+					double logsumScaledMaxCost = (logsumTC - logsumTCZero) / (logsumTC -logsumTCPlusOne );
+					logsum.push_back(logsumScaledMaxCost);
+				}
+
+				if(config.ltParams.outputHouseholdLogsums.maxTime)
+				{
+					const std::string luaDirCTlusOne = "CTPlusOne";
+					personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazHome, tazList, vehicleOwnership , &personParams, luaDirCTlusOne);
+					logsumCTPlusOne = personParams.getDpbLogsum();
+
+					double logsumScaledMaxTime =  (logsumTC - logsumTCZero) / (logsumTC -logsumCTPlusOne );
+					logsum.push_back(logsumScaledMaxTime);
+				}
+			}
+			else if( config.ltParams.outputHouseholdLogsums.fixedWorkVariableHome )
+			{
 				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams );
 
-			double logsumD 				= personParams.getDpbLogsum();
- 			double travelProbabilityD	= personParams.getTravelProbability();
-			double tripsExpectedD		= personParams.getTripsExpected();
+				const std::string luaDirTC = "TC";
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams, luaDirTC);
+				logsumTC = personParams.getDpbLogsum();
 
-			logsum.push_back(logsumD);
-			travelProbability.push_back(travelProbabilityD);
-			tripsExpected.push_back(tripsExpectedD);
+				const std::string luaDirTCZero = "TCZero";
+				personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams, luaDirTCZero);
+				logsumTCZero = personParams.getDpbLogsum();
+
+				if(config.ltParams.outputHouseholdLogsums.maxcCost)
+				{
+					const std::string luaDirTCPlusOne = "TCPlusOne";
+					personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams, luaDirTCPlusOne);
+					logsumTCPlusOne = personParams.getDpbLogsum();
+
+					double logsumScaledMaxCost = (logsumTC - logsumTCZero) / (logsumTC -logsumTCPlusOne );
+					logsum.push_back(logsumScaledMaxCost);
+				}
+
+				if(config.ltParams.outputHouseholdLogsums.maxcCost)
+				{
+					const std::string luaDirCTlusOne = "CTPlusOne";
+					personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazList, tazWork, vehicleOwnership , &personParams, luaDirCTlusOne);
+					logsumCTPlusOne = personParams.getDpbLogsum();
+
+					double logsumScaledMaxTime =  (logsumTC - logsumTCZero) / (logsumTC -logsumCTPlusOne );
+					logsum.push_back(logsumScaledMaxTime);
+				}
+			}
 		}
 
 		static bool printTitle = true;
@@ -2869,13 +3658,12 @@ void HM_Model::getLogsumOfVaryingHomeOrWork(BigSerial householdId)
 			printHouseholdHitsLogsum("title", "hitsId", "householdId", "individualId", "paxId", tazIds);
 		}
 
-
 		{
 			boost::mutex::scoped_lock lock( mtx5 );
+			indLogsumCounter++;
+			PrintOutV("indLogsumCounter"<<indLogsumCounter<<std::endl);
 			printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , to_string(householdId), to_string(householdIndividualIds[n]), to_string(thisIndividual->getMemberId()), logsum  );
 		}
-		//printHouseholdHitsLogsum( "travelProbability", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), travelProbability );
-		//printHouseholdHitsLogsum( "tripsExpected", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tripsExpected );
 	}
 }
 
@@ -2937,45 +3725,7 @@ void HM_Model::unitsFiltering()
 	PrintOutV( "Total units " << units.size() << std::endl );
 }
 
-void HM_Model::update(int day)
-{
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
-	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
-	{
-		//this unit is a vacancy and unit is on the market or to be entered to the market.
-		if (assignedUnits.find((*it)->getId()) == assignedUnits.end() && (*it)->getbiddingMarketEntryDay() != 999999 )
-		{
-			//update unit's time on and off market values.
-			//unit is on the market if it is on or passed the bidding market entry day.
-			if ( (*it)->getRemainingTimeOnMarket() > 0 && day >= (*it)->getbiddingMarketEntryDay() )
-			{
-
-				//(*it)->setbiddingMarketEntryDay(day + 1);
-				//(*it)->setTimeOnMarket( 1 + config.ltParams.housingModel.timeOnMarket * (float)rand() / RAND_MAX );
-				(*it)->updateRemainingTimeOnMarket();
-			}
-			//unit is off the market if it has already completed the time on the market or if it has not yet entered the market.
-			else if((*it)->getRemainingTimeOnMarket() == 0 || day < (*it)->getbiddingMarketEntryDay() )
-			{
-				//unit is off the market and has completed the waiting time.
-//				if((*it)->getRemainingTimeOffMarket() <= 0)
-//				{
-//					//when a unit is re-awakened it will have the full amount of time on and off market.
-//					(*it)->setbiddingMarketEntryDay(day+1);
-//					(*it)->setRemainingTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-//					(*it)->setRemainingTimeOffMarket( config.ltParams.housingModel.timeOffMarket);
-//				}
-				if((*it)->getRemainingTimeOffMarket() > 0) // unit is off the market.
-				{
-					(*it)->updateRemainingTimeOffMarket();
-				}
-			}
-
-		}
-	}
-
-}
+void HM_Model::update(int day) {}
 
 
 void HM_Model::hdbEligibilityTest(int index)
@@ -3433,18 +4183,6 @@ HM_Model::SchoolList HM_Model::getPrimarySchoolList() const
 	return this->primarySchools;
 }
 
-School* HM_Model::getPrimarySchoolById( BigSerial id) const
-{
-	SchoolMap::const_iterator itr = primarySchoolById.find(id);
-
-	if (itr != primarySchoolById.end())
-	{
-		return itr->second;
-	}
-
-	return nullptr;
-}
-
 HM_Model::HHCoordinatesList HM_Model::getHHCoordinatesList() const
 {
 	return this->hhCoordinates;
@@ -3467,15 +4205,19 @@ HM_Model::SchoolList HM_Model::getPreSchoolList() const
 	return this->preSchools;
 }
 
-School* HM_Model::getPreSchoolById( BigSerial id) const
+HM_Model::SchoolList HM_Model::getSecondarySchoolList() const
 {
-	SchoolMap::const_iterator itr = preSchoolById.find(id);
+	return this->secondarySchools;
+}
 
-	if (itr != preSchoolById.end())
-	{
-		return itr->second;
-	}
-	return nullptr;
+HM_Model::SchoolList HM_Model::getUniversityList() const
+{
+	return this->universities;
+}
+
+HM_Model::SchoolList HM_Model::getPolytechnicList() const
+{
+	return this->polyTechnics;
 }
 
 HouseholdUnit* HM_Model::getHouseholdUnitByHHId(BigSerial hhId) const
@@ -3538,6 +4280,18 @@ void  HM_Model::loadStudyAreas(DB_Connection &conn)
 	PrintOutV("Number of Study Area rows: " << studyAreas.size() << std::endl );
 }
 
+bool HM_Model::isStudyAreaTaz(BigSerial tazId)
+{
+	StudyAreaMap::const_iterator itr = studyAreasByTazId.find(tazId);
+
+		if (itr != studyAreasByTazId.end())
+		{
+			return true;
+		}
+
+		return false;
+}
+
 void HM_Model::loadJobAssignments(DB_Connection &conn)
 {
 	soci::session sql;
@@ -3546,7 +4300,7 @@ void HM_Model::loadJobAssignments(DB_Connection &conn)
 	std::string tableName = "job_assignment_coefficients";
 
 	//SQL statement
-	soci::rowset<JobAssignmentCoeffs> jobAssignmentCoeffsObj = (sql.prepare << "select * from calibration2012."  + tableName);
+	soci::rowset<JobAssignmentCoeffs> jobAssignmentCoeffsObj = (sql.prepare << "select * from " + conn.getSchema() + tableName);
 
 	for (soci::rowset<JobAssignmentCoeffs>::const_iterator itJobAssignmentCoeffs = jobAssignmentCoeffsObj.begin(); itJobAssignmentCoeffs != jobAssignmentCoeffsObj.end(); ++itJobAssignmentCoeffs)
 	{
@@ -3604,6 +4358,21 @@ HM_Model::TazList&  HM_Model::getTazList()
 	return tazs;
 }
 
+HM_Model::MtzTazList& HM_Model::getMtztazList()
+{
+	return this->mtzTaz;
+}
+
+HM_Model::MtzList& HM_Model::getMtzList()
+{
+	return mtz;
+}
+
+HM_Model::PlanningSubzoneList& HM_Model::getPlanningSubzoneList()
+{
+	return planningSubzone;
+}
+
 void HM_Model::incrementPrimarySchoolAssignIndividualCount()
 {
 	++numPrimarySchoolAssignIndividuals;
@@ -3624,16 +4393,151 @@ int HM_Model::getPreSchoolAssignIndividualCount()
 	return this->numPreSchoolAssignIndividuals;
 }
 
+void HM_Model::addStudentToPrechool(BigSerial individualId, int schoolId)
+{
+	{
+		//boost::mutex::scoped_lock lock( mtx );
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		//boost::upgrade_lock<boost::shared_mutex> lock(sharedMtx1);
+		//boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+		School *preSchool = getSchoolById(schoolId);
+		preSchool->addStudent(individualId);
+		addSchoolDeskToStudent(individualId,schoolId);
+		writePreSchoolAssignmentsToFile(individualId,schoolId);
+	}
+}
+
 void HM_Model::addStudentToPrimarySchool(BigSerial individualId, int schoolId, BigSerial householdId)
 {
 	{
-		boost::mutex::scoped_lock lock( mtx );
-		School *priSchool = getPrimarySchoolById(schoolId);
+		//boost::mutex::scoped_lock lock( mtx );
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		School *priSchool = getSchoolById(schoolId);
 		priSchool->addStudent(individualId);
+		addSchoolDeskToStudent(individualId,schoolId);
+		writePrimarySchoolAssignmentsToFile(individualId,schoolId);
 		HHCoordinates *hhCoords = getHHCoordinateByHHId(householdId);
 		double distanceFromHomeToSchool = (distanceCalculateEuclidean(priSchool->getCentroidX(),priSchool->getCentroidY(),hhCoords->getCentroidX(),hhCoords->getCentroidY()))/1000;
 		School::DistanceIndividual distanceInd{individualId,distanceFromHomeToSchool};
 		priSchool->addIndividualDistance(distanceInd);
+	}
+}
+
+void HM_Model::addStudentToSecondarychool(BigSerial individualId, int schoolId)
+{
+	{
+		//boost::mutex::scoped_lock lock( mtx );
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		School *secSchool = getSchoolById(schoolId);
+		secSchool->addStudent(individualId);
+		addSchoolDeskToStudent(individualId,schoolId);
+		writeSecondarySchoolAssignmentsToFile(individualId,schoolId);
+	}
+
+}
+
+void HM_Model::addStudentToUniversity(BigSerial individualId, int schoolId)
+{
+	{
+		//boost::mutex::scoped_lock lock( mtx );
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		School *university = getSchoolById(schoolId);
+		if(university != nullptr)
+		{
+			university->addStudent(individualId);
+			addSchoolDeskToStudent(individualId,schoolId);
+		}
+
+		writeUniversityAssignmentsToFile(individualId,schoolId);
+	}
+
+}
+
+void HM_Model::addStudentToPolytechnic(BigSerial individualId, int schoolId)
+{
+	{
+		//boost::mutex::scoped_lock lock( mtx );
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		School *polytechnic = getSchoolById(schoolId);
+		if(polytechnic != nullptr)
+		{
+			polytechnic->addStudent(individualId);
+			addSchoolDeskToStudent(individualId,schoolId);
+		}
+		writePolyTechAssignmentsToFile(individualId,schoolId);
+	}
+
+}
+
+bool HM_Model::checkForSchoolSlots(BigSerial schoolId)
+{
+	{
+		//boost::mutex::scoped_lock lock( mtx );
+		 //boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		boost::unique_lock<boost::shared_mutex> lock(sharedMtx1);
+		School *school = getSchoolById(schoolId);
+		if(school->getNumStudents()+1 < school->getSchoolSlot())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+}
+
+void HM_Model::addSchoolDeskToStudent(BigSerial individualId, int schoolId)
+{
+	{
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
+		//boost::mutex::scoped_lock lock( mtx );
+		//boost::upgrade_lock<boost::shared_mutex> lock(sharedMtx1);
+		//boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+
+		auto range = schoolDesksBySchoolId.equal_range(schoolId);
+		size_t sz = std::distance(range.first, range.second);
+
+		if(sz==0)
+		{
+			School *uni = getSchoolById(schoolId);
+			//this part should not be reached with proper data. If you get this message please check whether you have enough school desks according to school slots in each school.
+			PrintOutV("Individual id " <<  individualId << " has school desk id as 0" << std::endl);
+		}
+		else
+		{
+			std::random_device rdInGen;
+			std::mt19937 genRdInd(rdInGen());
+			std::uniform_int_distribution<int> disRdInd(0, (sz-1));
+			const unsigned int random_index = disRdInd(genRdInd);
+			std::advance(range.first, random_index);
+
+			int schoolDeskId = range.first->second->getSchoolDeskId();
+			writeSchoolDesksToFile(individualId,schoolId,schoolDeskId);
+
+			//boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+			HM_Model::SchoolDeskMultiMap::iterator iter;
+			for(iter=range.first;iter != range.second;++iter)
+			{
+				if((iter->second->getSchoolDeskId()) == schoolDeskId) {
+					schoolDesksBySchoolId.erase(iter);
+					break;
+				}
+			}
+			//lock.unlock();
+//			HM_Model::SchoolDeskMultiMap::iterator iter = range.first;
+//			while (iter != range.second)
+//			{
+//				if(iter->second->getSchoolDeskId() == schoolDeskId)
+//				{
+//					schoolDesksBySchoolId.erase(iter++);
+//				}
+//				else
+//				{
+//					++iter;
+//				}
+//			}
+		}
 	}
 }
 
@@ -3728,10 +4632,10 @@ HM_Model::JobsWithTazAndIndustryTypeMap& HM_Model::getJobsWithTazAndIndustryType
 bool HM_Model::checkJobsInTazAndIndustry(BigSerial tazId, BigSerial industryId)
 {
 	{
-		boost::unique_lock<boost::shared_mutex> lock(sharedMtx);
+		boost::unique_lock<boost::shared_mutex> lock(sharedMtx1);
 		HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(tazId, industryId);
 		auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
-		size_t sz = distance(range.first, range.second);
+		size_t sz = std::distance(range.first, range.second);
 		if(sz > 0)
 		{
 			return true;
@@ -3747,10 +4651,10 @@ bool HM_Model::checkJobsInTazAndIndustry(BigSerial tazId, BigSerial industryId)
 bool HM_Model::assignIndividualJob(BigSerial individualId, BigSerial selectedTazId, BigSerial industryId)
 {
 	{
-		boost::shared_lock<boost::shared_mutex> lock(sharedMtx);
+		boost::shared_lock<boost::shared_mutex> lock(sharedMtx1);
 	HM_Model::TazAndIndustryTypeKey tazAndIndustryTypeKey= make_pair(selectedTazId, industryId);
 	auto range = jobsWithTazAndIndustryType.equal_range(tazAndIndustryTypeKey);
-	size_t sz = distance(range.first, range.second);
+	size_t sz = std::distance(range.first, range.second);
 	if(sz==0)
 	{
 		//this part should not be reached with proper data. If you get this message please check whether you have enough jobs for individuals in each industry id.
@@ -3790,6 +4694,164 @@ int HM_Model::getJobAssignIndividualCount()
 void HM_Model::incrementJobAssignIndividualCount()
 {
 	++jobAssignIndCount;
+}
+
+HM_Model::HouseholdList HM_Model::getPendingHouseholds()
+{
+	return pendingHouseholds;
+}
+
+int HM_Model::getIndLogsumCounter()
+{
+	return this->indLogsumCounter;
+}
+
+HM_Model::StudentStopList HM_Model::getStudentStops()
+{
+	return this->studentStops;
+}
+
+HM_Model::EzLinkStopList HM_Model::getEzLinkStops()
+{
+	return this->ezLinkStops;
+}
+
+EzLinkStop* HM_Model::getEzLinkStopsWithNearestUniById(BigSerial id) const
+{
+	EzLinkStopMap::const_iterator itr = ezLinkStopsWithNearestUniById.find(id);
+
+	if (itr != ezLinkStopsWithNearestUniById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+void HM_Model::assignNearestUniToEzLinkStops()
+{
+	//HM_Model::EzLinkStopMap ezLinkStopsWithNearestSchoolById;
+	BigSerial nearestSchoolId = 0;
+
+	for(EzLinkStop *ezLinkStop : ezLinkStops)
+	{
+		double minDistance = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), universities[0]->getCentroidX(), universities[0]->getCentroidY());
+		for(School *university : universities)
+		{
+			double distanceFromStopToUni = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), university->getCentroidX(), university->getCentroidY());
+			if(distanceFromStopToUni < minDistance)
+			{
+				minDistance = distanceFromStopToUni;
+				nearestSchoolId = university->getId();
+			}
+		}
+		if(minDistance < 1000)
+		{
+			ezLinkStop->setNearestUniversityId(nearestSchoolId);
+			ezLinkStopsWithNearestUni.push_back(ezLinkStop);
+			writeEzlinkStopsWithNearesUniToFile(ezLinkStop->getId(), nearestSchoolId);
+			ezLinkStopsWithNearestUniById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
+		}
+	}
+
+	HM_Model::StudentStopList studentStops = getStudentStops();
+
+	for(StudentStop *studentStop : studentStops)
+	{
+		HM_Model::EzLinkStopMap::const_iterator itr = ezLinkStopsWithNearestUniById.find(studentStop->getSchoolStopEzLinkId());
+
+		if (itr != ezLinkStopsWithNearestUniById.end())
+		{
+			studentStopsWithNearestUni.push_back(studentStop);
+		}
+
+	}
+}
+
+void HM_Model::assignNearestPolytechToEzLinkStops()
+{
+
+	HM_Model::EzLinkStopMap ezLinkStopsWithNearestSchoolById;
+	BigSerial nearestSchoolId = 0;
+
+	for(EzLinkStop *ezLinkStop : ezLinkStops)
+	{
+		double minDistance = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), polyTechnics[0]->getCentroidX(), polyTechnics[0]->getCentroidY());
+		for(School *polyTech : polyTechnics)
+		{
+			double distanceFromStopToUni = distanceCalculateEuclidean(ezLinkStop->getXCoord(), ezLinkStop->getYCoord(), polyTech->getCentroidX(), polyTech->getCentroidY());
+			if(distanceFromStopToUni < minDistance)
+			{
+				minDistance = distanceFromStopToUni;
+				nearestSchoolId = polyTech->getId();
+			}
+		}
+		if(minDistance < 1000)
+		{
+			writeEzlinkStopsWithNearesPolyToFile(ezLinkStop->getId(), nearestSchoolId);
+			ezLinkStop->setNearestPolytechnicId(nearestSchoolId);
+			ezLinkStopsWithNearestPolyTech.push_back(ezLinkStop);
+			ezLinkStopsWithNearestPolytechById.insert(std::make_pair(ezLinkStop->getId(),ezLinkStop));
+		}
+	}
+
+	HM_Model::StudentStopList studentStops = getStudentStops();
+
+	for(StudentStop *studentStop : studentStops)
+	{
+		HM_Model::EzLinkStopMap::const_iterator itr = ezLinkStopsWithNearestPolytechById.find(studentStop->getSchoolStopEzLinkId());
+
+		if (itr != ezLinkStopsWithNearestPolytechById.end())
+		{
+			studentStopsWithNearestPolyTech.push_back(studentStop);
+		}
+
+	}
+}
+
+HM_Model::EzLinkStopList HM_Model::getEzLinkStopsWithNearsetUni()
+{
+	return ezLinkStopsWithNearestUni;
+}
+
+HM_Model::StudentStopList HM_Model::getStudentStopsWithNearestUni()
+{
+	return studentStopsWithNearestUni;
+}
+
+HM_Model::EzLinkStopList HM_Model::getEzLinkStopsWithNearsetPolytech()
+{
+	return this->ezLinkStopsWithNearestPolyTech;
+}
+
+HM_Model::StudentStopList HM_Model::getStudentStopsWithNearestPolytech()
+{
+	return this->studentStopsWithNearestPolyTech;
+
+}
+
+EzLinkStop* HM_Model::getEzLinkStopsWithNearestPolytechById(BigSerial id) const
+{
+	EzLinkStopMap::const_iterator itr = ezLinkStopsWithNearestPolytechById.find(id);
+
+	if (itr != ezLinkStopsWithNearestPolytechById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+School* HM_Model::getSchoolById(BigSerial schoolId) const
+{
+	SchoolMap::const_iterator itr = schoolById.find(schoolId);
+
+	if (itr != schoolById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
 }
 
 void HM_Model::stopImpl()

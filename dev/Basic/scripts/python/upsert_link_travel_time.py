@@ -144,7 +144,3 @@ with open('updated_table_temp.csv') as f:
 print ('Link travel-time table in DB created.. Updated values pushed')
 
 conn.commit()
-
-
-
-

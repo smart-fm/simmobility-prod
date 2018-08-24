@@ -49,6 +49,7 @@
 #include "database/entity/HHCoordinates.hpp"
 #include "database/entity/AlternativeHedonicPrice.hpp"
 #include "database/entity/ScreeningModelCoefficients.hpp"
+#include "database/entity/ScreeningModelFactors.hpp"
 #include "database/entity/HouseholdUnit.hpp"
 #include "database/entity/IndvidualEmpSec.hpp"
 #include "database/entity/LtVersion.hpp"
@@ -59,10 +60,14 @@
 #include "database/entity/JobAssignmentCoeffs.hpp"
 #include "database/entity/IndLogsumJobAssignment.hpp"
 #include "database/entity/JobsWithIndustryTypeAndTazId.hpp"
+#include "database/entity/EzLinkStop.hpp"
+#include "database/entity/StudentStop.hpp"
+#include "database/entity/SchoolDesk.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 #include "DeveloperModel.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
+#include "database/entity/ResidentialWTP_Coefs.hpp"
 
 namespace sim_mob
 {
@@ -176,6 +181,9 @@ namespace sim_mob
             typedef std::vector<ScreeningModelCoefficients*>ScreeningModelCoefficientsList;
             typedef boost::unordered_map<BigSerial, ScreeningModelCoefficients*> ScreeningModelCoefficicientsMap;
 
+            typedef std::vector<ScreeningModelFactors*>ScreeningModelFactorsList;
+            typedef boost::unordered_map<BigSerial, ScreeningModelFactors*> ScreeningModelFactorsMap;
+
             typedef std::vector<VehicleOwnershipChanges*> VehicleOwnershipChangesList;
             typedef boost::unordered_map<BigSerial, VehicleOwnershipChanges*> VehicleOwnershipChangesMap;
 
@@ -214,6 +222,7 @@ namespace sim_mob
             typedef std::multimap<OriginDestKey, TravelTime*> TravelTimeMap;
 
             typedef std::vector<StudyArea*> StudyAreaList;
+            typedef boost::unordered_map<BigSerial, StudyArea*> StudyAreaMap;
             typedef std::multimap<string, StudyArea*>StudyAreaMultiMap;
 
             typedef std::vector<JobAssignmentCoeffs*> JobAssignmentCoeffsList;
@@ -229,6 +238,15 @@ namespace sim_mob
 
             typedef pair<BigSerial, int> TazAndIndustryTypeKey;
             typedef std::multimap<TazAndIndustryTypeKey, JobsWithIndustryTypeAndTazId*> JobsWithTazAndIndustryTypeMap;
+
+            typedef std::vector<ResidentialWTP_Coefs*> ResidentialWTP_CoeffsList;
+            typedef boost::unordered_map<string, ResidentialWTP_Coefs*> ResidentialWTP_CoeffsMap;
+            typedef std::vector<EzLinkStop*> EzLinkStopList;
+            typedef boost::unordered_map<BigSerial, EzLinkStop*> EzLinkStopMap;
+
+            typedef std::vector<StudentStop*> StudentStopList;
+
+            typedef std::multimap<BigSerial, SchoolDesk*> SchoolDeskMultiMap;
 
             /**
              * Taz statistics
@@ -340,6 +358,8 @@ namespace sim_mob
             void getLogsumOfIndividuals(BigSerial id);
             void getLogsumOfVaryingHomeOrWork(BigSerial id);
             void getLogsumOfHouseholdVO(BigSerial householdId);
+            void getLogsumOfHouseholdVOForVO_Model(BigSerial householdId, std::unordered_map<int,double>&logsum);
+            void getLogsumOfHitsHouseholdVO(BigSerial householdId);
 
             HousingMarket* getMarket();
 
@@ -438,6 +458,8 @@ namespace sim_mob
 
             ScreeningCostTimeList getScreeningCostTime();
             ScreeningCostTime* getScreeningCostTimeInst(std::string key);
+
+            ScreeningModelFactorsList& getscreeningModelFactorsList();
             AccessibilityFixedPzidList getAccessibilityFixedPzid();
 
 
@@ -454,11 +476,25 @@ namespace sim_mob
             SchoolAssignmentCoefficientsList getSchoolAssignmentCoefficientsList() const;
             SchoolAssignmentCoefficients* getSchoolAssignmentCoefficientsById( BigSerial id) const;
             SchoolList getPrimarySchoolList() const;
-            School* getPrimarySchoolById( BigSerial id) const;
             HHCoordinatesList getHHCoordinatesList() const;
             HHCoordinates* getHHCoordinateByHHId(BigSerial houseHoldId) const;
             SchoolList getPreSchoolList() const;
-            School* getPreSchoolById( BigSerial id) const;
+            SchoolList getSecondarySchoolList() const;
+            SchoolList getUniversityList() const;
+            SchoolList getPolytechnicList() const;
+            StudentStopList getStudentStops();
+            EzLinkStopList getEzLinkStops();
+            EzLinkStop* getEzLinkStopsWithNearestUniById(BigSerial id) const;
+            //find the nearest universityfor each ezlink stop.
+            void assignNearestUniToEzLinkStops();
+            void assignNearestPolytechToEzLinkStops();
+            EzLinkStopList getEzLinkStopsWithNearsetUni();
+            StudentStopList getStudentStopsWithNearestUni();
+            EzLinkStopList getEzLinkStopsWithNearsetPolytech();
+            StudentStopList getStudentStopsWithNearestPolytech();
+            EzLinkStop* getEzLinkStopsWithNearestPolytechById(BigSerial id) const;
+            School* getSchoolById(BigSerial schoolId) const;
+
 
             OwnerTenantMovingRate* getOwnerTenantMovingRates(int index);
             TenureTransitionRate* getTenureTransitionRates(int index);
@@ -483,6 +519,7 @@ namespace sim_mob
 
             void  loadLTVersion(DB_Connection &conn);
             void  loadStudyAreas(DB_Connection &conn);
+            bool isStudyAreaTaz(BigSerial tazId);
 
             StudyAreaList& getStudyAreas();
             StudyAreaMultiMap& getStudyAreaByScenarioName();
@@ -495,6 +532,9 @@ namespace sim_mob
             JobsByIndustryTypeByTaz* getJobsBySectorByTazId(BigSerial tazId) const;
 
             TazList& getTazList();
+            MtzTazList& getMtztazList();
+            MtzList& getMtzList();
+            PlanningSubzoneList& getPlanningSubzoneList();
 
             void loadIndLogsumJobAssignments(BigSerial individuaId);
             IndLogsumJobAssignmentList& getIndLogsumJobAssignment();
@@ -510,15 +550,29 @@ namespace sim_mob
             int getJobAssignIndividualCount();
             void incrementJobAssignIndividualCount();
 
-            void loadPrimarySchools(DB_Connection &conn);
-            void loadPreSchools(DB_Connection &conn);
+            void loadEzLinkStops(DB_Connection &conn);
+            void loadStudentStops(DB_Connection &conn);
             void loadTravelTime(DB_Connection &conn);
+            void loadResidentialWTP_Coeffs(DB_Connection &conn);
+            void loadSchoolDesks(DB_Connection &conn);
+            void loadSchools(DB_Connection &conn);
+
             const TravelTime* getTravelTimeByOriginDestTaz(BigSerial originTaz, BigSerial destTaz);
+            const ResidentialWTP_Coefs* getResidentialWTP_CoefsByPropertyType(string propertyType);
             void incrementPrimarySchoolAssignIndividualCount();
             int getPrimaySchoolAssignIndividualCount();
             void incrementPreSchoolAssignIndividualCount();
             int getPreSchoolAssignIndividualCount();
+            void addStudentToPrechool(BigSerial individualId, int schoolId);
             void addStudentToPrimarySchool(BigSerial individualId, int schoolId, BigSerial householdId);
+            HouseholdList getPendingHouseholds();
+            int getIndLogsumCounter();
+            void addStudentToSecondarychool(BigSerial individualId, int schoolId);
+            void addStudentToUniversity(BigSerial individualId, int schoolId);
+            void addStudentToPolytechnic(BigSerial individualId, int schoolId);
+            bool checkForSchoolSlots(BigSerial schoolId);
+            void addSchoolDeskToStudent(BigSerial individualId, int schoolId);
+
 
 
         protected:
@@ -538,12 +592,14 @@ namespace sim_mob
             HousingMarket market;
 
             HouseholdList households;
+            HouseholdList pendingHouseholds;
             HouseholdMap householdsById;
             HouseholdMap householdWithBidsById;
 
             UnitList units; //residential only.
             UnitMap unitsById;
             std::multimap<BigSerial, Unit*> unitsByZoneHousingType;
+            UnitList privatePresaleUnits;
 
             UnitTypeList unitTypes; //residential only.
             UnitTypeMap unitTypesById;
@@ -616,14 +672,17 @@ namespace sim_mob
             boost::mutex mtx6;
             boost::mutex idLock;
             boost::mutex DBLock;
-            boost::shared_mutex sharedMtx;
+            boost::shared_mutex sharedMtx1;
+            boost::shared_mutex sharedMtx2;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
+            int indLogsumCounter;
 
             vector<double> logSqrtFloorAreahdb;
             vector<double> logSqrtFloorAreacondo;
 
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
+	        boost::unordered_map<BigSerial, BigSerial> privatePresaleUnitsMap;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;
             VehicleOwnershipCoeffMap vehicleOwnershipCoeffsById;
             TaxiAccessCoeffList taxiAccessCoeffs;
@@ -683,6 +742,10 @@ namespace sim_mob
             ScreeningModelCoefficientsList screeningModelCoefficientsList;
             ScreeningModelCoefficicientsMap screeningModelCoefficicientsMap;
 
+            ScreeningModelFactorsList screeningModelFactorsList;
+            ScreeningModelFactorsMap screeningModelFactorsMap;
+
+
             std::vector<SimulationStoppedPoint*> simStoppedPointList;
             std::vector<Bid*> resumptionBids;
             HouseholdList resumptionHouseholds;
@@ -702,10 +765,27 @@ namespace sim_mob
             HHCoordinatesMap hhCoordinatesById;
             SchoolList preSchools;
             SchoolMap preSchoolById;
+            SchoolList secondarySchools;
+            SchoolMap secondarySchoolById;
+            SchoolList universities;
+            SchoolList polyTechnics;
+            SchoolList schools;
+            SchoolMap universityById;
+            SchoolMap polyTechnicById;
+            SchoolMap schoolById;
             bool resume ;
             bool initialLoading;
             IndvidualEmpSecList indEmpSecList;
             IndvidualEmpSecMap indEmpSecbyIndId;
+            EzLinkStopList ezLinkStops;
+            EzLinkStopList ezLinkStopsWithNearestUni;
+            EzLinkStopMap ezLinkStopsWithNearestUniById;
+            StudentStopList studentStops;
+            StudentStopList studentStopsWithNearestUni;
+            EzLinkStopList ezLinkStopsWithNearestPolyTech;
+            StudentStopList studentStopsWithNearestPolyTech;
+            EzLinkStopMap ezLinkStopsWithNearestPolytechById;
+            SchoolDeskMultiMap schoolDesksBySchoolId;
 
             LtVersionList ltVersionList;
             LtVersionMap ltVersionById;
@@ -724,6 +804,7 @@ namespace sim_mob
 			TravelTimeMap travelTimeByOriginDestTaz;
 
 			StudyAreaList studyAreas;
+			StudyAreaMap studyAreasByTazId;
 			StudyAreaMultiMap  studyAreaByScenario;
 
 			JobAssignmentCoeffsList jobAssignmentCoeffs;
@@ -738,6 +819,9 @@ namespace sim_mob
 
 			int jobAssignIndCount;
 			bool isConnected;
+
+			ResidentialWTP_CoeffsList resWTP_Coeffs;
+			ResidentialWTP_CoeffsMap resWTP_CeoffsByPropertyType;
         };
     }
 }

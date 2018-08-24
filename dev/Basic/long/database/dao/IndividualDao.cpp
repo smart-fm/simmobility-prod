@@ -25,7 +25,7 @@ void IndividualDao::fromRow(Row& result, Individual& outObj)
 
 	outObj.id  					= result.get<BigSerial>(	"individual_id", 					INVALID_ID);
 	outObj.jobId				= result.get<BigSerial>(	"job_id", 				INVALID_ID);
-	outObj.studentId			= result.get<BigSerial>(	"student_id", 			INVALID_ID);
+	outObj.studentId			= result.get<BigSerial>(	"school_desk_id", 			INVALID_ID);
 	outObj.individualTypeId		= result.get<BigSerial>(	"individual_type_id", 	INVALID_ID);
 	outObj.householdId			= result.get<BigSerial>(	"household_id", 		INVALID_ID);
 	outObj.ethnicityId			= result.get<BigSerial>(	"ethnicity_id", 		INVALID_ID);
@@ -55,23 +55,19 @@ void IndividualDao::toRow(Individual& data, Parameters& outParams, bool update) 
 
 std::vector<Individual*> IndividualDao::getPrimarySchoolIndividual(std::tm currentSimYear)
 {
-	//const std::string DB_GETALL_PRIMARY_SCHOOL_INDIVIDUALS = "SELECT * FROM " + APPLY_SCHEMA( MAIN_SCHEMA, "individual") + " WHERE (date_part('year'::text, age(timestamp :v1, date_of_birth::timestamp with time zone))  >= 7 and date_part('year'::text, age(timestamp :v2, date_of_birth::timestamp with time zone)) <=12);";
 	db::Parameters params;
 	params.push_back(currentSimYear);
-	//params.push_back(currentSimYear);
 	std::vector<Individual*> primarySchoolIndList;
-	getByQueryId("SELECT * FROM " + connection.getSchema() + "getPrimarySchoolIndivduals(:simstartdate)",params,primarySchoolIndList);
+	getByQueryId("SELECT * FROM " + connection.getSchema() + "primary_sch_individuals",params,primarySchoolIndList);
 	return primarySchoolIndList;
 }
 
 std::vector<Individual*> IndividualDao::getPreSchoolIndividual(std::tm currentSimYear)
 {
-	//const std::string DB_GETALL_PRE_SCHOOL_INDIVIDUALS = "SELECT * FROM " + APPLY_SCHEMA( MAIN_SCHEMA, "individual") + " WHERE date_part('year'::text, age(timestamp :v1, date_of_birth::timestamp with time zone))  >= 4 and date_part('year'::text, age(timestamp :v2, date_of_birth::timestamp with time zone)) <=6);";
 	db::Parameters params;
 	params.push_back(currentSimYear);
-	//params.push_back(currentSimYear);
 	std::vector<Individual*> preSchoolIndList;
-	getByQueryId("SELECT * FROM " + connection.getSchema() + "getPreschoolIndivduals(:simstartdate)",params,preSchoolIndList);
+	getByQueryId("SELECT * FROM " + connection.getSchema() + "pre_sch_individuals",params,preSchoolIndList);
 	return preSchoolIndList;
 
 }

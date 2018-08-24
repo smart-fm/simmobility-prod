@@ -316,15 +316,22 @@ bool MT_Config::RunningMidSupply() const {
     return (midTermRunMode == MT_Config::MT_SUPPLY);
 }
 
-bool MT_Config::RunningMidDemand() const {
-    return (midTermRunMode == MT_Config::MT_PREDAY);
+bool MT_Config::RunningMidPredaySimulation() const {
+    return (midTermRunMode == MT_Config::MT_PREDAY_SIMULATION);
+}
+
+bool MT_Config::RunningMidPredayLogsum() const {
+	return (midTermRunMode == MT_Config::MT_PREDAY_LOGSUM);
+}
+
+bool MT_Config::RunningMidPredayFull() const {
+	return (midTermRunMode == MT_Config::MT_PREDAY_FULL);
 }
 
 bool MT_Config::RunningMidFullLoop() const
 {
     return (midTermRunMode == MT_Config::MT_FULL);
 }
-
 void MT_Config::setMidTermRunMode(const std::string& runMode)
 {
     if(runMode.empty()) { return; }
@@ -332,17 +339,30 @@ void MT_Config::setMidTermRunMode(const std::string& runMode)
     {
         midTermRunMode = MT_Config::MT_SUPPLY;
     }
-    else if (runMode == "preday")
+    else if (runMode == "logsum")
     {
-        midTermRunMode = MT_Config::MT_PREDAY;
+        midTermRunMode = MT_Config::MT_PREDAY_LOGSUM;
     }
+	else if (runMode == "activityschedule")
+	{
+		midTermRunMode = MT_Config::MT_PREDAY_SIMULATION;
+	}
+    else if (runMode == "predayfull")
+    {
+        midTermRunMode = MT_Config::MT_PREDAY_FULL;
+    }
+	else if (runMode == "midtermfull")
+	{
+		midTermRunMode = MT_Config::MT_FULL;
+	}
 	else if (runMode == "full")
 	{
 		midTermRunMode = MT_Config::MT_FULL;
 	}
     else
     {
-        throw std::runtime_error("inadmissible value for mid_term_run_mode. Must be either 'supply' or 'preday'");
+        throw std::runtime_error("inadmissible value for mid_term_run_mode. Must be either 'supply'/'withinday', 'logsum', "
+										 "'activityschedule','predayfull' or 'midtermfull'");
     }
 }
 

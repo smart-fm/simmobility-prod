@@ -158,7 +158,8 @@ void sim_mob::long_term::Agent_LT::CheckFrameTimes(unsigned int agentId, uint32_
 	//Was frame_init() called at the wrong point in time?
 	if (wasFirstFrame)
 	{
-		if (abs(now-startTime)>=ConfigManager::GetInstance().FullConfig().baseGranMS())
+		unsigned int absoluteDiffTime = std::max(now, startTime) - std::min(now, startTime);
+		if (absoluteDiffTime >= ConfigManager::GetInstance().FullConfig().baseGranMS())
 		{
 			std::stringstream msg;
 			msg <<"Agent was not started within one timespan of its requested start time.";

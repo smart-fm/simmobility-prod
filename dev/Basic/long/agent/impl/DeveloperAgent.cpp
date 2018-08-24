@@ -152,7 +152,7 @@ inline BigSerial getBuildingTypeFromUnitType(BigSerial unitTypeId)
 	else return 0;
 }
 
-inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* model,int &currTick, int &quarter)
+inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* model,int &currTick, int &quarter, HM_Model *housingModel)
 {
 	std::vector<PotentialUnit>& units = project.getUnits();
 
@@ -194,7 +194,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 
 		}
 
-		if(model->getScenario().compare("ToaPayohScenario") == 0)
+		if(model->getScenario().compare("ToaPayohScenario") == 0 && (housingModel->isStudyAreaTaz(tazId)))
 		{
 			logsum += hedonicLogsumStdDevForTpScenario;
 		}
@@ -356,7 +356,7 @@ inline void calculateProjectProfit(PotentialProject& project,DeveloperModel* mod
 			double distanceToBus = amenities->getDistanceToBus();
 			double distanceToMRT = amenities->getDistanceToMRT();
 
-			if(model->getScenario().compare("ToaPayohScenario") == 0)
+			if(model->getScenario().compare("ToaPayohScenario") == 0 && (housingModel->isStudyAreaTaz(tazId)))
 			{
 				distanceToMall = distanceToMall/2.0;
 				distanceToPMS30 = distanceToPMS30/2.0;
@@ -559,10 +559,13 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
      * @param model Developer model.
      * @param outProjects (out parameter) list to receive all projects;
      */
-    inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, PotentialProject& outProject,int quarter,std::tm &currentDate, int currentTick)
+    inline void createPotentialProjects(BigSerial parcelId, DeveloperModel* model, PotentialProject& outProject,int quarter,std::tm &currentDate, int currentTick, HM_Model *housingModel)
     {
         const DeveloperModel::DevelopmentTypeTemplateList& devTemplates = model->getDevelopmentTypeTemplates();
         const DeveloperModel::TemplateUnitTypeList& unitTemplates = model->getTemplateUnitType();
+        const int condoType = 2;
+        const int apartmentType = 1;
+        const int minLotSizeForCondo = 4000;
         /**
          *  Iterates over all development type templates and
          *  get all potential projects which have a density <= GPR.
@@ -575,6 +578,9 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
 
                 for (it = devTemplates.begin(); it != devTemplates.end(); it++)
                 {
+                	//limit the condo to parcels with min lot size of 4000 sqm and apartments to parcels less than 4000 sqm.
+                	if( ((*it)->getDevelopmentTypeId() == condoType && parcel->getLotSize() >= minLotSizeForCondo) || ((*it)->getDevelopmentTypeId() == apartmentType && parcel->getLotSize() < minLotSizeForCondo))
+                	{
                 	if ((*it)->getLandUseTypeId() == parcel->getLandUseTypeId())
 
                     {
@@ -582,7 +588,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
                 		addUnitTemplates(project, unitTemplates);
                 		createPotentialUnits(project,model);
 
-                        calculateProjectProfit(project,model,currentTick,quarter);
+                        calculateProjectProfit(project,model,currentTick,quarter,housingModel);
 
                         int newDevelopment = 0;
                         if(model->isEmptyParcel(parcel->getId()))
@@ -610,6 +616,9 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
                         }
                     }
                 }
+
+                }
+
 
                 if(projects.size()>0)
                 {
@@ -662,7 +671,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
 
 
 DeveloperAgent::DeveloperAgent(boost::shared_ptr<Parcel> parcel, DeveloperModel* model)
-: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), (parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear),currentTick(currentTick),parcelDBStatus(false),hasBTO(false),onGoingProjectOnDay0(false)
+: Agent_LT(ConfigManager::GetInstance().FullConfig().mutexStategy(), (parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(nullptr),simYear(0),currentTick(0),parcelDBStatus(false),hasBTO(false),onGoingProjectOnDay0(false)
 {
 
 }
@@ -684,64 +693,69 @@ bool DeveloperAgent::onFrameInit(timeslice now) {
 Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
 
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	if (devModel && isActive())
+	{
+		currentTick = now.ms();
+		std::tm currentDate = getDateBySimDay(simYear,now.ms());
 
-    if (devModel && isActive())
-    {
-    	currentTick = now.ms();
-    	std::tm currentDate = getDateBySimDay(simYear,now.ms());
+		if(!hasBTO && !hasPrivatePresale)
+		{
+			if(this->parcel->getStatus()== 0)
+			{
+				int quarter = ((currentDate.tm_mon)/4) + 1;
+				PotentialProject project;
+				createPotentialProjects(this->parcel->getId(),devModel,project,quarter,currentDate,currentTick, housingMarketModel);
+				if(project.getUnits().size()>0)
+				{
+					std::vector<PotentialUnit>::iterator unitsItr;
+					std::vector<PotentialUnit>& potentialUnits = project.getUnits();
+					int constructionStartDay = config.ltParams.developerModel.constructionStartDay;
+					int launchDay = config.ltParams.developerModel.saleFromDay;
 
-    	if(!hasBTO)
-    	{
-    	if(this->parcel->getStatus()== 0)
-    	{
-    		int quarter = ((currentDate.tm_mon)/4) + 1;
-    		PotentialProject project;
-    		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,currentDate,currentTick);
-    		if(project.getUnits().size()>0)
-    		{
-    			std::vector<PotentialUnit>::iterator unitsItr;
-    			std::vector<PotentialUnit>& potentialUnits = project.getUnits();
-    			for (unitsItr = potentialUnits.begin(); unitsItr != potentialUnits.end(); ++unitsItr)
-    			{
-    				std::tm constructionStartDate = getDateBySimDay(simYear,(now.ms()+60));
-    				//TODO:: construction start date and launch date is temporary. gishara
-    				std::tm launchDate = getDateBySimDay(simYear,(now.ms()+180));
-    				boost::shared_ptr <DevelopmentPlan> devPlan(new DevelopmentPlan(this->parcel->getId(),project.getDevTemplate()->getTemplateId(),(*unitsItr).getUnitTypeId(),
-    						(*unitsItr).getNumUnits(),currentDate,constructionStartDate,launchDate));
-    				devModel->addDevelopmentPlans(devPlan);
-    			}
+					for (unitsItr = potentialUnits.begin(); unitsItr != potentialUnits.end(); ++unitsItr)
+					{
+						std::tm constructionStartDate = getDateBySimDay(simYear,(now.ms()+constructionStartDay));
+						std::tm launchDate = getDateBySimDay(simYear,(now.ms()+launchDay));
+						boost::shared_ptr <DevelopmentPlan> devPlan(new DevelopmentPlan(this->parcel->getId(),project.getDevTemplate()->getTemplateId(),(*unitsItr).getUnitTypeId(),
+								(*unitsItr).getNumUnits(),currentDate,constructionStartDate,launchDate));
+						devModel->addDevelopmentPlans(devPlan);
+					}
 
 
-    			BigSerial projectId = devModel->getProjectIdForDeveloperAgent();
-    			createUnitsAndBuildings(project,projectId);
-    			createProject(project,projectId);
-    		}
+					BigSerial projectId = devModel->getProjectIdForDeveloperAgent();
+					createUnitsAndBuildings(project,projectId);
+					createProject(project,projectId);
+				}
 
-    	}
-    	else
-    	{
-    		int currTick = this->fmProject->getCurrTick();
-    		currTick++;
-    		this->fmProject->setCurrTick(currTick);
-    		if(onGoingProjectOnDay0)
-    		{
-    			launchOnGoingUnitsOnDay0();
-    		}
-    		else
-    		{
-    			processExistingProjects();
-    		}
-    	}
-    	}
-    	else if(config.ltParams.launchBTO && hasBTO)
-    	{
-    		launchBTOUnits(currentDate);
-    	}
+			}
+			else
+			{
+				int currTick = this->fmProject->getCurrTick();
+				currTick++;
+				this->fmProject->setCurrTick(currTick);
+				if(onGoingProjectOnDay0)
+				{
+					launchOnGoingUnitsOnDay0();
+				}
+				else
+				{
+					processExistingProjects();
+				}
+			}
+		}
+		else if(config.ltParams.launchBTO && hasBTO)
+		{
+			launchBTOUnits(currentDate);
+		}
+		else if(config.ltParams.launchPrivatePresale && hasPrivatePresale)
+		{
+			launchPrivatePresaleUnits(currentDate);
+		}
 
-    }
+	}
 
-    //setActive(false);
-    return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
+	//setActive(false);
+	return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 
 void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial projectId)
@@ -812,6 +826,8 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 		{
 			//TODO: Add the BTO unit sla address to building_match and sla_building. 15 Feb 2017. Chetan/Gishara
 			boost::shared_ptr<Unit>unit(new Unit( devModel->getUnitIdForDeveloperAgent(), buildingId, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0,toDate, currentDate,DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, currentDate, 0, currentDate,0));
+			unit->setUnitByDevModel(true);
+			unit->setTazIdByDevModel(this->parcel->getTazId());
 			newUnits.push_back(unit);
 			double profit = (*unitsItr).getUnitProfit();
 			double demolitionCost = (*unitsItr).getDemolitionCostPerUnit();
@@ -966,6 +982,11 @@ bool DeveloperAgent::isHasBto() const
 void DeveloperAgent::setHasBto(bool hasBto)
 {
 		hasBTO = hasBto;
+}
+
+void DeveloperAgent::setHasPrivatePresale(bool privatePresale)
+{
+	hasPrivatePresale = privatePresale;
 }
 
 void DeveloperAgent::onFrameOutput(timeslice now) {
@@ -1157,4 +1178,14 @@ void DeveloperAgent::launchOnGoingUnitsOnDay0()
 			MessageBus::PostMessage(this, LT_STATUS_ID_DEV_ONGOING_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg(unit->getId())), true);
 		}
 	}
+}
+
+void DeveloperAgent::launchPrivatePresaleUnits(std::tm currentDate)
+{
+	std::vector<BigSerial>  presaleUnits = devModel->getPrivatePresaleUnits(currentDate);
+		if(presaleUnits.size()>0)
+		{
+			MessageBus::PostMessage(realEstateAgent, LT_DEV_PRIVATE_PRESALE_UNIT_ADDED, MessageBus::MessagePtr(new HM_ActionMessage((presaleUnits))), true);
+		}
+
 }

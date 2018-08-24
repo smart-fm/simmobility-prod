@@ -200,7 +200,6 @@ void PersonParams::fixUpParamsForLtPerson()
 	setFixedWorkLocation(0);
 	if (fixedWorkplace)
 	{
-
 		setFixedWorkLocation(getTAZCodeForAddressId(activityAddressId));
 	}
 	if (student)
@@ -301,6 +300,11 @@ const std::vector<long>& PersonParams::getAddressIdsInZone(int zoneCode) const
 		return EMPTY_VECTOR_OF_LONGS;
 	}
 	return znAddressIt->second;
+}
+
+std::unordered_map<StopType, double> PersonParams::getActivityLogsums() const
+{
+		return activityLogsums;
 }
 
 void PersonParams::setAddressLookup(const sim_mob::Address& address)

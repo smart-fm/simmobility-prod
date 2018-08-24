@@ -153,12 +153,21 @@ std::vector<Unit*> UnitDao::getUnitsByBuildingId(const long long buildingId,std:
 
 std::vector<Unit*> UnitDao::getBTOUnits(std::tm currentSimYear)
 {
-	const std::string DB_GETALL_BTO_UNITS = "SELECT * FROM " + connection.getSchema() + "fm_unit_res" + " WHERE  sale_from_date > :v1";
+	const std::string DB_GETALL_BTO_UNITS = "SELECT * FROM " + connection.getSchema() + "fm_unit_res" + " WHERE  sale_from_date > :v1 and unit_type >=1 and unit_type <=6";
 	db::Parameters params;
 	params.push_back(currentSimYear);
 	std::vector<Unit*> BTOUnitList;
 	getByQueryId(DB_GETALL_BTO_UNITS,params,BTOUnitList);
 	return BTOUnitList;
+}
+
+std::vector<Unit*> UnitDao::getPrivatePresaleUnits()
+{
+	const std::string DB_GETALL_PRIVATE_PRESALE_UNITS = "SELECT u.* FROM " + connection.getSchema() + "fm_unit_res u ," +  connection.getSchema() + " private_units p" + " WHERE  "
+			"p.unit_id = u.fm_unit_id";
+	std::vector<Unit*> preesaleUnitList;
+	getByQuery(DB_GETALL_PRIVATE_PRESALE_UNITS,preesaleUnitList);
+	return preesaleUnitList;
 }
 
 std::vector<Unit*> UnitDao::getOngoingBTOUnits(std::tm currentSimYear)

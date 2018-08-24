@@ -18,19 +18,26 @@ sim_mob::SimulationParams::SimulationParams() :
 
 
 sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), tickStep(0), maxIterations(0),year(0),resume(false),currentOutputSchema(std::string()),mainSchemaVersion(std::string()),configSchemaVersion(std::string()),calibrationSchemaVersion(std::string()),geometrySchemaVersion(std::string()),opSchemaloadingInterval(0)
-										   ,initialLoading(false), launchBTO(false){}
+										   ,initialLoading(false), launchBTO(false), launchPrivatePresale(false){}
 sim_mob::LongTermParams::DeveloperModel::DeveloperModel(): enabled(false), timeInterval(0), initialPostcode(0),initialUnitId(0),initialBuildingId(0),
-															initialProjectId(0),minLotSize(0) {}
-sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), timeOffMarket(0), wtpOffsetEnabled(false),vacantUnitActivationProbability(0),
+															initialProjectId(0),minLotSize(0), constructionStartDay(0), saleFromDay(0),occupancyFromDay(0), constructionCompletedDay(0) {}
+sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), timeOffMarket(0), wtpOffsetEnabled(false),unitsFiltering(false),vacantUnitActivationProbability(0),
 													   housingMarketSearchPercentage(0), housingMoveInDaysInterval(0), offsetBetweenUnitBuyingAndSelling(0),
 													   bidderUnitsChoiceSet(0),bidderBTOUnitsChoiceSet(0),householdBiddingWindow(0), householdBTOBiddingWindow(0),
 													   householdAwakeningPercentageByBTO(0), offsetBetweenUnitBuyingAndSellingAdvancedPurchase(0){}
+
+
+sim_mob::LongTermParams::HousingModel::BidderUnitChoiceset::BidderUnitChoiceset(): enabled(false),
+																			randomChoiceset(false),
+																			shanRobertoChoiceset(false),
+																			bidderChoicesetSize(0),
+																			bidderBTOChoicesetSize(0){}
 
 sim_mob::LongTermParams::HousingModel::AwakeningModel::AwakeningModel(): initialHouseholdsOnMarket(0), dailyHouseholdAwakenings(0), awakenModelJingsi(false), awakenModelShan(false), awakenModelRandom(false), awakeningOffMarketSuccessfulBid(0), awakeningOffMarketUnsuccessfulBid(0){}
 
 sim_mob::LongTermParams::HousingModel::HedonicPriceModel::HedonicPriceModel(): a(0), b(0){}
 
-sim_mob::LongTermParams::OutputHouseholdLogsums::OutputHouseholdLogsums():enabled(false), fixedHomeVariableWork(false), fixedWorkVariableHome(false), vehicleOwnership(false){}
+sim_mob::LongTermParams::OutputHouseholdLogsums::OutputHouseholdLogsums():enabled(false), fixedHomeVariableWork(false), fixedWorkVariableHome(false), vehicleOwnership(false), hitsRun(false), maxcCost(false), maxTime(false){}
 
 sim_mob::LongTermParams::VehicleOwnershipModel::VehicleOwnershipModel():enabled(false), vehicleBuyingWaitingTimeInDays(0){}
 sim_mob::LongTermParams::TaxiAccessModel::TaxiAccessModel():enabled(false){}
@@ -65,7 +72,7 @@ sim_mob::LongTermParams::OutputFiles::OutputFiles(): bids(false),
 													 enabled(false){}
 
 
-sim_mob::LongTermParams::Scenario::Scenario():  enabled(false),scenarioName(""),parcelsTable(""),scenarioSchema(""){}
+sim_mob::LongTermParams::Scenario::Scenario():  enabled(false),scenarioName(""),parcelsTable(""),scenarioSchema(""),hedonicModel(false),willingnessToPayModel(false){}
 
 
 sim_mob::Schemas::Schemas():	enabled(false),

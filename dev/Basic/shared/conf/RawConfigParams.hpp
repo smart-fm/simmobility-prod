@@ -54,6 +54,7 @@ struct LongTermParams
 	unsigned int opSchemaloadingInterval;
 	bool initialLoading;
 	bool launchBTO;
+	bool launchPrivatePresale;
 
 	struct DeveloperModel{
 		DeveloperModel();
@@ -64,6 +65,10 @@ struct LongTermParams
 		int initialBuildingId;
 		int initialProjectId;
 		double minLotSize;
+		int constructionStartDay;
+		int saleFromDay;
+		int occupancyFromDay;
+		int constructionCompletedDay;
 	} developerModel;
 
 	struct HousingModel{
@@ -73,6 +78,7 @@ struct LongTermParams
 		unsigned int timeOnMarket; //for units on the housing market
 		unsigned int timeOffMarket;//for units on the housing market
 		bool wtpOffsetEnabled;
+		bool unitsFiltering;
 		float vacantUnitActivationProbability;
 		float housingMarketSearchPercentage;
 		float housingMoveInDaysInterval;
@@ -83,6 +89,16 @@ struct LongTermParams
 		int householdBTOBiddingWindow;
 		float householdAwakeningPercentageByBTO;
 		int offsetBetweenUnitBuyingAndSellingAdvancedPurchase;
+
+		struct BidderUnitChoiceset
+		{
+			BidderUnitChoiceset();
+			bool enabled;
+			bool randomChoiceset;
+			bool shanRobertoChoiceset;
+			int bidderChoicesetSize;
+			int bidderBTOChoicesetSize;
+		} bidderUnitChoiceset;
 
 		struct AwakeningModel
 		{
@@ -113,6 +129,9 @@ struct LongTermParams
 		bool vehicleOwnership;
 		bool fixedHomeVariableWork;
 		bool fixedWorkVariableHome;
+		bool hitsRun;
+		bool maxcCost;
+		bool maxTime;
 	} outputHouseholdLogsums;
 
 	struct VehicleOwnershipModel{
@@ -178,7 +197,8 @@ struct LongTermParams
 		std::string scenarioName;
 		std::string parcelsTable;
 		std::string scenarioSchema;
-
+		bool hedonicModel;
+		bool willingnessToPayModel;
 	} scenario;
 
 };
@@ -494,7 +514,7 @@ struct PathSetConf
     /// supply link travel time file name
     std::string supplyLinkFile;
 
-    /// realtime travel time table name
+    /// historical travel time table name
     std::string RTTT_Conf;
 
     /// default travel time table name
@@ -805,7 +825,12 @@ public:
 	PersonCharacteristicsParams personCharacteristicsParams;
 
     /// container for lua scripts
-    ModelScriptsMap luaScriptsMap;
+	ModelScriptsMap luaScriptsMap;
+
+    ModelScriptsMap luaScriptsMapTC;
+    ModelScriptsMap luaScriptsMapTimeCostPlusOne;
+    ModelScriptsMap luaScriptsMapCostTimePlusOne;
+    ModelScriptsMap luaScriptsMapTCZeroCostConstants;
 
 	ModelScriptsMap predayLuaScriptsMap;
 

@@ -226,7 +226,10 @@ void HousingMarket::getAvailableEntries(const IdVector& tazIds, HousingMarket::C
             //copy lists.
             for (HousingMarket::EntryMap::iterator itMap = map.begin(); itMap != map.end(); itMap++)
             {
-                outList.push_back(itMap->second);
+            	if(itMap->second->isBuySellIntervalCompleted())
+            	{
+            		outList.push_back(itMap->second);
+            	}
             }
         }
     }
@@ -234,7 +237,14 @@ void HousingMarket::getAvailableEntries(const IdVector& tazIds, HousingMarket::C
 
 void HousingMarket::getAvailableEntries(ConstEntryList& outList)
 {
-    copy(entriesById, outList);
+    //copy(entriesById, outList);
+    for( auto itr = entriesById.begin(); itr != entriesById.end(); itr++)
+    {
+    	if( (*itr).second->isBuySellIntervalCompleted() == true)
+    	{
+    		outList.push_back((*itr).second);
+    	}
+    }
 }
 
 size_t HousingMarket::getEntrySize(unsigned int currTick)
@@ -332,7 +342,15 @@ void HousingMarket::HandleMessage(Message::MessageType type, const Message& mess
                 if( entry->isBTO() )
                 	btoEntries.erase(entry->getUnitId());
 
-                unitsByZoneHousingType.erase( unitsByZoneHousingType.find(entry->getUnitId()), unitsByZoneHousingType.end() );
+                auto itr = unitsByZoneHousingType.equal_range(entry->getZoneHousingType());
+                for (auto it = itr.first; it != itr.second; it++)
+                {
+                    if (it->second == entry->getUnitId())
+                    {
+                        unitsByZoneHousingType.erase(it);
+                        break;
+                    }
+                }
 
                 BigSerial tazId = entry->getTazId();
                 //remove from the map by Taz.

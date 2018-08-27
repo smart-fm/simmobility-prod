@@ -40,7 +40,7 @@ private:
 	* the current item
 	*/
 	bool informController = true;
-	bool blockIncomingRequest = false;
+	bool syncRequired = false;
 
 protected:
 	/**Pointer to the on call driver's movement facet object*/
@@ -211,6 +211,18 @@ public:
      * Set Current Node .It will call the Driver movement Set Current Node function to set.
      */
 	void  setCurrentNode(const Node* thsNode);
+
+	/**
+	 * Obtain number of passengers assigned to the driver
+	 */
+	virtual const unsigned getNumAssigned() const;
+
+	/**
+	 * Recursive function that traverses the multimap sameNodeItems and returns number of dropoffs in the schedule
+	 * @param item schedule item which needs serves as the key to the multimap
+	 * @return count of dropoffs in the multimap with the given key
+	 */
+	virtual const unsigned getNumDropoffs(const ScheduleItem item) const;
 
 	/**
 	 * @return vector of controllers that the driver has subscribed to

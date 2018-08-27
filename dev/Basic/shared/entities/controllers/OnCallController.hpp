@@ -333,11 +333,11 @@ protected:
 
 	/**
 	 * Updates the controller's copy to match the driver's copy.
-	 * @param person driver who has rejected the schedule sent
+	 * @param person driver who has sent the sync msg
 	 * @param schedule schedule of the respective driver, which needs to
 	 * be stored on controller's side as well
 	 */
-	virtual void onDriverRejectSchedule(Person *person, Schedule schedule);
+	virtual void onDriverSyncSchedule(Person *person, Schedule schedule);
 
 	void assignSchedules(const std::unordered_map<const Person*, Schedule>& schedulesToAssign,
 				bool isUpdatedSchedule = false);

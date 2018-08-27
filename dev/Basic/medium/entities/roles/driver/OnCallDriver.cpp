@@ -110,20 +110,19 @@ void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, con
 		{
 			driverSchedule.setSchedule(updatedSchedule);
 			movement->performScheduleItem();
+
+			if (syncRequired)
+			{
+				syncRequired = false;
+				informController = true;
+
+				SyncScheduleMsg *rejMsg = new SyncScheduleMsg(getParent(), &(driverSchedule.getSchedule()));
+				MessageBus::PostMessage(msg.GetSender(), MSG_SYNC_SCHEDULE, MessageBus::MessagePtr(rejMsg));
+			}
 		}
 		else
 		{
 			driverSchedule.updateSchedule(updatedSchedule);
-		}
-
-		if (blockIncomingRequest)
-		{
-			blockIncomingRequest = false;
-			informController = true;
-			RejectScheduleMsg *rejMsg = new RejectScheduleMsg(getParent(), &(driverSchedule.getSchedule()));
-			MessageBus::PostMessage(msg.GetSender(), MSG_REJECT_SCHEDULE, MessageBus::MessagePtr(rejMsg));
-			ControllerLog() << "Driver " << getParent()->getDatabaseId() << " rejecting schedule sent by the controller. The current schedule is "
-					<< *(rejMsg->schedule) << ' ' << getCurrentNode()->getNodeId() << endl;
 		}
 
 		break;
@@ -171,7 +170,7 @@ const bool OnCallDriver::removeSameNodeItems(Schedule &schedule)
 		if (driverSchedule.isSameNodeItem(currNode))
 		{
 			informController = false;
-			blockIncomingRequest = true;
+			syncRequired = true;
 		}
 	}
 
@@ -224,6 +223,34 @@ const Node* OnCallDriver::getCurrentNode() const
 void  OnCallDriver::setCurrentNode(const Node* thisNode)
 {
 	movement->setCurrentNode(thisNode);
+}
+
+const unsigned OnCallDriver::getNumDropoffs(const ScheduleItem item) const
+{
+	unsigned dropoffs = 0;
+	auto itemList = sameNodeItems.equal_range(item);
+	for (auto itemIt = itemList.first; itemIt != itemList.second; itemIt++)
+	{
+		dropoffs += getNumDropoffs(itemIt->second);
+	}
+
+	if (item.scheduleItemType == ScheduleItemType::DROPOFF)
+	{
+		dropoffs++;
+	}
+
+	return dropoffs;
+}
+
+const unsigned OnCallDriver::getNumAssigned() const
+{
+	unsigned numDropoffs = 0;
+	for (auto item : driverSchedule.getSchedule())
+	{
+		numDropoffs += getNumDropoffs(item);
+	}
+
+	return numDropoffs;
 }
 
 const vector<MobilityServiceController *>& OnCallDriver::getSubscribedControllers() const
@@ -303,10 +330,10 @@ void OnCallDriver::scheduleItemCompleted()
 	else
 	{
 		informController = true;
-			if (blockIncomingRequest)
-			{
-				blockIncomingRequest = false;
-			}
+		if (syncRequired)
+		{
+			syncRequired = false;
+		}
 	}
 #endif
 }

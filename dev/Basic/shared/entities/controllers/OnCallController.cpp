@@ -200,25 +200,9 @@ void OnCallController::onDriverScheduleStatus(Person *driver)
 #endif
 }
 
-void OnCallController::onDriverRejectSchedule(Person *driver, Schedule driversCopy)
+void OnCallController::onDriverSyncSchedule(Person *driver, Schedule driversCopy)
 {
 	Schedule &controllersCopy = driverSchedules[driver];
-
-	std::set<const TripRequestMessage *> tripsToBeRescheduled;
-	for (auto item : driversCopy)
-	{
-		const TripRequestMessage *trip = controllersCopy.findTrip(item);
-		if (trip)
-		{
-			tripsToBeRescheduled.insert(trip);
-		}
-	}
-
-	for (auto trip : tripsToBeRescheduled)
-	{
-		// cout << currTick.frame() << " found trip " << *trip << endl;
-		// requestQueue.insert(requestQueue.begin(), *trip);
-	}
 
 	currentReq[driver] = driversCopy.front();
 	driversCopy.erase(driversCopy.begin());
@@ -370,13 +354,12 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 		}
 		break;
 	}
-	case MSG_REJECT_SCHEDULE:
-		{
-			const RejectScheduleMsg &rejectMsgArgs = MSG_CAST(RejectScheduleMsg, message);
-			onDriverRejectSchedule(rejectMsgArgs.person, *(rejectMsgArgs.schedule));
-			break;
-		}
-
+	case MSG_SYNC_SCHEDULE:
+	{
+		const SyncScheduleMsg &syncMsgArgs = MSG_CAST(SyncScheduleMsg, message);
+		onDriverSyncSchedule(syncMsgArgs.person, *(syncMsgArgs.schedule));
+		break;
+	}
 	default:
 		// If it is not a message specific to this controller, let the generic controller handle it
 		MobilityServiceController::HandleMessage(type, message);

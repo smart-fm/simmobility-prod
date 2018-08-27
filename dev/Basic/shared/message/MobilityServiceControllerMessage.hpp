@@ -32,7 +32,7 @@ enum MobilityServiceControllerMessage
 	MSG_SCHEDULE_PROPOSITION,
 	MSG_SCHEDULE_PROPOSITION_REPLY,
 	MSG_SCHEDULE_UPDATE,
-	MSG_REJECT_SCHEDULE
+	MSG_SYNC_SCHEDULE
 };
 
 /**Enumeration to indicate the type of trip requested by the passenger*/
@@ -150,12 +150,12 @@ public:
 };
 
 /**
- * Message to inform the controller that an update to the schedule cannot be performed
+ * Message to inform the controller to update its locally stored schedule
  */
-class RejectScheduleMsg : public messaging::Message
+class SyncScheduleMsg : public messaging::Message
 {
 public:
-	RejectScheduleMsg(Person *p, const Schedule *s) : person(p), schedule(s)
+	SyncScheduleMsg(Person *p, const Schedule *s) : person(p), schedule(s)
 	{
 	}
 

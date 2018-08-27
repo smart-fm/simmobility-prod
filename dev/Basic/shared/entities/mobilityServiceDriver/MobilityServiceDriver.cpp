@@ -17,6 +17,11 @@ const MobilityServiceDriverStatus MobilityServiceDriver::getDriverStatus() const
 	return driverStatus;
 }
 
+const unsigned MobilityServiceDriver::getNumAssigned() const
+{
+	return 0;
+}
+
 const std::string MobilityServiceDriver::getDriverStatusStr() const
 {
 	switch(driverStatus)

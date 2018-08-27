@@ -134,17 +134,9 @@ void AMOD_Controller::matchDriversServingSharedReq()
 			Schedule orgSchedule = driverSchedules[driver];
 
 			//Obtain the maximum number of Schedule Items that can be added
-			//This is equal to the number of pick ups + 1
-			unsigned numPickups = 1;
-			for (auto item : orgSchedule)
-			{
-				if (item.scheduleItemType == PICKUP)
-				{
-					numPickups++;
-				}
-			}
+			auto assignedPax = driver->exportServiceDriver()->getNumAssigned();
 
-			unsigned int maxAggRequests = (min(maxAggregatedRequests,driver->getPassengerCapacity())) - numPickups;
+			unsigned int remainingCapacity = (min(maxAggregatedRequests,driver->getPassengerCapacity())) - assignedPax;
 
 #ifndef NDEBUG
 			ControllerLog() << "matchDriversServingSharedReq(): driverSchedules.size() = "
@@ -166,18 +158,18 @@ void AMOD_Controller::matchDriversServingSharedReq()
 			unsigned aggregatedRequests = 0;
 
 			Schedule schedule;
-			schedule = buildSchedule(maxAggRequests, maxWaitingTime, driverNode, orgSchedule, &aggregatedRequests);
+			schedule = buildSchedule(remainingCapacity, maxWaitingTime, driverNode, orgSchedule, &aggregatedRequests);
 
 #ifndef NDEBUG
-			if (aggregatedRequests > (maxAggregatedRequests))
-           {
-               throw std::runtime_error("The number of aggregated requests is incorrect");
-           }
-
-           // if (schedulesComputedSoFar.find(driver) != schedulesComputedSoFar.end())
-           // {
-           //     throw std::runtime_error("Trying to assign more than one schedule to a single driver");
-           // }
+			if (aggregatedRequests > remainingCapacity)
+			{
+				throw std::runtime_error("The number of aggregated requests is incorrect");
+			}
+			if((driver->exportServiceDriver()->getPassengerCount())>(driver->getPassengerCapacity()))
+			{
+			    throw std::runtime_error("There are more passengers seated in the vehicle than available Capacity.");
+			}
+>>>>>>> e96629a... changed computation of number of assigned passengers to a particular driver, which is an argument fed to the function buildSchedules(); some more cleanup
 #endif
 
 			if (schedule.size() != orgSchedule.size() && !schedule.empty())

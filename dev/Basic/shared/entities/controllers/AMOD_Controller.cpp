@@ -39,15 +39,13 @@ void AMOD_Controller::computeSchedules()
 
 	for (const Person *driver : availableDrivers)
 	{
-		//The node in which the driver is currently located
-		const Node *driverNode = driver->exportServiceDriver()->getCurrentNode();
 		Schedule schedule;
 
 		// Number of requests that we have aggregated so far
 		unsigned aggregatedRequests = 0;
 		//Number of passengers in the car is 0 at this point
         unsigned int remainingCapacity = (min(maxAggregatedRequests,driver->getPassengerCapacity()));
-        schedule = buildSchedule(remainingCapacity, maxWaitingTime, driverNode, schedule, &aggregatedRequests);
+        schedule = buildSchedule(remainingCapacity, maxWaitingTime, driver, schedule, &aggregatedRequests);
 
 #ifndef NDEBUG
 		if (schedule.size() != aggregatedRequests * 2 )
@@ -123,8 +121,6 @@ void AMOD_Controller::matchDriversServingSharedReq()
 		while (driver_Iter!=driversServingSharedReq.end() && !sharedRideRequests.empty())// aditi added to save computation time if there are no more requests,need to test
 		{
 			const Person* driver = *driver_Iter;
-			//The node in which the driver is currently located
-			const Node *driverNode = driver->exportServiceDriver()->getCurrentNode();
 
 #ifndef NDEBUG
 			ControllerLog() << "matchDriversServingSharedReq(): driverSchedules.size() = "
@@ -158,7 +154,7 @@ void AMOD_Controller::matchDriversServingSharedReq()
 			unsigned aggregatedRequests = 0;
 
 			Schedule schedule;
-			schedule = buildSchedule(remainingCapacity, maxWaitingTime, driverNode, orgSchedule, &aggregatedRequests);
+			schedule = buildSchedule(remainingCapacity, maxWaitingTime, driver, orgSchedule, &aggregatedRequests);
 
 #ifndef NDEBUG
 			if (aggregatedRequests > remainingCapacity)
@@ -169,7 +165,6 @@ void AMOD_Controller::matchDriversServingSharedReq()
 			{
 			    throw std::runtime_error("There are more passengers seated in the vehicle than available Capacity.");
 			}
->>>>>>> e96629a... changed computation of number of assigned passengers to a particular driver, which is an argument fed to the function buildSchedules(); some more cleanup
 #endif
 
 			if (schedule.size() != orgSchedule.size() && !schedule.empty())
@@ -261,9 +256,20 @@ void AMOD_Controller::matchSingleRiderReq()
 	}
 }
 
-Schedule AMOD_Controller::buildSchedule(unsigned int maxAggregatedRequests, const double maxWaitingTime, const Node *driverNode,
+Schedule AMOD_Controller::buildSchedule(unsigned int maxAggregatedRequests, const double maxWaitingTime, const Person *driver,
                                         Schedule schedule, unsigned int *aggregatedRequests)
 {
+	auto driverNode = driver->exportServiceDriver()->getCurrentNode();
+	double timeToCompleteCurrentReq = 0;
+
+	auto nextItemIt = currentReq.find(driver);
+	if (nextItemIt != currentReq.end())
+	{
+		auto nextItemNode = nextItemIt->second.getNode();
+		timeToCompleteCurrentReq = getTT(driverNode, nextItemNode, ttEstimateType);
+		driverNode = nextItemNode;
+	}
+
 	auto itReq = sharedRideRequests.begin();
 	while(itReq != sharedRideRequests.end() && *aggregatedRequests < maxAggregatedRequests)
 	{
@@ -286,7 +292,7 @@ Schedule AMOD_Controller::buildSchedule(unsigned int maxAggregatedRequests, cons
 			ScheduleItem newPickup(PICKUP, request);
 			scheduleHypothesis.insert(scheduleHypothesis.begin() + pickupIdx, newPickup);
 
-			double vehicleTime = evaluateSchedule(driverNode, scheduleHypothesis, toleratedExtraTime, maxWaitingTime);
+			double vehicleTime = evaluateSchedule(driverNode, scheduleHypothesis, toleratedExtraTime, maxWaitingTime - timeToCompleteCurrentReq);
 
 			if (vehicleTime > 0)
 			{

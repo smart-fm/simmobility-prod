@@ -53,7 +53,7 @@ protected:
 	 * Iterates over all the un-assigned requests and check if they can be added to schedule. If yes it
 	 * returns the new schedule, with the added requests
 	 */
-	Schedule buildSchedule(unsigned int maxAggregatedRequests, const double maxWaitingTime, const Node *driverNode,
+	Schedule buildSchedule(unsigned int maxAggregatedRequests, const double maxWaitingTime, const Person *driver,
 	                       Schedule schedule, unsigned int *aggregatedRequests);
 
 public:

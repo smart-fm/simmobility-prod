@@ -28,9 +28,6 @@ namespace
 
 const std::string LT_DB_CONFIG_FILE = "private/lt-db.ini";
 const std::string configFileName = "data/simulation.xml";
-//Parse the config file (this *does not* create anything, it just reads it.).
-bool longTerm = false;
-ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig(), longTerm );
 
 /**
  * wrapper struct for thread local storage

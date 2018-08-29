@@ -22,10 +22,6 @@ const double OPERATIONAL_COST = 0.147;
 
 const std::vector<OD_Pair> unavailableODsDummy;
 const std::string configFileName = "data/simulation.xml";
-//Parse the config file (this *does not* create anything, it just reads it.).
-bool longTerm = false;
-ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig(), longTerm );
-
 /**
  * function to set drive1 and motorcycle availability for tours
  * @param personParams person parameters to infer license and vehicle ownership info

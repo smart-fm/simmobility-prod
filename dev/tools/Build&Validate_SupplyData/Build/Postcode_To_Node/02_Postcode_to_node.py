@@ -63,6 +63,7 @@ def find_nearest_node(df_validnode,df_postcode):
     
     nearNodeList = []
     nearNodeDistList = []
+    nearNodeZoneList = []
     
     for index, row in df_postcode.iterrows():
         x = row['x_coord']
@@ -76,7 +77,7 @@ def find_nearest_node(df_validnode,df_postcode):
         nearNodeList.append(nearNode)
         nearNodeDistList.append(nearDist)
     df_postcode['nearest_node'] = nearNodeList
-    df_postcode['node_zone'] = nearNode_zone
+    df_postcode['node_zone'] = nearNodeZoneList
     df_postcode['nearest_node_dist'] = nearNodeDistList
 
     return df_postcode

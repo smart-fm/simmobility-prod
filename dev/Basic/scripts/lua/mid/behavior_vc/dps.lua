@@ -13,10 +13,10 @@ UPDATED VERSION - Carlos, Adnan, Harish
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --stop constants
-local beta_stop_work = -8.39
-local beta_stop_edu = -4.39
-local beta_stop_shop = -5.06
-local beta_stop_others = -3.60
+local beta_stop_work = -9.229
+local beta_stop_edu = -4.829
+local beta_stop_shop = -5.566
+local beta_stop_others = -3.96
 
 --Person type
 local beta_parttime_work = 0
@@ -124,7 +124,7 @@ local beta_income_edu = 0
 local beta_income_shop = 0.147
 local beta_income_others = 0.104
 
-local beta_missingincome_work = 2.41
+local beta_missingincome_work = 0
 local beta_missingincome_edu = 0
 local beta_missingincome_shop = 0.459
 local beta_missingincome_others = 0.544
@@ -177,17 +177,16 @@ local beta_shopothers_ss = 0
 
 --choiceset
 local choice = {
-        {0,0,0,0,0},
-        {1,0,0,0,0},
-        {0,1,0,0,0},
-        {0,0,1,0,0},
-        {0,0,0,1,0},
-        {0,0,0,0,1},
-        {1,0,1,0,0},
-        {1,0,0,1,0},
-        {0,1,1,0,0},
-        {0,1,0,1,0}
-
+        {0,0,0,0},
+        {1,0,0,0},
+        {0,1,0,0},
+        {0,0,1,0},
+        {0,0,0,1},
+        {1,0,1,0},
+        {1,0,0,1},
+        {0,1,1,0},
+        {0,1,0,1},
+        {0,0,1,1},
         
 }        
 
@@ -317,7 +316,7 @@ local function computeUtilities(params)
 
 	-- other variables
 	local zero_car,one_car,twoplus_car,motoravail = 0,0,0,0
-	if veh_own_cat == 0  then 
+	if veh_own_cat == 0 or veh_own_cat == 1 or veh_own_cat ==2 then
 		zero_car = 1 
 	end
 	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
@@ -499,13 +498,9 @@ local scale = 1 -- for all choices
 -- params table contains data passed from C++
 -- to check variable bindings in params, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function choose_dps(params)
-	
-	computeUtilities(params)
-	
+	computeUtilities(params) 
 	computeAvailabilities(params)
-	
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
-	
 	idx = make_final_choice(probability)
 	return choice[idx]
 end

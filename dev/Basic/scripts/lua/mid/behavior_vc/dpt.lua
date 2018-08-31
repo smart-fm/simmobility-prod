@@ -13,16 +13,16 @@ UPDATED VERSION - Carlos, Adnan, Harish
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --Tour constants
-local beta_tour_work = -5.798
-local beta_tour_edu = 10.375
-local beta_tour_shop = -14.376
-local beta_tour_others = -13.206
+local beta_tour_work = -7.798
+local beta_tour_edu = 12.375
+local beta_tour_shop = -8.126
+local beta_tour_others = -8.956
 
 --Combination constants
 
 local beta_workshop_tt = 2.52
 local beta_workothers_tt = 2.99
-local beta_edushop_tt =	0
+local beta_edushop_tt = 0
 local beta_eduothers_tt = -0.375
 local beta_shopothers_tt = 0.355
 local beta_workedu_tt = -3.82
@@ -167,8 +167,8 @@ local beta_motoravail_others = 0.682
 
 --Additional constants
 local beta_onetour = 0
-local beta_twotour = 0
-local beta_threetour = 0
+local beta_twotour = -4.0
+local beta_threetour = -4.5
 
 
 local beta_work_logsum = 0.30
@@ -183,20 +183,20 @@ local activity_types = { ["Work"] = 1, ["Education"] = 2, ["Shop"] = 3, ["Others
 
 --choiceset
 local choice = {
-        {1,0,0,0,0},
-        {0,1,0,0,0},
-        {0,0,1,0,0},
-        {0,0,0,1,0},
-        {1,0,0,0,1},
-        {1,0,1,0,0},
-        {1,0,0,1,0},
-        {0,1,1,0,0},
-        {0,1,0,1,1},
-        {0,0,1,1,0},
-        {1,1,0,1,1},
-        {1,0,1,1,0},
-        {1,1,1,0,0},
-        {0,1,1,1,1}
+        {1,0,0,0},
+        {0,1,0,0},
+        {0,0,1,0},
+        {0,0,0,1},
+        {1,1,0,0},
+        {1,0,1,0},
+        {1,0,0,1},
+        {0,1,1,0},
+        {0,1,0,1},
+        {0,0,1,1},
+        {1,1,0,1},
+        {1,0,1,1},
+        {1,1,1,0},
+        {0,1,1,1}
 }        
 
   -- WorkTi,EduTi,ShopTi,OthersTi 
@@ -324,7 +324,7 @@ local function computeUtilities(params)
 
 	-- other variables
 	local zero_car, one_car,twoplus_car,motoravail = 0,0,0,0
-	if veh_own_cat == 0  then 
+	if veh_own_cat == 0 or veh_own_cat == 1 or veh_own_cat ==2 then 
 		zero_car = 1 
 	end
 	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
@@ -510,11 +510,8 @@ local scale = 1 -- for all choices
 function choose_dpt(params)
 	computeUtilities(params) 
 	computeAvailabilities(params)
-
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
-
 	idx = make_final_choice(probability)
-
 	return choice[idx]
 end
 

@@ -13,8 +13,7 @@ UPDATED VERSION - Adnan
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --travel constants
-local cons_travel = 2.5
-
+local cons_travel = 1.85
 
 --Person type
 local beta_homemaker = 0.442
@@ -178,7 +177,7 @@ local function computeUtilities(params)
 
 	-- other variables
 	local zero_car,one_car,twoplus_car,motoravail = 0,0,0,0
-	if veh_own_cat == 0  then 
+	if veh_own_cat == 0 or veh_own_cat == 1 or veh_own_cat ==2 then
 		zero_car = 1 
 	end
 	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
@@ -191,10 +190,12 @@ local function computeUtilities(params)
 		twoplus_car = 1 
 	end
 			
-	utility[1] = 0
+	utility[1] = 0.55
 			
-	if person_type_id == 11 then --taking care of excluded individuals at dpbinary level (individuals not eligible for hits interview and also not traveling (persontype_id =1, age_id=0))
-
+	if person_type_id == 11 or person_type_id == 99 then 
+		--taking care of excluded individuals at dpbinary level (individuals not eligible for hits interview and also not traveling 
+		--person_type_id = 11, age_id=0 for HITS population data
+		--person_type_id = 99, age_id=0 or 99 for LT population data. NOTE: LT population dataset has no individual with person_type_id = 11.
 		utility[2]=-999
 	else	
 		utility[2] = cons_travel +  

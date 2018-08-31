@@ -51,7 +51,7 @@ local beta_workathome_edu_2 = 0
 local beta_caravail_edu_2 = 0
 local beta_motoravail_edu_2 = 0
 local beta_logsum_edu_2= 0
-local beta_cons_edu_2=-6.32
+local beta_cons_edu_2 = -6.32
 
 local activity_types = { ["Work"] = 1, ["Education"] = 2, ["Shop"] = 3, ["Others"] = 4 }
 

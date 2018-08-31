@@ -11,17 +11,19 @@ Authors - Siyu Li, Harish Loganathan
 --Note: the betas that not estimated are fixed to zero.
 
 --!! see the documentation on the definition of AM,PM and OP table!!
-local beta_cons_bus = -6.896
-local beta_cons_mrt = -7.959
-local beta_cons_privatebus= -6.331
-local beta_cons_drive1= 0
-local beta_cons_share2= -9.448
-local beta_cons_share3= -9.987
-local beta_cons_motor= 10.692
-local beta_cons_walk= -10.0
-local beta_cons_taxi= -11.434
-local beta_cons_SMS = -11.434
-local beta_cons_rail_SMS = -7.959
+local beta_cons_bus = -7.5
+local beta_cons_mrt = - 8
+local beta_cons_privatebus= -8.02
+local beta_cons_drive1= 2.252
+local beta_cons_share2= -10
+local beta_cons_share3= -9.957
+local beta_cons_motor= 9.992
+local beta_cons_walk= -7 
+local beta_cons_taxi=  -11.334
+local beta_cons_SMS = -10.8
+local beta_cons_Rail_SMS =-12.4
+local beta_cons_SMS_Pool = -14
+local beta_cons_Rail_SMS_Pool = -12
 
 local beta1_1_tt = -0.687
 local beta1_2_tt = -0.690
@@ -37,6 +39,7 @@ local beta2_tt_motor = 0
 local beta_tt_walk = -3.72
 local beta_tt_taxi = -2.84
 local beta_tt_SMS = -2.84
+local beta_tt_SMS_Pool = -2.84
 
 local beta_cost = 0
 
@@ -52,12 +55,14 @@ local beta_central_motor = 0.136
 local beta_central_taxi = 1.04
 local beta_central_walk = 0.205
 local beta_central_SMS = 1.04
-local beta_central_rail_SMS = 0.502
-
+local beta_central_Rail_SMS = 0.502
+local beta_central_SMS_Pool = 1.04
+local beta_central_Rail_SMS_Pool = 0.502
 
 local beta_female_bus = 0.804
 local beta_female_mrt = 0.916
-local beta_female_rail_SMS = 0.916
+local beta_female_Rail_SMS = 0.916
+local beta_female_Rail_SMS_Pool = 0.916
 local beta_female_privatebus = 0.875
 
 local beta_female_drive1 = 0
@@ -67,6 +72,7 @@ local beta_female_share3 = 0.762
 local beta_female_motor = 0
 local beta_female_taxi = 0.567
 local beta_female_SMS = 0.567
+local beta_female_SMS_Pool = 0.567
 local beta_female_walk = 0.877
 
 local beta_zero_drive1 = 0
@@ -76,7 +82,7 @@ local beta_threeplus_drive1 = 0
 
 local beta_zero_share2 = 0
 local beta_oneplus_share2 = 2.77
-local beta_twoplus_share2 = 1.31
+local beta_twoplus_share2 = 2.77
 local beta_threeplus_share2 = 0.140
 
 local beta_zero_share3 = 0
@@ -101,7 +107,8 @@ local beta_attraction_2 = 0
 
 local beta_age_over_15_bus = 1.95
 local beta_age_over_15_mrt = 2.46
-local beta_age_over_15_rail_SMS = 2.46
+local beta_age_over_15_Rail_SMS = 2.46
+local beta_age_over_15_Rail_SMS_Pool = 2.46
 local beta_age_over_15_private_bus = 0
 local beta_age_over_15_drive1 = 0
 local beta_age_over_15_share2 = 0.376
@@ -110,10 +117,12 @@ local beta_age_over_15_motor = 0
 local beta_age_over_15_walk = 1.28
 local beta_age_over_15_taxi = 0.772
 local beta_age_over_15_SMS = 0.772
+local beta_age_over_15_SMS_Pool = 0.772
 
 local beta_university_student_bus = -0.157
 local beta_university_student_mrt = 0.308
-local beta_university_student_rail_SMS = 0.308
+local beta_university_student_Rail_SMS = 0.308
+local beta_university_student_Rail_SMS_Pool = 0.308
 local beta_university_student_private_bus = 0.227
 local beta_university_student_drive1 = 0
 local beta_university_student_share2 = 0.267
@@ -122,11 +131,14 @@ local beta_university_student_motor = 0
 local beta_university_student_walk = 0
 local beta_university_student_taxi = 2.10
 local beta_university_student_SMS = 2.10
+local beta_university_student_SMS_Pool = 2.10
 
 local beta_distance_motor = 0
 
 
-local modes = {['BusTravel'] = 1 , ['MRT'] =2 , ['PrivateBus'] =3 ,  ['Car'] = 4,  ['Car_Sharing_2'] = 5,['Car_Sharing_3'] = 6, ['Motorcycle'] = 7,['Walk'] = 8, ['Taxi'] = 9, ['SMS'] =10, ['Rail_SMS'] = 11 }
+local modes = {['BusTravel'] = 1 , ['MRT'] =2, ['PrivateBus'] =3 ,  ['Car'] = 4,  ['Car_Sharing_2'] = 5,['Car_Sharing_3'] = 6, ['Motorcycle'] = 7,['Walk'] = 8, ['Taxi'] = 9, ['SMS'] =10, ['Rail_SMS'] = 11, ['SMS_Pool'] = 12, ['Rail_SMS_Pool'] = 13 }
+
+
 
 
 --choice set
@@ -135,13 +147,13 @@ local modes = {['BusTravel'] = 1 , ['MRT'] =2 , ['PrivateBus'] =3 ,  ['Car'] = 4
 -- 10 for SMS
 -- 11 for Rail_SMS
 local choice = {}
-choice["PT"] = {1,2,3,11}
+choice["PT"] = {1,2,3,11,13}
 choice["car"] = {4,5,6,7}
-choice["other"] = {8,9,10}
+choice["other"] = {8,9,10,12}
 
 --utility
 -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
--- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi; 10 for SMS; 11 for rail_SMS
+-- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi; 10 for SMS; 11 for Rail_SMS
 local utility = {}
 local function computeUtilities(params,dbparams)
 	local cost_increase = dbparams.cost_increase
@@ -222,7 +234,11 @@ local function computeUtilities(params,dbparams)
 	
 	local cost_SMS_1=3.4+((d1*(d1>10 and 1 or 0)-10*(d1>10 and 1 or 0))/0.35+(d1*(d1<=10 and 1 or 0)+10*(d1>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first + central_dummy*3
 	local cost_SMS_2=3.4+((d2*(d2>10 and 1 or 0)-10*(d2>10 and 1 or 0))/0.35+(d2*(d2<=10 and 1 or 0)+10*(d2>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second + central_dummy*3
-	local cost_SMS=(cost_SMS_1+cost_SMS_2)*0.6 + cost_increase
+	local cost_SMS=(cost_SMS_1+cost_SMS_2)*0.72 + cost_increase
+	
+	local cost_SMS_Pool_1=3.4+((d1*(d1>10 and 1 or 0)-10*(d1>10 and 1 or 0))/0.35+(d1*(d1<=10 and 1 or 0)+10*(d1>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first + central_dummy*3
+	local cost_SMS_Pool_2=3.4+((d2*(d2>10 and 1 or 0)-10*(d2>10 and 1 or 0))/0.35+(d2*(d2<=10 and 1 or 0)+10*(d2>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second + central_dummy*3
+	local cost_SMS_Pool=(cost_SMS_1+cost_SMS_2)*0.72*0.7 + cost_increase
 	
 	local aed_1 = (5*tt_public_walk_first) -- Access egress distance
 	local aed_2 = (5*tt_public_walk_second) -- Access egress distance
@@ -230,7 +246,12 @@ local function computeUtilities(params,dbparams)
 	local cost_Rail_SMS_AE_1 = 3.4+((aed_1*(aed_1>10 and 1 or 0)-10*(aed_1>10 and 1 or 0))/0.35+(aed_1*(aed_1<=10 and 1 or 0)+10*(aed_1>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first + central_dummy*3
 	local cost_Rail_SMS_AE_2 = 3.4+((aed_2*(aed_2>10 and 1 or 0)-10*(aed_2>10 and 1 or 0))/0.35+(aed_2*(aed_2<=10 and 1 or 0)+10*(aed_2>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second + central_dummy*3
 	
-	local cost_rail_SMS = cost_public_first + cost_public_second + cost_increase + (cost_Rail_SMS_AE_1 + cost_Rail_SMS_AE_2) * 0.6	
+	local cost_Rail_SMS = cost_public_first + cost_public_second + cost_increase + (cost_Rail_SMS_AE_1 + cost_Rail_SMS_AE_2) * 0.72	
+	
+	local cost_Rail_SMS_AE_Pool_1 = 3.4+((aed_1*(aed_1>10 and 1 or 0)-10*(aed_1>10 and 1 or 0))/0.35+(aed_1*(aed_1<=10 and 1 or 0)+10*(aed_1>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first + central_dummy*3
+	local cost_Rail_SMS_AE_Pool_2 = 3.4+((aed_2*(aed_2>10 and 1 or 0)-10*(aed_2>10 and 1 or 0))/0.35+(aed_2*(aed_2<=10 and 1 or 0)+10*(aed_2>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second + central_dummy*3
+	
+	local cost_Rail_SMS_Pool = cost_public_first + cost_public_second + cost_increase + (cost_Rail_SMS_AE_Pool_1 + cost_Rail_SMS_AE_Pool_2) * 0.72 * 0.7	
 	
 	local cost_over_income_bus=30*cost_bus/(0.5+income_mid)
 	local cost_over_income_mrt=30*cost_mrt/(0.5+income_mid)
@@ -240,11 +261,10 @@ local function computeUtilities(params,dbparams)
 	local cost_over_income_motor=30*cost_motor/(0.5+income_mid)
 	local cost_over_income_taxi=30*cost_taxi/(0.5+income_mid)
 	local cost_over_income_SMS=30*cost_SMS/(0.5+income_mid)
-
-	
-    	
-	local cost_over_income_rail_SMS=30*cost_rail_SMS/(0.5+income_mid)
-	
+	local cost_over_income_SMS_Pool=30*cost_SMS_Pool/(0.5+income_mid) 	
+	local cost_over_income_Rail_SMS=30*cost_Rail_SMS/(0.5+income_mid)
+	local cost_over_income_Rail_SMS_Pool=30*cost_Rail_SMS_Pool/(0.5+income_mid)
+		
 	--dbparams.tt_ivt_car_first = AM[(origin,destination)]['car_ivt']
 	--dbparams.tt_ivt_car_second = PM[(destination,origin)]['car_ivt']
 	local tt_ivt_car_first = dbparams.tt_ivt_car_first
@@ -260,10 +280,15 @@ local function computeUtilities(params,dbparams)
 	local tt_mrt_walk=tt_public_walk_first+tt_public_walk_second
 	local tt_mrt_all=tt_mrt_ivt+tt_mrt_wait+tt_mrt_walk
 	
-	local tt_rail_SMS_ivt=tt_public_ivt_first+tt_public_ivt_second
-	local tt_rail_SMS_wait=1/6.0+1/6.0+tt_public_waiting_first+tt_public_waiting_second
-	local tt_rail_SMS_walk=(tt_public_walk_first+tt_public_walk_second)/8.0
-	local tt_rail_SMS_all=tt_mrt_ivt+tt_mrt_wait+tt_mrt_walk
+	local tt_Rail_SMS_ivt=tt_public_ivt_first+tt_public_ivt_second
+	local tt_Rail_SMS_wait=1/6.0+1/6.0+tt_public_waiting_first+tt_public_waiting_second
+	local tt_Rail_SMS_walk=(tt_public_walk_first+tt_public_walk_second)/8.0
+	local tt_Rail_SMS_all=tt_mrt_ivt+tt_mrt_wait+tt_mrt_walk
+	
+	local tt_Rail_SMS_Pool_ivt=tt_public_ivt_first+tt_public_ivt_second+(aed_1+aed_2)/60
+	local tt_Rail_SMS_Pool_wait=1/6.0+1/6.0+tt_public_waiting_first+tt_public_waiting_second+1/10
+	local tt_Rail_SMS_Pool_walk=(tt_public_walk_first+tt_public_walk_second)/8.0
+	local tt_Rail_SMS_Pool_all=tt_mrt_ivt+tt_mrt_wait+tt_mrt_walk
 
 	local tt_privatebus_ivt=tt_ivt_car_first+tt_ivt_car_second
 	local tt_privatebus_wait=tt_public_waiting_first+tt_public_waiting_second
@@ -292,6 +317,10 @@ local function computeUtilities(params,dbparams)
 	local tt_SMS_out=1/6.0
 	local tt_SMS_all=tt_cardriver_ivt+tt_cardriver_out
 	
+	local tt_SMS_Pool_ivt=tt_ivt_car_first+tt_ivt_car_second+(d1+d2)/2/60
+	local tt_SMS_Pool_out=1/6.0+1/10
+	local tt_SMS_Pool_all=tt_cardriver_ivt+tt_cardriver_out
+	
 	--dbparams.average_transfer_number = (AM[(origin,destination)]['avg_transfer'] + PM[(destination,origin)]['avg_transfer'])/2
 	--origin is home, destination is tour destination
 	-- 0 if origin == destination
@@ -299,7 +328,7 @@ local function computeUtilities(params,dbparams)
 
 	local zero_car,one_plus_car,two_plus_car,three_plus_car, zero_motor,one_plus_motor,two_plus_motor,three_plus_motor = 0,0,0,0,0,0,0,0
 	local veh_own_cat = params.vehicle_ownership_category
-	if veh_own_cat == 0  then 
+	if veh_own_cat == 0 or veh_own_cat == 1 or veh_own_cat ==2 then 
 		zero_car = 1 
 	
 	end
@@ -351,7 +380,9 @@ local function computeUtilities(params,dbparams)
 	utility[8] = beta_cons_walk  + beta_tt_walk * tt_walk + beta_central_walk * central_dummy+ beta_female_walk * female_dummy + age_over_15*beta_age_over_15_walk + university_student * beta_university_student_walk
 	utility[9] = beta_cons_taxi + beta_tt_taxi * tt_taxi_all + beta_cost * cost_taxi + beta_central_taxi * central_dummy + beta_female_taxi * female_dummy + age_over_15*beta_age_over_15_taxi + university_student * beta_university_student_taxi
 	utility[10] = beta_cons_SMS + beta_tt_SMS * tt_SMS_all + beta_cost * cost_SMS + beta_central_SMS * central_dummy + beta_female_SMS * female_dummy + age_over_15*beta_age_over_15_SMS + university_student * beta_university_student_SMS
-	utility[11] = beta_cons_rail_SMS + beta1_1_tt * tt_rail_SMS_ivt + beta1_2_tt * tt_rail_SMS_walk + beta1_3_tt * tt_rail_SMS_wait + beta_cost * cost_rail_SMS + beta_central_rail_SMS * central_dummy + beta_transfer * average_transfer_number + beta_female_rail_SMS * female_dummy + age_over_15 * beta_age_over_15_rail_SMS + university_student * beta_university_student_rail_SMS
+	utility[11] = beta_cons_Rail_SMS + beta1_1_tt * tt_Rail_SMS_ivt + beta1_2_tt * tt_Rail_SMS_walk + beta1_3_tt * tt_Rail_SMS_wait + beta_cost * cost_Rail_SMS + beta_central_Rail_SMS * central_dummy + beta_transfer * average_transfer_number + beta_female_Rail_SMS * female_dummy + age_over_15 * beta_age_over_15_Rail_SMS + university_student * beta_university_student_Rail_SMS
+	utility[12] = beta_cons_SMS_Pool + beta_tt_SMS_Pool * tt_SMS_Pool_all + beta_cost * cost_SMS_Pool + beta_central_SMS_Pool * central_dummy + beta_female_SMS_Pool * female_dummy + age_over_15*beta_age_over_15_SMS_Pool + university_student * beta_university_student_SMS_Pool
+	utility[13] = beta_cons_Rail_SMS_Pool + beta1_1_tt * tt_Rail_SMS_Pool_ivt + beta1_2_tt * tt_Rail_SMS_Pool_walk + beta1_3_tt * tt_Rail_SMS_Pool_wait + beta_cost * cost_Rail_SMS_Pool + beta_central_Rail_SMS_Pool * central_dummy + beta_transfer * average_transfer_number + beta_female_Rail_SMS_Pool * female_dummy + age_over_15 * beta_age_over_15_Rail_SMS_Pool + university_student * beta_university_student_Rail_SMS_Pool
 end
 
 --availability
@@ -369,7 +400,9 @@ local function computeAvailabilities(params,dbparams)
 		dbparams:getModeAvailability(modes.Walk),
 		dbparams:getModeAvailability(modes.Taxi),
 		dbparams:getModeAvailability(modes.SMS),
-		dbparams:getModeAvailability(modes.Rail_SMS)
+		dbparams:getModeAvailability(modes.Rail_SMS),
+		dbparams:getModeAvailability(modes.SMS_Pool),
+		dbparams:getModeAvailability(modes.Rail_SMS_Pool)
 
 
 }
@@ -390,16 +423,23 @@ function choose_tme(params,dbparams)
 	local probability = calculate_probability("nl", choice, utility, availability, scale)
 	return make_final_choice(probability)
 end
-
-
-
 -- function to call from C++ preday simulator for logsums computation
+
 -- params and dbparams tables contain data passed from C++
+
 -- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 
+
+
 function compute_logsum_tme(params,dbparams)
+
 	computeUtilities(params,dbparams) 
+
 	computeAvailabilities(params,dbparams)
+
 	return compute_mnl_logsum(utility, availability)
 
+
+
 end
+

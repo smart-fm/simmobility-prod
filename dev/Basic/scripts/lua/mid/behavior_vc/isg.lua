@@ -21,7 +21,7 @@ local beta_first_stop_inbound = 0
 local beta_second_stop_inbound = 5.31
 local beta_threeplus_stop_inbound = 1.73
 local beta_first_stop_outbound = 0.233
-local beta_second_stop_outbound = 2.30
+local beta_second_stop_outbound = 2.3
 local beta_threeplus_stop_outbound = 2.23
 
 
@@ -31,7 +31,7 @@ local beta_shopping_tour_dummy_Q = 0
 local beta_other_tour_dummy_Q = 0
 
 
-local beta_first_tour_dummy_Q = -1.40
+local beta_first_tour_dummy_Q = -1.4
 local beta_sub_tour_dummy_Q = -0.0218
 local beta_zero_tour_remain_Q = 0
 local beta_one_tour_remain_Q = 0.506
@@ -93,7 +93,7 @@ local beta_other_logsum = 0
 
 
 local beta_time_window_work_first_stop_first_bound = 2.31
-local beta_time_window_work_second_stop_first_bound =3.43
+local beta_time_window_work_second_stop_first_bound = 3.43
 local beta_time_window_work_3plus_stop_first_bound = 0
 local beta_time_window_work_first_stop_second_bound = 0.669
 local beta_time_window_work_second_stop_second_bound = 3.34
@@ -167,8 +167,7 @@ local choice = {
 	2,
 	3,
 	4,
-	5,
-6}
+	5}
 
 local utility = {}
 local function computeUtilities(params,dbparams)
@@ -346,33 +345,7 @@ local function computeUtilities(params,dbparams)
 	beta_p730_p1000_other * p_730p_1000p +
 	beta_p1000_a700_other * p_1000p_700a
 
-	utility[5] = beta_cons_other +
-	beta_work_tour_dummy_O * 1 * (tour_type==1 and 1 or 0) +
-	beta_edu_tour_dummy_O * 1 * (tour_type==2 and 1 or 0) +
-	beta_shopping_tour_dummy_O * 1 * (tour_type==3 and 1 or 0) +
-	beta_other_tour_dummy_O * 1 * (tour_type==4 and 1 or 0) +
-	beta_female_dummy_O * female_dummy +
-	beta_student_dummy_O * student_dummy +
-	beta_worker_dummy_O * worker_dummy +
-	beta_driver_dummy_O * driver_dummy +
-	beta_passenger_dummy_O * passenger_dummy +
-	beta_public_dummy_O * public_dummy +
-	beta_other_logsum * otherlogsum +
-	beta_time_window_other_first_stop_first_bound * first_bound * first_stop * math.log(log_constant+time_window_first_bound)+
-	beta_time_window_other_second_stop_first_bound * first_bound * second_stop * math.log(log_constant+time_window_first_bound)+
-	beta_time_window_other_3plus_stop_first_bound * first_bound * three_plus_stop * math.log(log_constant+time_window_first_bound)+
-	beta_time_window_other_first_stop_second_bound * second_bound * first_stop * math.log(log_constant+time_window_second_bound)+
-	beta_time_window_other_second_stop_second_bound * second_bound * second_stop * math.log(log_constant+time_window_second_bound)+
-	beta_time_window_other_3plus_stop_second_bound * second_bound * three_plus_stop * math.log(log_constant+time_window_second_bound)+
-	beta_tour_distance_other * math.log(1+distance) +
-	beta_a700_a930_other * p_700a_930a +
-	beta_a930_a1200_other * p_930a_1200a +
-	beta_p300_p530_other * p_300p_530p +
-	beta_p530_p730_other * p_530p_730p +
-	beta_p730_p1000_other * p_730p_1000p +
-	beta_p1000_a700_other * p_1000p_700a
-
-	utility[6] = beta_cons_Q +
+	utility[5] = beta_cons_Q +
 	beta_first_stop_inbound * first_stop * first_bound +
 	beta_second_stop_inbound * second_stop * first_bound +
 	beta_threeplus_stop_inbound * three_plus_stop * first_bound +
@@ -394,7 +367,7 @@ end
 --the logic to determine availability is the same with current implementation
 local availability = {}
 local function computeAvailabilities(params,dbparams)
-	for i = 1, 6 do 
+	for i = 1, 5 do 
 		availability[i] = dbparams:availability(i)
 	end
 end

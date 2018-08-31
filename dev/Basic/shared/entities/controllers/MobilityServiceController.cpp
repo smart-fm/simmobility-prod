@@ -54,7 +54,10 @@ void MobilityServiceController::HandleMessage(messaging::Message::MessageType ty
 	case MSG_DRIVER_SUBSCRIBE:
 	{
 		const DriverSubscribeMessage &subscribeArgs = MSG_CAST(DriverSubscribeMessage, message);
+		if(!subscribeArgs.person->sureToBeDeletedPerson)  // This Check is to filter the driver which have started from the wrong node (like node_type =9)
+		{
 		subscribeDriver(subscribeArgs.person);
+		}
 		break;
 	}
 

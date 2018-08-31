@@ -71,12 +71,6 @@ protected:
 	 */
 	virtual void subscribeDriver(Person *person);
 
-	/**
-	 * Unsubscribes a vehicle driver from the controller
-	 * @param person Driver to be removed
-	 */
-	virtual void unsubscribeDriver(Person *person);
-
 public:
 	virtual ~MobilityServiceController();
 
@@ -138,6 +132,22 @@ public:
 	 * Overrides the parent function
 	 */
 	virtual void setToBeRemoved();
+
+	/**
+ 	* Unsubscribes a vehicle driver from the controller
+ 	* @param person Driver to be removed
+ 	*/
+	virtual void unsubscribeDriver(Person *person);
+
+	virtual std::map<const Person*, Schedule> & getControllerCopyDriverSchedulesMap()
+	{
+		//Do Nothing
+	}
+
+	virtual std::set<const Person *> getAvailableDriverSet()
+	{
+		//Do Nothing
+	}
 };
 
 

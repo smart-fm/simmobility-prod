@@ -53,13 +53,13 @@ const int DEFAULT_HIGHEST_AGE = 60;
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
 : Agent(mtxStrat, id), personDbId(databaseID), agentSrc(src), age(0), resetParamsRequired(false), isFirstTick(true), useInSimulationTravelTime(false),
-nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr)
+nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr),sureToBeDeletedPerson(false)
 {
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
 : Agent(mtxStrat), personDbId(tc.front()->getPersonID()), agentSrc(src), tripChain(tc), age(0), resetParamsRequired(false),
-isFirstTick(true), useInSimulationTravelTime(false), nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr)
+isFirstTick(true), useInSimulationTravelTime(false), nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr),sureToBeDeletedPerson(false)
 {
 }
 

@@ -239,6 +239,9 @@ public:
 	friend class OnCallDriverBehaviour;
 
     string getPassengersId() const;
+
+	void removeDriverEntryFromAllContainer();
+
 };
 
 }

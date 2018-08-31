@@ -161,7 +161,25 @@ public:
 	 */
 	virtual bool isCruising(const Person* driver) const;
 	virtual bool isParked(const Person *driver) const;
+	virtual bool isJustStated(const Person *driver) const;
 	virtual const Node* getCurrentNode(const Person* driver) const;
+
+	/**
+	 * Unsubscribes a vehicle driver from the controller
+	 * @param person Driver to be removed
+	 */
+	virtual void unsubscribeDriver(Person* person);
+
+	virtual std::map<const Person*, Schedule> & getControllerCopyDriverSchedulesMap()
+	{
+		return 	driverSchedules;
+	}
+
+	virtual std::set<const Person *> getAvailableDriverSet()
+	{
+		return 	availableDrivers;
+
+	}
 
 protected:
 	/** Store list of available drivers */
@@ -281,12 +299,6 @@ protected:
 	 * @param person Driver to be added
 	 */
 	virtual void subscribeDriver(Person* person);
-
-	/**
-	 * Unsubscribes a vehicle driver from the controller
-	 * @param person Driver to be removed
-	 */
-	virtual void unsubscribeDriver(Person* person);
 
 	/**
 	 * Makes a vehicle driver available to the controller

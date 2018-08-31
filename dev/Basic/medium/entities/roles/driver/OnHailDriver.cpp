@@ -24,16 +24,12 @@ OnHailDriver::OnHailDriver(Person_MT *parent) : Driver(parent)
 
 OnHailDriver::~OnHailDriver()
 {
-	//The driver should not be destroyed when it has a passenger. If it is being destroyed, then this
-	//is an error scenario
-#ifndef NDEBUG
+	//Check if this driver have some passenger
 	if(passenger)
 	{
-		stringstream msg;
-		msg << "OnHailDriver " << parent->getDatabaseId() << " is being destroyed, but it has a passenger.";
-		throw runtime_error(msg.str());
+		ControllerLog()<< "OnHailDriver " << parent->getDatabaseId() << " is being destroyed, but it has a passenger("<<getPassengerId()<<").So removing first this Passenger before destroying the Driver. "<<std::endl;
+		evictPassenger();
 	}
-#endif
 }
 
 Role<Person_MT>* OnHailDriver::clone(Person_MT *person) const

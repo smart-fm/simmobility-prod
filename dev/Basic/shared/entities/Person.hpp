@@ -170,6 +170,9 @@ public:
 	 */
 	std::string busLine;
 
+	/** variable to keep track if onCallDriver is deleted due to not finding the destination path (either for picup/drop-off or parking location*/
+	bool sureToBeDeletedPerson;
+
 	/**The "src" variable is used to help flag how this person was created.*/
 	explicit Person(const std::string &src, const MutexStrategy &mtxStrat, int id = -1, std::string databaseID = "");
 	explicit Person(const std::string &src, const MutexStrategy &mtxStrat, const std::vector<sim_mob::TripChainItem *> &tc);

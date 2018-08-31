@@ -447,7 +447,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
     if (driverSchedules[driver].begin()->tripRequest.requestType == RequestType::TRIP_REQUEST_SHARED &&
         this->controllerServiceType != MobilityServiceControllerType::SERVICE_CONTROLLER_AMOD )
     {
-	if (schedule.size() <= 2 && partiallyAvailableDrivers.count(driver) == 0)
+	if (schedule.size() <= 3 && partiallyAvailableDrivers.count(driver) == 0)
 	{
 		partiallyAvailableDrivers.insert(driver);
 	}

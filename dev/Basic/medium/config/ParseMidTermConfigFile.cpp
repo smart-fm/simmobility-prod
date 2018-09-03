@@ -88,8 +88,6 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 		processRegionRestrictionNode(GetSingleElementByName(rootNode, "region_restriction"));
 		processPathSetFileName(GetSingleElementByName(rootNode, "pathset_config_file", true));
 		processTripChainOutputNode(GetSingleElementByName(rootNode, "trip_chain_output"));
-		processActivityTypesNode(GetSingleElementByName(rootNode, "activity_types", true));
-		processTravelModesNode(GetSingleElementByName(rootNode, "travel_modes", true));
 		processOnCallTaxiTrajectoryNode(GetSingleElementByName(rootNode, "onCallTaxiTrajectory"));
 		processOnHailTaxiTrajectoryNode(GetSingleElementByName(rootNode, "onHailTaxiTrajectory"));
 

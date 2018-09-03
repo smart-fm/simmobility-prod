@@ -8,6 +8,8 @@
 #include "entities/misc/TaxiTrip.hpp"
 #include "entities/Person_MT.hpp"
 
+#include <random>
+
 using namespace std;
 using namespace sim_mob;
 using namespace medium;
@@ -52,63 +54,77 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
 
         unsigned int currTaxi = 0;
 
+        std::vector<FleetItem> randomisedTaxiFleet;
+        for (;lstart != lend; lstart++) {
+            randomisedTaxiFleet.push_back(lstart->second);
+        }
+
+
+        if (randomisedTaxiFleet.size() > maxFleetSize) {
+            auto rng = std::default_random_engine {};
+            std::shuffle(std::begin(randomisedTaxiFleet), std::end(randomisedTaxiFleet), rng);
+            randomisedTaxiFleet.resize(maxFleetSize);
+        }
+
         ControllerLog() << "For Controller type: " << sim_mob::toString(controllerType)<<" and Controller ID: "<<controllerID<<" total number of service vehicles loaded from database: " << taxiFleet.count(it->first)
                         << std::endl;
         ControllerLog() << "Max. fleet size configured: " << maxFleetSize << std::endl;
 
-        while (lstart != lend && currTaxi < maxFleetSize) {
+        for (auto taxi : randomisedTaxiFleet) {
+            if (currTaxi == maxFleetSize) {
+                break;
+            }
 
-                if ((*lstart).second.startNode) {
-                    Person_MT *person = new Person_MT("FleetController",
-                                                      ConfigManager::GetInstance().FullConfig().mutexStategy(), -1);
-                    person->setServiceVehicle((*lstart).second);
-                    person->setDatabaseId((*lstart).second.driverId);
-                    person->setPersonCharacteristics();
+            if (taxi.startNode) {
+                Person_MT *person = new Person_MT("FleetController",
+                                                  ConfigManager::GetInstance().FullConfig().mutexStategy(), -1);
+                person->setServiceVehicle(taxi);
+                person->setDatabaseId(taxi.driverId);
+                person->setPersonCharacteristics();
 
-                    string tripType;
+                string tripType;
 
-                    MobilityServiceControllerType type = it->second.type;
-                    std:: string tripSupportMode = it->second.tripSupportMode;
+                MobilityServiceControllerType type = it->second.type;
+                std:: string tripSupportMode = it->second.tripSupportMode;
 
-                    switch (type) {
-                        case SERVICE_CONTROLLER_ON_HAIL:
-                            tripType = "OnHailTrip";
-                            break;
+                switch (type) {
+                    case SERVICE_CONTROLLER_ON_HAIL:
+                        tripType = "OnHailTrip";
+                        break;
 
-                        case SERVICE_CONTROLLER_GREEDY:
-                        case SERVICE_CONTROLLER_SHARED:
-                        case SERVICE_CONTROLLER_FRAZZOLI:
-                        case SERVICE_CONTROLLER_INCREMENTAL:
-                        case SERVICE_CONTROLLER_PROXIMITY:
-                        case SERVICE_CONTROLLER_AMOD:
-                            tripType = "OnCallTrip";
-                            break;
+                    case SERVICE_CONTROLLER_GREEDY:
+                    case SERVICE_CONTROLLER_SHARED:
+                    case SERVICE_CONTROLLER_FRAZZOLI:
+                    case SERVICE_CONTROLLER_INCREMENTAL:
+                    case SERVICE_CONTROLLER_PROXIMITY:
+                    case SERVICE_CONTROLLER_AMOD:
+                        tripType = "OnCallTrip";
+                        break;
 
-                        default:
-                            tripType = "TaxiTrip";
-                    }
-
-                    vector<TripChainItem *> tripChain;
-                    TaxiTrip *taxiTrip = new TaxiTrip("0", tripType, 0, -1,
-                                                      DailyTime((*lstart).second.startTime * 1000.0),
-                                                      DailyTime((*lstart).second.endTime * 1000), 0,
-                                                      (*lstart).second.startNode,
-                                                      "node", nullptr, "node");
-                    tripChain.push_back((TripChainItem *) taxiTrip);
-                    person->setTripChain(tripChain);
-
-                    addOrStashTaxis(person, agentList);
-
-                    //Valid vehicle loaded
-
-                }
-                else {
-                    Warn() << "Vehicle " << (*lstart).second.vehicleNo << ", with driver " << (*lstart).second.driverId
-                           << " has invalid start node.";
+                    default:
+                        tripType = "TaxiTrip";
                 }
 
-                currTaxi++;
-                lstart++;
+                vector<TripChainItem *> tripChain;
+                TaxiTrip *taxiTrip = new TaxiTrip("0", tripType, 0, -1,
+                                                  DailyTime(taxi.startTime * 1000.0),
+                                                  DailyTime(taxi.endTime * 1000), 0,
+                                                  taxi.startNode,
+                                                  "node", nullptr, "node");
+                tripChain.push_back((TripChainItem *) taxiTrip);
+                person->setTripChain(tripChain);
+
+                addOrStashTaxis(person, agentList);
+
+                //Valid vehicle loaded
+
+            }
+            else {
+                Warn() << "Vehicle " << taxi.vehicleNo << ", with driver " << taxi.driverId
+                       << " has invalid start node.";
+            }
+
+            currTaxi++;
         }
         it++;
     }

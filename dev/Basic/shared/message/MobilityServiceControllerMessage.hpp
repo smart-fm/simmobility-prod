@@ -16,6 +16,9 @@ namespace sim_mob
 // overhead
 const bool doWeComputeBarycenter = true;
 
+// Forward declaration
+class Schedule;
+
 enum MobilityServiceControllerMessage
 {
 	MSG_DRIVER_SUBSCRIBE = 7100000,
@@ -28,7 +31,8 @@ enum MobilityServiceControllerMessage
 	MSG_TRIP_REQUEST,
 	MSG_SCHEDULE_PROPOSITION,
 	MSG_SCHEDULE_PROPOSITION_REPLY,
-	MSG_SCHEDULE_UPDATE
+	MSG_SCHEDULE_UPDATE,
+	MSG_REJECT_SCHEDULE
 };
 
 /**Enumeration to indicate the type of trip requested by the passenger*/
@@ -146,6 +150,20 @@ public:
 };
 
 /**
+ * Message to inform the controller that an update to the schedule cannot be performed
+ */
+class RejectScheduleMsg : public messaging::Message
+{
+public:
+	RejectScheduleMsg(Person *p, const Schedule *s) : person(p), schedule(s)
+	{
+	}
+
+	Person *person;
+	const Schedule *schedule;
+};
+
+/**
  * Message to request a trip
  */
 class TripRequestMessage : public messaging::Message
@@ -236,9 +254,15 @@ struct ScheduleItem
 #endif
 	};
 
+	ScheduleItem()
+	{
+	};
+
 	bool operator<(const ScheduleItem &other) const;
 
 	bool operator==(const ScheduleItem &rhs) const;
+
+	const Node *getNode() const;
 
 	ScheduleItemType scheduleItemType;
 
@@ -306,6 +330,8 @@ public:
 	ScheduleItem &at(size_t n);
 
 	const ScheduleItem &at(size_t n) const;
+
+	const TripRequestMessage *findTrip(const ScheduleItem item);
 	//} EMULATE STANDARD CONTAINER FUNCTIONS
 
 	/**

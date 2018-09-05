@@ -71,16 +71,7 @@ void AMOD_Controller::computeSchedules()
 		{
 			schedulesComputedSoFar.emplace(driver, schedule);
 
-			//If this driver wasn't assigned a schedule with more than 1 person, we add it to the
-			//set of drivers serving shared requests that can still be assigned another passenger
-			if(schedule.size() <= 2 && !parkingEnabled)
-			{
-				driversServingSharedReq.insert(driver);
-			}
-            else if(schedule.size()<=3)
-            {
-                driversServingSharedReq.insert(driver);
-            }
+            driversServingSharedReq.insert(driver);
 		}
 	}
 
@@ -192,15 +183,8 @@ void AMOD_Controller::matchDriversServingSharedReq()
 			if (schedule.size() != orgSchedule.size() && !schedule.empty())
 			{
 				schedulesComputedSoFar.emplace(driver, schedule);
-
-				//Remove the driver from the set of drivers serving shared requests that can take
-				//additional passengers, as this drivers capacity is full
-				driversServingSharedReq.erase(driver_Iter++);
 			}
-			else
-			{
-				++driver_Iter;
-			}
+			++driver_Iter;
 		}
 
 #ifndef NDEBUG

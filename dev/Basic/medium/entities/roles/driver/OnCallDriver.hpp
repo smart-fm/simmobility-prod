@@ -36,6 +36,12 @@ private:
 	//track how many persons are dropped off by this driver from the time driver available  to till now
 	int passengerInteractedDropOff =0 ;
 
+	/**Indicates whether the controller needs to be notified about the completion of
+	* the current item
+	*/
+	bool informController = true;
+	bool blockIncomingRequest = false;
+
 protected:
 	/**Pointer to the on call driver's movement facet object*/
 	OnCallDriverMovement *movement;
@@ -50,6 +56,9 @@ protected:
 	/**Indicates that the schedule has been set or updated by the controller*/
 	bool isScheduleUpdated;
 
+	/**Stores items which are served together at the same node*/
+	std::multimap<ScheduleItem, ScheduleItem> sameNodeItems;
+
 	/**Wrapper for the schedule that has been given by the controller. */
 	struct DriverSchedule
 	{
@@ -62,6 +71,9 @@ protected:
 
 		/**Points to the next schedule item to be performed*/
 		Schedule::const_iterator nextItem;
+
+		/**Points to the node where driver completed its last schedule item*/
+		const Node *completedNode = nullptr;
 
 	public:
 		void setSchedule(const Schedule &newSchedule)
@@ -97,13 +109,27 @@ protected:
 
 		void itemCompleted()
 		{
-			++currentItem;
-			++nextItem;
+			auto item = assignedSchedule.begin();
+			completedNode = item->scheduleItemType == ScheduleItemType::PICKUP ?
+					item->tripRequest.startNode : item->tripRequest.destinationNode;
+			assignedSchedule.erase(item);
+			currentItem = assignedSchedule.begin();
+			nextItem = currentItem + 1;
 		}
 
 		bool isScheduleCompleted() const
 		{
 			return currentItem == assignedSchedule.end();
+		}
+
+		void setCompletedNode()
+		{
+			completedNode = nullptr;
+		}
+
+		bool isSameNodeItem(const Node *node) const
+		{
+			return node == completedNode;
 		}
 	} driverSchedule;
 
@@ -115,9 +141,10 @@ protected:
 	/**
 	 * Checks if the current item in the schedule has been rescheduled
 	 * @param updatedSchedule  the updated schedule
-	 * @return true if the current item in the schedule has been rescheduled
+	 * @return if the current item in the schedule has been rescheduled,
+	 * the respective iterator is returned.
 	 */
-	bool currentItemRescheduled(const Schedule &updatedSchedule);
+	Schedule::iterator currentItemRescheduled(Schedule &updatedSchedule);
 
 	/**
 	 * Sends the schedule received acknowledgement message
@@ -164,6 +191,14 @@ public:
 	 * @param message the message containing the required data.
 	 */
 	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message &message);
+
+	/**
+	 * Looks through the current schedule for consecutive items which are served at the same node.
+	 * This method populates the corresponding multimap as well.
+	 * @param updatedSchedule schedule provided by the controller which needs to be checked
+	 * @return true if the current item needs to be preempted
+	 */
+       const bool removeSameNodeItems(Schedule &updatedSchedule);
 
 	/**
 	 * The current node of the driver is the node which has most recently been crossed by the driver

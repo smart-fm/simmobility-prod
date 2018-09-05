@@ -125,6 +125,7 @@ void OnCallController::driverAvailable(const Person *driver)
 	//Remove from the partially available drivers
 	partiallyAvailableDrivers.erase(driver);
 	driversServingSharedReq.erase(driver);
+	currentReq.erase(driver);
 
 #ifndef NDEBUG
 	consistencyChecks("driverAvailable: end");
@@ -172,15 +173,27 @@ void OnCallController::onDriverScheduleStatus(Person *driver)
 	ControllerLog() << "onDriverScheduleStatus(): driverSchedules.size() = " << driverSchedules.size() << endl;
 #endif
 
-	if (driver && !driver->sureToBeDeletedPerson) {
+	if (driver && !driver->sureToBeDeletedPerson)
+	{
 		auto it = driverSchedules.find(driver);
-		if(it!=driverSchedules.end()) {
+		if(it!=driverSchedules.end())
+		{
 			Schedule &schedule = driverSchedules.at(driver);
 
 	//aa!!: If schedule is empty, this would be an error, right? Why would a driver update an empty schedule.
 	//			We should rise an appropriate NDEBUG exception here.
-			if (!schedule.empty()) {
-		schedule.erase(schedule.begin());
+			if (!schedule.empty())
+			{
+				auto completedReq = *(schedule.begin());
+				schedule.erase(schedule.begin());
+
+#ifndef NDEBUG
+				ControllerLog() << "CONTROLLER REMAINING ITEMS for " << driver->getDatabaseId() << " " << schedule << endl;
+#endif
+				if (completedReq.tripRequest.requestType == RequestType::TRIP_REQUEST_SHARED)
+				{
+					currentReq[driver] = completedReq;
+				}
 			}
 		}
 
@@ -188,6 +201,33 @@ void OnCallController::onDriverScheduleStatus(Person *driver)
 #ifndef NDEBUG
 	ControllerLog() << "onDriverScheduleStatus(): driverSchedules.size() = " << driverSchedules.size() << endl;
 #endif
+}
+
+void OnCallController::onDriverRejectSchedule(Person *driver, Schedule driversCopy)
+{
+	Schedule &controllersCopy = driverSchedules[driver];
+
+	std::set<const TripRequestMessage *> tripsToBeRescheduled;
+	for (auto item : driversCopy)
+	{
+		const TripRequestMessage *trip = controllersCopy.findTrip(item);
+		if (trip)
+		{
+			tripsToBeRescheduled.insert(trip);
+		}
+	}
+
+	for (auto trip : tripsToBeRescheduled)
+	{
+		cout << currTick.frame() << " found trip " << *trip << endl;
+		requestQueue.insert(requestQueue.begin(), *trip);
+	}
+
+	currentReq[driver] = driversCopy.front();
+	ControllerLog() << driver->getDatabaseId() << " Updating controllercopy " << driversCopy << currTick.frame() << endl;
+	driversCopy.erase(driversCopy.begin());
+	controllersCopy = driversCopy;
+	ControllerLog() << driver->getDatabaseId() << " Updating controllercopy " << controllersCopy << currTick.frame() << endl;
 }
 
 Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
@@ -335,6 +375,13 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 		}
 		break;
 	}
+	case MSG_REJECT_SCHEDULE:
+		{
+			const RejectScheduleMsg &rejectMsgArgs = MSG_CAST(RejectScheduleMsg, message);
+			onDriverRejectSchedule(rejectMsgArgs.person, *(rejectMsgArgs.schedule));
+			break;
+		}
+
 	default:
 		// If it is not a message specific to this controller, let the generic controller handle it
 		MobilityServiceController::HandleMessage(type, message);
@@ -413,20 +460,40 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	unsigned availableDriversBeforeTheRemoval = availableDrivers.size();
 #endif
 
-	// We have just assigned a new schedule to the driver.
-	// We remove the first item of the schedule from the controller's copy, so that the controller
-	// know what part of the schedule is remaining. We do this because we want to prevent the controller
-	// from modifying the scheduleItem that the driver is currently executing. Therefore, we give the 
-	// controller the visibility only of the part of the schedule that the controller can modify, namely the entire
-	// schedule minus the first schedule item
-    Schedule controllersCopy = schedule;
+	Schedule controllersCopy = schedule;
 	controllersCopy.erase(controllersCopy.begin());
+	if (!isUpdatedSchedule)
+	{
+		if (controllersCopy.begin()->tripRequest.requestType == RequestType::TRIP_REQUEST_SHARED &&
+				this->controllerServiceType == MobilityServiceControllerType::SERVICE_CONTROLLER_AMOD)
+		{
+			ScheduleItem driverReq = *(controllersCopy.begin());
+			currentReq.insert(make_pair(driver, driverReq));
 
+			controllersCopy.erase(controllersCopy.begin());
+			checkItemsAhead(driver, controllersCopy, driverReq);
+		}
+		else
+		{
+			// We have just assigned a new schedule to the driver.
+			// We remove the first item of the schedule from the controller's copy, so that the controller
+			// know what part of the schedule is remaining. We do this because we want to prevent the controller
+			// from modifying the scheduleItem that the driver is currently executing. Therefore, we give the 
+			// controller the visibility only of the part of the schedule that the controller can modify, namely the entire
+			// schedule minus the first schedule item
+			controllersCopy.erase(controllersCopy.begin());
+		}
 
-	driverSchedules[driver] = controllersCopy;
-
-	// The driver is not available anymore
-	availableDrivers.erase(driver);
+		driverSchedules[driver] = controllersCopy;
+		// The driver is not available anymore
+		availableDrivers.erase(driver);
+	}
+	else
+	{
+		auto driverReq = currentReq[driver];
+		checkItemsAhead(driver, controllersCopy, driverReq);
+		driverSchedules[driver] = controllersCopy;
+	}
 
 	//If this schedule only caters to 1 person, the add the driver to the list of partially available drivers
 	//Schedule size 3 indicates a schedule for 1 person: pick-up, drop-off and park
@@ -472,6 +539,48 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	ControllerLog() <<", (MessageHandler *) driver="<<(MessageHandler *) driver;
 #endif
 	ControllerLog() << std::endl;
+}
+
+void OnCallController::checkItemsAhead(const Person *driver, Schedule &schedule, const ScheduleItem nextItem)
+{
+	for (auto itemIterator = schedule.begin(); itemIterator != schedule.end();)
+	{
+		if (itemIterator->tripRequest == nextItem.tripRequest)
+		{
+			break;
+		}
+		if (itemIterator->getNode() == nextItem.getNode())
+		{
+#ifndef NDEBUG
+			ControllerLog() << "Erasing " << *itemIterator << " assigned to driver " << driver->getDatabaseId() << endl;
+#endif
+			itemIterator = schedule.erase(itemIterator);
+		}
+		else
+		{
+			break;
+		}
+	}
+	for (auto itemIterator = schedule.begin() + 1; itemIterator != schedule.end();)
+	{
+		if (itemIterator->tripRequest == (itemIterator - 1)->tripRequest)
+		{
+			itemIterator++;
+			continue;
+		}
+
+		if (itemIterator->getNode() == (itemIterator - 1)->getNode())
+		{
+#ifndef NDEBUG
+			ControllerLog() << "Erasing " << *itemIterator << " assigned to driver " << driver->getDatabaseId() << endl;
+#endif
+			itemIterator = schedule.erase(itemIterator);
+		}
+		else
+		{
+			itemIterator++;
+		}
+	}
 }
 
 bool OnCallController::isCruising(const Person *driver) const

@@ -193,6 +193,9 @@ protected:
 	std::set<const Person *> partiallyAvailableDrivers;
     std::set<const Person *> driversServingSharedReq;
 
+	/** Item being performed by each shared driver */
+	std::map<const Person *, ScheduleItem> currentReq;
+
 	/** Keeps track of current local tick */
 	unsigned int localTick = 0;
 
@@ -253,6 +256,15 @@ protected:
 	 * (this parameter is used by the incremental sharing controller)
 	 */
 	virtual void assignSchedule(const Person* driver, const Schedule& schedule, bool isUpdatedSchedule = false);
+
+	/**
+	 * Looks at the beginning of the schedules and deletes all items that are performed at the same
+	 * node as the current item.
+	 * @param driver Driver who needs to be sent the schedule
+	 * @param schedule The schedule that is scanned to remove items
+	 * @param currItem Current item in schedule
+	 */
+	void checkItemsAhead(const Person* driver, Schedule& schedule, const ScheduleItem currItem);
 
 	/**
 	 * Performs the controller algorithm to assign vehicles to requests
@@ -318,6 +330,14 @@ protected:
 	 * @param person the driver
 	 */
 	virtual void onDriverScheduleStatus(Person *driver);
+
+	/**
+	 * Updates the controller's copy to match the driver's copy.
+	 * @param person driver who has rejected the schedule sent
+	 * @param schedule schedule of the respective driver, which needs to
+	 * be stored on controller's side as well
+	 */
+	virtual void onDriverRejectSchedule(Person *person, Schedule schedule);
 
 	void assignSchedules(const std::unordered_map<const Person*, Schedule>& schedulesToAssign,
 				bool isUpdatedSchedule = false);

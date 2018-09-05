@@ -165,25 +165,27 @@ const bool OnCallDriver::removeSameNodeItems(Schedule &schedule)
 	auto currItemLoc = currentItemRescheduled(schedule);
 	if (currItemLoc != schedule.end())
 	{
-		auto scheduleNode = schedule.begin()->getNode();
 		preemptCurrentItem = true;
 		currItem = schedule.begin();
-		currNode = scheduleNode;
-		if (driverSchedule.isSameNodeItem(scheduleNode))
+		currNode = currItem->getNode();
+		if (driverSchedule.isSameNodeItem(currNode))
 		{
 			informController = false;
 			blockIncomingRequest = true;
 		}
 	}
 
+	// Delete all schedule items in the front of the schedule that have the same node as current one
 	for (auto itemIterator = schedule.begin(); itemIterator != schedule.end();)
 	{
 		auto node  = itemIterator->getNode();
 		if (currItem->tripRequest != itemIterator->tripRequest && currNode == node)
 		{
 			sameNodeItems.insert(make_pair(*currItem, *itemIterator));
+#ifndef NDEBUG
 			ControllerLog() << getParent()->getDatabaseId() << " Inserting into sameNodeItems " << *itemIterator
 					<< " Same as current item " << *currItem << endl;
+#endif
 			itemIterator = schedule.erase(itemIterator);
 		}
 		else
@@ -192,19 +194,17 @@ const bool OnCallDriver::removeSameNodeItems(Schedule &schedule)
 		}
 	}
 
-	auto item = schedule.begin();
-	auto node1 = item->getNode();
+	auto node1 = schedule.begin()->getNode();
 
 	for (auto itemIterator = schedule.begin() + 1; itemIterator != schedule.end();)
 	{
-		item = itemIterator;
-		auto node2 = item->getNode();
+		auto node2 = itemIterator->getNode();
 		if (node1 == node2)
 		{
-			sameNodeItems.insert(make_pair(*(item - 1), *item));
-			ControllerLog() << getParent()->getDatabaseId() << " Inserting into sameNodeItems " << *item
-					<< "Same as previous item " << *(item - 1) << endl;
-			itemIterator = schedule.erase(item);
+			sameNodeItems.insert(make_pair(*(itemIterator - 1), *itemIterator));
+			ControllerLog() << getParent()->getDatabaseId() << " Inserting into sameNodeItems " << *itemIterator
+					<< "Same as previous item " << *(itemIterator - 1) << endl;
+			itemIterator = schedule.erase(itemIterator);
 		}
 		else
 		{
@@ -307,8 +307,6 @@ void OnCallDriver::scheduleItemCompleted()
 			{
 				blockIncomingRequest = false;
 			}
-			ControllerLog() << "Driver " << getParent()->getDatabaseId();
-			ControllerLog() << ": Controller already knows" << endl;
 	}
 #endif
 }
@@ -456,19 +454,15 @@ void OnCallDriver::pickupPassenger()
 	//Mark schedule item as completed
 	scheduleItemCompleted();
 
-	if (itemList.first != itemList.second)
+	for (auto itemIt = itemList.first; itemIt != itemList.second;)
 	{
-		for (auto itemIt = itemList.first; itemIt != itemList.second;)
-		{
-			informController = false;
-			auto schedule = driverSchedule.getSchedule();
-			schedule.insert(schedule.begin(), itemIt->second);
-			driverSchedule.setSchedule(schedule);
-			sameNodeItems.erase(itemIt++);
+		informController = false;
+		auto schedule = driverSchedule.getSchedule();
+		schedule.insert(schedule.begin(), itemIt->second);
+		driverSchedule.setSchedule(schedule);
+		sameNodeItems.erase(itemIt++);
 
-			movement->performScheduleItem();
-		}
-
+		movement->performScheduleItem();
 	}
 }
 void OnCallDriver::dropoffPassenger()
@@ -511,18 +505,15 @@ void OnCallDriver::dropoffPassenger()
 	//Mark schedule item as completed
 	scheduleItemCompleted();
 
-	if (itemList.first != itemList.second)
+	for (auto itemIt = itemList.first; itemIt != itemList.second;)
 	{
-		for (auto itemIt = itemList.first; itemIt != itemList.second;)
-		{
-			informController = false;
-			auto schedule = driverSchedule.getSchedule();
-			schedule.insert(schedule.begin(), itemIt->second);
-			driverSchedule.setSchedule(schedule);
-			sameNodeItems.erase(itemIt++);
+		informController = false;
+		auto schedule = driverSchedule.getSchedule();
+		schedule.insert(schedule.begin(), itemIt->second);
+		driverSchedule.setSchedule(schedule);
+		sameNodeItems.erase(itemIt++);
 
-			movement->performScheduleItem();
-		}
+		movement->performScheduleItem();
 	}
 }
 

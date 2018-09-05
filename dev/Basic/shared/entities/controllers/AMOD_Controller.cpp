@@ -169,15 +169,15 @@ void AMOD_Controller::matchDriversServingSharedReq()
 			schedule = buildSchedule(maxAggRequests, maxWaitingTime, driverNode, orgSchedule, &aggregatedRequests);
 
 #ifndef NDEBUG
-			if (aggregatedRequests > (maxAggregatedRequests + 1))
+			if (aggregatedRequests > (maxAggregatedRequests))
            {
                throw std::runtime_error("The number of aggregated requests is incorrect");
            }
 
-           if (schedulesComputedSoFar.find(driver) != schedulesComputedSoFar.end())
-           {
-               throw std::runtime_error("Trying to assign more than one schedule to a single driver");
-           }
+           // if (schedulesComputedSoFar.find(driver) != schedulesComputedSoFar.end())
+           // {
+           //     throw std::runtime_error("Trying to assign more than one schedule to a single driver");
+           // }
 #endif
 
 			if (schedule.size() != orgSchedule.size() && !schedule.empty())

@@ -187,9 +187,6 @@ void OnCallController::onDriverScheduleStatus(Person *driver)
 				auto completedReq = *(schedule.begin());
 				schedule.erase(schedule.begin());
 
-#ifndef NDEBUG
-				ControllerLog() << "CONTROLLER REMAINING ITEMS for " << driver->getDatabaseId() << " " << schedule << endl;
-#endif
 				if (completedReq.tripRequest.requestType == RequestType::TRIP_REQUEST_SHARED)
 				{
 					currentReq[driver] = completedReq;
@@ -219,15 +216,13 @@ void OnCallController::onDriverRejectSchedule(Person *driver, Schedule driversCo
 
 	for (auto trip : tripsToBeRescheduled)
 	{
-		cout << currTick.frame() << " found trip " << *trip << endl;
-		requestQueue.insert(requestQueue.begin(), *trip);
+		// cout << currTick.frame() << " found trip " << *trip << endl;
+		// requestQueue.insert(requestQueue.begin(), *trip);
 	}
 
 	currentReq[driver] = driversCopy.front();
-	ControllerLog() << driver->getDatabaseId() << " Updating controllercopy " << driversCopy << currTick.frame() << endl;
 	driversCopy.erase(driversCopy.begin());
 	controllersCopy = driversCopy;
-	ControllerLog() << driver->getDatabaseId() << " Updating controllercopy " << controllersCopy << currTick.frame() << endl;
 }
 
 Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
@@ -461,7 +456,6 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 #endif
 
 	Schedule controllersCopy = schedule;
-	controllersCopy.erase(controllersCopy.begin());
 	if (!isUpdatedSchedule)
 	{
 		if (controllersCopy.begin()->tripRequest.requestType == RequestType::TRIP_REQUEST_SHARED &&

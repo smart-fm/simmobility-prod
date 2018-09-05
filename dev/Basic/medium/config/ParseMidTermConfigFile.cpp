@@ -92,7 +92,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 		processOnHailTaxiTrajectoryNode(GetSingleElementByName(rootNode, "onHailTaxiTrajectory"));
 
 
-		if (mtCfg.RunningMidFullLoop() || mtCfg.RunningMidPredayFull())
+		if (mtCfg.RunningMidFullLoop())
 		{
 			processPredayNode(GetSingleElementByName(rootNode, "preday", true));
 			processSupplyNode(GetSingleElementByName(rootNode, "supply", true));
@@ -101,7 +101,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 		{
 			processSupplyNode(GetSingleElementByName(rootNode, "supply", true));
 		}
-		else if ( mtCfg.RunningMidPredayLogsum() || mtCfg.RunningMidPredaySimulation() )
+		else if ( mtCfg.RunningMidPredayLogsum() || mtCfg.RunningMidPredaySimulation() || mtCfg.RunningMidPredayFull() )
 		{
 			processPredayNode(GetSingleElementByName(rootNode, "preday", true));
 		}
@@ -161,7 +161,7 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 	childNode = GetSingleElementByName(node, "threads", true);
 	mtCfg.setNumPredayThreads(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true), DEFAULT_NUM_THREADS_DEMAND));
 
-	if(mtCfg.runningPredaySimulation() || mtCfg.RunningMidFullLoop())
+	if(mtCfg.runningPredaySimulation() || mtCfg.RunningMidFullLoop() || mtCfg.RunningMidPredayFull() )
 	{
 		childNode = GetSingleElementByName(node, "output_activity_schedule", true);
 		mtCfg.setFileOutputEnabled(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));

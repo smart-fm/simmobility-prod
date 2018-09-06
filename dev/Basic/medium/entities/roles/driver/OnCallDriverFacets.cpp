@@ -231,7 +231,10 @@ bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 			//Note: OnCallDriver::pickupPassenger marks the schedule item complete and moves to
 			//the next item
 			onCallDriver->dropoffPassenger();
-			performScheduleItem();
+			if (onCallDriver->getDriverStatus() != PARKED)
+			{
+				performScheduleItem();
+			}
 			break;
 		}
 		case DRIVE_TO_PARKING:
@@ -273,7 +276,7 @@ void OnCallDriverMovement::performScheduleItem()
 			{
 				continueCruising(currNode);
 			}
-			else if (onCallDriver->getDriverStatus() != PARKED)
+			else
 			{
 				continueCruising(endOfPathNode);
 			}
@@ -317,7 +320,6 @@ void OnCallDriverMovement::performScheduleItem()
 		{
 			currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
 			//Drive to parking node
-		if (onCallDriver->getDriverStatus() != PARKED)
 			beginDriveToParkingNode(itScheduleItem->parking->getAccessNode());
 
 			//We need to call the beginDriveToParkingNode method above even if the shift has ended,

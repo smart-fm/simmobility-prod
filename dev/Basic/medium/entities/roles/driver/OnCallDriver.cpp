@@ -487,11 +487,30 @@ void OnCallDriver::pickupPassenger()
 		auto schedule = driverSchedule.getSchedule();
 		schedule.insert(schedule.begin(), itemIt->second);
 		driverSchedule.setSchedule(schedule);
-		sameNodeItems.erase(itemIt++);
 
-		movement->performScheduleItem();
+		auto nextItemType = itemIt->second.scheduleItemType;
+		itemIt = sameNodeItems.erase(itemIt);
+
+		if (nextItemType == ScheduleItemType::PICKUP)
+		{
+			sendScheduleAckMessage(true);
+			ControllerLog()<< "Driver "<<getParent()->getDatabaseId()<<" will immediately pickup passenger."<<std::endl;
+			pickupPassenger();
+		}
+		else if (nextItemType == ScheduleItemType::DROPOFF)
+		{
+			dropoffPassenger();
+		}
+		else
+		{
+			stringstream msg;
+			msg << "Schedule item in sameNodeItems for driver "  << getParent()->getDatabaseId()
+				<< " is not pickup or dropoff" << std::endl;
+			throw runtime_error(msg.str());
+		}
 	}
 }
+
 void OnCallDriver::dropoffPassenger()
 {
 	//Get the passenger to be dropped off
@@ -538,9 +557,27 @@ void OnCallDriver::dropoffPassenger()
 		auto schedule = driverSchedule.getSchedule();
 		schedule.insert(schedule.begin(), itemIt->second);
 		driverSchedule.setSchedule(schedule);
-		sameNodeItems.erase(itemIt++);
 
-		movement->performScheduleItem();
+		auto nextItemType = itemIt->second.scheduleItemType;
+		itemIt = sameNodeItems.erase(itemIt);
+
+		if (nextItemType == ScheduleItemType::PICKUP)
+		{
+			sendScheduleAckMessage(true);
+			ControllerLog()<< "Driver "<<getParent()->getDatabaseId()<<" will immediately pickup passenger."<<std::endl;
+			pickupPassenger();
+		}
+		else if (nextItemType == ScheduleItemType::DROPOFF)
+		{
+			dropoffPassenger();
+		}
+		else
+		{
+			stringstream msg;
+			msg << "Schedule item in sameNodeItems for driver "  << getParent()->getDatabaseId()
+				<< " is not pickup or dropoff" << std::endl;
+			throw runtime_error(msg.str());
+		}
 	}
 }
 

@@ -273,7 +273,7 @@ void OnCallDriverMovement::performScheduleItem()
 			{
 				continueCruising(currNode);
 			}
-			else
+			else if (onCallDriver->getDriverStatus() != PARKED)
 			{
 				continueCruising(endOfPathNode);
 			}
@@ -317,6 +317,7 @@ void OnCallDriverMovement::performScheduleItem()
 		{
 			currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
 			//Drive to parking node
+		if (onCallDriver->getDriverStatus() != PARKED)
 			beginDriveToParkingNode(itScheduleItem->parking->getAccessNode());
 
 			//We need to call the beginDriveToParkingNode method above even if the shift has ended,
@@ -732,7 +733,7 @@ void OnCallDriverMovement::parkVehicle(DriverUpdateParams &params)
 
 	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
 	                << parent->getDatabaseId() << ": Parked at node "
-	                << currNode->getNodeId() << endl;
+	                << endl;
 }
 
 void OnCallDriverMovement::resetDriverLaneAndSegment()

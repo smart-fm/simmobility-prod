@@ -92,6 +92,7 @@ void OnCallController::unsubscribeDriver(Person *driver)
 	availableDrivers.erase(driver);
 	partiallyAvailableDrivers.erase(driver);
     driversServingSharedReq.erase(driver);
+	currentReq.erase(driver);
 
 #ifndef NDEBUG
 	consistencyChecks("unsubscribeDriver: end");

@@ -1,0 +1,18 @@
+
+Scripts to assess the correctness of AMOD controller
+
+===================
+Description
+===================
+controller-statistics.py: Plots the demand, requests, assignments, pickups and dropoffs of the AMOD controller
+vehicle_utilization.py: Plots the status of SMS vehicles throughout the day
+
+To determine the usage, please type:
+python controller-statistics.py -h
+python vehicle_utilisation.py -h
+
+===================
+Libraries Required
+===================
+
+pandas, csv, matplotlib, numpy, argparse, psycopg2

@@ -163,8 +163,10 @@ public:
 	virtual bool isParked(const Person *driver) const;
 	virtual bool isJustStated(const Person *driver) const;
 	virtual const Node* getCurrentNode(const Person* driver) const;
+    virtual bool isDrivingToPark(const Person *driver) const;
 
-	/**
+
+    /**
 	 * Unsubscribes a vehicle driver from the controller
 	 * @param person Driver to be removed
 	 */

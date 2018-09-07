@@ -71,6 +71,7 @@ protected:
 
 		/**Points to the next schedule item to be performed*/
 		Schedule::const_iterator nextItem;
+        Schedule prevSchedule;
 
 		/**Points to the node where driver completed its last schedule item*/
 		const Node *completedNode = nullptr;
@@ -101,7 +102,15 @@ protected:
 		{
 			return currentItem;
 		}
+        Schedule& getPrevSchedule()
+        {
+            return prevSchedule;
+        }
 
+        void  setPrevSchedule(const Schedule & thisScheduleItem)
+        {
+            prevSchedule = thisScheduleItem;
+        }
 		Schedule::const_iterator getNextScheduleItem() const
 		{
 			return nextItem;
@@ -112,6 +121,7 @@ protected:
 			auto item = assignedSchedule.begin();
 			completedNode = item->scheduleItemType == ScheduleItemType::PICKUP ?
 					item->tripRequest.startNode : item->tripRequest.destinationNode;
+            setPrevSchedule(assignedSchedule);
 			assignedSchedule.erase(item);
 			currentItem = assignedSchedule.begin();
 			nextItem = currentItem + 1;

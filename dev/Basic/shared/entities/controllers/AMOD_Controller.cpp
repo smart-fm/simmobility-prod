@@ -163,7 +163,9 @@ void AMOD_Controller::matchDriversServingSharedReq()
 			}
 			if((driver->exportServiceDriver()->getPassengerCount())>(driver->getPassengerCapacity()))
 			{
-			    throw std::runtime_error("There are more passengers seated in the vehicle than available Capacity.");
+                stringstream msg;
+                msg<<"There are more passengers seated in the vehicle than available Capacity."<<driver->getDatabaseId()<<endl;
+			    throw std::runtime_error(msg.str());
 			}
 #endif
 

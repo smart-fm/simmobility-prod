@@ -195,7 +195,7 @@ void OnCallController::onDriverScheduleStatus(Person *driver)
 			}
 		}
 
-	}
+	} 
 #ifndef NDEBUG
 	ControllerLog() << "onDriverScheduleStatus(): driverSchedules.size() = " << driverSchedules.size() << endl;
 #endif
@@ -646,7 +646,7 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 			throw std::runtime_error(msg.str());
 		}
 #endif
-		if (isCruising(*driver) || isParked(*driver) || isJustStated(*driver))
+		if (isCruising(*driver) || isParked(*driver) || isJustStated(*driver) || isDrivingToPark(*driver))
 		{
 			const Node *driverNode = getCurrentNode(*driver);
 			double currDistance = dist(node->getLocation(), driverNode->getLocation());
@@ -1197,8 +1197,19 @@ void OnCallController::assignSchedules(const unordered_map<const Person *, Sched
 		assignSchedule(driver, schedule, isUpdatedSchedule);
 	}
 }
+bool OnCallController::isDrivingToPark(const Person *driver) const
+{
+    const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
+    if (currDriver)
+    {
+        if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::DRIVE_TO_PARKING)
+        {
+            return true;
+        }
+    }
+#ifndef NDEBUG
+    else throw std::runtime_error("Error in getting the MobilityServiceDriver");
+#endif
 
-
-
-
-
+    return false;
+}

@@ -58,8 +58,8 @@ options = parser.parse_args()
 ## LOAD PARKINGINFO STATISTICS FOR EACH vehicle id type
 ##############################
 
-parked = []; isParkedL = lambda l : l[6] == "PARKED";
-exited = []; isExitedL = lambda l : l[6] == "EXIT_PARKING";
+parked = []; isParkedL = lambda l : l[7] == "PARKED";
+exited = []; isExitedL = lambda l : l[7] == "EXIT_PARKING";
 
 with open(options.pfile, 'rt') as file:
     reader = csv.reader(file)

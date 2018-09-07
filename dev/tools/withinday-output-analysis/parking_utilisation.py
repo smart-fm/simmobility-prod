@@ -67,15 +67,15 @@ with open(options.pfile, 'rt') as file:
     for line in reader:
       if isParkedL(line):
         parked.append({
-          "time" : line[2],
-          "parking_id" : line[3],
-          "veh_type_id" : line[4]
+          "time" : line[3],
+          "parking_id" : line[4],
+          "veh_type_id" : line[1]
         })
       elif isExitedL(line):
         exited.append({
-          "time" : line[2],
-          "parking_id": line[3],
-          "veh_type_id" : line[4]
+          "time" : line[3],
+          "parking_id": line[4],
+          "veh_type_id" : line[1]
         })  
            
 # Create Data Frame

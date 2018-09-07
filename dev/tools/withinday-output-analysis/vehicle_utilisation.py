@@ -23,6 +23,7 @@ import csv
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from collections import OrderedDict
 import numpy as np
 import argparse
@@ -77,10 +78,10 @@ res["time"] = requiredlines.keys()
 res.time = pd.DatetimeIndex(pd.to_datetime(res.time, format="%H:%M:%S"))
 res.set_index("time", inplace=True)
 
-res.plot()
+ax = res.plot()
 plt.title('Vehicle Utilisation')
 plt.xlabel('Time')
-plt.xticks([])
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
 plt.ylabel('Number of Drivers')
 plt.savefig("vehicle_utilisation.png")
 

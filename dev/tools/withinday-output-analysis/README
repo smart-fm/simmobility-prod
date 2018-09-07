@@ -18,3 +18,16 @@ Libraries Required
 ===================
 
 pandas, csv, matplotlib, numpy, argparse, psycopg2
+
+===================
+How to Run
+===================
+To run without much specifications, run the python script in the directory where the SimMobility output files are located, usually at dev/Basic by using the following command:
+
+e.g.
+python ../tools/controller-statistics.py --das <the das stored procedure used for simulation>
+
+Alternatively, you can run the python script in the tools directory by specifying the log/csv paths
+
+e.g.
+python ../tools/controller-statistics.py --das <the das stored procedure used for simulation> --clog <path of controller.log>

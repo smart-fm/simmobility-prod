@@ -1,17 +1,20 @@
 """
 usage: controller-statistics.py [-h] [--clog CLOG] [--dbname DBNAME]
-                                [--dbuser DBUSER] [--dbpwd DBPWD] [--das DAS]
-                                [--time T]
+                                [--dbhost DBHOST] [--dbuser DBUSER]
+                                [--dbpwd DBPWD] [--das DAS] [--time T]
 
-Script to plot demand, requests, assignments, pickups and dropoff statistics for AMOD controllers.
+Script to plot demand, requests, assignments, pickups and dropoff statistics
+by time of day.
 
 optional arguments:
   -h, --help       show this help message and exit
   --clog CLOG      Path of controller.log (default: controller.log)
   --dbname DBNAME  Database Name Containing DAS (default: simmobility_l2nic2b)
+  --dbhost DBHOST  Database IP Address (default: 172.25.184.156)
   --dbuser DBUSER  Database Username (default: postgres)
   --dbpwd DBPWD    Database Password (default: d84dmiN)
-  --das DAS        DAS Stored Procedure (default: get_persons_between_2030)
+  --das DAS        DAS Stored Procedure (default:
+                   public.get_persons_between_2030)
   --time T         Start Time (in seconds) (default: 0)
 
 

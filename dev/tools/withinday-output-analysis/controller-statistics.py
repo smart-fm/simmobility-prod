@@ -50,7 +50,7 @@ parser.add_argument("--dbuser",dest="dbuser", type=str, default="postgres",
                   help="Database Username")
 parser.add_argument("--dbpwd",dest="dbpwd", type=str, default="d84dmiN",
                   help="Database Password")
-parser.add_argument("--das",dest="das", type=str, default="get_persons_between_2030",
+parser.add_argument("--das",dest="das", type=str, default="public.get_persons_between_2030",
                   help="DAS Stored Procedure")
 parser.add_argument("--time",dest="t", type=int, default=0,
                   help="Start Time (in seconds)")
@@ -156,7 +156,7 @@ def getDemand(das_stored_proc, stop_modes = ["SMS","Rail_SMS","SMS_Pool","Rail_S
     ############################
     # Execute Query
     ############################        
-    query = "SELECT prev_stop_departure_time, COUNT(*) FROM public." + das_stored_proc + "(0,99) " + \
+    query = "SELECT prev_stop_departure_time, COUNT(*) FROM " + das_stored_proc + "(0,99) " + \
             "WHERE stop_mode IN ('" + "','".join(stop_modes) + "') GROUP BY 1 ORDER BY 1"
     cur.execute(query)
     dbConn.commit()
@@ -177,7 +177,7 @@ res.fillna(0, inplace=True)
 res[["Demand","Requests","Assignments","Pickups","Dropoffs"]].plot()
 plt.title("Controller Statistics")
 plt.xlabel('Time')
-plt.xticks([])
+#ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
 plt.ylabel('Counts')
 plt.savefig("controller-statistics.png")
 

@@ -81,7 +81,7 @@ res.set_index("time", inplace=True)
 ax = res.plot()
 plt.title('Vehicle Utilisation')
 plt.xlabel('Time')
-ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+#ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
 plt.ylabel('Number of Drivers')
 plt.savefig("vehicle_utilisation.png")
 

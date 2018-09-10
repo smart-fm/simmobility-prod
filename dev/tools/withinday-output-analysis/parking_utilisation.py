@@ -31,6 +31,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.markers as mkr
+import matplotlib.dates as mdates
 import psycopg2
 import argparse
 from argparse import ArgumentParser
@@ -85,34 +86,24 @@ def toTable(arr, col_names):
         output=output[col_names]
     return(output)
 
-parked = toTable(parked,['time','veh_type_id'])
-exited = toTable(exited,['time','veh_type_id'])
+parked = toTable(parked,['time','parking_id', 'veh_type_id'])
+exited = toTable(exited,['time','parking_id', 'veh_type_id'])
 veh_type_ids = parked.veh_type_id.unique()
 
 # Group by Time
-def timeResample(df, var_type, cond='5T'):
+def timeResample(df, var_type, g=5):
     df.time = pd.DatetimeIndex(pd.to_datetime(df.time, format="%H:%M:%S"))
-    df.time = pd.DatetimeIndex(df.time)
-    df.set_index('time',inplace=True)
+    df.time = df.time.apply(lambda dt: pd.datetime(dt.year, dt.month, dt.day, dt.hour,g*(dt.minute / g)))
     if var_type not in df:
         df[var_type] = 1
-    return(df.resample(cond, how='sum')[var_type])
+    return(df.groupby(['time', 'parking_id', 'veh_type_id']).sum())
 
-# Get Number of Parkings For Each Vehicle Type ID
-def parkStats(veh_type_id):
+parkedTmp = timeResample(parked, "spotParked")
+exitedTmp = timeResample(exited, "spotExited")
 
-  parkedTmp = timeResample(parked[parked.veh_type_id == veh_type_id], "spotParked")
-  exitedTmp = timeResample(exited[exited.veh_type_id == veh_type_id], "spotExited")
-
-  parkStats = pd.concat([parkedTmp, exitedTmp], axis=1,join='outer')
-  parkStats.fillna(0, inplace=True)
-  parkStats["cumParked"] = np.cumsum(parkStats.spotParked)
-  parkStats["cumExited"] = np.cumsum(parkStats.spotExited)
-  parkStats["Parked"] = parkStats["cumParked"] - parkStats["cumExited"]
-
-  return(parkStats["Parked"])
-
-parkCount = dict((v_id, parkStats(v_id)) for v_id in veh_type_ids)
+# Get Cumulative Parked and Exited to Find out the # of parking spots occupied then
+parked = parkedTmp.merge(exitedTmp, left_index=True, right_index=True, how="outer")
+parked.fillna(0, inplace=True)
 
 ##############################
 ## LOAD PARKING CAPACITIES
@@ -130,39 +121,61 @@ cols = ['parking_id', 'veh_type_id', 'start_time', 'end_time', 'capacity_pcu']
 query = "SELECT " + ", ".join(cols) + " FROM " + options.park + "('00:00:00','23:59:59') "
 cur.execute(query)
 dbConn.commit()
-park_slots = cur.fetchall()
-park_slots = pd.DataFrame(park_slots)
+
+# Create time slots 
+time_slots = parked.groupby(level=[0]).sum()
+time_slots['key'] = 0
+
+# Get Parking ID X Vehicle Type Data Frame
+park_slots = pd.DataFrame(cur.fetchall())
 park_slots.columns = cols
+park_slots.veh_type_id = [ str(v) for v in park_slots.veh_type_id ]
 park_slots.start_time = pd.DatetimeIndex(pd.to_datetime(park_slots.start_time, format="%H:%M:%S"))
 park_slots.end_time = pd.DatetimeIndex(pd.to_datetime(park_slots.end_time, format="%H:%M:%S"))
+park_slots['key'] = 0
+
+# Create Time X Parking ID X Vehicle Type data frame
+slots = time_slots.reset_index().merge(park_slots, on="key")
+slots = slots[(slots.start_time <= slots.time) & (slots.time <= slots.end_time)].groupby(['time','parking_id','veh_type_id']).mean()
+slots = slots['capacity_pcu'].to_frame()
+slots.columns = ['Capacity']
 
 ##############################
-## GET PARK UTILIZATION FOR EACH VEHICLE TYPE ID
+## GET PARK UTILIZATION
 ##############################
 
-# Determine the total capacity for a particular vehicle type at a particular time
-def parkUtilization(veh_type_id):
-  parkCountTmp = parkCount[veh_type_id].to_frame()
-  parkSlotsTmp = park_slots[park_slots.veh_type_id == int(veh_type_id)]
+parkUtil = slots.merge(parked, how='left', left_index=True, right_index=True)
+parkUtil.fillna(0, inplace=True)
 
-  # Build Park Capacities
-  parkCountTmp['key'] = 0
-  parkSlotsTmp['key'] = 0
-  parkCap = parkCountTmp.reset_index().merge(parkSlotsTmp, on="key")
-  parkCap = parkCap[(parkCap.start_time <= parkCap.time) & (parkCap.time <= parkCap.end_time)].groupby('time').sum()
+# Get Occupied Slots
+parkOccupied = parkUtil[['spotParked','spotExited']].groupby(level=[1,2]).cumsum()
+parkOccupied["Occupied"] = parkOccupied['spotParked'] - parkOccupied['spotExited']
 
-  # Calculate Park Utilities
-  parkUtil = pd.concat([parkCountTmp["Parked"], parkCap["capacity_pcu"]], axis=1, join="outer")
-  parkUtil.columns = ["OCCUPIED FOR VEH_TYPE_ID=" + veh_type_id, "CAPACITY FOR VEH_TYPE_ID=" + veh_type_id ]
-  return(parkUtil)
+parkStats = pd.concat([parkUtil['Capacity'], parkOccupied['Occupied']], axis=1, join='outer')
 
-res = pd.concat([parkUtilization(v_id) for v_id in veh_type_ids], axis=1, join="outer")
-res.plot()
+# Generate Statistics of Parking Slots
+parkPct = parkStats.groupby(level=[0,1]).sum()
+parkPct["nSlots"] = 1
+parkPct["pctOccupied"] = (parkPct["Occupied"] > 0)*1
+parkPct["pct25Pct"] = ((parkPct["Occupied"] / parkPct["Capacity"]) >= 0.25) * 1
+parkPct["pct50Pct"] = ((parkPct["Occupied"] / parkPct["Capacity"]) >= 0.5) * 1
+parkPct["pctFull"] = (parkPct["Occupied"] == parkPct["Capacity"])*1
+parkPct = parkPct.groupby(level=[0]).sum()
+for v in ["pctOccupied","pct25Pct","pct50Pct","pctFull"]:
+  parkPct[v] = parkPct[v] / parkPct['nSlots']
+
+# Plot
+res = parkPct[["pctOccupied","pct25Pct","pct50Pct","pctFull"]]
+res.columns = ["Spots with >0 Parked","Spots with 25% Full", "Spots with 50% Full", "Spots with 100% Full"]
+
+ax = res.plot()
 plt.title("Parking Utilization")
 plt.xlabel('Time')
-plt.xticks([])
-plt.ylabel('Parking Slots')
+#ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+plt.ylabel('% of Parking Spots')
+ax.set_yticklabels(['{:,.2%}'.format(x) for x in ax.get_yticks()])
 plt.savefig("parking_utilisation.png")
 
-res.index  = [ pd.to_datetime(i).strftime('%H:%M') for i in res.index.values ]
-res.to_csv("parking_utilisation.csv")
+# Save
+parkPct.index  = [ pd.to_datetime(i).strftime('%H:%M') for i in res.index.values ]
+parkPct.to_csv("parking_utilisation.csv")

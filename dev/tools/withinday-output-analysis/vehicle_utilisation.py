@@ -29,7 +29,13 @@ import numpy as np
 import argparse
 from argparse import ArgumentParser
 
-parser = ArgumentParser(description="Script to plot on-call service statuses throughout the day.",
+class HelpParser(argparse.ArgumentParser):
+    def error(self, message):
+        sys.stderr.write('error: %s\n' % message)
+        self.print_help()
+        sys.exit(2)
+
+parser = HelpParser(description="Script to plot on-call service statuses throughout the day.",
                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("--tfile", dest="tfile", type=str, default="onCall_taxi_trajectory.csv",
                     help="Path of taxi trajectory csv file.")
@@ -77,11 +83,12 @@ res.columns = ["Cruising","Drive to Pickup","Parked","Drive With Passenger","Dri
 res["time"] = requiredlines.keys()
 res.time = pd.DatetimeIndex(pd.to_datetime(res.time, format="%H:%M:%S"))
 res.set_index("time", inplace=True)
+xbreaks = [i for i in res.index if (i.hour % 3 == 0 and i.minute == 0 and i.second == 0)]
 
 ax = res.plot()
 plt.title('Vehicle Utilisation')
 plt.xlabel('Time')
-#ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+plt.xticks(xbreaks, [i.strftime('%H:%M') for i in xbreaks])
 plt.ylabel('Number of Drivers')
 plt.savefig("vehicle_utilisation.png")
 

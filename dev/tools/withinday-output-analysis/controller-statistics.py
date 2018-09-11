@@ -1,22 +1,22 @@
 """
-usage: controller-statistics.py [-h] [--clog CLOG] [--dbname DBNAME]
-                                [--dbhost DBHOST] [--dbuser DBUSER]
-                                [--dbpwd DBPWD] [--das DAS] [--time T]
+usage: parking_utilisation.py [-h] --park PARK [--pfile PFILE]
+                              [--dbname DBNAME] [--dbhost DBHOST]
+                              [--dbuser DBUSER] [--dbpwd DBPWD]
+                              [--veh_type VEHT] [--granular G]
 
-Script to plot demand, requests, assignments, pickups and dropoff statistics
-by time of day.
+Script to plot parking utilisation by time of day.
 
 optional arguments:
   -h, --help       show this help message and exit
-  --clog CLOG      Path of controller.log (default: controller.log)
+  --park PARK      Parking Stored Procedure (default: None)
+  --pfile PFILE    Path of parkingInfo.csv (default: parkingInfo.csv)
   --dbname DBNAME  Database Name Containing DAS (default: simmobility_l2nic2b)
   --dbhost DBHOST  Database IP Address (default: 172.25.184.156)
   --dbuser DBUSER  Database Username (default: postgres)
-  --dbpwd DBPWD    Database Password (default: d84dmiN)
-  --das DAS        DAS Stored Procedure (default:
-                   public.get_persons_between_2030)
-  --time T         Start Time (in seconds) (default: 0)
-
+  --dbpwd DBPWD    Database Password (default: HPCdb@2018)
+  --veh_type VEHT  Vehicle Type Table (default: supply2.vehicle_type)
+  --granular G     Granularity of plot (Points are plotted for every G
+                   minutes.) (default: 5)
 
 Author: Lemuel Kumarga
 Date: 31.08.2018
@@ -33,6 +33,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.markers as mkr
+import matplotlib.dates as mdates
 import re
 import psycopg2
 import argparse
@@ -41,8 +42,16 @@ from argparse import ArgumentParser
 ########################
 ## INPUT PARAMETERS
 ########################
-parser = ArgumentParser(description="Script to plot demand, requests, assignments, pickups and dropoff statistics by time of day.",
+class HelpParser(argparse.ArgumentParser):
+    def error(self, message):
+        sys.stderr.write('error: %s\n' % message)
+        self.print_help()
+        sys.exit(2)
+
+parser = HelpParser(description="Script to plot demand, requests, assignments, pickups and dropoff statistics by time of day.",
                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument("--das",dest="das", type=str, required=True,
+                  help="DAS Stored Procedure")
 parser.add_argument("--clog",dest="clog", type=str, default="controller.log",
                   help="Path of controller.log")
 parser.add_argument("--dbname",dest="dbname", type=str, default="simmobility_l2nic2b",
@@ -51,10 +60,8 @@ parser.add_argument("--dbhost",dest="dbhost",type=str, default="172.25.184.156",
                   help="Database IP Address")
 parser.add_argument("--dbuser",dest="dbuser", type=str, default="postgres",
                   help="Database Username")
-parser.add_argument("--dbpwd",dest="dbpwd", type=str, default="d84dmiN",
+parser.add_argument("--dbpwd",dest="dbpwd", type=str, default="HPCdb@2018",
                   help="Database Password")
-parser.add_argument("--das",dest="das", type=str, default="public.get_persons_between_2030",
-                  help="DAS Stored Procedure")
 parser.add_argument("--time",dest="t", type=int, default=0,
                   help="Start Time (in seconds)")
 options = parser.parse_args()
@@ -176,11 +183,12 @@ def getDemand(das_stored_proc, stop_modes = ["SMS","Rail_SMS","SMS_Pool","Rail_S
 
 res = getTrips(options.clog).merge(getDemand(options.das).to_frame(), left_index=True, right_index=True, how="left")
 res.fillna(0, inplace=True)
+xbreaks = [i for i in res.index if (i.hour % 3 == 0 and i.minute == 0 and i.second == 0)]
 
-res[["Demand","Requests","Assignments","Pickups","Dropoffs"]].plot()
+ax = res[["Demand","Requests","Assignments","Pickups","Dropoffs"]].plot()
 plt.title("Controller Statistics")
 plt.xlabel('Time')
-#ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+plt.xticks(xbreaks, [i.strftime('%H:%M') for i in xbreaks])
 plt.ylabel('Counts')
 plt.savefig("controller-statistics.png")
 

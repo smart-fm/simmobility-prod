@@ -1,20 +1,22 @@
 """
-sage: controller-statistics.py [-h] --das DAS [--clog CLOG] [--dbname DBNAME]
-                                [--dbhost DBHOST] [--dbuser DBUSER]
-                                [--dbpwd DBPWD] [--time T]
+usage: parking_utilisation.py [-h] --park PARK [--pfile PFILE]
+                              [--dbname DBNAME] [--dbhost DBHOST]
+                              [--dbuser DBUSER] [--dbpwd DBPWD]
+                              [--veh_type VEHT] [--granular G]
 
-Script to plot demand, requests, assignments, pickups and dropoff statistics
-by time of day.
+Script to plot parking utilisation by time of day.
 
 optional arguments:
   -h, --help       show this help message and exit
-  --das DAS        DAS Stored Procedure (default: None)
-  --clog CLOG      Path of controller.log (default: controller.log)
+  --park PARK      Parking Stored Procedure (default: None)
+  --pfile PFILE    Path of parkingInfo.csv (default: parkingInfo.csv)
   --dbname DBNAME  Database Name Containing DAS (default: simmobility_l2nic2b)
   --dbhost DBHOST  Database IP Address (default: 172.25.184.156)
   --dbuser DBUSER  Database Username (default: postgres)
   --dbpwd DBPWD    Database Password (default: HPCdb@2018)
-  --time T         Start Time (in seconds) (default: 0)
+  --veh_type VEHT  Vehicle Type Table (default: supply2.vehicle_type)
+  --granular G     Granularity of plot (Points are plotted for every G
+                   minutes.) (default: 5)
 
 Author: Lemuel Kumarga
 Date: 06.09.2018

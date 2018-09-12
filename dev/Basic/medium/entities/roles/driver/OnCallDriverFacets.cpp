@@ -38,6 +38,8 @@ void OnCallDriverMovement::frame_init()
 
 	//Create the vehicle and assign it to the role
 	Vehicle *vehicle = new Vehicle(Vehicle::TAXI, TAXI_LENGTH);
+    onCallDriver->setResource(vehicle);
+    serviceVehicle = onCallDriver->getParent()->getServiceVehicle();
 
 	//Retrieve the starting node of the driver
 	currNode = (*(onCallDriver->getParent()->currTripChainItem))->origin.node;
@@ -60,6 +62,11 @@ void OnCallDriverMovement::frame_init()
                 schedule.push_back(parkingSchedule);
                 onCallDriver->driverSchedule.setSchedule(schedule);
             }
+            else
+            {//In the beginning there is nothing to do, yet we require a path to begin moving.
+                //So cruise to a random node, by creating a default schedule
+                continueCruising(currNode);
+            }
         }
         else
         {//In the beginning there is nothing to do, yet we require a path to begin moving.
@@ -71,8 +78,6 @@ void OnCallDriverMovement::frame_init()
         performScheduleItem();
 
         onCallDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
-        onCallDriver->setResource(vehicle);
-        serviceVehicle = onCallDriver->getParent()->getServiceVehicle();
         controllerIt++;
     }
 }
@@ -727,16 +732,16 @@ void OnCallDriverMovement::parkVehicle(DriverUpdateParams &params)
 		removeFromQueue();
 	}
 
+    auto parent = onCallDriver->getParent();
 	//Finalise the link travel time, as we will not be calling the DriverMovement::frame_tick()
 	//where this normally happens
+    if(parent->currLinkTravelStats.started)
+    {
 	const SegmentStats *currSegStat = pathMover.getCurrSegStats();
 	const Link *currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
 	const Link *nextLink = RoadNetwork::getInstance()->getDownstreamLinks(currLink->getToNodeId()).front();
-	auto parent = onCallDriver->getParent();
 
 	double actualT = params.elapsedSeconds + params.now.ms() / 1000;
-    if(parent->currLinkTravelStats.started)
-    {
         parent->currLinkTravelStats.finalize(currLink, actualT, nextLink);
         TravelTimeManager::getInstance()->addTravelTime(parent->currLinkTravelStats); //in seconds
         currSegStat->getParentConflux()->setLinkTravelTimes(actualT, currLink);

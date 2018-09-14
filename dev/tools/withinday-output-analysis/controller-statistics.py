@@ -1,7 +1,7 @@
 """
 usage: controller-statistics.py [-h] --das DAS [--clog CLOG] [--dbname DBNAME]
                                 [--dbhost DBHOST] [--dbuser DBUSER]
-                                [--dbpwd DBPWD] [--time T]
+                                --dbpwd DBPWD [--time T]
 
 Script to plot demand, requests, assignments, pickups and dropoff statistics
 by time of day.
@@ -58,7 +58,7 @@ parser.add_argument("--dbhost",dest="dbhost",type=str, default="172.25.184.156",
                   help="Database IP Address")
 parser.add_argument("--dbuser",dest="dbuser", type=str, default="postgres",
                   help="Database Username")
-parser.add_argument("--dbpwd",dest="dbpwd", type=str, default="HPCdb@2018",
+parser.add_argument("--dbpwd",dest="dbpwd", type=str, required=True,
                   help="Database Password")
 parser.add_argument("--time",dest="t", type=int, default=0,
                   help="Start Time (in seconds)")

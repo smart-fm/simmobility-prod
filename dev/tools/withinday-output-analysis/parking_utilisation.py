@@ -1,7 +1,7 @@
 """
 usage: parking_utilisation.py [-h] --park PARK [--pfile PFILE]
                               [--dbname DBNAME] [--dbhost DBHOST]
-                              [--dbuser DBUSER] [--dbpwd DBPWD]
+                              [--dbuser DBUSER] --dbpwd DBPWD
                               [--veh_type VEHT] [--granular G]
 
 Script to plot parking utilisation by time of day.
@@ -60,7 +60,7 @@ parser.add_argument("--dbhost",dest="dbhost",type=str, default="172.25.184.156",
                   help="Database IP Address")
 parser.add_argument("--dbuser",dest="dbuser", type=str, default="postgres",
                   help="Database Username")
-parser.add_argument("--dbpwd",dest="dbpwd", type=str, default="HPCdb@2018",
+parser.add_argument("--dbpwd",dest="dbpwd", type=str, required=True,
                   help="Database Password")
 parser.add_argument("--veh_type",dest="veht", type=str, default="supply2.vehicle_type",
                   help="Vehicle Type Table")

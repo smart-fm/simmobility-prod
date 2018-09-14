@@ -150,7 +150,7 @@ def getTrips(logfile, controller_id="AMOD"):
 ##############################
 ## PARSE DEMAND FROM DAS
 ##############################
-def getDemand(das_stored_proc, stop_modes = ["SMS","Rail_SMS","SMS_Pool","Rail_SMS_Pool"]):
+def getDemand(das_stored_proc, stop_modes = ["SMS","Rail_SMS","SMS_Pool","Rail_SMS_Pool","AMOD","AMOD_Pool","Rail_AMOD","Rail_AMOD_Pool"]):
 
     ############################
     # Initialize Database

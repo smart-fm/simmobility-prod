@@ -58,37 +58,43 @@ void FleetController::LoadTaxiFleetFromDB()
 	query << "select * from " << spIt->second << "('" << simParams.simStartTime.getStrRepr().substr(0, 5)
 	      << "','" << (DailyTime(simParams.totalRuntimeMS) + simParams.simStartTime).getStrRepr().substr(0, 5) << "')";
 	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
-
-	for (soci::rowset<soci::row>::const_iterator it = rs.begin();it != rs.end(); ++it)
-	{
-		FleetItem fleetItem;
-		const soci::row& r = (*it);
-		fleetItem.vehicleNo = r.get<std::string>(COLUMN_VEHICLE_NUMBER);
-		fleetItem.driverId = r.get<std::string>(COLUMN_DRIVER_ID);
-		fleetItem.segmentId = r.get<int>(COLUMN_START_SEGMENT_ID);
-		fleetItem.vehicleType = r.get<int>(COLUMN_VEHICLE_TYPE);
-        fleetItem.passengerCapacity = r.get<int>(COLUMN_PASSENGER_CAPACITY);
-        const RoadNetwork* rdnw = RoadNetwork::getInstance();
-        const RoadSegment* roadSegment = rdnw->getById(rdnw->getMapOfIdVsRoadSegments(), fleetItem.segmentId);
-        fleetItem.startNode = roadSegment->getParentLink()->getToNode();
-		if(fleetItem.startNode->getNodeType()==SOURCE_OR_SINK_NODE || fleetItem.startNode->getNodeType()==NETWORK_EXCLUDED_NODE)
-		{
-			continue;
-		}
-		const std::string &startTime = r.get<std::string>(COLUMN_SHIFT_START_TIME);
-		fleetItem.startTime = getSecondFrmTimeString(startTime);
-		int shiftDuration = 3600 * r.get<int>(COLUMN_SHIFT_DURATION);
-		fleetItem.endTime = fleetItem.startTime + shiftDuration;
-		fleetItem.controllerSubscription = r.get<int>(COLUMN_CONTROLLER_SUBSCRIPTIONS);
-        fleetItem.pcu= r.get<int>(COLUMN_PCU);
-        fleetItem.av = r.get<int>(COLUMN_AV);
-		std::map<unsigned int, MobilityServiceControllerConfig>::const_iterator controllerIdIt = ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.find(fleetItem.controllerSubscription);
-		if(controllerIdIt == ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.end())
-		{
-			throw std::runtime_error("Invalid Controller Subscription Id.");
-		}
-		taxiFleet.insert(std::pair<unsigned int,FleetItem>(fleetItem.controllerSubscription,fleetItem));
-	}
+    try {
+        for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it)
+        {
+            FleetItem fleetItem;
+            const soci::row &r = (*it);
+            fleetItem.vehicleNo = r.get<std::string>(COLUMN_VEHICLE_NUMBER);
+            fleetItem.driverId = r.get<std::string>(COLUMN_DRIVER_ID);
+            fleetItem.segmentId = r.get<int>(COLUMN_START_SEGMENT_ID);
+            fleetItem.vehicleType = r.get<int>(COLUMN_VEHICLE_TYPE);
+            fleetItem.passengerCapacity = r.get<int>(COLUMN_PASSENGER_CAPACITY);
+            const RoadNetwork *rdnw = RoadNetwork::getInstance();
+            const RoadSegment *roadSegment = rdnw->getById(rdnw->getMapOfIdVsRoadSegments(), fleetItem.segmentId);
+            fleetItem.startNode = roadSegment->getParentLink()->getToNode();
+            if (fleetItem.startNode->getNodeType() == SOURCE_OR_SINK_NODE ||
+                fleetItem.startNode->getNodeType() == NETWORK_EXCLUDED_NODE) {
+                continue;
+            }
+            const std::string &startTime = r.get<std::string>(COLUMN_SHIFT_START_TIME);
+            fleetItem.startTime = getSecondFrmTimeString(startTime);
+            int shiftDuration = 3600 * r.get<int>(COLUMN_SHIFT_DURATION);
+            fleetItem.endTime = fleetItem.startTime + shiftDuration;
+            fleetItem.controllerSubscription = r.get<int>(COLUMN_CONTROLLER_SUBSCRIPTIONS);
+            fleetItem.pcu = r.get<int>(COLUMN_PCU);
+            fleetItem.av = r.get<int>(COLUMN_AV);
+            std::map<unsigned int, MobilityServiceControllerConfig>::const_iterator controllerIdIt = ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.find(
+                    fleetItem.controllerSubscription);
+            if (controllerIdIt ==
+                ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.end()) {
+                throw std::runtime_error("Invalid Controller Subscription Id.");
+            }
+            taxiFleet.insert(std::pair<unsigned int, FleetItem>(fleetItem.controllerSubscription, fleetItem));
+        }
+    }
+    catch (std::exception& ex)
+    {
+        throw std::runtime_error("Mismatch in the taxi fleet table columns with the one declared in the Taxi Fleet enum table.");
+    }
 }
 
 Entity::UpdateStatus FleetController::frame_init(timeslice now)

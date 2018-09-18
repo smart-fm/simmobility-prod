@@ -28,18 +28,18 @@ studyArea = False
 
 ## Full Network
 table_node = 'supply2.node'
-Storedprocedure_link = 'cy2_get_links()'
-Storedprocedure_turninggroup = 'cy2_get_turning_groups()'
+Storedprocedure_link = 'func_0821.get_links()'
+Storedprocedure_turninggroup = 'func_0821.get_turning_groups()'
 ## Study Area
-Storedprocedure_StudyArea_node = 'get_jurong_nodes()'
-Storedprocedure_StudyArea_link = 'get_jurong_links()'
-Storedprocedure_StudyArea_turninggroup = 'get_jurong_turning_groups()'
+Storedprocedure_StudyArea_node = 'func_0821.get_jurong_nodes()'
+Storedprocedure_StudyArea_link = 'func_0821.get_jurong_links()'
+Storedprocedure_StudyArea_turninggroup = 'func_0821.get_jurong_turning_groups()'
 
 
 def main():
     
     #Define our connection string
-    conn_string = "host='172.25.184.185' dbname='simmobility_l2nic2b' user='postgres' password='temporary'"
+    conn_string = "host='172.25.184.156' dbname='simmobility_l2nic2b' user='postgres' password='password'"
     
     # print the connection string we will use to connect
     print ("Connecting to database\n	->%s" % (conn_string))
@@ -48,7 +48,6 @@ def main():
     conn = psycopg2.connect(conn_string)
     
     if studyArea == False:
-        #input_nodes,input_link,input_turninggroup = loadtable_FullNetowork(conn)
         input_nodes,input_link,input_turninggroup = loadtable_FullNetowork(conn)
     else:
         input_nodes,input_link,input_turninggroup = loadtable_StudyAreaNetowork(conn)
@@ -70,8 +69,9 @@ def main():
         input_nodes.to_csv(newNodefilesname, index = False)
         print('\nNew node file was generated: ',newNodefilesname)
     else:
+        blacklistedNode_df = pd.concat([sinksourceNode,closenodelist]).drop_duplicates().reset_index(drop=True)
         blackListedNode = 'blacklisted_node.csv'
-        closenodelist.to_csv(blackListedNode, index=False, header=True)
+        blacklistedNode_df.to_csv(blackListedNode, index=False, header=True)
         print('\nFile was generated: ',blackListedNode)
     
     conn.close()

@@ -111,7 +111,7 @@ const std::map<unsigned int, ParkingArea *>& RoadNetwork::getMapOfIdVsParkingAre
 	return mapOfIdVsParkingAreas;
 }
 
-const std::map<unsigned int, SMSVehicleParking *>& RoadNetwork::getMapOfIdvsSMSVehicleParking() const
+const std::multimap<std::string, SMSVehicleParking *>& RoadNetwork::getMapOfIdvsSMSVehicleParking() const
 {
 	return mapOfIdVsSMSVehiclesParking;
 }
@@ -696,7 +696,7 @@ void RoadNetwork::addBusStop(BusStop* stop)
 void RoadNetwork::addSMSVehicleParking(SMSVehicleParking *smsVehicleParking)
 {
 	//Check if the parking  has already been added to the map
-	map<unsigned int, SMSVehicleParking *>::iterator itPark = mapOfIdVsSMSVehiclesParking.find(smsVehicleParking->getParkingId());
+    multimap<std::string, SMSVehicleParking *>::iterator itPark = mapOfIdVsSMSVehiclesParking.find(smsVehicleParking->getParkingId());
 
 	if (itPark != mapOfIdVsSMSVehiclesParking.end())
 	{

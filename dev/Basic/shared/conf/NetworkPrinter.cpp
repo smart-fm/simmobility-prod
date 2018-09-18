@@ -317,12 +317,12 @@ void NetworkPrinter::printParkingSlots(const std::map<unsigned int, ParkingSlot 
 	printToFile(out);
 }
 
-void NetworkPrinter::printParkingDetails(const std::map<unsigned int, SMSVehicleParking *> &parkingDetails) const
+void NetworkPrinter::printParkingDetails(const std::multimap<std::string, SMSVehicleParking *> &parkingDetails) const
 {
     std::stringstream out;
     out << std::setprecision(8);
 
-    for(std::map<unsigned int, SMSVehicleParking *>::const_iterator it = parkingDetails.begin(); it != parkingDetails.end(); ++it)
+    for(std::multimap<std::string, SMSVehicleParking *>::const_iterator it = parkingDetails.begin(); it != parkingDetails.end(); ++it)
     {
         const SMSVehicleParking *pkDet = it->second;
         out << "(\"parking_id\" " << pkDet->getParkingId() << ", {";

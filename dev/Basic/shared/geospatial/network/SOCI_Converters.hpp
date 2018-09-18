@@ -292,17 +292,6 @@ template<> struct type_conversion<sim_mob::ParkingSlot>
 	}
 };
 
-template<> struct type_conversion<sim_mob::SMSVehicleParking>
-{
-	typedef values base_type;
-
-	static void from_base(const soci::values &vals, soci::indicator &ind, sim_mob::SMSVehicleParking &res)
-	{
-		res.setParkingId(vals.get<unsigned int>("parking_id", 0));
-		res.setSegmentId(vals.get<unsigned int>("segment_id", 0));
-	}
-};
-
 template<> struct type_conversion<sim_mob::PT_BusDispatchFreq>
 {
     typedef values base_type;

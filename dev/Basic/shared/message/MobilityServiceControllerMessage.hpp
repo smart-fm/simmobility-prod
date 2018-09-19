@@ -16,9 +16,6 @@ namespace sim_mob
 // overhead
 const bool doWeComputeBarycenter = true;
 
-// Forward declaration
-class Schedule;
-
 enum MobilityServiceControllerMessage
 {
 	MSG_DRIVER_SUBSCRIBE = 7100000,
@@ -147,20 +144,6 @@ public:
 	}
 
 	Person *person;
-};
-
-/**
- * Message to inform the controller to update its locally stored schedule
- */
-class SyncScheduleMsg : public messaging::Message
-{
-public:
-	SyncScheduleMsg(Person *p, const Schedule *s) : person(p), schedule(s)
-	{
-	}
-
-	Person *person;
-	const Schedule *schedule;
 };
 
 /**
@@ -360,6 +343,20 @@ public:
 	const timeslice currTick;
 
 private:
+	Schedule schedule;
+};
+
+/**
+ * Message to inform the controller to update its locally stored schedule
+ */
+class SyncScheduleMsg : public messaging::Message
+{
+public:
+	SyncScheduleMsg(Person *p, Schedule s) : person(p), schedule(s)
+	{
+	}
+
+	Person *person;
 	Schedule schedule;
 };
 

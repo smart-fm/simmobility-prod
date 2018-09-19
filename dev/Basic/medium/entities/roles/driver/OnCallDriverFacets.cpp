@@ -15,6 +15,7 @@
 
 using namespace sim_mob;
 using namespace medium;
+using namespace messaging;
 using namespace std;
 
 sim_mob::BasicLogger& onCallTrajectoryLogger  = sim_mob::Logger::log("onCall_taxi_trajectory.csv");
@@ -328,14 +329,43 @@ void OnCallDriverMovement::performScheduleItem()
 		case PICKUP:
 		{
 			//currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
-			//Drive to pick up point
+
+            if (onCallDriver->getPassengersId().find(itScheduleItem->tripRequest.userId) != std::string::npos)
+            {
+                // There is an error in the schedule. The driver is asked to pickup a passenger who is already
+                // present in the vehicle. So we simply mark the current pickup item as completed and
+                // start the next schedule item.
+                onCallDriver->driverSchedule.itemCompleted();
+
+                // Also notify the controller that schedule has been changed.
+                onCallDriver->sendSyncMessage();
+
+                performScheduleItem();
+                return;
+            }
+
+            //Drive to pick up point
 			beginDriveToPickUpPoint(itScheduleItem->tripRequest.startNode);
 			break;
 		}
 		case DROPOFF:
 		{
 			//currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
-			//Drive to drop off point
+
+            if (onCallDriver->getPassengersId().find(itScheduleItem->tripRequest.userId) == std::string::npos)
+            {
+                // There is an error in the schedule. The driver is asked to dropoff a passenger who isn't
+                // present in the vehicle. So we simply mark the current dropoff item as completed and
+                // start the next schedule item.
+                onCallDriver->driverSchedule.itemCompleted();
+
+                // Also notify the controller that schedule has been changed.
+                onCallDriver->sendSyncMessage();
+
+                performScheduleItem();
+                return;
+            }
+            //Drive to drop off point
 			beginDriveToDropOffPoint(itScheduleItem->tripRequest.destinationNode);
 			break;
 		}

@@ -40,7 +40,6 @@ private:
 	* the current item
 	*/
 	bool informController = true;
-	bool syncRequired = false;
 
 protected:
 	/**Pointer to the on call driver's movement facet object*/
@@ -119,8 +118,7 @@ protected:
 		void itemCompleted()
 		{
 			auto item = assignedSchedule.begin();
-			completedNode = item->scheduleItemType == ScheduleItemType::PICKUP ?
-					item->tripRequest.startNode : item->tripRequest.destinationNode;
+			completedNode = item->getNode();
             setPrevSchedule(assignedSchedule);
 			assignedSchedule.erase(item);
 			currentItem = assignedSchedule.begin();
@@ -154,8 +152,13 @@ protected:
 	 * @return if the current item in the schedule has been rescheduled,
 	 * the respective iterator is returned.
 	 */
-	Schedule::iterator currentItemRescheduled(Schedule &updatedSchedule);
+	const bool currentItemRescheduled(Schedule &updatedSchedule);
 
+    /*
+     * Performs the schedule item at the head of the schedule, without
+     * informing the controller. It is completed in the same tick.
+     */
+    void immediatelyPerformItem();
 	/**
 	 * Sends the schedule received acknowledgement message
 	 * @param success indicates whether the schedule can be performed
@@ -171,6 +174,13 @@ protected:
 	 * Sends the driver status update message
 	 */
 	void sendStatusMessage();
+
+    /**
+     * When an error in the schedule is detected, this function sends a
+     * message to the controller, forcing the controller to update its
+     * copy.
+     */
+    void sendSyncMessage();
 
 	/**
 	 * Sends the message, indicating that the shift has ended and it has to wake up. This is
@@ -204,11 +214,23 @@ public:
 
 	/**
 	 * Looks through the current schedule for consecutive items which are served at the same node.
-	 * This method populates the corresponding multimap as well.
+	 * This method populates the multimap setSameNodeItems as well.
 	 * @param updatedSchedule schedule provided by the controller which needs to be checked
+     * @param controller sender of the new schedule
+     * @param isExistingSchedule true if called due to MSG_SCHEDULE_UPDATE message, false if called
+     * due to MSG_SCHEDULE_PROPOSITION
 	 * @return true if the current item needs to be preempted
 	 */
-       const bool removeSameNodeItems(Schedule &updatedSchedule);
+    void setSharedSchedule(Schedule &updatedSchedule, messaging::MessageHandler *controller = nullptr,
+            const bool isExistingSchedule = false);
+
+    /**
+     * Scans the driver's current passengers and checks if the new schedule contains a pickup that
+     * has already been performed.
+     * @param newSchedule the new schedule sent by the controller
+     * @return true if there is a problem in the new schedule
+     */
+    const bool checkForRepeatedPickups(Schedule &newSchedule) const;
 
 	/**
 	 * The current node of the driver is the node which has most recently been crossed by the driver

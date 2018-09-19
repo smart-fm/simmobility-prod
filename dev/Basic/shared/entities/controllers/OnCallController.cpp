@@ -358,7 +358,7 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 	case MSG_SYNC_SCHEDULE:
 	{
 		const SyncScheduleMsg &syncMsgArgs = MSG_CAST(SyncScheduleMsg, message);
-		onDriverSyncSchedule(syncMsgArgs.person, *(syncMsgArgs.schedule));
+		onDriverSyncSchedule(syncMsgArgs.person, syncMsgArgs.schedule);
 		break;
 	}
 	default:

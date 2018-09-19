@@ -65,6 +65,7 @@ public:
 	virtual std::string frame_tick_output();
 	virtual Conflux* getDestinationConflux() const;
 
+    bool ifLoopedNode(unsigned int thisNodeId);
 	/**
 	 *get starting conflux
 	 *@return the starting conflux

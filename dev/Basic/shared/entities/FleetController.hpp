@@ -85,6 +85,8 @@ protected:
 	 */
 	void LoadTaxiFleetFromDB();
 
+    bool ifLoopedNode(unsigned int thisNodeId);
+    const Node* chooseRandomNode();
 	/**
 	 * Inherited from base class agent to initialize parameters for fleet manager
 	 * @return update status

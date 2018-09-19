@@ -38,6 +38,34 @@ double getSecondFrmTimeString(const std::string& startTime)
 	return (double)pt.time_of_day().ticks() / (double)bt::time_duration::rep_type::ticks_per_second;
 }
 
+bool FleetController::ifLoopedNode(unsigned int thisNodeId)
+{
+    auto loopNodesSet = RoadNetwork::getInstance()->getSetOfLoopNodesInNetwork();
+    bool found = false;
+    std::unordered_set<unsigned int>::const_iterator loopNodeItr;
+    loopNodeItr = loopNodesSet.find(thisNodeId);
+    if (loopNodeItr != loopNodesSet.end())
+    {
+        found = true;
+    }
+    return found;
+}
+const Node* FleetController::chooseRandomNode()
+{
+    auto nodeMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
+    auto itRandomNode = nodeMap.begin();
+    advance(itRandomNode, Utils::generateInt(0, nodeMap.size() - 1));
+
+    const Node *result = itRandomNode->second;
+
+    //Ensure chosen node is not a source/sink node
+    if(result->getNodeType() == SOURCE_OR_SINK_NODE || result->getNodeType() == NETWORK_EXCLUDED_NODE || ifLoopedNode(result->getNodeId()))
+    {
+        result = chooseRandomNode();
+    }
+
+    return result;
+}
 void FleetController::LoadTaxiFleetFromDB()
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
@@ -72,8 +100,10 @@ void FleetController::LoadTaxiFleetFromDB()
             const RoadSegment *roadSegment = rdnw->getById(rdnw->getMapOfIdVsRoadSegments(), fleetItem.segmentId);
             fleetItem.startNode = roadSegment->getParentLink()->getToNode();
             if (fleetItem.startNode->getNodeType() == SOURCE_OR_SINK_NODE ||
-                fleetItem.startNode->getNodeType() == NETWORK_EXCLUDED_NODE) {
-                continue;
+                fleetItem.startNode->getNodeType() == NETWORK_EXCLUDED_NODE || ifLoopedNode(fleetItem.startNode->getNodeId()))
+            {
+                Warn()<<"Driver: "<<fleetItem.driverId<<" is started from another random node as is started at the bad node: "<< fleetItem.startNode->getNodeId()<<endl;
+                fleetItem.startNode = chooseRandomNode();
             }
             const std::string &startTime = r.get<std::string>(COLUMN_SHIFT_START_TIME);
             fleetItem.startTime = getSecondFrmTimeString(startTime);

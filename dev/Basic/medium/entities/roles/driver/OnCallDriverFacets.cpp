@@ -46,11 +46,12 @@ void OnCallDriverMovement::frame_init()
 	currNode = (*(onCallDriver->getParent()->currTripChainItem))->origin.node;
 
 	//Register with the controller to which the driver is subscribed
+    if(onCallDriver->subscribedControllers.empty())
     onCallDriver->subscribeToController();
     sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
     const SMSVehicleParking *parking = nullptr;
     auto controllerIt = config.mobilityServiceController.enabledControllers.begin();
-    while(controllerIt != config.mobilityServiceController.enabledControllers.end())
+    while(controllerIt != config.mobilityServiceController.enabledControllers.end() && (*controllerIt).second.type!= SERVICE_CONTROLLER_ON_HAIL)
     {
         if ((*controllerIt).second.parkingEnabled)
         {
@@ -62,6 +63,7 @@ void OnCallDriverMovement::frame_init()
                 const ScheduleItem parkingSchedule(PARK, parking);
                 schedule.push_back(parkingSchedule);
                 onCallDriver->driverSchedule.setSchedule(schedule);
+
             }
             else
             {//In the beginning there is nothing to do, yet we require a path to begin moving.
@@ -77,7 +79,6 @@ void OnCallDriverMovement::frame_init()
 
         //Begin performing schedule.
         performScheduleItem();
-
         onCallDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
         controllerIt++;
     }
@@ -168,7 +169,7 @@ void OnCallDriverMovement::frame_tick()
 std::string OnCallDriverMovement::frame_tick_output()
 {
 	const DriverUpdateParams &params = parentDriver->getParams();
-	if (pathMover.isPathCompleted() ||ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
+	if ((pathMover.isPathCompleted() && onCallDriver->getDriverStatus()!=PARKED) ||ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
 	{
 		return std::string();
 	}
@@ -190,9 +191,20 @@ std::string OnCallDriverMovement::frame_tick_output()
 		//const Link * thisLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
 		const std::string driverId = onCallDriver->getParent()->getDatabaseId();
 		const unsigned int nodeId = currNode->getNodeId();
-		const unsigned int roadSegmentId = (parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId());
-		const Lane *currLane = parentDriver->getParent()->getCurrLane();
-		const unsigned int currLaneId = (currLane ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0);
+		unsigned int roadSegmentId = 0;
+		unsigned int currLaneId = 0;
+        if(onCallDriver->getDriverStatus()!=PARKED)
+        {
+            roadSegmentId = (parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId());
+            const Lane *currLane = parentDriver->getParent()->getCurrLane();
+            currLaneId = (currLane ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0);
+        }
+        else
+        {
+            //Update the value of current node as we return after this method
+            const SMSVehicleParking *parking = onCallDriver->driverSchedule.getCurrScheduleItem()->parking;
+            roadSegmentId = parking->getSegmentId();
+        }
 		const std::string driverStatusStr = onCallDriver->getDriverStatusStr();
 		const string timeStr = (DailyTime(params.now.ms()) + DailyTime(
 				ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
@@ -291,11 +303,11 @@ void OnCallDriverMovement::performScheduleItem()
 			onCallDriver->passengerInteractedDropOff=0;
 			const Node *endOfPathNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
             const RoadNetwork* rdnw = RoadNetwork::getInstance();
-			if(onCallDriver->isDriverControllerStudyAreaEnabled()  && !(const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(endOfPathNode->getNodeId())))
+			if(onCallDriver->isDriverControllerStudyAreaEnabled()  && !(const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(endOfPathNode->getNodeId())) && onCallDriver->getDriverStatus()!=PARKED)
 			{
 				continueCruising(currNode);
 			}
-			else
+			else if(onCallDriver->getDriverStatus()!=PARKED)
 			{
 				continueCruising(endOfPathNode);
 			}
@@ -458,7 +470,7 @@ void OnCallDriverMovement::beginCruising(const Node *node)
 	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
 
 	//Commenting below cruising log as now we have onCallTrajectory to monitor track
-	/*
+/*
 	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
 	                << onCallDriver->getParent()->getDatabaseId() << ": Begin cruising from node "
 	                << currNode->getNodeId()<<currNode->printIfNodeIsInStudyArea()<<" and link " << (currLink ? currLink->getLinkId() : 0)

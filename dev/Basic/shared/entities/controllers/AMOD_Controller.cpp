@@ -307,7 +307,7 @@ Schedule AMOD_Controller::buildSchedule(unsigned int maxAggregatedRequests, cons
 					ScheduleItem newDropoff(DROPOFF, request);
 					scheduleHypothesis2.insert(scheduleHypothesis2.begin() + dropoffIdx, newDropoff);
 					double vehicleTime = evaluateSchedule(driverNode, scheduleHypothesis2, toleratedExtraTime,
-					                                      maxWaitingTime);
+					                                      maxWaitingTime - timeToCompleteCurrentReq);
 					if (vehicleTime > 0)
 					{
 						// I can also insert the drop-off. Perfect, I will make this successful scheduleHypothesis my schedule

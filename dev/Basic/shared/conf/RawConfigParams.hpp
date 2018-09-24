@@ -832,7 +832,13 @@ public:
     ModelScriptsMap luaScriptsMapCostTimePlusOne;
     ModelScriptsMap luaScriptsMapTCZeroCostConstants;
 
-	ModelScriptsMap predayLuaScriptsMap;
+    ModelScriptsMap predayLuaScriptsMap;
+
+    /// key:value (stored procedure name : value string) map
+    std::unordered_map<std::string, std::string> dbStoredProcMap;
+
+    /// key:value (table name : value string) map
+    std::unordered_map<std::string, std::string> dbTableNamesMap;
 
     /// key:value (travel mode id : travel mode string) map
     std::unordered_map<int, TravelModeConfig> travelModeMap;

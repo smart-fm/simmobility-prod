@@ -171,14 +171,25 @@ void sim_mob::PredayLT_LogsumManager::loadCosts()
 	mtDbConnection.connect();
 	if (mtDbConnection.isConnected())
 	{
+		const std::string DEMAND_SCHEMA = ConfigManager::GetInstanceRW().FullConfig().schemas.demand_schema ;
+
+		std::string TABLE_NAME = ConfigManager::GetInstanceRW().FullConfig().dbTableNamesMap["AM_cost_table"];
+		const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, TABLE_NAME);
+		const std::string DB_GET_ALL_AM_COSTS = "SELECT * FROM " + DB_TABLE_AM_COSTS;
 		CostSqlDao amCostDao(mtDbConnection, DB_GET_ALL_AM_COSTS);
 		amCostDao.getAll(amCostMap);
 		Print() << "AM costs loaded " << amCostMap.size() << std::endl;
 
+		TABLE_NAME = ConfigManager::GetInstanceRW().FullConfig().dbTableNamesMap["PM_cost_table"];
+		const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, TABLE_NAME);
+		const std::string DB_GET_ALL_PM_COSTS = "SELECT * FROM " + DB_TABLE_PM_COSTS;
 		CostSqlDao pmCostDao(mtDbConnection, DB_GET_ALL_PM_COSTS);
 		pmCostDao.getAll(pmCostMap);
 		Print() << "PM costs loaded " << pmCostMap.size() << std::endl;
 
+		TABLE_NAME = ConfigManager::GetInstanceRW().FullConfig().dbTableNamesMap["OP_cost_table"];
+		const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, TABLE_NAME);
+		const std::string DB_GET_ALL_OP_COSTS = "SELECT * FROM " + DB_TABLE_PM_COSTS;
 		CostSqlDao opCostDao(mtDbConnection, DB_GET_ALL_OP_COSTS);
 		opCostDao.getAll(opCostMap);
 		Print() << "OP costs loaded " << opCostMap.size() << std::endl;

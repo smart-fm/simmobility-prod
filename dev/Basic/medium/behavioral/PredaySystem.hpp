@@ -347,7 +347,7 @@ public:
 	 */
 
 	void calculateZoneNodeMap(const ZoneNodeMap& zoneNodeMap,int& currStopZone, int& currStopNode);
-
+    
 };
 
 } // end namespace medium

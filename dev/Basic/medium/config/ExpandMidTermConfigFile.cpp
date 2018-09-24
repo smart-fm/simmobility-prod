@@ -114,7 +114,10 @@ void ExpandMidTermConfigFile::processConfig()
         RestrictedRegion::getInstance().populate();
     }
 
-	loadPublicTransitNetworkFromDatabase();
+    if (cfg.isPublicTransitEnabled())
+    {
+        loadPublicTransitNetworkFromDatabase();
+    }
 
     cfg.sealNetwork();
 

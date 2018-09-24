@@ -10,6 +10,8 @@
 #include "database/dao/SqlAbstractDao.hpp"
 #include "database/DB_Connection.hpp"
 #include "behavioral/params/PersonParams.hpp"
+#include "conf/ConfigManager.hpp"
+
 
 namespace sim_mob
 {
@@ -55,6 +57,8 @@ public:
 	void getAddresses();
 
 private:
+
+
 	/**
 	 * Virtual override.
 	 * Fills the given outObj with all values contained on Row.

@@ -219,7 +219,7 @@ int PersonParams::getTAZCodeForAddressId(long addressId) const
 	std::map<long, Address>::const_iterator addressIdIt = addressLookup.find(addressId);
 	if (addressIdIt == addressLookup.end())
 	{
-		throw std::runtime_error("invalid address id");
+		throw std::runtime_error("invalid address id" + std::to_string(addressId));
 	}
 	return addressIdIt->second.getTazCode();
 }

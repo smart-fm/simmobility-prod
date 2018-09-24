@@ -93,10 +93,10 @@ void ParseConfigFile::processXmlFile(XercesDOMParser &parser)
 	try
 	{
 		processConstructsNode(GetSingleElementByName(rootNode, "constructs"));
+		processSchemasParamsNode(GetSingleElementByName(rootNode, "schemas"));
 
 		if (longTerm)
 		{
-			processSchemasParamsNode(GetSingleElementByName(rootNode, "schemas"));
 			processLongTermParamsNode(GetSingleElementByName(rootNode, "longTermParams"));
 			processModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts"));
 			processModelScriptsNodeABA(GetSingleElementByName(rootNode, "model_scripts_ABA"));
@@ -110,8 +110,9 @@ void ParseConfigFile::processXmlFile(XercesDOMParser &parser)
 		processActivityTypesNode(GetSingleElementByName(rootNode, "activity_types", true));
 		processTravelModesNode(GetSingleElementByName(rootNode, "travel_modes", true));
 		processMobilityServiceControllerNode(GetSingleElementByName(rootNode, "mobilityServiceController"));
-
-	}
+		processDBTableNames(GetSingleElementByName(rootNode, "table_names", true));
+		processDBStoredProcNames(GetSingleElementByName(rootNode, "stored_proc_names", true));
+    }
 	catch (runtime_error &ex)
 	{
 		stringstream msg;
@@ -226,14 +227,6 @@ void ParseConfigFile::processConstructCredentialNode(xercesc::DOMElement *node)
 void ParseConfigFile::processSchemasParamsNode(xercesc::DOMElement *node)
 {
 	if (!node)
-	{
-		return;
-	}
-
-	//The schemaParams tag has an attribute
-	cfg.schemas.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
-
-	if (!cfg.schemas.enabled)
 	{
 		return;
 	}
@@ -1124,6 +1117,68 @@ void ParseConfigFile::processModelScriptNodeABAFIles(xercesc::DOMElement *node, 
 		scriptsMap.addScriptFileName(key, val);
 	}
 }
+
+void ParseConfigFile::processDBStoredProcNames(DOMElement *node)
+{
+	if (!node)
+	{
+		return;
+	}
+
+	///Loop through and save child attributes.
+	unsigned int storedProcId = 1;
+	for (DOMElement* mapItem = node->getFirstElementChild(); mapItem; mapItem = mapItem->getNextElementSibling(), ++storedProcId)
+	{
+		if (TranscodeString(mapItem->getNodeName())!="stored_proc")
+		{
+			Warn() <<"Invalid stored proc names child node.\n";
+			continue;
+		}
+
+		std::string name = ParseString(GetNamedAttributeValue(mapItem, "name"), "");
+		std::string value = ParseString(GetNamedAttributeValue(mapItem, "value"), "");
+
+		if (name == "")
+		{
+			Warn() <<"\"stored procedure names name cannot be empty";
+			continue;
+		}
+
+		cfg.dbStoredProcMap[name] = value;
+
+	}
+}
+
+void ParseConfigFile::processDBTableNames(xercesc::DOMElement *node)
+{
+	if (!node)
+	{
+		return;
+	}
+
+	///Loop through and save child attributes.
+	unsigned int tableId = 1;
+	for (DOMElement* mapItem = node->getFirstElementChild(); mapItem; mapItem = mapItem->getNextElementSibling(), ++tableId)
+	{
+		if (TranscodeString(mapItem->getNodeName())!="table")
+		{
+			Warn() <<"Invalid table names child node.\n";
+			continue;
+		}
+
+		std::string name = ParseString(GetNamedAttributeValue(mapItem, "name"), "");
+		std::string value = ParseString(GetNamedAttributeValue(mapItem, "value"), "");
+
+		if (name == "")
+		{
+			Warn() <<"\"table names name cannot be empty";
+			continue;
+		}
+		cfg.dbTableNamesMap[name] = value;
+
+	}
+}
+
 
 void ParseConfigFile::processTravelModesNode(DOMElement *node)
 {

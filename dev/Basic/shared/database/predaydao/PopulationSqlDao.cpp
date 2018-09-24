@@ -20,7 +20,9 @@ typedef long long BigInt;
 }
 
 PopulationSqlDao::PopulationSqlDao(DB_Connection& connection) :
-		SqlAbstractDao<PersonParams>(connection, "", "", "", "", "", DB_GET_PERSON_BY_ID)
+		SqlAbstractDao<PersonParams>(connection, "", "", "", "", "", "SELECT * FROM " +
+		APPLY_SCHEMA(ConfigManager::GetInstanceRW().FullConfig().schemas.main_schema,
+				ConfigManager::GetInstanceRW().FullConfig().dbStoredProcMap["individual_by_id"]))
 {
 }
 
@@ -75,8 +77,13 @@ void PopulationSqlDao::getOneById(long long id, PersonParams& outParam)
 void PopulationSqlDao::getAllIds(std::vector<long>& outList)
 {
 	if (isConnected())
-	{
+    {
+		ConfigParams& fullConfig = ConfigManager::GetInstanceRW().FullConfig();
 		Statement query(connection.getSession<soci::session>());
+		const std::string MAIN_SCHEMA = fullConfig.schemas.main_schema;
+		const std::string TABLE_NAME = fullConfig.dbStoredProcMap["get_individual_id_list"];
+		const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA,TABLE_NAME);
+		const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_IDS;
 		prepareStatement(DB_GET_ALL_PERSON_IDS, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
@@ -94,6 +101,11 @@ void PopulationSqlDao::getAddresses()
 		PersonParams::clearAddressLookup();
 		PersonParams::clearZoneAddresses();
 		Statement query(connection.getSession<soci::session>());
+		ConfigParams& fullConfig = ConfigManager::GetInstanceRW().FullConfig();
+		const std::string MAIN_SCHEMA = fullConfig.schemas.main_schema;
+		const std::string TABLE_NAME = fullConfig.dbStoredProcMap["addresses"];
+		const std::string DB_SP_GET_ADDRESSES = APPLY_SCHEMA(MAIN_SCHEMA, TABLE_NAME);
+		const std::string DB_GET_ADDRESSES = "SELECT * FROM " + DB_SP_GET_ADDRESSES;
 		prepareStatement(DB_GET_ADDRESSES, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
@@ -120,6 +132,11 @@ void PopulationSqlDao::getIncomeCategories(double incomeLowerLimits[])
 	if (isConnected())
 	{
 		Statement query(connection.getSession<soci::session>());
+		ConfigParams& fullConfig = ConfigManager::GetInstanceRW().FullConfig();
+		const std::string MAIN_SCHEMA = fullConfig.schemas.main_schema;
+		const std::string TABLE_NAME = fullConfig.dbTableNamesMap["income_cat"];
+		const std::string DB_TABLE_INCOME_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA,TABLE_NAME );
+		const std::string DB_GET_INCOME_CATEGORIES = "SELECT * FROM " + DB_TABLE_INCOME_CATEGORIES;
 		prepareStatement(DB_GET_INCOME_CATEGORIES, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 
@@ -142,6 +159,11 @@ void PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<6> >& vehi
 	{
 		vehicleCategories.clear();
 		Statement query(connection.getSession<soci::session>());
+		ConfigParams& fullConfig = ConfigManager::GetInstanceRW().FullConfig();
+		const std::string MAIN_SCHEMA = fullConfig.schemas.main_schema;
+		const std::string TABLE_NAME = fullConfig.dbTableNamesMap["vehicle_ownership_status"];
+		const std::string DB_TABLE_VEHICLE_OWNERSHIP_STATUS = APPLY_SCHEMA(MAIN_SCHEMA, TABLE_NAME);
+		const std::string DB_GET_VEHICLE_OWNERSHIP_STATUS = "SELECT * FROM " + DB_TABLE_VEHICLE_OWNERSHIP_STATUS;
 		prepareStatement(DB_GET_VEHICLE_OWNERSHIP_STATUS, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
@@ -257,6 +279,11 @@ void SimmobSqlDao::getPostcodeNodeMap()
 	if (isConnected())
 	{
 		PersonParams::clearPostCodeNodeMap();
+		ConfigParams& fullConfig = ConfigManager::GetInstanceRW().FullConfig();
+		const std::string PUBLIC_SCHEMA = fullConfig.schemas.public_schema;
+		const std::string TABLE_NAME = fullConfig.dbStoredProcMap["postcode_node_map"];
+		const std::string DB_SP_GET_POSTCODE_NODE_MAP = APPLY_SCHEMA(PUBLIC_SCHEMA, TABLE_NAME);
+		const std::string DB_GET_POSTCODE_NODE_MAP = "SELECT * FROM " + DB_SP_GET_POSTCODE_NODE_MAP;
 		Statement query(connection.getSession<soci::session>());
 		prepareStatement(DB_GET_POSTCODE_NODE_MAP, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);

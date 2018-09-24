@@ -78,7 +78,8 @@ bool CostSqlDao::getAll(boost::unordered_map<int, boost::unordered_map<int, Cost
 }
 
 ZoneSqlDao::ZoneSqlDao(DB_Connection& connection) :
-		SqlAbstractDao<ZoneParams>(connection, "", "", "", "", DB_GET_ALL_ZONES, "")
+		SqlAbstractDao<ZoneParams>(connection, "", "", "", "", "SELECT * FROM "+
+		APPLY_SCHEMA(ConfigManager::GetInstanceRW().FullConfig().schemas.demand_schema,ConfigManager::GetInstanceRW().FullConfig().dbTableNamesMap["taz_table"]), "")
 {
 	/*
 	 * Added functionality to create an unordered set with the zones without nodes.
@@ -86,6 +87,11 @@ ZoneSqlDao::ZoneSqlDao(DB_Connection& connection) :
 	if(ZoneWithoutNodeSet.size() == 0)
 	{
 		Statement query(connection.getSession<soci::session>());
+		ConfigParams& fullConfig = ConfigManager::GetInstanceRW().FullConfig();
+		const std::string DEMAND_SCHEMA = fullConfig.schemas.demand_schema;
+		const std::string TABLE_NAME = fullConfig.dbTableNamesMap["taz_without_node_table"];
+		const std::string DB_TABLE_TAZ_WITHOUT_NODE = APPLY_SCHEMA(DEMAND_SCHEMA, TABLE_NAME);
+		const std::string DB_GET_ZONE_WITHOUT_NODE = "SELECT * FROM " + DB_TABLE_TAZ_WITHOUT_NODE;
 		prepareStatement(DB_GET_ZONE_WITHOUT_NODE, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end();++it)
@@ -163,6 +169,11 @@ void ZoneNodeSqlDao::getZoneNodeMap(boost::unordered_map<int, std::vector<ZoneNo
 	if (isConnected())
 	{
 		Statement query(connection.getSession<soci::session>());
+        ConfigParams& fullConfig = ConfigManager::GetInstanceRW().FullConfig();
+        const std::string DEMAND_SCHEMA = fullConfig.schemas.demand_schema;
+		const std::string TABLE_NAME = fullConfig.dbTableNamesMap["node_taz_map_table"];
+		const std::string DB_TABLE_NODE_ZONE_MAP = APPLY_SCHEMA(DEMAND_SCHEMA, TABLE_NAME);
+		const std::string DB_GET_ALL_NODE_ZONE_MAP = "SELECT * FROM " + DB_TABLE_NODE_ZONE_MAP;
 		prepareStatement(DB_GET_ALL_NODE_ZONE_MAP, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		ResultSet::const_iterator it = rs.begin();
@@ -211,15 +222,27 @@ bool sim_mob::TimeDependentTT_SqlDao::getTT_ByOD(TravelTimeMode ttMode, int orig
 	db::Parameter destParam(destZn);
 	params.push_back(destParam);
 	bool returnVal = false;
+	ConfigParams& fullConfig = ConfigManager::GetInstanceRW().FullConfig();
 	switch(ttMode)
 	{
 	case TravelTimeMode::TT_PRIVATE:
 	{
+		const std::string DEMAND_SCHEMA = fullConfig.schemas.demand_schema;
+		const std::string TABLE_NAME = fullConfig.dbTableNamesMap["learned_travel_time_table_car"];
+		const std::string DB_TABLE_TCOST_PVT = APPLY_SCHEMA(DEMAND_SCHEMA, TABLE_NAME);
+		const std::string DB_GET_TCOST_PVT_FOR_OD = "SELECT * FROM " + DB_TABLE_TCOST_PVT +
+                                                    " WHERE " + DB_FIELD_TCOST_ORIGIN + " = :origin"
+                                                            "   AND " + DB_FIELD_TCOST_DESTINATION + " = :dest";
 		returnVal = getByValues(DB_GET_TCOST_PVT_FOR_OD, params, outObj);
 		break;
 	}
 	case TravelTimeMode::TT_PUBLIC:
 	{
+		const std::string DEMAND_SCHEMA = fullConfig.schemas.demand_schema;
+		const std::string TABLE_NAME = fullConfig.dbTableNamesMap["learned_travel_time_table_bus"];
+		const std::string DB_TABLE_TCOST_PT = APPLY_SCHEMA(DEMAND_SCHEMA, TABLE_NAME);
+		const std::string DB_GET_TCOST_PT_FOR_OD = "SELECT * FROM " + DB_TABLE_TCOST_PT + 												   " WHERE " + DB_FIELD_TCOST_ORIGIN + " = :origin"
+														   "   AND " + DB_FIELD_TCOST_DESTINATION + " = :dest";
 		returnVal = getByValues(DB_GET_TCOST_PT_FOR_OD, params, outObj);
 		break;
 	}
@@ -232,15 +255,26 @@ void sim_mob::TimeDependentTT_SqlDao::getUnavailableODs(TravelTimeMode ttMode, s
 	if (isConnected())
 	{
 		Statement query(connection.getSession<soci::session>());
-		switch(ttMode)
+		ConfigParams& fullConfig = ConfigManager::GetInstanceRW().FullConfig();
+        switch(ttMode)
 		{
 		case TravelTimeMode::TT_PRIVATE:
 		{
+			const std::string DEMAND_SCHEMA = fullConfig.schemas.demand_schema;
+			const std::string TABLE_NAME = fullConfig.dbTableNamesMap["learned_travel_time_table_car"];
+			const std::string DB_TABLE_TCOST_PVT = APPLY_SCHEMA(DEMAND_SCHEMA, TABLE_NAME);
+			const std::string DB_GET_PVT_UNAVAILABLE_OD = "SELECT "+ DB_FIELD_TCOST_ORIGIN + ", " +
+						DB_FIELD_TCOST_DESTINATION + " FROM " + DB_TABLE_TCOST_PVT + " WHERE info_unavailable = TRUE";
 			prepareStatement(DB_GET_PVT_UNAVAILABLE_OD, db::EMPTY_PARAMS, query);
 			break;
 		}
 		case TravelTimeMode::TT_PUBLIC:
 		{
+			const std::string DEMAND_SCHEMA = fullConfig.schemas.demand_schema;
+			const std::string TABLE_NAME = fullConfig.dbTableNamesMap["learned_travel_time_table_bus"];
+			const std::string DB_TABLE_TCOST_PT = APPLY_SCHEMA(DEMAND_SCHEMA, TABLE_NAME);
+			const std::string DB_GET_PUB_UNAVAILABLE_OD = "SELECT "+ DB_FIELD_TCOST_ORIGIN + ", " +
+						DB_FIELD_TCOST_DESTINATION + " FROM " + DB_TABLE_TCOST_PT + " WHERE info_unavailable = TRUE";
 			prepareStatement(DB_GET_PUB_UNAVAILABLE_OD, db::EMPTY_PARAMS, query);
 			break;
 		}

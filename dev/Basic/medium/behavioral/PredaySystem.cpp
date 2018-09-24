@@ -1672,12 +1672,9 @@ void sim_mob::medium::PredaySystem::computeLogsums()
 	if(personParams.hasFixedWorkPlace())
 	{
 		TourModeParams tmParams;
-        constructTourModeParams(tmParams, personParams.getFixedWorkLocation(), cfg.getActivityTypeId("Work"));
-        PredayLuaProvider::getPredayModel().computeTourModeLogsumWork(personParams, activityTypeConfigMap, tmParams);
+		constructTourModeParams(tmParams, personParams.getFixedWorkLocation(), cfg.getActivityTypeId("Work"));
+		PredayLuaProvider::getPredayModel().computeTourModeLogsumWork(personParams, activityTypeConfigMap, tmParams);
 	}
-	if(personParams.isStudent())
-    PredayLuaProvider::getPredayModel().initializeLogsums(personParams, activityTypeConfigMap);
-    PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, activityTypeConfigMap, tmdParams, zoneMap.size());
     	// ISABEL
 	if(personParams.isStudent())
 	{

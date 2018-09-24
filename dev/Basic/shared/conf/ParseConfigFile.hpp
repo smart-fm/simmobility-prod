@@ -234,17 +234,31 @@ private:
 	void processTravelModesNode(xercesc::DOMElement* node);
 
 	/**
+	* Processes the stored procedure names element in config xml
+	*
+	* @param node node corresponding to stored procedure names element inside xml file
+	*/
+	void processDBStoredProcNames(xercesc::DOMElement* node);
+
+	/**
+	* Processes the table names element in config xml
+	*
+	* @param node node corresponding to table names element inside xml file
+	*/
+	void processDBTableNames(xercesc::DOMElement* node);
+
+	/**
 	 * Processes the activity types element in config xml
 	 *
 	 * @param node node corresponding to the activity types element inside xml file
 	 */
 	void processActivityTypesNode(xercesc::DOMElement* node);
-    /**
-     * Processes the mobilityServiceController element in config xml
-     *
-     * @param node node corresponding to the mobilityServiceController element inside xml file
-     */
-    void processMobilityServiceControllerNode(xercesc::DOMElement *node);
+        /**
+        * Processes the mobilityServiceController element in config xml
+        *
+        * @param node node corresponding to the mobilityServiceController element inside xml file
+        */
+        void processMobilityServiceControllerNode(xercesc::DOMElement *node);
 
 private:
 	//The config file we are currently loading
@@ -255,5 +269,3 @@ private:
 };
 
 }
-
-

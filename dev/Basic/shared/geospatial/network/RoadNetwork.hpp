@@ -75,7 +75,7 @@ private:
 	std::map<unsigned int, ParkingArea *> mapOfIdVsParkingAreas;
 
 	/**This map stores all the parking information in the network with the  parking id as the key*/
-	std::map<unsigned int, SMSVehicleParking *> mapOfIdVsSMSVehiclesParking;
+	std::multimap<std::string, SMSVehicleParking *> mapOfIdVsSMSVehiclesParking;
 
 	std::map<const Lane*,std::map<const Lane*,const TurningPath *>> turningPathFromLanes;
 
@@ -140,7 +140,7 @@ public:
 
 	const std::map<const Lane*,std::map<const Lane*,const TurningPath *>> &getTurningPathsFromLanes() const;
 
-	const std::map<unsigned int, SMSVehicleParking *>& getMapOfIdvsSMSVehicleParking() const;
+	const std::multimap<std::string, SMSVehicleParking *>& getMapOfIdvsSMSVehicleParking() const;
 
 	const std::vector<const Link *>& getDownstreamLinks(unsigned int fromNodeId) const;
 

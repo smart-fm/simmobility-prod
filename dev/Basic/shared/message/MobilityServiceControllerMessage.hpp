@@ -28,7 +28,8 @@ enum MobilityServiceControllerMessage
 	MSG_TRIP_REQUEST,
 	MSG_SCHEDULE_PROPOSITION,
 	MSG_SCHEDULE_PROPOSITION_REPLY,
-	MSG_SCHEDULE_UPDATE
+	MSG_SCHEDULE_UPDATE,
+	MSG_SYNC_SCHEDULE
 };
 
 /**Enumeration to indicate the type of trip requested by the passenger*/
@@ -236,9 +237,15 @@ struct ScheduleItem
 #endif
 	};
 
+	ScheduleItem()
+	{
+	};
+
 	bool operator<(const ScheduleItem &other) const;
 
 	bool operator==(const ScheduleItem &rhs) const;
+
+	const Node *getNode() const;
 
 	ScheduleItemType scheduleItemType;
 
@@ -306,6 +313,8 @@ public:
 	ScheduleItem &at(size_t n);
 
 	const ScheduleItem &at(size_t n) const;
+
+	const TripRequestMessage *findTrip(const ScheduleItem item);
 	//} EMULATE STANDARD CONTAINER FUNCTIONS
 
 	/**
@@ -334,6 +343,20 @@ public:
 	const timeslice currTick;
 
 private:
+	Schedule schedule;
+};
+
+/**
+ * Message to inform the controller to update its locally stored schedule
+ */
+class SyncScheduleMsg : public messaging::Message
+{
+public:
+	SyncScheduleMsg(Person *p, Schedule s) : person(p), schedule(s)
+	{
+	}
+
+	Person *person;
 	Schedule schedule;
 };
 

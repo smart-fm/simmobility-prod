@@ -24,17 +24,34 @@ OnCallDriver::OnCallDriver(Person_MT *parent) : Driver(parent)
 
 OnCallDriver::~OnCallDriver()
 {
-	//The driver should not be destroyed when it has a passenger. If it is being destroyed, then this
-	//is an error scenario
-#ifndef NDEBUG
+	//Check if this driver have some passenger
 	if(!passengers.empty())
 	{
-		stringstream msg;
-		msg << "OnCallDriver " << parent->getDatabaseId() << " is being destroyed, but it has "
-		    << passengers.size() << " passenger(s).";
-		throw runtime_error(msg.str());
+
+		ControllerLog()<< "OnCallDriver " << parent->getDatabaseId() << " is being destroyed, but it has "
+		<< passengers.size() << " passengers("<<getPassengersId()<<"). So we just removing these passengers before destroying the Driver."<<endl;
+		//We are just making these passengers as Null same as we have done in onHail evictPassenger
+		for(auto itPax : passengers)
+		{
+			itPax.second = nullptr;
 	}
-#endif
+		passengers.clear();
+	}
+
+
+
+	if(this->behaviour->hasDriverShiftEnded())
+	{
+		ControllerLog()<<"Driver "<<parent->getDatabaseId()<<" is being deleted because of shift end"<<endl;
+
+	}
+
+	else
+	{
+		ControllerLog() << "Driver " << parent->getDatabaseId() <<" destructor is called at time "<< parent->currTick <<
+		" is being deleted BUT NO SHIFT END. it is because of some other reason. May be Path Not Found. Please check \"Warn.log\"..." << endl;
+	}
+
 			}
 
 Role<Person_MT>* OnCallDriver::clone(Person_MT *person) const
@@ -64,9 +81,18 @@ void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, con
 	{
 	case MSG_SCHEDULE_PROPOSITION:
 	{
+        const Schedule & prevSheduleBeforeSet= driverSchedule.getSchedule();
+        driverSchedule.setPrevSchedule(prevSheduleBeforeSet);
 		const SchedulePropositionMessage &msg = MSG_CAST(SchedulePropositionMessage, message);
-		driverSchedule.setSchedule(msg.getSchedule());
-
+		Schedule schedule = msg.getSchedule();
+		if (msg.getSchedule().front().tripRequest.requestType == RequestType::TRIP_REQUEST_SHARED)
+		{
+			setSharedSchedule(schedule);
+		}
+        else
+        {
+            driverSchedule.setSchedule(schedule);
+        }
 		//Set the schedule updated to true, so that we perform the schedule item during the
 		//frame tick
 		isScheduleUpdated = true;
@@ -78,31 +104,19 @@ void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, con
 	}
 	case MSG_SCHEDULE_UPDATE:
 	{
+        const Schedule & prevSheduleBeforeSet= driverSchedule.getSchedule();
+        driverSchedule.setPrevSchedule(prevSheduleBeforeSet);
 		const SchedulePropositionMessage &msg = MSG_CAST(SchedulePropositionMessage, message);
-		const Schedule &updatedSchedule = msg.getSchedule();
-        //keep current Schedule item before updating the schedule
-        ScheduleItem itemInProgress = *(driverSchedule.getCurrScheduleItem());
+		Schedule updatedSchedule = msg.getSchedule();
 
+        auto controllerCopyError = checkForRepeatedPickups(updatedSchedule);
+        setSharedSchedule(updatedSchedule, msg.GetSender(), true);
 
-        //As this is an updated schedule, this will be a partial schedule. It contains only items that the controller
-		//knows the driver has not completed. So, we check if the item we are performing currently has been
-		//re-scheduled. If so, we must discontinue it and start performing the new sequence. Else, we continue
-		//whatever we were doing. In either case, we must update the schedule
-		if(currentItemRescheduled(updatedSchedule))
-		{
-			driverSchedule.setSchedule(updatedSchedule);
-            ControllerLog()<<"*****Current Scedule Item  [ "<< itemInProgress << " ] of Driver "<<this->getParent()->getDatabaseId() <<" found in Updated Schedule { " << updatedSchedule
-                           <<" }.So it would be rescheduled mean it will pause and driver will now start to follow new Updated schedule. "<< endl;
+        if (controllerCopyError)
+        {
+            sendSyncMessage();
+        }
 
-
-			//Set the schedule updated to true, so that we perform the schedule item during the
-			//frame tick
-			isScheduleUpdated = true;
-		}
-		else
-		{
-			driverSchedule.updateSchedule(updatedSchedule);
-		}
 		break;
 	}
 	case MSG_UNSUBSCRIBE_SUCCESSFUL:
@@ -133,6 +147,160 @@ void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, con
 	}
 }
 
+void OnCallDriver::setSharedSchedule(Schedule &schedule, MessageHandler *controller, const bool isExistingSchedule)
+{
+	bool preemptCurrentItem = false;
+	auto currItem = driverSchedule.getCurrScheduleItem();
+	auto currNode = currItem->getNode();
+
+    if (isExistingSchedule && currentItemRescheduled(schedule))
+	{
+		preemptCurrentItem = true;
+		currItem = schedule.begin();
+		currNode = currItem->getNode();
+	}
+
+	// Delete all schedule items in the front of the schedule that have the same node as current one
+	for (auto itemIterator = schedule.begin(); itemIterator != schedule.end();)
+	{
+		auto node  = itemIterator->getNode();
+		if (currItem->tripRequest != itemIterator->tripRequest && currNode == node)
+		{
+			sameNodeItems.insert(make_pair(*currItem, *itemIterator));
+#ifndef NDEBUG
+			ControllerLog() << getParent()->getDatabaseId() << " Inserting into sameNodeItems " << *itemIterator
+					<< " Same as current item " << *currItem << endl;
+#endif
+			itemIterator = schedule.erase(itemIterator);
+		}
+		else
+		{
+			break;
+		}
+	}
+
+    // Scan the schedule and delete all consecutive schedule items that share the same node.
+    // Such items can be performed simultaneously, in a single frame tick. So, we need to
+    // keep track of only one of them.
+	auto node1 = schedule.begin()->getNode();
+	for (auto itemIterator = schedule.begin() + 1; itemIterator != schedule.end();)
+	{
+		auto node2 = itemIterator->getNode();
+		if (node1 == node2)
+		{
+			sameNodeItems.insert(make_pair(*(itemIterator - 1), *itemIterator));
+#ifndef NDEBUG
+			ControllerLog() << getParent()->getDatabaseId() << " Inserting into sameNodeItems " << *itemIterator
+					<< "Same as previous item " << *(itemIterator - 1) << endl;
+#endif
+			itemIterator = schedule.erase(itemIterator);
+		}
+		else
+		{
+		       itemIterator++;
+		       node1 = node2;
+		}
+	}
+
+    if (!isExistingSchedule)
+    {
+        driverSchedule.setSchedule(schedule);
+    }
+    else if (preemptCurrentItem)
+    {
+        driverSchedule.setSchedule(schedule);
+        if (driverSchedule.isSameNodeItem(currNode))
+        {
+            // This happens when a schedule item is performed by the driver in some frame tick 't1'.
+            // The controller updates the schedule during the same tick, 't1' and places a new item
+            // at the head of the schedule. Additionally, the new item can be served at the same node
+            // as the schedule item performed by the driver during 't1'. However, the communication
+            // happens 1 frame tick later, causing an inconsistency in the controller and driver copies.
+
+            SyncScheduleMsg *syncMsg = new SyncScheduleMsg(getParent(), schedule);
+            MessageBus::PostMessage(controller, MSG_SYNC_SCHEDULE, MessageBus::MessagePtr(syncMsg));
+        }
+            movement->performScheduleItem();
+    }
+    else
+    {
+        driverSchedule.updateSchedule(schedule);
+    }
+}
+
+const bool OnCallDriver::checkForRepeatedPickups(Schedule &schedule) const
+{
+    bool erased = false;
+    for (auto itemIt = schedule.begin(); itemIt != schedule.end();)
+    {
+        if (itemIt->scheduleItemType == ScheduleItemType::PICKUP &&
+                getPassengersId().find(itemIt->tripRequest.userId) != std::string::npos)
+        {
+            itemIt = schedule.erase(itemIt);
+            erased = true;
+        }
+        else
+        {
+            itemIt++;
+        }
+    }
+
+    return erased;
+}
+
+void OnCallDriver::immediatelyPerformItem()
+{
+    informController = false;
+
+    switch(driverSchedule.getCurrScheduleItem()->scheduleItemType)
+    {
+    case ScheduleItemType::PICKUP:
+    {
+        if (getPassengersId().find(driverSchedule.getCurrScheduleItem()->tripRequest.userId) != std::string::npos)
+        {
+            // There is an error in the schedule. The driver is asked to pickup a passenger who is already
+            // present in the vehicle. So we simply mark the current pickup item as completed and
+            // start the next schedule item.
+            driverSchedule.itemCompleted();
+        }
+        else
+        {
+#ifndef NDEBUG
+        ControllerLog() << "Driver " << getParent()->getDatabaseId() << " can do next item pickup at same location." << std::endl;
+#endif
+            pickupPassenger();
+        }
+
+        break;
+    }
+    case ScheduleItemType::DROPOFF:
+    {
+        if (getPassengersId().find(driverSchedule.getCurrScheduleItem()->tripRequest.userId) == std::string::npos)
+        {
+            // There is an error in the schedule. The driver is asked to dropoff a passenger who isn't
+            // present in the vehicle. So we simply mark the current dropoff item as completed and
+            // start the next schedule item.
+            driverSchedule.itemCompleted();
+        }
+        else
+        {
+#ifndef NDEBUG
+        ControllerLog() << "Driver " << getParent()->getDatabaseId() << " can do next item dropoff at same location." << std::endl;
+#endif
+            dropoffPassenger();
+        }
+        break;
+    }
+    default:
+    {
+        stringstream msg;
+        msg << "Schedule item in sameNodeItems for driver " << getParent()->getDatabaseId()
+                << " is not pickup or dropoff" << std::endl;
+        throw runtime_error(msg.str());
+    }
+    }
+}
+
 const Node* OnCallDriver::getCurrentNode() const
 {
 	return movement->getCurrentNode();
@@ -141,6 +309,34 @@ const Node* OnCallDriver::getCurrentNode() const
 void  OnCallDriver::setCurrentNode(const Node* thisNode)
 {
 	movement->setCurrentNode(thisNode);
+}
+
+const unsigned OnCallDriver::getNumDropoffs(const ScheduleItem item) const
+{
+	unsigned dropoffs = 0;
+	auto itemList = sameNodeItems.equal_range(item);
+	for (auto itemIt = itemList.first; itemIt != itemList.second; itemIt++)
+	{
+		dropoffs += getNumDropoffs(itemIt->second);
+	}
+
+	if (item.scheduleItemType == ScheduleItemType::DROPOFF)
+	{
+		dropoffs++;
+	}
+
+	return dropoffs;
+}
+
+const unsigned OnCallDriver::getNumAssigned() const
+{
+	unsigned numDropoffs = 0;
+	for (auto item : driverSchedule.getSchedule())
+	{
+		numDropoffs += getNumDropoffs(item);
+	}
+
+	return numDropoffs;
 }
 
 const vector<MobilityServiceController *>& OnCallDriver::getSubscribedControllers() const
@@ -196,33 +392,47 @@ void OnCallDriver::scheduleItemCompleted()
 {
 	driverSchedule.itemCompleted();
 
-	if(behaviour->hasDriverShiftEnded() && driverSchedule.isScheduleCompleted())
+	if (informController)
 	{
-		//If the shift has ended, we no longer need to send the status message
-		//and the available message. We simply wait for the shift end confirmation
-		ControllerLog()<< "Driver "<<getParent()->getDatabaseId()<<"served total "<<passengerInteractedDropOff<<" persons from it's last available status till parking ."<<endl;
-		passengerInteractedDropOff=0;
-		return;
+		if(behaviour->hasDriverShiftEnded() && driverSchedule.isScheduleCompleted())
+		{
+			//If the shift has ended, we no longer need to send the status message
+			//and the available message. We simply wait for the shift end confirmation
+			ControllerLog()<< "Driver "<<getParent()->getDatabaseId()<<"served total "<<passengerInteractedDropOff<<" persons from it's last available status."<<endl;
+			passengerInteractedDropOff=0;
+			return;
+		}
+
+		sendStatusMessage();
+
+		if(driverSchedule.isScheduleCompleted())
+		{
+			ControllerLog()<< "Driver "<<getParent()->getDatabaseId()<<"served total "<<passengerInteractedDropOff<<" persons from it's last available status."<<endl;
+			passengerInteractedDropOff=0;
+			sendAvailableMessage();
+		}
 	}
-
-	sendStatusMessage();
-
-	if(driverSchedule.isScheduleCompleted())
+	else
 	{
-		ControllerLog()<< "Driver "<<getParent()->getDatabaseId()<<"served total "<<passengerInteractedDropOff<<" persons from it's last available status till parking ."<<endl;
-		passengerInteractedDropOff=0;
-		sendAvailableMessage();
+		informController = true;
 	}
 }
 
 
-bool OnCallDriver::currentItemRescheduled(const Schedule &updatedSchedule)
+const bool OnCallDriver::currentItemRescheduled(Schedule &updatedSchedule)
 {
-	auto currItem = *(driverSchedule.getCurrScheduleItem());
+	auto currItem = driverSchedule.getCurrScheduleItem();
+	auto schItr = updatedSchedule.begin();
 
-	for(auto schItem : updatedSchedule)
+	// If the current item is the first item in the new schedule as well, continue updating
+	if (*currItem == *schItr)
 	{
-		if(schItem == currItem)
+		updatedSchedule.erase(schItr);
+		return false;
+	}
+	for (++schItr; schItr != updatedSchedule.end(); schItr++)
+	{
+		if(*currItem == *schItr)
 		{
 			return true;
 		}
@@ -267,6 +477,22 @@ void OnCallDriver::sendStatusMessage()
 	}
 }
 
+void OnCallDriver::sendSyncMessage()
+{
+    ControllerLog() << "There is a mismatch between the driver and controller copies of schedule for driver "
+            << getParent()->getDatabaseId() << ". Forcing controller to use driver schedule. "
+            << driverSchedule.getSchedule() << " at time:" << getParent()->currTick << endl;
+
+    Warn() << "Mismatch in schedule for driver " << getParent()->getDatabaseId() << " at time:"
+    << getParent()->currTick << " Please look at the ControllerLog for more information." << endl;
+
+    for(auto ctrlr : subscribedControllers)
+    {
+        SyncScheduleMsg *syncMsg = new SyncScheduleMsg(getParent(), driverSchedule.getSchedule());
+        MessageBus::PostMessage(ctrlr, MSG_SYNC_SCHEDULE, MessageBus::MessagePtr(syncMsg));
+    }
+}
+
 void OnCallDriver::sendWakeUpShiftEndMsg()
 {
 	unsigned int timeToShiftEnd = (parent->getServiceVehicle().endTime * 1000) - parent->currTick.ms();
@@ -299,148 +525,120 @@ void OnCallDriver::pickupPassenger()
 		}
 #endif
 	}
-	//Indicates whether we need to pick up another person at this point
-	bool pickupAnotherPerson = false;
-	do
+	//Get the passenger name from the schedule
+	auto currItem = driverSchedule.getCurrScheduleItem();
+	const string &passengerId = currItem->tripRequest.userId;
+	Person_MT *personPickedUp =NULL;
+	if(conflux)
 	{
-		//Get the passenger name from the schedule
-		auto currItem = driverSchedule.getCurrScheduleItem();
-		const string &passengerId = currItem->tripRequest.userId;
-		Person_MT *personPickedUp =NULL;
-		if(conflux)
-		{
-			personPickedUp = conflux->pickupTraveller(passengerId);
-		}
-		else
-		{
-			Print()<<"Conflux not found. can not pickup Passenger"<<endl;
-		}
+		personPickedUp = conflux->pickupTraveller(passengerId);
+	}
+	else
+	{
+		Print()<<"Conflux not found. can not pickup Passenger"<<endl;
+	}
 #ifndef NDEBUG
-		if (!personPickedUp)
-		{
-			stringstream msg;
-			msg << "Pickup failed for " << passengerId << " at time " << parent->currTick
-			<< ", and driverId " << parent->getDatabaseId() << ". personToPickUp is NULL" << std::endl;
-			throw runtime_error(msg.str());
-		}
+	if (!personPickedUp)
+	{
+		stringstream msg;
+		msg << "Pickup failed for " << passengerId << " at time " << parent->currTick
+		<< ", and driverId " << parent->getDatabaseId() << ". personToPickUp is NULL" << std::endl;
+		throw runtime_error(msg.str());
+	}
 #endif
-		Role<Person_MT> *curRole = personPickedUp->getRole();
-		Passenger *passenger = dynamic_cast<Passenger *>(curRole);
+	Role<Person_MT> *curRole = personPickedUp->getRole();
+	Passenger *passenger = dynamic_cast<Passenger *>(curRole);
 #ifndef NDEBUG
-		if (!passenger)
-		{
-			stringstream msg;
-			msg << "Pickup failed for " << passengerId << " at time " << parent->currTick
-			<< ", and driverId " << parent->getDatabaseId() << ". personToPickUp is not a passenger"
-			<< std::endl;
-			throw runtime_error(msg.str());
-		}
+	if (!passenger)
+	{
+		stringstream msg;
+		msg << "Pickup failed for " << passengerId << " at time " << parent->currTick
+		<< ", and driverId " << parent->getDatabaseId() << ". personToPickUp is not a passenger"
+		<< std::endl;
+		throw runtime_error(msg.str());
+	}
 #endif
-		//Add the passenger
-		passengers[passengerId] = passenger;
-		passenger->setDriver(this);
-		setCurrentNode(conflux->getConfluxNode());
-		passenger->setStartPoint(personPickedUp->currSubTrip->origin);
-		passenger->setStartPointDriverDistance(movement->getTravelMetric().distance);
-		passenger->setEndPoint(personPickedUp->currSubTrip->destination);
-		passenger->Movement()->startTravelTimeMetric();
+	//Add the passenger
+	passengers[passengerId] = passenger;
+	passenger->setDriver(this);
+	setCurrentNode(conflux->getConfluxNode());
+	passenger->setStartPoint(personPickedUp->currSubTrip->origin);
+	passenger->setStartPointDriverDistance(movement->getTravelMetric().distance);
+	passenger->setEndPoint(personPickedUp->currSubTrip->destination);
+	passenger->Movement()->startTravelTimeMetric();
 
-		ControllerLog() << "Pickup succeeded for " << passengerId << " at time " << parent->currTick
-		<< " with startNodeId " << conflux->getConfluxNode()->getNodeId()<<conflux->getConfluxNode()->printIfNodeIsInStudyArea()<<" and  destinationNodeId "
-		<< personPickedUp->currSubTrip->destination.node->getNodeId() <<personPickedUp->currSubTrip->destination.node->printIfNodeIsInStudyArea()<<", and driverId "
-		<< parent->getDatabaseId() << std::endl;
+	ControllerLog() << "Pickup succeeded for " << passengerId << " at time " << parent->currTick
+	<< " with startNodeId " << conflux->getConfluxNode()->getNodeId()<<conflux->getConfluxNode()->printIfNodeIsInStudyArea()<<" and  destinationNodeId "
+	<< personPickedUp->currSubTrip->destination.node->getNodeId() <<personPickedUp->currSubTrip->destination.node->printIfNodeIsInStudyArea()<<", and driverId "
+	<< parent->getDatabaseId() << std::endl;
 
-		//Mark schedule item as completed
-		scheduleItemCompleted();
-		//Check if the next schedule item is also a pickup and at the same node
-		//Note: This can happen when a controller that assigns shared requests is being used
-		//Note: We have marked the previous schedule item as completed, so the current schedule item
-		//iterator has been updated
-		if(!driverSchedule.isScheduleCompleted())
-		{
-			auto nxtItem = driverSchedule.getCurrScheduleItem();
-			pickupAnotherPerson = nxtItem->scheduleItemType == PICKUP
-			&& currItem->tripRequest.startNode == nxtItem->tripRequest.startNode;
-			if (pickupAnotherPerson)
-			{
-				ControllerLog() << "These persons will be picking up from same node :(" << passengerId << " |" <<
-				nxtItem->tripRequest.userId << ") by driver " << parent->getDatabaseId() << " from Node " <<
-				currItem->tripRequest.startNode->getNodeId() << endl;
-			}
-		}
-		else
-		{
-			pickupAnotherPerson =false;
-		}
-	}while(pickupAnotherPerson);
+	auto itemList = sameNodeItems.equal_range(*driverSchedule.getCurrScheduleItem());
+
+	//Mark schedule item as completed
+	scheduleItemCompleted();
+
+	for (auto itemIt = itemList.first; itemIt != itemList.second;)
+	{
+		auto schedule = driverSchedule.getSchedule();
+		schedule.insert(schedule.begin(), itemIt->second);
+		driverSchedule.setSchedule(schedule);
+		itemIt = sameNodeItems.erase(itemIt);
+
+		immediatelyPerformItem();
+	}
 }
+
 void OnCallDriver::dropoffPassenger()
 {
-	//Indicates whether we need to drop off another person at this point
-	bool dropOffAnotherPerson = false;
+	//Get the passenger to be dropped off
+	auto currItem = driverSchedule.getCurrScheduleItem();
+	const string &passengerId = currItem->tripRequest.userId;
+	auto itPassengers = passengers.find(passengerId);
 
-	do
+	#ifndef NDEBUG
+	if (itPassengers == passengers.end())
 	{
-		//Get the passenger to be dropped off
-		auto currItem = driverSchedule.getCurrScheduleItem();
-		const string &passengerId = currItem->tripRequest.userId;
-		auto itPassengers = passengers.find(passengerId);
+		stringstream msg;
+		msg << "Dropoff failed for " << passengerId << " at time " << parent->currTick
+		    << ", and driverId " << parent->getDatabaseId() << ". Passenger not present in vehicle"
+		    << std::endl;
+		throw runtime_error(msg.str());
+	}
+	#endif
 
-#ifndef NDEBUG
-		if (itPassengers == passengers.end())
-		{
-			stringstream msg;
-			msg << "Dropoff failed for " << passengerId << " at time " << parent->currTick
-			    << ", and driverId " << parent->getDatabaseId() << ". Passenger not present in vehicle"
-			    << std::endl;
-			throw runtime_error(msg.str());
-		}
-#endif
+	Passenger *passengerToBeDroppedOff = itPassengers->second;
+	Person_MT *person = passengerToBeDroppedOff->getParent();
 
-		Passenger *passengerToBeDroppedOff = itPassengers->second;
-		Person_MT *person = passengerToBeDroppedOff->getParent();
+	MesoPathMover &pathMover = movement->getMesoPathMover();
+	const SegmentStats *segStats = pathMover.getCurrSegStats();
+	medium::Conflux *conflux = segStats->getParentConflux();
+	passengerToBeDroppedOff->setFinalPointDriverDistance(movement->getTravelMetric().distance);
+	conflux->dropOffTraveller(person);
 
-		MesoPathMover &pathMover = movement->getMesoPathMover();
-		const SegmentStats *segStats = pathMover.getCurrSegStats();
-		medium::Conflux *conflux = segStats->getParentConflux();
-		passengerToBeDroppedOff->setFinalPointDriverDistance(movement->getTravelMetric().distance);
-		conflux->dropOffTraveller(person);
+	//Remove passenger from vehicle
+	passengers.erase(itPassengers);
+	++passengerInteractedDropOff;
+	setCurrentNode(conflux->getConfluxNode());
+	ControllerLog() << "Drop-off of user " << person->getDatabaseId() << " at time "
+	                << parent->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()<<conflux->getConfluxNode()->printIfNodeIsInStudyArea()<<"and driverId " <<
+					getParent()->getDatabaseId() << std::endl;
 
-		//Remove passenger from vehicle
-		passengers.erase(itPassengers);
-		++passengerInteractedDropOff;
-		setCurrentNode(conflux->getConfluxNode());
-		ControllerLog() << "Drop-off of user " << person->getDatabaseId() << " at time "
-		                << parent->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()<<conflux->getConfluxNode()->printIfNodeIsInStudyArea()<<"and driverId " <<
-						getParent()->getDatabaseId() << std::endl;
+	auto itemList = sameNodeItems.equal_range(*driverSchedule.getCurrScheduleItem());
 
-		//Mark schedule item as completed
-		scheduleItemCompleted();
+	//Mark schedule item as completed
+	scheduleItemCompleted();
 
-		//Check if the next schedule item is also a drop-off and at the same node
-		//Note: This can happen when a controller that assigns shared requests is being used
-		if(!driverSchedule.isScheduleCompleted())
-		{
-			//Note: We have marked the previous schedule item as completed, so the current schedule item
-			//iterator has been updated
-			auto nxtItem = driverSchedule.getCurrScheduleItem();
+	for (auto itemIt = itemList.first; itemIt != itemList.second;)
+	{
+		auto schedule = driverSchedule.getSchedule();
+		schedule.insert(schedule.begin(), itemIt->second);
+		driverSchedule.setSchedule(schedule);
+		itemIt = sameNodeItems.erase(itemIt);
 
-			dropOffAnotherPerson = nxtItem->scheduleItemType == DROPOFF
-			                       && currItem->tripRequest.destinationNode == nxtItem->tripRequest.destinationNode;
-            if (dropOffAnotherPerson)
-            {
-                ControllerLog() << "These persons will be dropped off at same node :(" << passengerId << " |" <<
-                                nxtItem->tripRequest.userId << ") by driver " << parent->getDatabaseId() << " to Node " <<
-                                currItem->tripRequest.destinationNode->getNodeId() << endl;
-            }
-        }
-		else
-		{
-			dropOffAnotherPerson = false;
-		}
-
-	}while(dropOffAnotherPerson);
+		immediatelyPerformItem();
+	}
 }
+
 
 void OnCallDriver::endShift()
 {
@@ -494,4 +692,45 @@ std::string OnCallDriver::getPassengersId() const
 void OnCallDriver::collectTravelTime()
 {
 	//Do nothing, as we do not collect travel times for onCall drivers
+}
+
+
+void OnCallDriver::removeDriverEntryFromAllContainer()
+{
+	Person *thisDriver = this->getParent();
+	const vector<MobilityServiceController *> & driverSubscribedToController  = getSubscribedControllers();
+	for(auto it = driverSubscribedToController.begin(); it !=driverSubscribedToController.end(); ++it)
+	{
+		if(getDriverStatus()== MobilityServiceDriverStatus::DRIVE_START )
+		{
+			/* If Person is not yet started  & going to be removed Mean it's call from findStartingConflux is fail & This person will not Loaded to Simulation at all
+			 * Please note  for first tick for any person is generated by findStartingConflux ----> frame_init   NOT from updateAgent --->callMovementFrameInit-->frame_init.
+			 * So for this Driver (for DRIVE_START case) even subscription is filtered.
+			*/
+
+			ControllerLog()<<" Driver "<<thisDriver->getDatabaseId()<<"have not started yet to move (Driver_STATUS = DRIVE_START)." \
+					" And going to be removed for such case Actually driver is not loaded at all and not going to subscribe" \
+					"So No point to Unsubscribe or Kill (delete) driver." << endl;
+
+
+		}
+		else if((*it)->getControllerCopyDriverSchedulesMap().find(thisDriver)== (*it)->getControllerCopyDriverSchedulesMap().end())
+		{
+			ControllerLog()<<" Driver "<<thisDriver->getDatabaseId()<<"have  started  to move (Driver_STATUS = CRUISE)." \
+					" Subscription is sent, But Subscription is not recieved yet. In such case we are removing driver's entry from availableDrivers list before deletion."<<endl;
+
+			(*it)->getAvailableDriverSet().erase(thisDriver);
+		}
+		else
+		{
+			Schedule &thisDriverScheduleControllerCopy = (*it)->getControllerCopyDriverSchedulesMap().at(thisDriver);
+			while (!thisDriverScheduleControllerCopy.empty())
+			{
+				thisDriverScheduleControllerCopy.pop_back();
+
+			}
+			(*it)->unsubscribeDriver(thisDriver);
+		}
+	}
+
 }

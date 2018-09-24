@@ -10,15 +10,39 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
+#include <boost/date_time.hpp>
 
 using namespace sim_mob;
 
 NetworkLoader* NetworkLoader::networkLoader = NULL;
 
+namespace bt = boost::posix_time;
 namespace
 {
 const unsigned int TWIN_STOP_ID_START = 9900000;
-
+enum ParkingTableColumns
+{
+    PARKING_ID = 0,
+    PARKING_TYPE = 1,
+    VEH_TYPE_ID = 2,
+    CAPACITY_PCU = 3 ,
+    NODE_ACCESS = 4,
+    NODE_EGRESS = 5 ,
+    SEGMENT_ID = 6,
+    DIST_SERVICE_ROAD = 7,
+    CAPACITY_SERVICE_ROAD = 8 ,
+    SEGMENT_OFFSET = 9,
+    START_TIME = 10,
+    END_TIME =11
+};
+double getSecondFrmTimeString(const std::string& startTime)
+{
+    std::istringstream is(startTime);
+    is.imbue(std::locale(is.getloc(),new bt::time_input_facet("%H:%M:%S")));
+    bt::ptime pt;
+    is >> pt;
+    return (double)pt.time_of_day().ticks() / (double)bt::time_duration::rep_type::ticks_per_second;
+}
 /**Returns the required stored procedure from the map of stored procedures*/
 string getStoredProcedure(const map<string, string>& storedProcs, const string& procedureName, bool mandatory = true)
 {
@@ -737,13 +761,28 @@ void NetworkLoader::loadSMSVehicleParking(const std::string &storedProc)
     }
 
     //SQL statement
-    soci::rowset<sim_mob::SMSVehicleParking> parking = (sql.prepare << "select * from " + storedProc);
-	std::set<SMSVehicleParking*> allParkingLocations;
+    soci::session sql_(soci::postgresql,config.getDatabaseConnectionString(false));
+    std::stringstream query;
 
-    for (soci::rowset<SMSVehicleParking>::const_iterator itParking = parking.begin(); itParking != parking.end(); ++itParking)
+    const SimulationParams &simParams = ConfigManager::GetInstance().FullConfig().simulation;
+
+    query << "select * from " << storedProc << "('" << simParams.simStartTime.getStrRepr().substr(0, 5)
+          << "','" << (DailyTime(simParams.totalRuntimeMS) + simParams.simStartTime).getStrRepr().substr(0, 5) << "')";
+    soci::rowset<soci::row> rs = (sql_.prepare << query.str());
+
+    std::set<SMSVehicleParking*> allParkingLocations;
+
+    for (soci::rowset<soci::row>::const_iterator itParking = rs.begin(); itParking != rs.end(); ++itParking)
     {
         //Create new parking detail  and add it to the netowrk
-        SMSVehicleParking *smsVehicleParking = new SMSVehicleParking(*itParking);
+        SMSVehicleParking *smsVehicleParking = new SMSVehicleParking();
+        smsVehicleParking->setParkingId((*itParking).get<std::string>(PARKING_ID));
+        smsVehicleParking->setParkingType((*itParking).get<int>(PARKING_TYPE));
+        smsVehicleParking->setVehicleType((*itParking).get<int>(VEH_TYPE_ID));
+        smsVehicleParking->setCapacityPCU((*itParking).get<int>(CAPACITY_PCU));
+        smsVehicleParking->setSegmentId((*itParking).get<unsigned int>(SEGMENT_ID));
+        smsVehicleParking->setStartTime(getSecondFrmTimeString((*itParking).get<std::string>(START_TIME)));
+        smsVehicleParking->setEndTime(getSecondFrmTimeString((*itParking).get<std::string>(END_TIME)));
 
         try
         {

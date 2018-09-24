@@ -83,12 +83,16 @@ void OnCallController::unsubscribeDriver(Person *driver)
 		throw std::runtime_error(msg.str());
 	}
 #endif
-
+	std::map<const Person*, Schedule> ::iterator it = driverSchedules.find(driver);
+	if(it !=  driverSchedules.end())
+	{
 	driverSchedules.erase(driver);
+	}
 
 	availableDrivers.erase(driver);
 	partiallyAvailableDrivers.erase(driver);
     driversServingSharedReq.erase(driver);
+	currentReq.erase(driver);
 
 #ifndef NDEBUG
 	consistencyChecks("unsubscribeDriver: end");
@@ -122,6 +126,7 @@ void OnCallController::driverAvailable(const Person *driver)
 	//Remove from the partially available drivers
 	partiallyAvailableDrivers.erase(driver);
 	driversServingSharedReq.erase(driver);
+	currentReq.erase(driver);
 
 #ifndef NDEBUG
 	consistencyChecks("driverAvailable: end");
@@ -169,17 +174,40 @@ void OnCallController::onDriverScheduleStatus(Person *driver)
 	ControllerLog() << "onDriverScheduleStatus(): driverSchedules.size() = " << driverSchedules.size() << endl;
 #endif
 
-	Schedule &schedule = driverSchedules[driver];
+	if (driver && !driver->sureToBeDeletedPerson)
+	{
+		auto it = driverSchedules.find(driver);
+		if(it!=driverSchedules.end())
+		{
+			Schedule &schedule = driverSchedules.at(driver);
 
 	//aa!!: If schedule is empty, this would be an error, right? Why would a driver update an empty schedule.
 	//			We should rise an appropriate NDEBUG exception here.
-	if (!schedule.empty())
-	{
-		schedule.erase(schedule.begin());
-	}
+			if (!schedule.empty())
+			{
+				auto completedReq = *(schedule.begin());
+				schedule.erase(schedule.begin());
+
+				if (completedReq.tripRequest.requestType == RequestType::TRIP_REQUEST_SHARED)
+				{
+					currentReq[driver] = completedReq;
+				}
+			}
+		}
+
+	} 
 #ifndef NDEBUG
 	ControllerLog() << "onDriverScheduleStatus(): driverSchedules.size() = " << driverSchedules.size() << endl;
 #endif
+}
+
+void OnCallController::onDriverSyncSchedule(Person *driver, Schedule driversCopy)
+{
+	Schedule &controllersCopy = driverSchedules[driver];
+
+	currentReq[driver] = driversCopy.front();
+	driversCopy.erase(driversCopy.begin());
+	controllersCopy = driversCopy;
 }
 
 Entity::UpdateStatus OnCallController::frame_tick(timeslice now)
@@ -245,10 +273,16 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 	case MSG_DRIVER_AVAILABLE:
 	{
 		const DriverAvailableMessage &availableArgs = MSG_CAST(DriverAvailableMessage, message);
+		if(!availableArgs.person->sureToBeDeletedPerson) {
 		driverAvailable(availableArgs.person);
 #ifndef NDEBUG
 		ControllerLog()<<"Driver "<< availableArgs.person->getDatabaseId()<<" is available again"<<std::endl;
 #endif
+		}
+		else
+		{
+			ControllerLog()<<"Driver "<< availableArgs.person->getDatabaseId()<<" is already deleted , So no point to make it available again"<<std::endl;
+		}
 		break;
 	}
 	case MSG_TRIP_REQUEST:
@@ -316,7 +350,15 @@ void OnCallController::HandleMessage(messaging::Message::MessageType type, const
 	case MSG_DRIVER_SCHEDULE_STATUS:
 	{
 		const DriverScheduleStatusMsg &statusMsgArgs = MSG_CAST(DriverScheduleStatusMsg, message);
+		if(!statusMsgArgs.person->sureToBeDeletedPerson) {
 		onDriverScheduleStatus(statusMsgArgs.person);
+		}
+		break;
+	}
+	case MSG_SYNC_SCHEDULE:
+	{
+		const SyncScheduleMsg &syncMsgArgs = MSG_CAST(SyncScheduleMsg, message);
+		onDriverSyncSchedule(syncMsgArgs.person, syncMsgArgs.schedule);
 		break;
 	}
 	default:
@@ -384,7 +426,7 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 		msg << "Assigning a schedule to driver " << driverId
 			<< ". She should be present both in availableDrivers and driverSchedules but is she present in driverSchedules? "
 			<< answer1 << " and is she present in availableDrivers? " << answer2 << "Driver true Schedule: " << driver->exportServiceDriver()->getAssignedSchedule() <<std::endl
-            << " Copy of schedules: "<< driverSchedules[driver];
+            << " Copy of schedules: "<< driverSchedules.at(driver);
 		throw std::runtime_error(msg.str());
 	}
 
@@ -397,20 +439,39 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	unsigned availableDriversBeforeTheRemoval = availableDrivers.size();
 #endif
 
-	// We have just assigned a new schedule to the driver.
-	// We remove the first item of the schedule from the controller's copy, so that the controller
-	// know what part of the schedule is remaining. We do this because we want to prevent the controller
-	// from modifying the scheduleItem that the driver is currently executing. Therefore, we give the 
-	// controller the visibility only of the part of the schedule that the controller can modify, namely the entire
-	// schedule minus the first schedule item
-    Schedule controllersCopy = schedule;
-	controllersCopy.erase(controllersCopy.begin());
+	Schedule controllersCopy = schedule;
+	if (!isUpdatedSchedule)
+	{
+		if (controllersCopy.begin()->tripRequest.requestType == RequestType::TRIP_REQUEST_SHARED &&
+				this->controllerServiceType == MobilityServiceControllerType::SERVICE_CONTROLLER_AMOD)
+		{
+			ScheduleItem driverReq = *(controllersCopy.begin());
+			currentReq.insert(make_pair(driver, driverReq));
 
+			controllersCopy.erase(controllersCopy.begin());
+			checkItemsAhead(driver, controllersCopy, driverReq);
+		}
+		else
+		{
+			// We have just assigned a new schedule to the driver.
+			// We remove the first item of the schedule from the controller's copy, so that the controller
+			// know what part of the schedule is remaining. We do this because we want to prevent the controller
+			// from modifying the scheduleItem that the driver is currently executing. Therefore, we give the 
+			// controller the visibility only of the part of the schedule that the controller can modify, namely the entire
+			// schedule minus the first schedule item
+			controllersCopy.erase(controllersCopy.begin());
+		}
 
-	driverSchedules[driver] = controllersCopy;
-
-	// The driver is not available anymore
-	availableDrivers.erase(driver);
+		driverSchedules[driver] = controllersCopy;
+		// The driver is not available anymore
+		availableDrivers.erase(driver);
+	}
+	else
+	{
+		auto driverReq = currentReq[driver];
+		checkItemsAhead(driver, controllersCopy, driverReq);
+		driverSchedules[driver] = controllersCopy;
+	}
 
 	//If this schedule only caters to 1 person, the add the driver to the list of partially available drivers
 	//Schedule size 3 indicates a schedule for 1 person: pick-up, drop-off and park
@@ -458,6 +519,48 @@ void OnCallController::assignSchedule(const Person *driver, const Schedule &sche
 	ControllerLog() << std::endl;
 }
 
+void OnCallController::checkItemsAhead(const Person *driver, Schedule &schedule, const ScheduleItem nextItem)
+{
+	for (auto itemIterator = schedule.begin(); itemIterator != schedule.end();)
+	{
+		if (itemIterator->tripRequest == nextItem.tripRequest)
+		{
+			break;
+		}
+		if (itemIterator->getNode() == nextItem.getNode())
+		{
+#ifndef NDEBUG
+			ControllerLog() << "Erasing " << *itemIterator << " assigned to driver " << driver->getDatabaseId() << endl;
+#endif
+			itemIterator = schedule.erase(itemIterator);
+		}
+		else
+		{
+			break;
+		}
+	}
+	for (auto itemIterator = schedule.begin() + 1; itemIterator != schedule.end();)
+	{
+		if (itemIterator->tripRequest == (itemIterator - 1)->tripRequest)
+		{
+			itemIterator++;
+			continue;
+		}
+
+		if (itemIterator->getNode() == (itemIterator - 1)->getNode())
+		{
+#ifndef NDEBUG
+			ControllerLog() << "Erasing " << *itemIterator << " assigned to driver " << driver->getDatabaseId() << endl;
+#endif
+			itemIterator = schedule.erase(itemIterator);
+		}
+		else
+		{
+			itemIterator++;
+		}
+	}
+}
+
 bool OnCallController::isCruising(const Person *driver) const
 {
 	const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
@@ -480,7 +583,7 @@ bool OnCallController::isParked(const Person *driver) const
 	const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
 	if (currDriver)
 	{
-		if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::PARKED)
+		if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::PARKED || currDriver->getDriverStatus()== MobilityServiceDriverStatus::DRIVE_TO_PARKING)
 		{
 			return true;
 		}
@@ -492,6 +595,22 @@ bool OnCallController::isParked(const Person *driver) const
 	return false;
 }
 
+bool OnCallController::isJustStated(const Person *driver) const
+{
+	const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
+	if (currDriver)
+	{
+		if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::DRIVE_START)
+		{
+			return true;
+		}
+	}
+#ifndef NDEBUG
+	else throw std::runtime_error("Error in getting the MobilityServiceDriver");
+#endif
+
+	return false;
+}
 const Node *OnCallController::getCurrentNode(const Person *driver) const
 {
 	const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
@@ -527,7 +646,7 @@ const Person *OnCallController::findClosestDriver(const Node *node) const
 			throw std::runtime_error(msg.str());
 		}
 #endif
-		if (isCruising(*driver) || isParked(*driver))
+		if (isCruising(*driver) || isParked(*driver) || isJustStated(*driver) || isDrivingToPark(*driver))
 		{
 			const Node *driverNode = getCurrentNode(*driver);
 			double currDistance = dist(node->getLocation(), driverNode->getLocation());
@@ -891,7 +1010,7 @@ void OnCallController::consistencyChecks(const std::string& label) const
 		const MobilityServiceDriver *mobilityServiceDriver = driver->exportServiceDriver();
 		const MobilityServiceDriverStatus status = driver->exportServiceDriver()->getDriverStatus();
 
-		if (status != CRUISING && status != PARKED)
+		if (status != CRUISING && status != PARKED && status!= DRIVE_TO_PARKING && status!= DRIVE_START)
 		{
 			std::stringstream msg;
 			msg << "Driver " << driver->getDatabaseId() << " is among the available drivers but his status is:"
@@ -1078,8 +1197,19 @@ void OnCallController::assignSchedules(const unordered_map<const Person *, Sched
 		assignSchedule(driver, schedule, isUpdatedSchedule);
 	}
 }
+bool OnCallController::isDrivingToPark(const Person *driver) const
+{
+    const MobilityServiceDriver *currDriver = driver->exportServiceDriver();
+    if (currDriver)
+    {
+        if (currDriver->getDriverStatus() == MobilityServiceDriverStatus::DRIVE_TO_PARKING)
+        {
+            return true;
+        }
+    }
+#ifndef NDEBUG
+    else throw std::runtime_error("Error in getting the MobilityServiceDriver");
+#endif
 
-
-
-
-
+    return false;
+}

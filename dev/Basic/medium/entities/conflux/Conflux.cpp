@@ -1212,6 +1212,11 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	}
 
 	person->currWorkerProvider = nullptr;
+	if (person->getRole()->roleType==Role<Person_MT>::RL_ON_CALL_DRIVER && person->sureToBeDeletedPerson)
+	{
+		// Just Re Register the handler to avoid any mismatch between handler's context and Thread Context.
+		messaging::MessageBus::ReRegisterHandler(person, GetContext());
+	}
 	messaging::MessageBus::UnRegisterHandler(person);
 	person->onWorkerExit();
 	Agent *ag=dynamic_cast<Agent*>(person);
@@ -1222,6 +1227,7 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 		Agent::activeAgents.erase(itr);
 	}
 	activeAgentsLock.unlock();
+	ControllerLog()<<"killagent is called for Person " << person->getDatabaseId()<< " of Role " <<person->getRole()->getRoleName()<<" at time  "<< person->currTick <<" is getting killed & be out of simulation ." << endl;
 	safe_delete_item(person);
 }
 

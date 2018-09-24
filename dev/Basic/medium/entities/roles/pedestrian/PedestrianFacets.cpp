@@ -57,7 +57,18 @@ void PedestrianBehavior::setParentPedestrian(medium::Pedestrian* parentPedestria
 {
 	this->parentPedestrian = parentPedestrian;
 }
-
+bool PedestrianMovement::ifLoopedNode(unsigned int thisNodeId)
+{
+    auto loopNodesSet = RoadNetwork::getInstance()->getSetOfLoopNodesInNetwork();
+    bool found = false;
+    std::unordered_set<unsigned int>::const_iterator loopNodeItr;
+    loopNodeItr = loopNodesSet.find(thisNodeId);
+    if (loopNodeItr != loopNodesSet.end())
+    {
+        found = true;
+    }
+    return found;
+}
 void PedestrianMovement::frame_init()
 {
 	destinationNode = getDestNode();
@@ -80,71 +91,80 @@ void PedestrianMovement::frame_init()
 		Person_MT *person = parentPedestrian->getParent();
 
         TripChainItem *tcItem = *(person->currTripChainItem);
-		if (subTrip.origin.type == WayPoint::NODE && subTrip.destination.type == WayPoint::NODE)
-		{
-			isOnDemandTraveler = true;
-			const Node *taxiStartNode = subTrip.destination.node;
+		if (subTrip.origin.type == WayPoint::NODE && subTrip.destination.type == WayPoint::NODE) {
+            isOnDemandTraveler = true;
+            const Node *taxiStartNode = subTrip.destination.node;
+           if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
+                {
+                    std::vector<SubTrip>::iterator subTripItr = person->currSubTrip;
 
-			if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
-			{
-				std::vector<SubTrip>::iterator subTripItr = person->currSubTrip;
+                    if ((*subTripItr).travelMode == "TravelPedestrian" &&
+                        subTrip.origin.node == subTrip.destination.node) {
+                        std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
+                        const Node *taxiEndNode = (*taxiTripItr).destination.node;
+                                                  //Choose the controller based on the stop mode in das (i.e. SMS/SMS_POOL,AMOD,RAIL_SMS,etc..)
+                            auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
+                            MobilityServiceController *controller = nullptr;
+                            const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
+                            auto enabledCtrlrs = cfg.mobilityServiceController.enabledControllers;
+                            std::map<unsigned int, MobilityServiceControllerConfig>::iterator itr;
 
-				if ((*subTripItr).travelMode == "TravelPedestrian" && subTrip.origin.node == subTrip.destination.node)
-				{
-					std::vector<SubTrip>::iterator taxiTripItr = subTripItr + 1;
-					const Node *taxiEndNode = (*taxiTripItr).destination.node;
+                            for (itr = enabledCtrlrs.begin(); itr != enabledCtrlrs.end(); itr++)
+                            {
+                                std::string currentTripChainMode = boost::to_upper_copy(tcItem->getMode());
+                                if (boost::to_upper_copy(itr->second.tripSupportMode).find(
+                                        currentTripChainMode.insert(0, "|").append("|")) != std::string::npos)
+                                {
+                                    auto itCtrlr = controllers.get<ctrlTripSupportMode>().find(
+                                            itr->second.tripSupportMode);
+                                    controller = *itCtrlr;
+                                    break;
+                                }
+                            }
 
-					//Choose the controller based on the stop mode in das (i.e. SMS/SMS_POOL,AMOD,RAIL_SMS,etc..)
-					auto controllers = MobilityServiceControllerManager::GetInstance()->getControllers();
-					MobilityServiceController *controller = nullptr;
-					const ConfigParams &cfg = ConfigManager::GetInstance().FullConfig();
-					auto enabledCtrlrs = cfg.mobilityServiceController.enabledControllers;
-					std::map<unsigned int, MobilityServiceControllerConfig>:: iterator itr ;
-
-					for (itr = enabledCtrlrs.begin(); itr != enabledCtrlrs.end(); itr++)
-					{
-						std::string currentTripChainMode = boost::to_upper_copy(tcItem->getMode());
-						if (boost::to_upper_copy(itr->second.tripSupportMode).find(currentTripChainMode.insert(0,"|").append("|"))!= std::string::npos)
-						{
-							auto itCtrlr = controllers.get<ctrlTripSupportMode>().find(itr->second.tripSupportMode);
-							controller = *itCtrlr;
-							break;
-						}
-					}
-
-					if (!controller)
-					{
-						std::stringstream msg;
-						msg << "Controller for person travelmode " <<tcItem->getMode()
-						<< " is not present in config file,while the demand (DAS) have this mode";
-						throw std::runtime_error(msg.str());
-					}
+                            if (!controller) {
+                                std::stringstream msg;
+                                msg << "Controller for person travelmode " << tcItem->getMode()
+                                    << " is not present in config file,while the demand (DAS) have this mode";
+                                throw std::runtime_error(msg.str());
+                            }
 
 #ifndef NDEBUG
-					consistencyChecks(controller->getServiceType());
-					controller->consistencyChecks();
+                            consistencyChecks(controller->getServiceType());
+                            controller->consistencyChecks();
 #endif
 
-					//If the the request is a pool request, set type as shared. Else it is a single request
-					RequestType reqType = RequestType::TRIP_REQUEST_SINGLE;
-					if((*tcItem).travelMode.find("Pool") != std::string::npos)
-					{
-						reqType = RequestType::TRIP_REQUEST_SHARED;
-					}
+                            //If the the request is a pool request, set type as shared. Else it is a single request
+                            RequestType reqType = RequestType::TRIP_REQUEST_SINGLE;
+                            if ((*tcItem).travelMode.find("Pool") != std::string::npos)
+                            {
+                                reqType = RequestType::TRIP_REQUEST_SHARED;
+                            }
+                        if(taxiStartNode->getNodeType()!=SOURCE_OR_SINK_NODE && taxiStartNode->getNodeType()!=NETWORK_EXCLUDED_NODE && !ifLoopedNode(taxiStartNode->getNodeId())
+                                && taxiEndNode->getNodeType()!=SOURCE_OR_SINK_NODE && taxiEndNode->getNodeType()!=NETWORK_EXCLUDED_NODE && !ifLoopedNode(taxiEndNode->getNodeId()))
+                        {
+                            TripRequestMessage *request = new TripRequestMessage(person->currTick, person,
+                                                                                 person->getDatabaseId(), taxiStartNode,
+                                                                                 taxiEndNode,
+                                                                                 controller->maxWaitingTime,
+                                                                                 reqType);
 
-					TripRequestMessage *request = new TripRequestMessage(person->currTick, person,
-					                                                     person->getDatabaseId(), taxiStartNode,
-					                                                     taxiEndNode,
-                                                                         controller->maxWaitingTime,
-					                                                     reqType);
+                            MessageBus::PostMessage(controller, MSG_TRIP_REQUEST, MessageBus::MessagePtr(request));
 
-                        MessageBus::PostMessage(controller, MSG_TRIP_REQUEST, MessageBus::MessagePtr(request));
-
-                        ControllerLog() << "Request sent to controller of type " << toString(controller->getServiceType())
-                                        << ": ID : " << controller->getControllerId() << ": " << *request << std::endl;
-				}
-			}
-		}
+                            ControllerLog() << "Request sent to controller of type "
+                                            << toString(controller->getServiceType())
+                                            << ": ID : " << controller->getControllerId() << ": " << *request
+                                            << std::endl;
+                        }
+                        else
+                        {
+                            person->setToBeRemoved();
+                            Warn()<<"Person: "<<person->getDatabaseId()<<" will be removed as it sends request for one of the blacklisted nodes , origin: "<<taxiStartNode->getNodeId()<<" destination: "<<taxiEndNode->getNodeId()<<endl;
+                            return;
+                        }
+                    }
+            }
+        }
 
 		if(!isOnDemandTraveler)
 		{

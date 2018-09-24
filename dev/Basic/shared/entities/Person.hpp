@@ -18,7 +18,6 @@
 #include "util/LangHelpers.hpp"
 #include "util/Profiler.hpp"
 #include "workers/Worker.hpp"
-
 namespace sim_mob
 {
 
@@ -68,7 +67,7 @@ private:
 
 	/**Indicates if the detailed path for the current sub-trip is already planned*/
 	bool nextPathPlanned;
-	
+    unsigned int passengerCapacity = 0;
 	/**
 	 * Ask this person to re-route to the destination with the given set of blacklisted links
 	 * If the Agent cannot complete this new route, it will fall back onto the old route.
@@ -169,6 +168,9 @@ public:
 	 * tmp addition for debugging ~ Harish
 	 */
 	std::string busLine;
+
+	/** variable to keep track if onCallDriver is deleted due to not finding the destination path (either for picup/drop-off or parking location*/
+	bool sureToBeDeletedPerson;
 
 	/**The "src" variable is used to help flag how this person was created.*/
 	explicit Person(const std::string &src, const MutexStrategy &mtxStrat, int id = -1, std::string databaseID = "");
@@ -354,7 +356,14 @@ public:
 	{
 		return useInSimulationTravelTime;
     }
-
+    unsigned int getPassengerCapacity() const
+    {
+        return passengerCapacity;
+    }
+    void setPassengerCapacity(unsigned int capacity)
+    {
+        passengerCapacity = capacity;
+    }
     /**
      * generic interface to export service driver.
      * return empty which is default value.

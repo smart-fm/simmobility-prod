@@ -59,7 +59,6 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
             randomisedTaxiFleet.push_back(lstart->second);
         }
 
-
         if (randomisedTaxiFleet.size() > maxFleetSize) {
             auto rng = std::default_random_engine {};
             std::shuffle(std::begin(randomisedTaxiFleet), std::end(randomisedTaxiFleet), rng);
@@ -81,6 +80,7 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
                 person->setServiceVehicle(taxi);
                 person->setDatabaseId(taxi.driverId);
                 person->setPersonCharacteristics();
+                person->setPassengerCapacity(taxi.passengerCapacity);
 
                 string tripType;
 

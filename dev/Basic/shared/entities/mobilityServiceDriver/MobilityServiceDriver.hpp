@@ -46,6 +46,8 @@ public:
 	 */
 	virtual const Node *getCurrentNode() const = 0;
 
+	virtual const unsigned getNumAssigned() const;
+
 	virtual const MobilityServiceDriverStatus getDriverStatus() const;
 
 	virtual const std::string getDriverStatusStr() const;
@@ -64,6 +66,7 @@ public:
 
 	virtual bool isDriverControllerStudyAreaEnabled();
 
+    virtual sim_mob::VehicleBase::VehicleType getVehicleType() const;
 protected:
 	MobilityServiceDriverStatus driverStatus;
 };

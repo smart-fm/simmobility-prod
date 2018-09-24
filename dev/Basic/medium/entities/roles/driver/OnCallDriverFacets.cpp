@@ -15,6 +15,7 @@
 
 using namespace sim_mob;
 using namespace medium;
+using namespace messaging;
 using namespace std;
 
 sim_mob::BasicLogger& onCallTrajectoryLogger  = sim_mob::Logger::log("onCall_taxi_trajectory.csv");
@@ -38,30 +39,61 @@ void OnCallDriverMovement::frame_init()
 
 	//Create the vehicle and assign it to the role
 	Vehicle *vehicle = new Vehicle(Vehicle::TAXI, TAXI_LENGTH);
-	onCallDriver->setResource(vehicle);
+    onCallDriver->setResource(vehicle);
+    serviceVehicle = onCallDriver->getParent()->getServiceVehicle();
 
 	//Retrieve the starting node of the driver
 	currNode = (*(onCallDriver->getParent()->currTripChainItem))->origin.node;
 
 	//Register with the controller to which the driver is subscribed
-		onCallDriver->subscribeToController();
+    if(onCallDriver->subscribedControllers.empty())
+    onCallDriver->subscribeToController();
+    sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+    const SMSVehicleParking *parking = nullptr;
+    auto controllerIt = config.mobilityServiceController.enabledControllers.begin();
+    while(controllerIt != config.mobilityServiceController.enabledControllers.end() && (*controllerIt).second.type!= SERVICE_CONTROLLER_ON_HAIL)
+    {
+        if ((*controllerIt).second.parkingEnabled)
+        {
+            parking = SMSVehicleParking::smsParkingRTree.searchNearestObject(currNode->getPosX(), currNode->getPosY());
+            Schedule schedule;
+            if (parking)
+            {
+                //Append the parking schedule item to the end
+                const ScheduleItem parkingSchedule(PARK, parking);
+                schedule.push_back(parkingSchedule);
+                onCallDriver->driverSchedule.setSchedule(schedule);
 
-		//In the beginning there is nothing to do, yet we require a path to begin moving.
-		//So cruise to a random node, by creating a default schedule
-		continueCruising(currNode);
+            }
+            else
+            {//In the beginning there is nothing to do, yet we require a path to begin moving.
+                //So cruise to a random node, by creating a default schedule
+                continueCruising(currNode);
+            }
+        }
+        else
+        {//In the beginning there is nothing to do, yet we require a path to begin moving.
+            //So cruise to a random node, by creating a default schedule
+            continueCruising(currNode);
+        }
 
-		//Begin performing schedule.
-		performScheduleItem();
-
-		onCallDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
-	serviceVehicle = onCallDriver->getParent()->getServiceVehicle();
-
-		//Commenting below signal message  as now we are handling shiftend during Parking in other way(checking for shiftend at every time if driver is in parking)
-		//onCallDriver->sendWakeUpShiftEndMsg();
+        //Begin performing schedule.
+        performScheduleItem();
+        onCallDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
+        controllerIt++;
+    }
 }
 
 void OnCallDriverMovement::frame_tick()
 {
+
+	if(onCallDriver->getParent()->sureToBeDeletedPerson)
+	{
+		//If Driver is already set to be removed. Not to do any thing here. Just return
+		return;
+	}
+
+
 	if(onCallDriver->isScheduleUpdated)
 	{
 		performScheduleItem();
@@ -74,6 +106,13 @@ void OnCallDriverMovement::frame_tick()
 	{
 	case CRUISING:
 	{
+
+		if(onCallDriver->getParent()->sureToBeDeletedPerson)
+		{
+			//If Driver is already set to be removed. Not to do any thing here. Just return
+			return;
+		}
+
 		if(pathMover.isEndOfPath())
 		{
 			const Node *endOfPathNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
@@ -130,7 +169,7 @@ void OnCallDriverMovement::frame_tick()
 std::string OnCallDriverMovement::frame_tick_output()
 {
 	const DriverUpdateParams &params = parentDriver->getParams();
-	if (pathMover.isPathCompleted() ||ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
+	if ((pathMover.isPathCompleted() && onCallDriver->getDriverStatus()!=PARKED) ||ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
 	{
 		return std::string();
 	}
@@ -152,9 +191,20 @@ std::string OnCallDriverMovement::frame_tick_output()
 		//const Link * thisLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
 		const std::string driverId = onCallDriver->getParent()->getDatabaseId();
 		const unsigned int nodeId = currNode->getNodeId();
-		const unsigned int roadSegmentId = (parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId());
-		const Lane *currLane = parentDriver->getParent()->getCurrLane();
-		const unsigned int currLaneId = (currLane ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0);
+		unsigned int roadSegmentId = 0;
+		unsigned int currLaneId = 0;
+        if(onCallDriver->getDriverStatus()!=PARKED)
+        {
+            roadSegmentId = (parentDriver->getParent()->getCurrSegStats()->getRoadSegment()->getRoadSegmentId());
+            const Lane *currLane = parentDriver->getParent()->getCurrLane();
+            currLaneId = (currLane ? parentDriver->getParent()->getCurrLane()->getLaneId() : 0);
+        }
+        else
+        {
+            //Update the value of current node as we return after this method
+            const SMSVehicleParking *parking = onCallDriver->driverSchedule.getCurrScheduleItem()->parking;
+            roadSegmentId = parking->getSegmentId();
+        }
 		const std::string driverStatusStr = onCallDriver->getDriverStatusStr();
 		const string timeStr = (DailyTime(params.now.ms()) + DailyTime(
 				ConfigManager::GetInstance().FullConfig().simStartTime())).getStrRepr();
@@ -215,7 +265,7 @@ bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 			//Note: OnCallDriver::pickupPassenger marks the schedule item complete and moves to
 			//the next item
 			onCallDriver->dropoffPassenger();
-			performScheduleItem();
+            performScheduleItem();
 			break;
 		}
 		case DRIVE_TO_PARKING:
@@ -239,6 +289,13 @@ bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 
 void OnCallDriverMovement::performScheduleItem()
 {
+
+	if(onCallDriver->getParent()->sureToBeDeletedPerson)
+	{
+		//If Driver is already set to be removed. Not to do any thing here. Just return
+		return;
+	}
+
 	try
 	{
 		if(onCallDriver->driverSchedule.isScheduleCompleted())
@@ -246,11 +303,11 @@ void OnCallDriverMovement::performScheduleItem()
 			onCallDriver->passengerInteractedDropOff=0;
 			const Node *endOfPathNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
             const RoadNetwork* rdnw = RoadNetwork::getInstance();
-			if(onCallDriver->isDriverControllerStudyAreaEnabled()  && !(const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(endOfPathNode->getNodeId())))
+			if(onCallDriver->isDriverControllerStudyAreaEnabled()  && !(const_cast<RoadNetwork*>(rdnw)->isNodePresentInStudyArea(endOfPathNode->getNodeId())) && onCallDriver->getDriverStatus()!=PARKED)
 			{
 				continueCruising(currNode);
 			}
-			else
+			else if(onCallDriver->getDriverStatus()!=PARKED)
 			{
 				continueCruising(endOfPathNode);
 			}
@@ -259,6 +316,11 @@ void OnCallDriverMovement::performScheduleItem()
 
 		//Get the current schedule item
 		auto itScheduleItem = onCallDriver->driverSchedule.getCurrScheduleItem();
+        auto itPrevScheduleItem = ScheduleItemType ::INVALID;
+        if(!onCallDriver->driverSchedule.getPrevSchedule().getItems().empty())
+        {
+            itPrevScheduleItem = onCallDriver->driverSchedule.getPrevSchedule().getItems().at(0).scheduleItemType;
+        }
 		bool hasShiftEnded = onCallDriver->behaviour->hasDriverShiftEnded();
 
 		switch(itScheduleItem->scheduleItemType)
@@ -278,18 +340,55 @@ void OnCallDriverMovement::performScheduleItem()
 		}
 		case PICKUP:
 		{
-			//Drive to pick up point
+			//currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
+
+            if (onCallDriver->getPassengersId().find(itScheduleItem->tripRequest.userId) != std::string::npos)
+            {
+                // There is an error in the schedule. The driver is asked to pickup a passenger who is already
+                // present in the vehicle. So we simply mark the current pickup item as completed and
+                // start the next schedule item.
+                onCallDriver->driverSchedule.itemCompleted();
+
+                // Also notify the controller that schedule has been changed.
+                onCallDriver->sendSyncMessage();
+
+                performScheduleItem();
+                return;
+            }
+
+            //Drive to pick up point
 			beginDriveToPickUpPoint(itScheduleItem->tripRequest.startNode);
 			break;
 		}
 		case DROPOFF:
 		{
-			//Drive to drop off point
+			//currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
+
+            if (onCallDriver->getPassengersId().find(itScheduleItem->tripRequest.userId) == std::string::npos)
+            {
+                // There is an error in the schedule. The driver is asked to dropoff a passenger who isn't
+                // present in the vehicle. So we simply mark the current dropoff item as completed and
+                // start the next schedule item.
+                onCallDriver->driverSchedule.itemCompleted();
+
+                // Also notify the controller that schedule has been changed.
+                onCallDriver->sendSyncMessage();
+
+                performScheduleItem();
+                return;
+            }
+            //Drive to drop off point
 			beginDriveToDropOffPoint(itScheduleItem->tripRequest.destinationNode);
 			break;
 		}
 		case PARK:
 		{
+			//currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
+            if(itPrevScheduleItem == ScheduleItemType::DROPOFF)
+            {
+                onCallDriver->sendStatusMessage();
+                onCallDriver->sendAvailableMessage();
+            }
 			//Drive to parking node
 			beginDriveToParkingNode(itScheduleItem->parking->getAccessNode());
 
@@ -343,23 +442,27 @@ void OnCallDriverMovement::beginCruising(const Node *node)
 	{
         route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *node);
 	}
+
+
 	//Get shortest path if path is not found in the path-set
 	if(route.empty())
 	{
 			route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *node);
 	}
 
-#ifndef NDEBUG
 	if(route.empty())
 	{
 		stringstream msg;
 		msg << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
 		    << " could not find a path to the cruising node " << node->getNodeId()
-		    << " from the current node " << currNode->getNodeId() << " and link ";
-		msg << (currLink ? currLink->getLinkId() : 0);
+		    << " from the current node " << currNode->getNodeId() << " and link "
+			<< (currLink ? currLink->getLinkId() : 0)<<endl;
+		onCallDriver->getParent()->sureToBeDeletedPerson = true;
+		ControllerLog()<<msg.str()<<". This driver will be deleted.This message is printed at "<<onCallDriver->getParent()->currTick <<endl;
+		onCallDriver->removeDriverEntryFromAllContainer();
+		onCallDriver->getParent()->setToBeRemoved();
 		throw no_path_error(msg.str());
 	}
-#endif
 
 	vector<const SegmentStats *> routeSegStats;
 	pathMover.buildSegStatsPath(route, routeSegStats);
@@ -367,7 +470,7 @@ void OnCallDriverMovement::beginCruising(const Node *node)
 	onCallDriver->setDriverStatus(MobilityServiceDriverStatus::CRUISING);
 
 	//Commenting below cruising log as now we have onCallTrajectory to monitor track
-	/*
+/*
 	ControllerLog() << onCallDriver->getParent()->currTick.ms() << "ms: OnCallDriver "
 	                << onCallDriver->getParent()->getDatabaseId() << ": Begin cruising from node "
 	                << currNode->getNodeId()<<currNode->printIfNodeIsInStudyArea()<<" and link " << (currLink ? currLink->getLinkId() : 0)
@@ -422,14 +525,24 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 	{
 		onCallDriver->setDriverStatus(MobilityServiceDriverStatus::DRIVE_ON_CALL);
 		onCallDriver->sendScheduleAckMessage(true);
-        ControllerLog()<< "Driver will immediately pickup passenger."<<std::endl;
+        ControllerLog()<< "Driver "<<parent->getDatabaseId()<<" will immediately pickup passenger."<<std::endl;
 		onCallDriver->pickupPassenger();
 		performScheduleItem();
 		return;
 	}
 
 	//Get route to the node
-	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+	std::vector<WayPoint> route = {};
+	if(onCallDriver->isDriverControllerStudyAreaEnabled())
+	{
+		bool driverControllerStudyAreaEnabled = true;
+		route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT,driverControllerStudyAreaEnabled);
+
+	}
+	else
+	{
+		route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+	}
 
 	//Get shortest path if path is not found in the path-set
 	if (route.empty())
@@ -444,7 +557,6 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 		}
 	}
 
-#ifndef NDEBUG
 	if(route.empty())
 	{
 		stringstream msg;
@@ -452,9 +564,12 @@ void OnCallDriverMovement::beginDriveToPickUpPoint(const Node *pickupNode)
 		    << " could not find a path to the pickup node " << pickupNode->getNodeId()
 		    << " from the current node " << currNode->getNodeId() << " and link ";
 		msg << (currLink ? currLink->getLinkId() : 0);
+		onCallDriver->getParent()->sureToBeDeletedPerson = true;
+		ControllerLog()<<msg.str()<<". This driver will be deleted.This message is printed at "<<onCallDriver->getParent()->currTick <<endl;
+		onCallDriver->removeDriverEntryFromAllContainer();
+		onCallDriver->getParent()->setToBeRemoved();
 		throw no_path_error(msg.str());
 	}
-#endif
 
 	vector<const SegmentStats *> routeSegStats;
 	pathMover.buildSegStatsPath(route, routeSegStats);
@@ -505,7 +620,17 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 	}
 
 	//Get route to the node
-	auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+	std::vector<WayPoint> route = {};
+	if(onCallDriver->isDriverControllerStudyAreaEnabled())
+	{
+		bool driverControllerStudyAreaEnabled = true;
+		route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT,driverControllerStudyAreaEnabled);
+
+	}
+	else
+	{
+		route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+	}
 
 	//Get shortest path if path is not found in the path-set
 	if (route.empty())
@@ -520,17 +645,19 @@ void OnCallDriverMovement::beginDriveToDropOffPoint(const Node *dropOffNode)
 		}
 	}
 
-#ifndef NDEBUG
 	if(route.empty())
 	{
 		stringstream msg;
 		msg << "Path not found. Driver " << parent->getDatabaseId()
 		    << " could not find a path to the drop off node " << dropOffNode->getNodeId()
-		    << " from the current node " << currNode->getNodeId() << " and link ";
-		msg << (currLink ? currLink->getLinkId() : 0);
+		    << " from the current node " << currNode->getNodeId() << " and link "
+		    << (currLink ? currLink->getLinkId() : 0) << endl;
+		onCallDriver->getParent()->sureToBeDeletedPerson = true;
+		ControllerLog()<<msg.str()<<". This driver will be deleted.This message is printed at "<<onCallDriver->getParent()->currTick <<endl;
+		onCallDriver->removeDriverEntryFromAllContainer();
+		onCallDriver->getParent()->setToBeRemoved();
 		throw no_path_error(msg.str());
 	}
-#endif
 
 	vector<const SegmentStats *> routeSegStats;
 	pathMover.buildSegStatsPath(route, routeSegStats);
@@ -560,36 +687,54 @@ void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
 	//and we'd be crossing into the next link soon.
 	//If the 'toNode' for the link is the parking node, we can simply park the vehicle,
 	//as we're about to move into the next link
-	const Link *currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+	const Link *currLink = nullptr;
 
-	if(currLink->getToNode() != parkingNode)
+	if(currNode != parkingNode)
 	{
 		//Create a sub-trip for the route choice
 		SubTrip subTrip;
 		subTrip.origin = WayPoint(currNode);
 		subTrip.destination = WayPoint(parkingNode);
 		bool useInSimulationTT = onCallDriver->getParent()->usesInSimulationTravelTime();
+        //If the driving path has already been set, we must find path to the node from
+        // the current segment
+        if(pathMover.isDrivingPathSet())
+        {
+            currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+        }
 
 		//Get route to the node
-		auto route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+		std::vector<WayPoint> route = {};
+		if(onCallDriver->isDriverControllerStudyAreaEnabled())
+		{
+			bool driverControllerStudyAreaEnabled = true;
+			route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT,driverControllerStudyAreaEnabled);
+
+		}
+		else
+		{
+			route = PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, false, currLink, useInSimulationTT);
+		}
 
 		//Get shortest path if path is not found in the path-set
 		if (route.empty())
 		{
-			route = StreetDirectory::Instance().SearchShortestDrivingPath<Link, Node>(*currLink, *parkingNode);
+			route = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*currNode, *parkingNode);
 		}
 
-#ifndef NDEBUG
 		if (route.empty())
 		{
 			stringstream msg;
 			msg << "Path not found. Driver " << onCallDriver->getParent()->getDatabaseId()
 			    << " could not find a path to the parking node " << parkingNode->getNodeId()
-			    << " from the current node " << currNode->getNodeId() << " and link ";
-			msg << (currLink ? currLink->getLinkId() : 0);
+			    << " from the current node " << currNode->getNodeId() << " and link "
+				<< (currLink ? currLink->getLinkId() : 0) <<endl;
+			onCallDriver->getParent()->sureToBeDeletedPerson = true;
+			ControllerLog()<<msg.str()<<". This driver will be deleted.This message is printed at "<<onCallDriver->getParent()->currTick <<endl;
+			onCallDriver->removeDriverEntryFromAllContainer();
+			onCallDriver->getParent()->setToBeRemoved();
 			throw no_path_error(msg.str());
 		}
-#endif
 
 		vector<const SegmentStats *> routeSegStats;
 		pathMover.buildSegStatsPath(route, routeSegStats);
@@ -600,6 +745,9 @@ void OnCallDriverMovement::beginDriveToParkingNode(const Node *parkingNode)
 		                << onCallDriver->getParent()->getDatabaseId() << ": Begin driving with " << onCallDriver->getPassengerCount() <<" passenger(s) from node "
 		                << currNode->getNodeId()<<currNode->printIfNodeIsInStudyArea()<<"and link " << (currLink ? currLink->getLinkId() : 0)
 		                << " to parking node " << parkingNode->getNodeId() <<parkingNode->printIfNodeIsInStudyArea()<<endl;
+        //Update the value of current node
+        const Link *currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
+        currNode = currLink->getFromNode();
 	}
 	else
 	{
@@ -626,18 +774,21 @@ void OnCallDriverMovement::parkVehicle(DriverUpdateParams &params)
 		removeFromQueue();
 	}
 
+    auto parent = onCallDriver->getParent();
 	//Finalise the link travel time, as we will not be calling the DriverMovement::frame_tick()
 	//where this normally happens
+    if(parent->currLinkTravelStats.started)
+    {
 	const SegmentStats *currSegStat = pathMover.getCurrSegStats();
 	const Link *currLink = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink();
 	const Link *nextLink = RoadNetwork::getInstance()->getDownstreamLinks(currLink->getToNodeId()).front();
-	auto parent = onCallDriver->getParent();
 
 	double actualT = params.elapsedSeconds + params.now.ms() / 1000;
-	parent->currLinkTravelStats.finalize(currLink, actualT, nextLink);
-	TravelTimeManager::getInstance()->addTravelTime(parent->currLinkTravelStats); //in seconds
-	currSegStat->getParentConflux()->setLinkTravelTimes(actualT, currLink);
-	parent->currLinkTravelStats.reset();
+        parent->currLinkTravelStats.finalize(currLink, actualT, nextLink);
+        TravelTimeManager::getInstance()->addTravelTime(parent->currLinkTravelStats); //in seconds
+        currSegStat->getParentConflux()->setLinkTravelTimes(actualT, currLink);
+        parent->currLinkTravelStats.reset();
+    }
 
 	vehicle->setMoving(false);
 	params.elapsedSeconds = params.secondsInTick;
@@ -653,17 +804,13 @@ void OnCallDriverMovement::parkVehicle(DriverUpdateParams &params)
 	onCallDriver->setToBeRemovedFromParking(false);
 
 	onCallDriver->setDriverStatus(PARKED);
-	onCallDriver->scheduleItemCompleted();
-
-
-
 	//Clear the previous path. We will begin from the node
 	pathMover.eraseFullPath();
 	currLane = nullptr;
 
 	ControllerLog() << parent->currTick.ms() << "ms: OnCallDriver "
 	                << parent->getDatabaseId() << ": Parked at node "
-	                << currNode->getNodeId() << endl;
+	                << endl;
 }
 
 void OnCallDriverMovement::resetDriverLaneAndSegment()

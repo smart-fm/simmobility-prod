@@ -161,7 +161,27 @@ public:
 	 */
 	virtual bool isCruising(const Person* driver) const;
 	virtual bool isParked(const Person *driver) const;
+	virtual bool isJustStated(const Person *driver) const;
 	virtual const Node* getCurrentNode(const Person* driver) const;
+    virtual bool isDrivingToPark(const Person *driver) const;
+
+
+    /**
+	 * Unsubscribes a vehicle driver from the controller
+	 * @param person Driver to be removed
+	 */
+	virtual void unsubscribeDriver(Person* person);
+
+	virtual std::map<const Person*, Schedule> & getControllerCopyDriverSchedulesMap()
+	{
+		return 	driverSchedules;
+	}
+
+	virtual std::set<const Person *> getAvailableDriverSet()
+	{
+		return 	availableDrivers;
+
+	}
 
 protected:
 	/** Store list of available drivers */
@@ -174,6 +194,9 @@ protected:
 	 * so they can potentially serve 1 more request (used by incremental controller)*/
 	std::set<const Person *> partiallyAvailableDrivers;
     std::set<const Person *> driversServingSharedReq;
+
+	/** Item being performed by each shared driver */
+	std::map<const Person *, ScheduleItem> currentReq;
 
 	/** Keeps track of current local tick */
 	unsigned int localTick = 0;
@@ -237,6 +260,15 @@ protected:
 	virtual void assignSchedule(const Person* driver, const Schedule& schedule, bool isUpdatedSchedule = false);
 
 	/**
+	 * Looks at the beginning of the schedules and deletes all items that are performed at the same
+	 * node as the current item.
+	 * @param driver Driver who needs to be sent the schedule
+	 * @param schedule The schedule that is scanned to remove items
+	 * @param currItem Current item in schedule
+	 */
+	void checkItemsAhead(const Person* driver, Schedule& schedule, const ScheduleItem currItem);
+
+	/**
 	 * Performs the controller algorithm to assign vehicles to requests
 	 */
 	virtual void computeSchedules() = 0;
@@ -283,12 +315,6 @@ protected:
 	virtual void subscribeDriver(Person* person);
 
 	/**
-	 * Unsubscribes a vehicle driver from the controller
-	 * @param person Driver to be removed
-	 */
-	virtual void unsubscribeDriver(Person* person);
-
-	/**
 	 * Makes a vehicle driver available to the controller
 	 * @param person Driver to be added
 	 */
@@ -306,6 +332,14 @@ protected:
 	 * @param person the driver
 	 */
 	virtual void onDriverScheduleStatus(Person *driver);
+
+	/**
+	 * Updates the controller's copy to match the driver's copy.
+	 * @param person driver who has sent the sync msg
+	 * @param schedule schedule of the respective driver, which needs to
+	 * be stored on controller's side as well
+	 */
+	virtual void onDriverSyncSchedule(Person *person, Schedule schedule);
 
 	void assignSchedules(const std::unordered_map<const Person*, Schedule>& schedulesToAssign,
 				bool isUpdatedSchedule = false);

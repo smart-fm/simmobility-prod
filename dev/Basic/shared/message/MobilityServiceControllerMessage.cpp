@@ -129,6 +129,13 @@ bool ScheduleItem::operator==(const ScheduleItem &rhs) const
 	return result;
 }
 
+const Node *ScheduleItem::getNode() const
+{
+	return scheduleItemType == ScheduleItemType::PICKUP
+			? tripRequest.startNode
+			: tripRequest.destinationNode;
+}
+
 //{ SCHEDULE FUNCTIONS
 const std::vector<ScheduleItem> &Schedule::getItems() const
 { return items; }
@@ -199,6 +206,19 @@ const ScheduleItem &Schedule::at(size_t n) const
 
 ScheduleItem &Schedule::at(size_t n)
 { return items.at(n); }
+
+const TripRequestMessage *Schedule::findTrip(const ScheduleItem item)
+{
+	auto itemItr = std::find(items.begin(), items.end(), item);
+	if (itemItr == items.end())
+	{
+		return nullptr;
+	}
+	else
+	{
+		return &(itemItr->tripRequest);
+	}
+}
 
 void Schedule::onAddingScheduleItem(const ScheduleItem &item)
 {

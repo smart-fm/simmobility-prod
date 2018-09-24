@@ -24,11 +24,6 @@ private:
 
 protected:
 	/**
-	 * This method allows us to perform the task in the assigned schedule
-	 */
-	virtual void performScheduleItem();
-
-	/**
 	 * This method looks up the path for driving to the node from the current
 	 * position and begins the drive towards it
 	 * @param node the chosen node to cruise to
@@ -78,6 +73,11 @@ protected:
 public:
 	OnCallDriverMovement();
 	virtual ~OnCallDriverMovement();
+
+	/**
+	 * This method allows us to perform the task in the assigned schedule
+	 */
+	virtual void performScheduleItem();
 
 	/**
 	 * This method performs the initialisation required by the movement

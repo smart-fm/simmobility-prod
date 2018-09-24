@@ -10,7 +10,7 @@ using namespace sim_mob;
 
 GeneralR_TreeManager<SMSVehicleParking> SMSVehicleParking::smsParkingRTree;
 
-SMSVehicleParking::SMSVehicleParking() : parkingId(0), segmentId(0)
+SMSVehicleParking::SMSVehicleParking() : parkingId(""), segmentId(0)
 {
 }
 
@@ -18,12 +18,12 @@ SMSVehicleParking::~SMSVehicleParking()
 {
 }
 
-const unsigned int SMSVehicleParking::getParkingId() const
+const std::string SMSVehicleParking::getParkingId() const
 {
 	return this->parkingId;
 }
 
-void SMSVehicleParking::setParkingId(unsigned int id)
+void SMSVehicleParking::setParkingId(std::string id)
 {
 	this->parkingId = id;
 }
@@ -66,4 +66,24 @@ double SMSVehicleParking::getPosX() const
 double SMSVehicleParking::getPosY() const
 {
 	return getAccessNode()->getPosY();
+}
+
+const double SMSVehicleParking::getStartTime() const
+{
+    return startTime;
+}
+
+void SMSVehicleParking::setStartTime(const double sTime)
+{
+    startTime = sTime;
+}
+
+const double SMSVehicleParking::getEndTime() const
+{
+    return endTime;
+}
+
+void SMSVehicleParking::setEndTime(const double eTime)
+{
+    endTime = eTime;
 }

@@ -111,7 +111,7 @@ const std::map<unsigned int, ParkingArea *>& RoadNetwork::getMapOfIdVsParkingAre
 	return mapOfIdVsParkingAreas;
 }
 
-const std::map<unsigned int, SMSVehicleParking *>& RoadNetwork::getMapOfIdvsSMSVehicleParking() const
+const std::multimap<std::string, SMSVehicleParking *>& RoadNetwork::getMapOfIdvsSMSVehicleParking() const
 {
 	return mapOfIdVsSMSVehiclesParking;
 }
@@ -696,36 +696,22 @@ void RoadNetwork::addBusStop(BusStop* stop)
 void RoadNetwork::addSMSVehicleParking(SMSVehicleParking *smsVehicleParking)
 {
 	//Check if the parking  has already been added to the map
-	map<unsigned int, SMSVehicleParking *>::iterator itPark = mapOfIdVsSMSVehiclesParking.find(smsVehicleParking->getParkingId());
-
-	if (itPark != mapOfIdVsSMSVehiclesParking.end())
+    multimap<std::string, SMSVehicleParking *>::iterator itPark = mapOfIdVsSMSVehiclesParking.find(smsVehicleParking->getParkingId());
+    //Set the road segment
+	auto itSegment = mapOfIdVsRoadSegments.find(smsVehicleParking->getSegmentId());
+	if(itSegment != mapOfIdVsRoadSegments.end())
 	{
-		stringstream msg;
-		msg << "Parking " << smsVehicleParking->getParkingId() << " has already been added!";
-		safe_delete_item(smsVehicleParking);
-		throw runtime_error(msg.str());
+		smsVehicleParking->setParkingSegment(itSegment->second);
+			//Insert the smsVehicleParking into the map
+		mapOfIdVsSMSVehiclesParking.insert(make_pair(smsVehicleParking->getParkingId(), smsVehicleParking));
 	}
 	else
 	{
-		//Set the road segment
-		auto itSegment = mapOfIdVsRoadSegments.find(smsVehicleParking->getSegmentId());
-
-		if(itSegment != mapOfIdVsRoadSegments.end())
-		{
-			smsVehicleParking->setParkingSegment(itSegment->second);
-
-			//Insert the smsVehicleParking into the map
-			mapOfIdVsSMSVehiclesParking.insert(make_pair(smsVehicleParking->getParkingId(), smsVehicleParking));
-		}
-		else
-		{
-			stringstream msg;
-			msg << "Parking " << smsVehicleParking->getParkingId() << " refers to invalid segment "
-			    << smsVehicleParking->getSegmentId();
-
+		stringstream msg;
+		msg << "Parking " << smsVehicleParking->getParkingId() << " refers to invalid segment "
+		    << smsVehicleParking->getSegmentId();
 			safe_delete_item(smsVehicleParking);
-			throw runtime_error(msg.str());
-		}
+		throw runtime_error(msg.str());
 	}
 }
 

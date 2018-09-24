@@ -17,44 +17,44 @@ namespace unit_tests
 class FixedDelayedUnitTests : public CppUnit::TestFixture
 {
 public:
-	///Test simple setting and retrieving
-	void test_FixedDelayed_simple_set_get();
+    ///Test simple setting and retrieving
+    void test_FixedDelayed_simple_set_get();
 
-	///Test retrieving a value too early.
-	void test_FixedDelayed_bad_retrieve();
+    ///Test retrieving a value too early.
+    void test_FixedDelayed_bad_retrieve();
 
-	///Test retrieving a value directly on the target time
-	void test_FixedDelayed_exact_retrieve();
+    ///Test retrieving a value directly on the target time
+    void test_FixedDelayed_exact_retrieve();
 
-	///Test a zero-waiting-time retrieve
-	void test_FixedDelayed_zero_retrieve();
+    ///Test a zero-waiting-time retrieve
+    void test_FixedDelayed_zero_retrieve();
 
-	///Test changing a zero-waiting-time Reaction Time.
-	void test_FixedDelayed_zero_error();
+    ///Test changing a zero-waiting-time Reaction Time.
+    void test_FixedDelayed_zero_error();
 
-	///Several common consistency checks
-	void test_FixedDelayed_sanity_checks();
+    ///Several common consistency checks
+    void test_FixedDelayed_sanity_checks();
 
-	///Make sure we can store classes correctly.
-	void test_FixedDelayed_class_store();
+    ///Make sure we can store classes correctly.
+    void test_FixedDelayed_class_store();
 
-	///Ensure memory isn't wrongly deleted
-	void test_FixedDelayed_false_delete();
+    ///Ensure memory isn't wrongly deleted
+    void test_FixedDelayed_false_delete();
 
-	///Ensure memory isn't leaked
-	void test_FixedDelayed_skipped_delete();
+    ///Ensure memory isn't leaked
+    void test_FixedDelayed_skipped_delete();
 
-	///Do a comprehensive sense check; push back several values and read them in order.
-	void test_FixedDelayed_comprehensive_sense();
+    ///Do a comprehensive sense check; push back several values and read them in order.
+    void test_FixedDelayed_comprehensive_sense();
 
-	///Ensure that we can shrink our delayed value without causing invalid reads.
-	void test_FixedDelayed_diminishing_reaction_time();
+    ///Ensure that we can shrink our delayed value without causing invalid reads.
+    void test_FixedDelayed_diminishing_reaction_time();
 
-	///Ensure that we can recover back to the maximum after shrinking our reaction time.
-	void test_FixedDelayed_expanding_reaction_time();
+    ///Ensure that we can recover back to the maximum after shrinking our reaction time.
+    void test_FixedDelayed_expanding_reaction_time();
 
-	///Perform a comprehensive test of variable reaction time.
-	void test_FixedDelayed_comprehensive_variable_reaction();
+    ///Perform a comprehensive test of variable reaction time.
+    void test_FixedDelayed_comprehensive_variable_reaction();
 
 
 

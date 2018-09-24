@@ -21,37 +21,37 @@ const double Offset::fixedCL = 60;
 
 double Offset::getcurrOffset() const
 {
-	return currOffset;
+    return currOffset;
 }
 
 double Offset::getnextOffset() const
 {
-	return nextOffset;
+    return nextOffset;
 }
 
 void Offset::update(double nextCL)
 {
-	calcNextOffset(nextCL);
-	updateCurrOffset();
+    calcNextOffset(nextCL);
+    updateCurrOffset();
 }
 
 void Offset::updateCurrOffset()
 {
-	currOffset = nextOffset;
+    currOffset = nextOffset;
 }
 
 void Offset::calcNextOffset(double nextCL)
 {
-	if (nextCL <= CL_low)
-	{
-		nextOffset = Off_low;
-	}
-	else if (nextCL > CL_low && nextCL <= CL_up)
-	{
-		nextOffset = Off_low + (nextCL - CL_low) * (Off_up - Off_low) / (CL_up - CL_low);
-	}
-	else
-	{
-		nextOffset = Off_up;
-	}
+    if (nextCL <= CL_low)
+    {
+        nextOffset = Off_low;
+    }
+    else if (nextCL > CL_low && nextCL <= CL_up)
+    {
+        nextOffset = Off_low + (nextCL - CL_low) * (Off_up - Off_low) / (CL_up - CL_low);
+    }
+    else
+    {
+        nextOffset = Off_up;
+    }
 }

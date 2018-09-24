@@ -11,26 +11,26 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class Job
-		{
-		public:
-			Job(BigSerial id=INVALID_ID, BigSerial establishmentId=INVALID_ID);
+    namespace long_term
+    {
+        class Job
+        {
+        public:
+            Job(BigSerial id=INVALID_ID, BigSerial establishmentId=INVALID_ID);
 
-			virtual ~Job();
+            virtual ~Job();
 
-			void setId(BigSerial val);
-			void setEstablishmentId(BigSerial val);
+            void setId(BigSerial val);
+            void setEstablishmentId(BigSerial val);
 
-			BigSerial getId() const;
-			BigSerial getEstablishmentId() const;
+            BigSerial getId() const;
+            BigSerial getEstablishmentId() const;
 
-		private:
-			friend class JobDao;
+        private:
+            friend class JobDao;
 
-			BigSerial id;
-			BigSerial establishmentId;
-		};
-	}
+            BigSerial id;
+            BigSerial establishmentId;
+        };
+    }
 }

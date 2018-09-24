@@ -45,29 +45,29 @@ void BidDao::fromRow(Row& result, Bid& outObj)
 
 void BidDao::toRow(Bid& data, Parameters& outParams, bool update)
 {
-	outParams.push_back(data.getBidId());
-	outParams.push_back(data.getSimulationDay());
-	outParams.push_back(data.getSellerId());
-	outParams.push_back(data.getBidderId());
-	outParams.push_back(data.getCurrentUnitId());
-	outParams.push_back(data.getNewUnitId());
-	outParams.push_back(data.getWillingnessToPay());
-	outParams.push_back(data.getWtpErrorTerm());
-	outParams.push_back(data.getAffordabilityAmount());
-	outParams.push_back(data.getCurrentUnitPrice());
-	outParams.push_back(data.getTargetPrice());
-	outParams.push_back(data.getHedonicPrice());
-	outParams.push_back(data.getLagCoefficient());
-	outParams.push_back(data.getAskingPrice());
-	outParams.push_back(data.getBidValue());
-	outParams.push_back(data.getBidsCounter());
-	outParams.push_back(data.getLogsum());
-	outParams.push_back(data.getUnitFloorArea());
-	outParams.push_back(data.getUnitTypeId());
-	outParams.push_back(data.getCurrentPostcode());
-	outParams.push_back(data.getNewPostcode());
-	outParams.push_back(data.getMoveInDate());
-	outParams.push_back(data.getAccepted());
+    outParams.push_back(data.getBidId());
+    outParams.push_back(data.getSimulationDay());
+    outParams.push_back(data.getSellerId());
+    outParams.push_back(data.getBidderId());
+    outParams.push_back(data.getCurrentUnitId());
+    outParams.push_back(data.getNewUnitId());
+    outParams.push_back(data.getWillingnessToPay());
+    outParams.push_back(data.getWtpErrorTerm());
+    outParams.push_back(data.getAffordabilityAmount());
+    outParams.push_back(data.getCurrentUnitPrice());
+    outParams.push_back(data.getTargetPrice());
+    outParams.push_back(data.getHedonicPrice());
+    outParams.push_back(data.getLagCoefficient());
+    outParams.push_back(data.getAskingPrice());
+    outParams.push_back(data.getBidValue());
+    outParams.push_back(data.getBidsCounter());
+    outParams.push_back(data.getLogsum());
+    outParams.push_back(data.getUnitFloorArea());
+    outParams.push_back(data.getUnitTypeId());
+    outParams.push_back(data.getCurrentPostcode());
+    outParams.push_back(data.getNewPostcode());
+    outParams.push_back(data.getMoveInDate());
+    outParams.push_back(data.getAccepted());
 
 }
 
@@ -75,12 +75,12 @@ void BidDao::toRow(Bid& data, Parameters& outParams, bool update)
 void BidDao::insertBid(Bid& bid,std::string schema)
 {
 
-	const std::string DB_INSERT_BID = "INSERT INTO " + schema + ".bids"
-                		+ " (" + "bid_id" + ", " + "simulation_day" + ", " + "seller_id" + ", " + "bidder_id"+ ", " + "current_unit_id" ", " + "new_unit_id" + ", " + "willingness_to_pay"+ ", "
-                		+ "wtp_error_term"+  ", " + "affordability_amount" + ", " + "current_unit_price" + ", " + "target_price" + ", " + "hedonic_price" + ", " + "lag_coefficient" +", " + "asking_price" + ", " + "bid_value"+ ", "
-                		+ "bids_counter" + ", " + "logsum" + ", "+ "unit_floor_area" + ", " + "unit_type_id" ", " + "current_postcode" + ", " + "new_postcode" + ", " + "move_in_date" +", " + "accepted"
-                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20 ,:v21, :v22, :v23)";
-	insertViaQuery(bid,DB_INSERT_BID);
+    const std::string DB_INSERT_BID = "INSERT INTO " + schema + ".bids"
+                        + " (" + "bid_id" + ", " + "simulation_day" + ", " + "seller_id" + ", " + "bidder_id"+ ", " + "current_unit_id" ", " + "new_unit_id" + ", " + "willingness_to_pay"+ ", "
+                        + "wtp_error_term"+  ", " + "affordability_amount" + ", " + "current_unit_price" + ", " + "target_price" + ", " + "hedonic_price" + ", " + "lag_coefficient" +", " + "asking_price" + ", " + "bid_value"+ ", "
+                        + "bids_counter" + ", " + "logsum" + ", "+ "unit_floor_area" + ", " + "unit_type_id" ", " + "current_postcode" + ", " + "new_postcode" + ", " + "move_in_date" +", " + "accepted"
+                        + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20 ,:v21, :v22, :v23)";
+    insertViaQuery(bid,DB_INSERT_BID);
 
 }
 

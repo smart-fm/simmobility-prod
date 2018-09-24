@@ -22,43 +22,43 @@ namespace sim_mob {
      */
     class HPIValues {
     public:
-    	HPIValues(double HPI1 = 0,double HPI2 = 0, double HPI3 = 0,double HPI4 = 0,double HPI5 = 0);
-    	virtual ~HPIValues();
+        HPIValues(double HPI1 = 0,double HPI2 = 0, double HPI3 = 0,double HPI4 = 0,double HPI5 = 0);
+        virtual ~HPIValues();
 
-	friend std::ostream& operator<<(std::ostream& strm, const HPIValues& data);
+    friend std::ostream& operator<<(std::ostream& strm, const HPIValues& data);
 
-	double getHpi1() const {
-		return HPI1;
-	}
+    double getHpi1() const {
+        return HPI1;
+    }
 
-	double getHpi2() const {
-		return HPI2;
-	}
+    double getHpi2() const {
+        return HPI2;
+    }
 
-	double getHpi3() const {
-		return HPI3;
-	}
+    double getHpi3() const {
+        return HPI3;
+    }
 
-	double getHpi4() const {
-		return HPI4;
-	}
+    double getHpi4() const {
+        return HPI4;
+    }
 
-	double getHpi5() const {
-		return HPI5;
-	}
+    double getHpi5() const {
+        return HPI5;
+    }
 
     private:
-		double HPI1;
-		double HPI2;
-		double HPI3;
-		double HPI4;
-		double HPI5;
+        double HPI1;
+        double HPI2;
+        double HPI3;
+        double HPI4;
+        double HPI5;
 };
         class MacroEconomics {
         public:
-        	MacroEconomics(std::tm exDate = std::tm(),
-        			BigSerial exFactorId = INVALID_ID,
-        			double exFactorValue = 0);
+            MacroEconomics(std::tm exDate = std::tm(),
+                    BigSerial exFactorId = INVALID_ID,
+                    double exFactorValue = 0);
 
             virtual ~MacroEconomics();
 

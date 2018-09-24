@@ -12,8 +12,8 @@ using namespace std;
 using namespace sim_mob;
 
 PeriodicPersonLoader::PeriodicPersonLoader(std::set<Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents) :
-		activeAgents(activeAgents), pendingAgents(pendinAgents), dataLoadInterval(0), nextLoadStart(0.0), elapsedTimeSinceLastLoad(0),
-		storedProcName(std::string())
+        activeAgents(activeAgents), pendingAgents(pendinAgents), dataLoadInterval(0), nextLoadStart(0.0), elapsedTimeSinceLastLoad(0),
+        storedProcName(std::string())
 {
 }
 
@@ -23,25 +23,25 @@ PeriodicPersonLoader::~PeriodicPersonLoader()
 
 void PeriodicPersonLoader::addOrStashPerson(Person* p)
 {
-	//Only agents with a start time of zero should start immediately in the all_agents list.
-	if (p->getStartTime()==0)
-	{
-		activeAgents.insert(p);
-	}
-	else
-	{
-		//Start later.
-		pendingAgents.push(p);
-	}
+    //Only agents with a start time of zero should start immediately in the all_agents list.
+    if (p->getStartTime()==0)
+    {
+        activeAgents.insert(p);
+    }
+    else
+    {
+        //Start later.
+        pendingAgents.push(p);
+    }
 }
 
 bool PeriodicPersonLoader::checkTimeForNextLoad()
 {
-	elapsedTimeSinceLastLoad += ConfigManager::GetInstance().FullConfig().baseGranSecond();
-	if(elapsedTimeSinceLastLoad >= dataLoadInterval)
-	{
-		elapsedTimeSinceLastLoad = 0;
-		return true;
-	}
-	return false;
+    elapsedTimeSinceLastLoad += ConfigManager::GetInstance().FullConfig().baseGranSecond();
+    if(elapsedTimeSinceLastLoad >= dataLoadInterval)
+    {
+        elapsedTimeSinceLastLoad = 0;
+        return true;
+    }
+    return false;
 }

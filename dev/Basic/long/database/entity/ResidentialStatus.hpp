@@ -17,27 +17,27 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class ResidentialStatus
-		{
-		public:
-			ResidentialStatus(BigSerial id = INVALID_ID, std::string name = EMPTY_STR);
-			virtual ~ResidentialStatus();
+    namespace long_term
+    {
+        class ResidentialStatus
+        {
+        public:
+            ResidentialStatus(BigSerial id = INVALID_ID, std::string name = EMPTY_STR);
+            virtual ~ResidentialStatus();
 
-			BigSerial getId() const;
-			std::string getName() const;
+            BigSerial getId() const;
+            std::string getName() const;
 
-			friend std::ostream& operator<<(std::ostream& strm, const ResidentialStatus& data);
+            friend std::ostream& operator<<(std::ostream& strm, const ResidentialStatus& data);
 
-		private:
+        private:
 
-			friend class ResidentialStatusDao;
+            friend class ResidentialStatusDao;
 
-			BigSerial id;
-			std::string name;
-		};
-	}
+            BigSerial id;
+            std::string name;
+        };
+    }
 }
 
 

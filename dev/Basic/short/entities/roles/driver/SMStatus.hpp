@@ -16,42 +16,42 @@ namespace sim_mob
 
 enum StatusValue
 {
-	STATUS_NO = -1,
-	STATUS_UNKNOWN = 0,
-	STATUS_YES = 1
+    STATUS_NO = -1,
+    STATUS_UNKNOWN = 0,
+    STATUS_YES = 1
 };
 
 struct SMStatus
 {
-	/**Indicates the type of status*/
-	string statusName;
+    /**Indicates the type of status*/
+    string statusName;
 
-	/**Indicates the status value*/
-	StatusValue status;
+    /**Indicates the status value*/
+    StatusValue status;
 
-	/**Indicates information such as the method that set the status*/
-	string recordInfo;
+    /**Indicates information such as the method that set the status*/
+    string recordInfo;
 
-	SMStatus();
-	virtual ~SMStatus();
+    SMStatus();
+    virtual ~SMStatus();
 };
 
 class SMStatusManager
 {
 private:
-	/**Stores the the type of status as key and the status value as the value*/
-	map<string, SMStatus> statusMap;
+    /**Stores the the type of status as key and the status value as the value*/
+    map<string, SMStatus> statusMap;
 public:
-	SMStatusManager()
-	{
-	}
+    SMStatusManager()
+    {
+    }
 
-	virtual ~SMStatusManager()
-	{
-	}
+    virtual ~SMStatusManager()
+    {
+    }
 
-	void setStatus(string name, StatusValue value, string whoSet);
-	StatusValue getStatus(string name);
+    void setStatus(string name, StatusValue value, string whoSet);
+    StatusValue getStatus(string name);
 };
 
 }

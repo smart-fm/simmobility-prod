@@ -23,7 +23,7 @@ namespace sim_mob
         class Hits2008ScreeningProbDao : public db::SqlAbstractDao<Hits2008ScreeningProb>
         {
         public:
-        	Hits2008ScreeningProbDao(db::DB_Connection& connection);
+            Hits2008ScreeningProbDao(db::DB_Connection& connection);
             virtual ~Hits2008ScreeningProbDao();
 
         private:

@@ -17,30 +17,30 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class Mtz
-		{
-		public:
-			Mtz(BigSerial id = 0, BigSerial planningSubzoneId = 0, std::string name = "" );
-			virtual ~Mtz();
+    namespace long_term
+    {
+        class Mtz
+        {
+        public:
+            Mtz(BigSerial id = 0, BigSerial planningSubzoneId = 0, std::string name = "" );
+            virtual ~Mtz();
 
-			Mtz(const Mtz & source);
-			Mtz& operator=(const Mtz& source);
+            Mtz(const Mtz & source);
+            Mtz& operator=(const Mtz& source);
 
-			BigSerial getId() const;
-			BigSerial getPlanningSubzoneId() const;
-			std::string getName() const;
+            BigSerial getId() const;
+            BigSerial getPlanningSubzoneId() const;
+            std::string getName() const;
 
-			friend std::ostream& operator<<(std::ostream& strm, const Mtz& data);
+            friend std::ostream& operator<<(std::ostream& strm, const Mtz& data);
 
-		private:
-			friend class MtzDao;
+        private:
+            friend class MtzDao;
 
-			BigSerial id;
-			BigSerial planningSubzoneId;
-			std::string name;
-		};
-	}
+            BigSerial id;
+            BigSerial planningSubzoneId;
+            std::string name;
+        };
+    }
 } /* namespace sim_mob */
 

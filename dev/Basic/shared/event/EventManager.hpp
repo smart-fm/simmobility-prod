@@ -24,10 +24,10 @@ namespace sim_mob {
     
     namespace event {
         // Events for HousingMarket
-    	enum HouseMarketEvents {
-    		EM_WND_EXPIRED = 0,
-    		EM_WND_UPDATED = 1,
-    	};
+        enum HouseMarketEvents {
+            EM_WND_EXPIRED = 0,
+            EM_WND_UPDATED = 1,
+        };
 
         class EM_EventArgs : public EventArgs {
         public:

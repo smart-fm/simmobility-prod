@@ -11,6 +11,6 @@
 //https://stackoverflow.com/a/18763378/2110769
 std::ostream& operator<<(std::ostream& strm, const timeslice& ts)
 {
-	return strm<<"frame "<<ts.frame()<<", "<<ts.ms()/1000.0<<"s";
+    return strm<<"frame "<<ts.frame()<<", "<<ts.ms()/1000.0<<"s";
 }
 

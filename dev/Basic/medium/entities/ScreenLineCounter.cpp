@@ -18,11 +18,11 @@
 
 namespace
 {
-	/**
-	 * time interval value used for processing data.
-	 * This value is based on the user configuration
-	 */
-	unsigned int INTERVAL_MS = 0;
+    /**
+     * time interval value used for processing data.
+     * This value is based on the user configuration
+     */
+    unsigned int INTERVAL_MS = 0;
 }
 
 namespace sim_mob
@@ -45,16 +45,16 @@ ScreenLineCounter::ScreenLineCounter() : simStartTime( ConfigManager::GetInstanc
     DailyTime minTime = DailyTime(0);
     const DailyTime intervalWidth = DailyTime(INTERVAL_MS);
     minTimes.push_back(minTime.getStrRepr());
-	for(int i=0, j=0; i<86400; i++, j=((j+1)%mtCfg.screenLineParams.interval)) //86400 seconds in a day
-	{
-		if(j==0)
-		{
-			interval = interval+1;
-			minTime+=intervalWidth;
-			minTimes.push_back(minTime.getStrRepr());
-		}
-		timeIntervalMap[i] = interval;
-	}
+    for(int i=0, j=0; i<86400; i++, j=((j+1)%mtCfg.screenLineParams.interval)) //86400 seconds in a day
+    {
+        if(j==0)
+        {
+            interval = interval+1;
+            minTime+=intervalWidth;
+            minTimes.push_back(minTime.getStrRepr());
+        }
+        timeIntervalMap[i] = interval;
+    }
 }
 
 ScreenLineCounter::~ScreenLineCounter()
@@ -87,11 +87,11 @@ void ScreenLineCounter::loadScreenLines()
 
 ScreenLineCounter* ScreenLineCounter::getInstance()
 {
-	if (!instance)
-	{
-		instance = new ScreenLineCounter();
-	}
-	return instance;
+    if (!instance)
+    {
+        instance = new ScreenLineCounter();
+    }
+    return instance;
 }
 
 void ScreenLineCounter::updateScreenLineCount(unsigned int segId, double entryTimeSec, const std::string& travelMode)
@@ -102,18 +102,18 @@ void ScreenLineCounter::updateScreenLineCount(unsigned int segId, double entryTi
     }
     TimeInterval timeInterval = ScreenLineCounter::getTimeInterval(entryTimeSec);
     {
-		boost::unique_lock<boost::mutex> lock(instanceMutex);
-		screenlineMap[timeInterval][segId][travelMode].count++; //increment count for the relevant time interval, segment and mode
+        boost::unique_lock<boost::mutex> lock(instanceMutex);
+        screenlineMap[timeInterval][segId][travelMode].count++; //increment count for the relevant time interval, segment and mode
     }
 }
 
 unsigned int ScreenLineCounter::getTimeInterval(double time) const
 {
-	unsigned int timeSec = std::ceil(time);
-	if(timeSec >= 86400)
-	{
-		throw std::runtime_error("invalid time passed to update screen line counts");
-	}
+    unsigned int timeSec = std::ceil(time);
+    if(timeSec >= 86400)
+    {
+        throw std::runtime_error("invalid time passed to update screen line counts");
+    }
     return timeIntervalMap[timeSec];
 }
 
@@ -126,7 +126,7 @@ void ScreenLineCounter::exportScreenLineCount() const
 
     for(ScreenLineCountCollector::const_iterator travelTimeIter = screenlineMap.begin(); travelTimeIter != screenlineMap.end(); travelTimeIter++)
     {
-    	div_t divresult;
+        div_t divresult;
         const TimeInterval& timeInterval = travelTimeIter->first;
         const std::string& startTime = minTimes[timeInterval-1];
         const std::string& endTime = minTimes[timeInterval];

@@ -9,27 +9,27 @@ using namespace sim_mob;
 
 bool sim_mob::CMakeConfigParams::MPI_Enabled() const
 {
-	return !MPI_Disabled();
+    return !MPI_Disabled();
 }
 bool sim_mob::CMakeConfigParams::MPI_Disabled() const
 {
 #ifdef SIMMOB_DISABLE_MPI
-	return true;
+    return true;
 #else
-	return false;
+    return false;
 #endif
 }
 
 bool sim_mob::CMakeConfigParams::OutputEnabled() const
 {
-	return !OutputDisabled();
+    return !OutputDisabled();
 }
 bool sim_mob::CMakeConfigParams::OutputDisabled() const
 {
 #ifdef SIMMOB_DISABLE_OUTPUT
-	return true;
+    return true;
 #else
-	return false;
+    return false;
 #endif
 }
 
@@ -37,84 +37,84 @@ bool sim_mob::CMakeConfigParams::OutputDisabled() const
 bool sim_mob::CMakeConfigParams::StrictAgentErrors() const
 {
 #ifdef SIMMOB_STRICT_AGENT_ERRORS
-	return true;
+    return true;
 #else
-	return false;
+    return false;
 #endif
 }
 
 bool sim_mob::CMakeConfigParams::ProfileOn() const
 {
 #ifdef SIMMOB_PROFILE_ON
-	return true;
+    return true;
 #else
-	return false;
+    return false;
 #endif
 }
 
 bool sim_mob::CMakeConfigParams::ProfileAgentUpdates(bool accountForOnFlag) const
 {
 #ifdef SIMMOB_PROFILE_AGENT_UPDATES
-	if (accountForOnFlag) {
-		return ProfileOn();
-	}
-	return true;
+    if (accountForOnFlag) {
+        return ProfileOn();
+    }
+    return true;
 #else
-	return false;
+    return false;
 #endif
 }
 
 bool sim_mob::CMakeConfigParams::ProfileWorkerUpdates(bool accountForOnFlag) const
 {
 #ifdef SIMMOB_PROFILE_WORKER_UPDATES
-	if (accountForOnFlag) {
-		return ProfileOn();
-	}
-	return true;
+    if (accountForOnFlag) {
+        return ProfileOn();
+    }
+    return true;
 #else
-	return false;
+    return false;
 #endif
 }
 
 bool sim_mob::CMakeConfigParams::ProfileAuraMgrUpdates(bool accountForOnFlag) const
 {
 #ifdef SIMMOB_PROFILE_AURAMGR
-	if (accountForOnFlag) {
-		return ProfileOn();
-	}
-	return true;
+    if (accountForOnFlag) {
+        return ProfileOn();
+    }
+    return true;
 #else
-	return false;
+    return false;
 #endif
 }
 
 bool sim_mob::CMakeConfigParams::ProfileCommsimUpdates(bool accountForOnFlag) const
 {
 #ifdef SIMMOB_PROFILE_COMMSIM
-	if (accountForOnFlag) {
-		return ProfileOn();
-	}
-	return true;
+    if (accountForOnFlag) {
+        return ProfileOn();
+    }
+    return true;
 #else
-	return false;
+    return false;
 #endif
 }
 
 bool sim_mob::CMakeConfigParams::InteractiveMode() const
 {
 #ifdef SIMMOB_INTERACTIVE_MODE
-	return true;
+    return true;
 #else
-	return false;
+    return false;
 #endif
 }
 
 bool sim_mob::CMakeConfigParams::XmlWriterOn() const
 {
 #ifdef SIMMOB_XML_WRITER
-	return true;
+    return true;
 #else
-	return false;
+    return false;
 #endif
 }
 

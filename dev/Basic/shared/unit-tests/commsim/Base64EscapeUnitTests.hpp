@@ -17,31 +17,31 @@ namespace unit_tests
 class Base64EscapeUnitTests : public CppUnit::TestFixture
 {
 public:
-	///One-time setup
-	virtual void setUp();
+    ///One-time setup
+    virtual void setUp();
 
-	///Test strings that are expected to pass.
-	void test_Base64Escape_1();
-	void test_Base64Escape_2();
-	void test_Base64Escape_3();
-	void test_Base64Escape_4();
-	void test_Base64Escape_5();
-	void test_Base64Escape_6();
-	void test_Base64Escape_7();
-	void test_Base64Escape_8();
-	void test_Base64Escape_9();
+    ///Test strings that are expected to pass.
+    void test_Base64Escape_1();
+    void test_Base64Escape_2();
+    void test_Base64Escape_3();
+    void test_Base64Escape_4();
+    void test_Base64Escape_5();
+    void test_Base64Escape_6();
+    void test_Base64Escape_7();
+    void test_Base64Escape_8();
+    void test_Base64Escape_9();
 
-	//Test actual object data from RoadRunner.
-	void test_Base64Escape_roadrunner_1();
-	void test_Base64Escape_roadrunner_2();
-	void test_Base64Escape_roadrunner_3();
-	void test_Base64Escape_roadrunner_4();
-	void test_Base64Escape_roadrunner_5();
-	void test_Base64Escape_roadrunner_6();
-	void test_Base64Escape_roadrunner_7();
-	void test_Base64Escape_roadrunner_8();
-	void test_Base64Escape_roadrunner_9();
-	void test_Base64Escape_roadrunner_10();
+    //Test actual object data from RoadRunner.
+    void test_Base64Escape_roadrunner_1();
+    void test_Base64Escape_roadrunner_2();
+    void test_Base64Escape_roadrunner_3();
+    void test_Base64Escape_roadrunner_4();
+    void test_Base64Escape_roadrunner_5();
+    void test_Base64Escape_roadrunner_6();
+    void test_Base64Escape_roadrunner_7();
+    void test_Base64Escape_roadrunner_8();
+    void test_Base64Escape_roadrunner_9();
+    void test_Base64Escape_roadrunner_10();
 
 private:
 #ifndef SIMMOB_DISABLE_MPI

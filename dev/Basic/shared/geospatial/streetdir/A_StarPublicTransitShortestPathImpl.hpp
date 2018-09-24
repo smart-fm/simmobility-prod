@@ -120,49 +120,49 @@ private:
      */
     class PT_GoalVisitor : public boost::default_astar_visitor {
     public:
-    	PT_GoalVisitor(StreetDirectory::PT_Vertex goal) : goal(goal) {}
+        PT_GoalVisitor(StreetDirectory::PT_Vertex goal) : goal(goal) {}
 
-    	template <class Graph>
-    	void examine_vertex(StreetDirectory::PT_Vertex u, const Graph& g) {
-    		if(u == goal){
-    			throw PT_FoundGoal();
-    		}
-    	}
+        template <class Graph>
+        void examine_vertex(StreetDirectory::PT_Vertex u, const Graph& g) {
+            if(u == goal){
+                throw PT_FoundGoal();
+            }
+        }
     private:
-    	StreetDirectory::PT_Vertex goal;
+        StreetDirectory::PT_Vertex goal;
     };
-	/**
-	 * black list constraint for our A* search algorithm
-	 */
-	struct PT_EdgeConstraint {
-    	PT_EdgeConstraint(const std::set<StreetDirectory::PT_Edge>& blacklist =
-				std::set<StreetDirectory::PT_Edge>()) :	blacklist(blacklist) {
-		}
+    /**
+     * black list constraint for our A* search algorithm
+     */
+    struct PT_EdgeConstraint {
+        PT_EdgeConstraint(const std::set<StreetDirectory::PT_Edge>& blacklist =
+                std::set<StreetDirectory::PT_Edge>()) : blacklist(blacklist) {
+        }
 
-		bool operator()(const StreetDirectory::PT_Edge& e) const {
-			/**Include the edge if it's not in the blacklist.*/
-			return blacklist.find(e) == blacklist.end();
-		}
+        bool operator()(const StreetDirectory::PT_Edge& e) const {
+            /**Include the edge if it's not in the blacklist.*/
+            return blacklist.find(e) == blacklist.end();
+        }
 
-	private:
-		std::set<StreetDirectory::PT_Edge> blacklist;
-	};
-	/**
-	 * Distance heuristic for our A* search algorithm
-	 */
-	class PT_HeuristicGraph: public boost::astar_heuristic<
-			StreetDirectory::PublicTransitGraph, double> {
-	public:
-		PT_HeuristicGraph(const StreetDirectory::PublicTransitGraph* graph,	StreetDirectory::PT_Vertex goal) :
-				graph(graph), goal(goal) {
-		}
-		double operator()(StreetDirectory::PT_Vertex v) {
-			return 0.0;
-		}
-	private:
-		const StreetDirectory::PublicTransitGraph* graph;
-		StreetDirectory::PT_Vertex goal;
-	};
+    private:
+        std::set<StreetDirectory::PT_Edge> blacklist;
+    };
+    /**
+     * Distance heuristic for our A* search algorithm
+     */
+    class PT_HeuristicGraph: public boost::astar_heuristic<
+            StreetDirectory::PublicTransitGraph, double> {
+    public:
+        PT_HeuristicGraph(const StreetDirectory::PublicTransitGraph* graph, StreetDirectory::PT_Vertex goal) :
+                graph(graph), goal(goal) {
+        }
+        double operator()(StreetDirectory::PT_Vertex v) {
+            return 0.0;
+        }
+    private:
+        const StreetDirectory::PublicTransitGraph* graph;
+        StreetDirectory::PT_Vertex goal;
+    };
 
 };
 }

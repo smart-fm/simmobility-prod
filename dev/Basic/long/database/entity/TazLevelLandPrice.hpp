@@ -20,7 +20,7 @@ namespace sim_mob
         class TazLevelLandPrice
         {
         public:
-        	TazLevelLandPrice(BigSerial tazId = INVALID_ID, float landValue = 0.0);
+            TazLevelLandPrice(BigSerial tazId = INVALID_ID, float landValue = 0.0);
 
             virtual ~TazLevelLandPrice();
 

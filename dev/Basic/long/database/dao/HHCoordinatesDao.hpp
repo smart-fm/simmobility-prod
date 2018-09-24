@@ -18,7 +18,7 @@ namespace sim_mob {
          */
         class HHCoordinatesDao : public db::SqlAbstractDao<HHCoordinates> {
         public:
-        	HHCoordinatesDao(db::DB_Connection& connection);
+            HHCoordinatesDao(db::DB_Connection& connection);
             virtual ~HHCoordinatesDao();
 
         private:

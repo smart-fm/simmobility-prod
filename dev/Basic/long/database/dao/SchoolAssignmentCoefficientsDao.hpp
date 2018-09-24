@@ -21,7 +21,7 @@ namespace sim_mob
         class SchoolAssignmentCoefficientsDao : public db::SqlAbstractDao<SchoolAssignmentCoefficients>
         {
         public:
-        	SchoolAssignmentCoefficientsDao(db::DB_Connection& connection);
+            SchoolAssignmentCoefficientsDao(db::DB_Connection& connection);
             virtual ~SchoolAssignmentCoefficientsDao();
 
         private:

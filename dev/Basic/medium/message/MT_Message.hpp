@@ -19,42 +19,42 @@ class TrainDriver;
 class Passenger;
 enum ConfluxMessage
 {
-	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
-	MSG_INSERT_INCIDENT,
-	MSG_WAITING_PERSON_ARRIVAL,
-	MSG_WAKEUP_STASHED_PERSON,
-	MSG_WAKEUP_MRT_PAX,
-	MSG_WAKEUP_PEDESTRIAN,
-	MSG_WARN_INCIDENT,
-	MSG_PERSON_LOAD,
-	MSG_PERSON_TRANSFER,
-	MSG_TRAVELER_TRANSFER,
+    MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
+    MSG_INSERT_INCIDENT,
+    MSG_WAITING_PERSON_ARRIVAL,
+    MSG_WAKEUP_STASHED_PERSON,
+    MSG_WAKEUP_MRT_PAX,
+    MSG_WAKEUP_PEDESTRIAN,
+    MSG_WARN_INCIDENT,
+    MSG_PERSON_LOAD,
+    MSG_PERSON_TRANSFER,
+    MSG_TRAVELER_TRANSFER,
 };
 
 enum PublicTrainsitEvent
 {
-	EVT_DISRUPTION_STATION=7000000,
-	EVT_DISRUPTION_CHANGEROUTE
+    EVT_DISRUPTION_STATION=7000000,
+    EVT_DISRUPTION_CHANGEROUTE
 };
 
 enum PublicTransitMessage
 {
-	BOARD_BUS = 6000000,
-	ALIGHT_BUS,
-	BUS_ARRIVAL,
-	BUS_DEPARTURE,
-	TRAIN_MOVETO_NEXT_PLATFORM,
-	TRAIN_ARRIVAL_AT_STARTPOINT,
-	TRAIN_ARRIVAL_AT_ENDPOINT,
-	TRAIN_MOVE_AT_UTURN_PLATFORM,
-	PASSENGER_ARRIVAL_AT_PLATFORM,
-	PASSENGER_LEAVE_FRM_PLATFORM,
-	INSERT_UNSCHEDULED_TRAIN
+    BOARD_BUS = 6000000,
+    ALIGHT_BUS,
+    BUS_ARRIVAL,
+    BUS_DEPARTURE,
+    TRAIN_MOVETO_NEXT_PLATFORM,
+    TRAIN_ARRIVAL_AT_STARTPOINT,
+    TRAIN_ARRIVAL_AT_ENDPOINT,
+    TRAIN_MOVE_AT_UTURN_PLATFORM,
+    PASSENGER_ARRIVAL_AT_PLATFORM,
+    PASSENGER_LEAVE_FRM_PLATFORM,
+    INSERT_UNSCHEDULED_TRAIN
 };
 
 enum OnCallDriverMessage
 {
-	MSG_WAKEUP_SHIFT_END = 5100000
+    MSG_WAKEUP_SHIFT_END = 5100000
 };
 
 /**
@@ -63,15 +63,15 @@ enum OnCallDriverMessage
 class BusStopMessage: public messaging::Message
 {
 public:
-	BusStopMessage(const BusStop* stop) :
-			nextStop(stop)
-	{
-	}
-	virtual ~BusStopMessage()
-	{
-	}
-	const BusStop* nextStop;
-	std::string busLines;
+    BusStopMessage(const BusStop* stop) :
+            nextStop(stop)
+    {
+    }
+    virtual ~BusStopMessage()
+    {
+    }
+    const BusStop* nextStop;
+    std::string busLines;
 };
 
 /**
@@ -80,14 +80,14 @@ public:
 class BusDriverMessage: public messaging::Message
 {
 public:
-	BusDriverMessage(BusDriver* busDriver) :
-			busDriver(busDriver)
-	{
-	}
-	virtual ~BusDriverMessage()
-	{
-	}
-	BusDriver* busDriver;
+    BusDriverMessage(BusDriver* busDriver) :
+            busDriver(busDriver)
+    {
+    }
+    virtual ~BusDriverMessage()
+    {
+    }
+    BusDriver* busDriver;
 };
 /**
  * Message holding a pointer to trainDriver
@@ -95,17 +95,17 @@ public:
 class TrainDriverMessage: public messaging::Message
 {
 public:
-	TrainDriverMessage(TrainDriver* driver, bool isHigher=false):
-		trainDriver(driver)
-	{
-		if(isHigher){
-			priority += 1;
-		}
-	}
-	virtual ~TrainDriverMessage()
-	{
-	}
-	TrainDriver* trainDriver;
+    TrainDriverMessage(TrainDriver* driver, bool isHigher=false):
+        trainDriver(driver)
+    {
+        if(isHigher){
+            priority += 1;
+        }
+    }
+    virtual ~TrainDriverMessage()
+    {
+    }
+    TrainDriver* trainDriver;
 };
 /**
  * Message holding a pointer to passenger
@@ -113,15 +113,15 @@ public:
 class TrainPassengerMessage: public messaging::Message
 {
 public:
-	TrainPassengerMessage(Passenger* passenger):trainPassenger(passenger)
-	{
+    TrainPassengerMessage(Passenger* passenger):trainPassenger(passenger)
+    {
 
-	}
-	virtual ~TrainPassengerMessage()
-	{
+    }
+    virtual ~TrainPassengerMessage()
+    {
 
-	}
-	Passenger* trainPassenger;
+    }
+    Passenger* trainPassenger;
 };
 /**
  * Message to wrap a Person
@@ -129,16 +129,16 @@ public:
 class PersonMessage: public messaging::Message
 {
 public:
-	PersonMessage(Person_MT* inPerson) :
-			person(inPerson)
-	{
-	}
+    PersonMessage(Person_MT* inPerson) :
+            person(inPerson)
+    {
+    }
 
-	virtual ~PersonMessage()
-	{
-	}
+    virtual ~PersonMessage()
+    {
+    }
 
-	Person_MT* person;
+    Person_MT* person;
 };
 
 /**
@@ -147,17 +147,17 @@ public:
 class InsertIncidentMessage: public messaging::Message
 {
 public:
-	InsertIncidentMessage(const RoadSegment* rs, double newFlowRate) :
-			affectedSegment(rs), newFlowRate(newFlowRate)
-	{
-	}
+    InsertIncidentMessage(const RoadSegment* rs, double newFlowRate) :
+            affectedSegment(rs), newFlowRate(newFlowRate)
+    {
+    }
 
-	virtual ~InsertIncidentMessage()
-	{
-	}
+    virtual ~InsertIncidentMessage()
+    {
+    }
 
-	const RoadSegment* affectedSegment;
-	double newFlowRate;
+    const RoadSegment* affectedSegment;
+    double newFlowRate;
 };
 
 /**
@@ -167,16 +167,16 @@ public:
 class ArrivalAtStopMessage: public messaging::Message
 {
 public:
-	ArrivalAtStopMessage(Person_MT* person) :
-			waitingPerson(person)
-	{
-	}
+    ArrivalAtStopMessage(Person_MT* person) :
+            waitingPerson(person)
+    {
+    }
 
-	virtual ~ArrivalAtStopMessage()
-	{
-	}
+    virtual ~ArrivalAtStopMessage()
+    {
+    }
 
-	Person_MT* waitingPerson;
+    Person_MT* waitingPerson;
 };
 
 }

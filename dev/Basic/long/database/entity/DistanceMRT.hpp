@@ -16,7 +16,7 @@ namespace sim_mob {
 
         class DistanceMRT {
         public:
-        	DistanceMRT(BigSerial houseHoldId = INVALID_ID, double distanceMrt = 0.0);
+            DistanceMRT(BigSerial houseHoldId = INVALID_ID, double distanceMrt = 0.0);
 
             virtual ~DistanceMRT();
 

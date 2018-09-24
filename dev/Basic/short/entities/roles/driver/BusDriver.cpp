@@ -29,85 +29,85 @@ using namespace sim_mob;
 BusDriver::BusDriver(Person_ST *parent, MutexStrategy mtxStrat, BusDriverBehavior *behavior, BusDriverMovement *movement, Role<Person_ST>::Type roleType_) :
 Driver(parent, mtxStrat, behavior, movement, roleType_), sequenceNum(1), currBoardingTime(0), currAlightingTime(0), currBusStopAgent(nullptr)
 {
-	isBusDriver = true;
+    isBusDriver = true;
 }
 
 Role<Person_ST>* BusDriver::clone(Person_ST* parent) const
 {
-	BusDriverBehavior *behavior = new BusDriverBehavior();
-	BusDriverMovement *movement = new BusDriverMovement();
-	BusDriver *busdriver = new BusDriver(parent, parent->getMutexStrategy(), behavior, movement);
-	
-	behavior->setParentDriver(busdriver);
-	movement->setParentDriver(busdriver);
-	behavior->setParentBusDriver(busdriver);
-	movement->setParentBusDriver(busdriver);
-	movement->init();
-	
-	return busdriver;
+    BusDriverBehavior *behavior = new BusDriverBehavior();
+    BusDriverMovement *movement = new BusDriverMovement();
+    BusDriver *busdriver = new BusDriver(parent, parent->getMutexStrategy(), behavior, movement);
+    
+    behavior->setParentDriver(busdriver);
+    movement->setParentDriver(busdriver);
+    behavior->setParentBusDriver(busdriver);
+    movement->setParentBusDriver(busdriver);
+    movement->init();
+    
+    return busdriver;
 }
 
 vector<BufferedBase *> BusDriver::getSubscriptionParams()
 {
-	return Driver::getSubscriptionParams();
+    return Driver::getSubscriptionParams();
 }
 
 DriverRequestParams BusDriver::getDriverRequestParams()
 {
-	return DriverRequestParams();
+    return DriverRequestParams();
 }
 
 void BusDriver::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
-	switch(type)
-	{
-	case MSG_ATTEMPT_BOARD_BUS:
-	{
-		const PersonMessage &personMsg = MSG_CAST(PersonMessage, message);
-		tryBoardingPassenger(personMsg.person);
-		break;
-	}
+    switch(type)
+    {
+    case MSG_ATTEMPT_BOARD_BUS:
+    {
+        const PersonMessage &personMsg = MSG_CAST(PersonMessage, message);
+        tryBoardingPassenger(personMsg.person);
+        break;
+    }
 
-	case MSG_ALIGHT_BUS:
-	{
-		const PersonMessage &personMsg = MSG_CAST(PersonMessage, message);
-		alightPassenger(personMsg.person);
-		break;
-	}
-	}
+    case MSG_ALIGHT_BUS:
+    {
+        const PersonMessage &personMsg = MSG_CAST(PersonMessage, message);
+        alightPassenger(personMsg.person);
+        break;
+    }
+    }
 }
 
 bool BusDriver::isBusFull()
 {
-	return (passengerList.size() < ST_Config::getInstance().defaultBusCapacity) ? false : true;
+    return (passengerList.size() < ST_Config::getInstance().defaultBusCapacity) ? false : true;
 }
 
 void BusDriver::tryBoardingPassenger(Person_ST* passenger)
 {
-	if(!isBusFull())
-	{
-		//Add person to the passenger list
-		passengerList.push_back(passenger);
-		
-		//Increment the boarding time by the persons boarding time
-		currBoardingTime += passenger->getBoardingCharacteristics();
-		
-		//Send boarding success message to waiting person
-		messaging::MessageBus::PostMessage(passenger, MSG_BOARD_BUS_SUCCESS, messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
-	}
-	else
-	{
-		//Send boarding failed message to the waiting person
-		messaging::MessageBus::PostMessage(passenger, MSG_BOARD_BUS_FAIL, messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
-	}	
+    if(!isBusFull())
+    {
+        //Add person to the passenger list
+        passengerList.push_back(passenger);
+        
+        //Increment the boarding time by the persons boarding time
+        currBoardingTime += passenger->getBoardingCharacteristics();
+        
+        //Send boarding success message to waiting person
+        messaging::MessageBus::PostMessage(passenger, MSG_BOARD_BUS_SUCCESS, messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
+    }
+    else
+    {
+        //Send boarding failed message to the waiting person
+        messaging::MessageBus::PostMessage(passenger, MSG_BOARD_BUS_FAIL, messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
+    }   
 }
 
 void BusDriver::alightPassenger(Person_ST *passenger)
 {
-	//Remove person from passenger list
-	passengerList.remove(passenger);
-	
-	currAlightingTime += passenger->getAlightingCharacteristics();
+    //Remove person from passenger list
+    passengerList.remove(passenger);
+    
+    currAlightingTime += passenger->getAlightingCharacteristics();
     //Send alighting message to passenger
     messaging::MessageBus::PostMessage(passenger, MSG_ALIGHT_BUS, messaging::MessageBus::MessagePtr(new BusDriverMessage(this)));
     storeAlightInfo(passenger,getBusLineId());
@@ -115,27 +115,27 @@ void BusDriver::alightPassenger(Person_ST *passenger)
 
 double BusDriver::getPositionX() const
 {
-	return currPos.getX();
+    return currPos.getX();
 }
 
 double BusDriver::getPositionY() const
 {
-	return currPos.getY();
+    return currPos.getY();
 }
 
 const std::string& BusDriver::getBusLineId() const
 {
-	return busLineId;
+    return busLineId;
 }
 
 void BusDriver::setBusLineId(const std::string& busLine)
 {
-	busLineId = busLine;
+    busLineId = busLine;
 }
 
 BusStopAgent* BusDriver::getCurrBusStopAgent() const
 {
-	return currBusStopAgent;
+    return currBusStopAgent;
 }
 
 void BusDriver::storeAlightInfo(Person_ST *passenger,const std::string &BusLineId )

@@ -28,48 +28,48 @@ const unsigned int header_length = 8;
 
 ///A bundle header. Some values not available in v0.
 struct BundleHeader {
-	int sendIdLen; ///<Length of the "senderID" field. (v1 only)
-	int destIdLen; ///<Length of the "destinationID" field. (v1 only)
-	int messageCount; ///<Number of messages. (v1 only)
-	unsigned int remLen; ///<Length of the remaining headers+data. (v0, v1)
-	BundleHeader() : sendIdLen(0), destIdLen(0), messageCount(0), remLen(0) {}
+    int sendIdLen; ///<Length of the "senderID" field. (v1 only)
+    int destIdLen; ///<Length of the "destinationID" field. (v1 only)
+    int messageCount; ///<Number of messages. (v1 only)
+    unsigned int remLen; ///<Length of the remaining headers+data. (v0, v1)
+    BundleHeader() : sendIdLen(0), destIdLen(0), messageCount(0), remLen(0) {}
 };
 
 ///A varying-length header. Only used for v1 (follows the BundleHeader).
 struct VaryHeader {
-	std::string sendId; ///<SenderID for all messages in this bundle.
-	std::string destId; ///<Destination ID for all messages in this bundle.
-	std::vector<unsigned int> msgLengths; ///<Length of each message in this bundle, in order.
+    std::string sendId; ///<SenderID for all messages in this bundle.
+    std::string destId; ///<Destination ID for all messages in this bundle.
+    std::vector<unsigned int> msgLengths; ///<Length of each message in this bundle, in order.
 };
 
 
 ///Transitional class for reading bundle headers based on NEW_BUNDLES's value.
 class BundleParser {
 public:
-	///Create a bundle header (v0 or v1, depending on whether NEW_BUNDLES has been set).
-	///For v0, "header" only needs to contain remLen.
-	///For v1, "header" should be valid. remLen should be set to the length of the remaining variable-length header and message data.
-	///\param header The header we are serializing.
-	///\returns the serialized header, in v0 or v1 format.
-	static std::string make_bundle_header(const BundleHeader& header);
+    ///Create a bundle header (v0 or v1, depending on whether NEW_BUNDLES has been set).
+    ///For v0, "header" only needs to contain remLen.
+    ///For v1, "header" should be valid. remLen should be set to the length of the remaining variable-length header and message data.
+    ///\param header The header we are serializing.
+    ///\returns the serialized header, in v0 or v1 format.
+    static std::string make_bundle_header(const BundleHeader& header);
 
-	///Read a bundle header (v0 or v1, depending on whether NEW_BUNDLES has been set).
-	///\param header The serialized header, in v0 or v1 format.
-	///\returns The deserialized header.
-	static BundleHeader read_bundle_header(const std::string& header);
+    ///Read a bundle header (v0 or v1, depending on whether NEW_BUNDLES has been set).
+    ///\param header The serialized header, in v0 or v1 format.
+    ///\returns The deserialized header.
+    static BundleHeader read_bundle_header(const std::string& header);
 
 private:
-	///Create a "version 0" (old-style) header, consisting of the data's length as an 8-byte hex (text) string.
-	static std::string make_bundle_header_v0(const BundleHeader& heade);
+    ///Create a "version 0" (old-style) header, consisting of the data's length as an 8-byte hex (text) string.
+    static std::string make_bundle_header_v0(const BundleHeader& heade);
 
-	///Read a "version 0" (old-style) header, returning the header struct (which only contains a valid length).
-	static BundleHeader read_bundle_header_v0(const std::string& header);
+    ///Read a "version 0" (old-style) header, returning the header struct (which only contains a valid length).
+    static BundleHeader read_bundle_header_v0(const std::string& header);
 
-	///Create a "version 1" (new-style) header.
-	static std::string make_bundle_header_v1(const BundleHeader& heade);
+    ///Create a "version 1" (new-style) header.
+    static std::string make_bundle_header_v1(const BundleHeader& heade);
 
-	///Read a "version 1" (new-style) header.
-	static BundleHeader read_bundle_header_v1(const std::string& header);
+    ///Read a "version 1" (new-style) header.
+    static BundleHeader read_bundle_header_v1(const std::string& header);
 };
 
 

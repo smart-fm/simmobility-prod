@@ -25,35 +25,35 @@ template<typename T> using R_Tree = bgi::rtree<R_Value<T>, bgi::linear<16> >;
 template<typename T>
 class GeneralR_TreeManager {
 public:
-	GeneralR_TreeManager();
-	virtual ~GeneralR_TreeManager();
+    GeneralR_TreeManager();
+    virtual ~GeneralR_TreeManager();
 
-	/**
-	 * Update all objects into r-tree.
-	 * @param objectsForR_Tree is a container including all objects into r-tree
-	 */
-	void update(const std::set<T*> &objectsForR_Tree);
+    /**
+     * Update all objects into r-tree.
+     * @param objectsForR_Tree is a container including all objects into r-tree
+     */
+    void update(const std::set<T*> &objectsForR_Tree);
 
-	/**
-	 * Return a collection of objects that are located in the axially-aligned rectangle.
-	 * @param lowerLeft The lower left corner of the axially-aligned search rectangle.
-	 * @param upperRight The upper right corner of the axially-aligned search rectangle.
-	 * @return a collection of objects
-	 * The caller is responsible to determine the "type" of each object in the returned array.
-	 */
-	std::vector<T const *> objectsInBox(const R_Point &lowerLeft, const R_Point &upperRight) const;
+    /**
+     * Return a collection of objects that are located in the axially-aligned rectangle.
+     * @param lowerLeft The lower left corner of the axially-aligned search rectangle.
+     * @param upperRight The upper right corner of the axially-aligned search rectangle.
+     * @return a collection of objects
+     * The caller is responsible to determine the "type" of each object in the returned array.
+     */
+    std::vector<T const *> objectsInBox(const R_Point &lowerLeft, const R_Point &upperRight) const;
 
-	/**
-	 * Return nearest object
-	 * @param xLocation is x coordinate of central location
-	 * @param yLocation is y coordinate of central location
-	 * @return nearest object if existed. otherwise nullptr
-	 */
-	const T* searchNearestObject(double xLocation, double yLocation) const;
+    /**
+     * Return nearest object
+     * @param xLocation is x coordinate of central location
+     * @param yLocation is y coordinate of central location
+     * @return nearest object if existed. otherwise nullptr
+     */
+    const T* searchNearestObject(double xLocation, double yLocation) const;
 
 private:
-	/**Internal r-tree to store objects*/
-	R_Tree<T>* rTree;
+    /**Internal r-tree to store objects*/
+    R_Tree<T>* rTree;
 };
 
 }

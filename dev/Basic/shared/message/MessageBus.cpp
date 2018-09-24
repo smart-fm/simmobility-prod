@@ -121,7 +121,7 @@ namespace {
 
     struct CompareTriggerTime {
 
-    	bool operator()(const MessageEntry& t1, const MessageEntry& t2) const {
+        bool operator()(const MessageEntry& t1, const MessageEntry& t2) const {
             return (t1.triggerTime > t2.triggerTime);
         }
     };
@@ -364,7 +364,7 @@ void MessageBus::UnRegisterMainThread() {
     CheckMainThread();
 
 #ifndef NDEBUG
-	printReport();
+    printReport();
 #endif
 
     GetInstance().context = nullptr;
@@ -429,15 +429,15 @@ void MessageBus::UnRegisterHandler(MessageHandler* handler) {
 
 void MessageBus::ReRegisterHandler(MessageHandler* handler, void* newContext)
 {
-	CheckThreadContext();
-	if (handler)
-	{
-	    if(std::find(threadContexts.begin(), threadContexts.end(), newContext) == threadContexts.end())
-	    {
-	    	throw runtime_error("MessageBus - invalid thread context passed for re-registration");
-	    }
-	    handler->context = newContext;
-	}
+    CheckThreadContext();
+    if (handler)
+    {
+        if(std::find(threadContexts.begin(), threadContexts.end(), newContext) == threadContexts.end())
+        {
+            throw runtime_error("MessageBus - invalid thread context passed for re-registration");
+        }
+        handler->context = newContext;
+    }
 }
 
 void MessageBus::DistributeMessages() {
@@ -449,58 +449,58 @@ void MessageBus::DistributeMessages() {
 
 void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* &mainContext)
 {
-	if (entry.event) {
-		context->eventMessages++;
-		//if it is an event then we need to distribute the event for all
-		//publishers in the system.
-		ContextList::iterator lstItr1 = threadContexts.begin();
-		while (lstItr1 != threadContexts.end()) {
-			ThreadContext* ctx = (*lstItr1);
-			//main context will receive the original message
-			//for other the message entry is cloned.
-			MessageEntry newEntry(entry);
-			newEntry.destination = dynamic_cast<MessageHandler*> (ctx->eventPublisher);
-			ctx->input.push(newEntry);
-			lstItr1++;
-		}
-	} else {               // it is a regular/single message
-		context->receivedMessages++;
-		if (entry.processOnMainThread) {
-			mainContext->input.push(entry);
-		} else {
-			ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->GetContext());
-			if (destinationContext) {
-				destinationContext->input.push(entry);
-			}
-		}
-	}
+    if (entry.event) {
+        context->eventMessages++;
+        //if it is an event then we need to distribute the event for all
+        //publishers in the system.
+        ContextList::iterator lstItr1 = threadContexts.begin();
+        while (lstItr1 != threadContexts.end()) {
+            ThreadContext* ctx = (*lstItr1);
+            //main context will receive the original message
+            //for other the message entry is cloned.
+            MessageEntry newEntry(entry);
+            newEntry.destination = dynamic_cast<MessageHandler*> (ctx->eventPublisher);
+            ctx->input.push(newEntry);
+            lstItr1++;
+        }
+    } else {               // it is a regular/single message
+        context->receivedMessages++;
+        if (entry.processOnMainThread) {
+            mainContext->input.push(entry);
+        } else {
+            ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->GetContext());
+            if (destinationContext) {
+                destinationContext->input.push(entry);
+            }
+        }
+    }
 };
 
 void MessageBus::DispatchMessages() {
     CheckMainThread();
     ThreadContext* mainContext = GetThreadContext();
-	if (mainContext) {
-		currentTime++;
-		ContextList::iterator lstItr = threadContexts.begin();
-		while (lstItr != threadContexts.end()) {
-			ThreadContext* context = (*lstItr);
-			while (!context->output.empty()) {
-				const MessageEntry& entry = context->output.top();
-				dispatch(entry, context, mainContext);
-				// internal messages go to the input queue of the main context.
-				context->output.pop();
-			}
-			while (!context->futureEventList.empty()) {
-				const MessageEntry& entry = context->futureEventList.top();
-				if (entry.triggerTime <= currentTime) {
-					dispatch(entry, context, mainContext);
-					context->futureEventList.pop();
-				} else {
-					break;
-				}
-			}
-			lstItr++;
-		}
+    if (mainContext) {
+        currentTime++;
+        ContextList::iterator lstItr = threadContexts.begin();
+        while (lstItr != threadContexts.end()) {
+            ThreadContext* context = (*lstItr);
+            while (!context->output.empty()) {
+                const MessageEntry& entry = context->output.top();
+                dispatch(entry, context, mainContext);
+                // internal messages go to the input queue of the main context.
+                context->output.pop();
+            }
+            while (!context->futureEventList.empty()) {
+                const MessageEntry& entry = context->futureEventList.top();
+                if (entry.triggerTime <= currentTime) {
+                    dispatch(entry, context, mainContext);
+                    context->futureEventList.pop();
+                } else {
+                    break;
+                }
+            }
+            lstItr++;
+        }
     }
 }
 
@@ -515,13 +515,13 @@ void MessageBus::ThreadDispatchMessages() {
                 ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->context);
                 if (!entry.processOnMainThread && context->threadId != destinationContext->threadId) {
                     //The recepient of the message has moved to a different thread context
-	                //This is possible in MT, but not in LT or ST
-	                if(ConfigManager::GetInstance().FullConfig().RunningMidTerm()) {
-		                //Forward the message to the correct thread
-		                PostMessage(entry.destination, entry.type, entry.message, entry.processOnMainThread);
-	                } else {
-		                throw runtime_error("Thread contexts inconsistency.");
-	                }
+                    //This is possible in MT, but not in LT or ST
+                    if(ConfigManager::GetInstance().FullConfig().RunningMidTerm()) {
+                        //Forward the message to the correct thread
+                        PostMessage(entry.destination, entry.type, entry.message, entry.processOnMainThread);
+                    } else {
+                        throw runtime_error("Thread contexts inconsistency.");
+                    }
                 }
                 entry.destination->HandleMessage(entry.type, *(entry.message.get()));
             }
@@ -532,69 +532,69 @@ void MessageBus::ThreadDispatchMessages() {
 }
 
 void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType type, MessageBus::MessagePtr message, bool processOnMainThread,
-		unsigned int timeOffset)
+        unsigned int timeOffset)
 {
-	CheckThreadContext();
-	ThreadContext* context = GetThreadContext();
-	if (context)
-	{
-		InternalMessage* internalMsg = dynamic_cast<InternalMessage*>(message.get());
-		InternalEventMessage* eventMsg = dynamic_cast<InternalEventMessage*>(message.get());
-		if (destination || eventMsg)
-		{
-			MessageEntry entry;
-			entry.destination = destination;
-			entry.type = type;
-			entry.message = message;
-			entry.priority = (!internalMsg && !eventMsg && message->GetPriority() < MB_MIN_MSG_PRIORITY) ? MB_MIN_MSG_PRIORITY : message->priority;
-			entry.internal = (internalMsg != nullptr);
-			entry.event = (eventMsg != nullptr);
-			entry.processOnMainThread = processOnMainThread;
-			if (timeOffset == 0)
-			{
-				context->output.push(entry);
-			}
-			else
-			{
-				entry.triggerTime = currentTime + timeOffset;
-				context->futureEventList.push(entry);
-			}
-		}
-	}
+    CheckThreadContext();
+    ThreadContext* context = GetThreadContext();
+    if (context)
+    {
+        InternalMessage* internalMsg = dynamic_cast<InternalMessage*>(message.get());
+        InternalEventMessage* eventMsg = dynamic_cast<InternalEventMessage*>(message.get());
+        if (destination || eventMsg)
+        {
+            MessageEntry entry;
+            entry.destination = destination;
+            entry.type = type;
+            entry.message = message;
+            entry.priority = (!internalMsg && !eventMsg && message->GetPriority() < MB_MIN_MSG_PRIORITY) ? MB_MIN_MSG_PRIORITY : message->priority;
+            entry.internal = (internalMsg != nullptr);
+            entry.event = (eventMsg != nullptr);
+            entry.processOnMainThread = processOnMainThread;
+            if (timeOffset == 0)
+            {
+                context->output.push(entry);
+            }
+            else
+            {
+                entry.triggerTime = currentTime + timeOffset;
+                context->futureEventList.push(entry);
+            }
+        }
+    }
 }
 
 void MessageBus::SendInstantaneousMessage(MessageHandler* destination,
-		Message::MessageType type, MessagePtr message) {
-	CheckThreadContext();
-	ThreadContext* context = GetThreadContext();
-	if (context && (destination->context==context || context->main)) {
-		if (destination) {
-			destination->HandleMessage(type, *(message.get()));
-			context->receivedMessages++;
-			context->processedMessages++;
-		}
-		else {
-			throw std::runtime_error("SendInstantaneousMessage() cannot send messages outside thread context");
-		}
-	}
+        Message::MessageType type, MessagePtr message) {
+    CheckThreadContext();
+    ThreadContext* context = GetThreadContext();
+    if (context && (destination->context==context || context->main)) {
+        if (destination) {
+            destination->HandleMessage(type, *(message.get()));
+            context->receivedMessages++;
+            context->processedMessages++;
+        }
+        else {
+            throw std::runtime_error("SendInstantaneousMessage() cannot send messages outside thread context");
+        }
+    }
 }
 
 void sim_mob::messaging::MessageBus::SendMessage(MessageHandler* destination,
-		Message::MessageType type, MessagePtr message, bool processOnMainThread)
+        Message::MessageType type, MessagePtr message, bool processOnMainThread)
 {
-	CheckThreadContext();
-	ThreadContext* context = GetThreadContext();
-	if (context)
-	{
-		if (destination && destination->context == context)
-		{
-			SendInstantaneousMessage(destination, type, message);
-		}
-		else
-		{
-			PostMessage(destination, type, message, processOnMainThread);
-		}
-	}
+    CheckThreadContext();
+    ThreadContext* context = GetThreadContext();
+    if (context)
+    {
+        if (destination && destination->context == context)
+        {
+            SendInstantaneousMessage(destination, type, message);
+        }
+        else
+        {
+            PostMessage(destination, type, message, processOnMainThread);
+        }
+    }
 }
 
 void MessageBus::SubscribeEvent(EventId id, EventListener* listener) {
@@ -666,13 +666,13 @@ void MessageBus::PublishEvent(event::EventId id, event::Context ctx, EventArgsPt
 }
 
 void sim_mob::messaging::MessageBus::PublishInstantaneousEvent(event::EventId id,
-		event::Context ctx, EventArgsPtr args) {
-	CheckThreadContext();
-	ThreadContext* context = GetThreadContext();
-	if (context) {
-		context->eventPublisher->publish(id, ctx, *(args.get()));
-		context->eventMessages++;
-	}
+        event::Context ctx, EventArgsPtr args) {
+    CheckThreadContext();
+    ThreadContext* context = GetThreadContext();
+    if (context) {
+        context->eventPublisher->publish(id, ctx, *(args.get()));
+        context->eventMessages++;
+    }
 }
 
 MessageBus::MessageBus() : MessageHandler(0) {

@@ -16,41 +16,41 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class OwnerTenantMovingRate
-		{
-		public:
-			OwnerTenantMovingRate( BigSerial _id = 0, int _ageCategory = 0, int _ownerPopulation = 0, int _tenantPopulation = 0, int _ownerMovingPercentage = 0,
-								   int _tenantMovingPercentage = 0,bool _day_zero = false);
+    namespace long_term
+    {
+        class OwnerTenantMovingRate
+        {
+        public:
+            OwnerTenantMovingRate( BigSerial _id = 0, int _ageCategory = 0, int _ownerPopulation = 0, int _tenantPopulation = 0, int _ownerMovingPercentage = 0,
+                                   int _tenantMovingPercentage = 0,bool _day_zero = false);
 
-			virtual ~OwnerTenantMovingRate();
+            virtual ~OwnerTenantMovingRate();
 
-			BigSerial getId() const;
-			int getAgeCategory() const;
-			double getOwnerPopulation() const;
-			double getTenantPopulation() const;
-			double getOwnerMovingPercentage() const;
-			double getTenantMovingPercentage() const;
-			bool getDayZero() const;
+            BigSerial getId() const;
+            int getAgeCategory() const;
+            double getOwnerPopulation() const;
+            double getTenantPopulation() const;
+            double getOwnerMovingPercentage() const;
+            double getTenantMovingPercentage() const;
+            bool getDayZero() const;
 
-		    /**
-		    * Operator to print the data.
-		    */
-		    friend std::ostream& operator<<(std::ostream& strm, const OwnerTenantMovingRate& data);
+            /**
+            * Operator to print the data.
+            */
+            friend std::ostream& operator<<(std::ostream& strm, const OwnerTenantMovingRate& data);
 
-		private:
-		    friend class OwnerTenantMovingRateDao;
+        private:
+            friend class OwnerTenantMovingRateDao;
 
-			BigSerial id = 0;
-			int ageCategory = 0;
-			double ownerPopulation = 0;
-			double tenantPopulation = 0;
-			double ownerMovingPercentage = 0;
-			double tenantMovingPercentage = 0;
-			int day_zero = false;
+            BigSerial id = 0;
+            int ageCategory = 0;
+            double ownerPopulation = 0;
+            double tenantPopulation = 0;
+            double ownerMovingPercentage = 0;
+            double tenantMovingPercentage = 0;
+            int day_zero = false;
 
-		};
+        };
 
-	}
+    }
 }

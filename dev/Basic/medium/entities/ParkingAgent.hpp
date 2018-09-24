@@ -17,66 +17,66 @@ namespace medium
 class ParkingAgent : public Agent
 {
 private:
-	/**The SMS vehicle parking object*/
-	const SMSVehicleParking *smsVehicleParking;
+    /**The SMS vehicle parking object*/
+    const SMSVehicleParking *smsVehicleParking;
 
-	/**Static map of all parking agents*/
-	static std::unordered_map<const SMSVehicleParking *, ParkingAgent *> mapOfParkingAgents;
+    /**Static map of all parking agents*/
+    static std::unordered_map<const SMSVehicleParking *, ParkingAgent *> mapOfParkingAgents;
 
-	/**List of persons parked at the parking and being managed by this agent*/
-	std::list<Person_MT *> parkedPersons;
+    /**List of persons parked at the parking and being managed by this agent*/
+    std::list<Person_MT *> parkedPersons;
 
-	/**The conflux that manages this parking agent*/
-	Conflux *parentConflux;
+    /**The conflux that manages this parking agent*/
+    Conflux *parentConflux;
 
-	/**
-	 * Sets the parent conflux based on the node the parking is located at
-	 */
-	void setParentConflux();
+    /**
+     * Sets the parent conflux based on the node the parking is located at
+     */
+    void setParentConflux();
 
 protected:
-	//Virtual overrides
-	virtual Entity::UpdateStatus frame_init(timeslice now);
+    //Virtual overrides
+    virtual Entity::UpdateStatus frame_init(timeslice now);
 
-	virtual Entity::UpdateStatus frame_tick(timeslice now);
+    virtual Entity::UpdateStatus frame_tick(timeslice now);
 
-	virtual void frame_output(timeslice now)
-	{
-	}
+    virtual void frame_output(timeslice now)
+    {
+    }
 
-	virtual bool isNonspatial()
-	{
-		return false;
-	}
+    virtual bool isNonspatial()
+    {
+        return false;
+    }
 
 public:
-	ParkingAgent(const MutexStrategy& mtxStrat, int id, const SMSVehicleParking *parking);
-	virtual ~ParkingAgent();
+    ParkingAgent(const MutexStrategy& mtxStrat, int id, const SMSVehicleParking *parking);
+    virtual ~ParkingAgent();
 
-	/**
-	 * Registers the parking into a static map along with the parking agent for lookup
-	 * @param pkAgent
-	 */
-	static void registerParkingAgent(ParkingAgent *pkAgent);
+    /**
+     * Registers the parking into a static map along with the parking agent for lookup
+     * @param pkAgent
+     */
+    static void registerParkingAgent(ParkingAgent *pkAgent);
 
-	/**
-	 * Finds the parking agent corresponding to the vehicle parking object
-	 * @param parking the vehicle parking object
-	 * @return the parking agent managing the given vehicle parking object
-	 */
-	static ParkingAgent* getParkingAgent(const SMSVehicleParking *parking);
+    /**
+     * Finds the parking agent corresponding to the vehicle parking object
+     * @param parking the vehicle parking object
+     * @return the parking agent managing the given vehicle parking object
+     */
+    static ParkingAgent* getParkingAgent(const SMSVehicleParking *parking);
 
-	void addParkedPerson(Person_MT *person);
+    void addParkedPerson(Person_MT *person);
 
-	const SMSVehicleParking* getSMSParking()
-	{
-		return smsVehicleParking;
-	}
+    const SMSVehicleParking* getSMSParking()
+    {
+        return smsVehicleParking;
+    }
 
-	Conflux* getParentConflux()
-	{
-		return parentConflux;
-	}
+    Conflux* getParentConflux()
+    {
+        return parentConflux;
+    }
 };
 
 }

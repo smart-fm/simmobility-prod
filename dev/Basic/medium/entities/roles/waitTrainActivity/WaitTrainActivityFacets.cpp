@@ -24,7 +24,7 @@ WaitTrainActivityBehavior::~WaitTrainActivityBehavior()
 
 std::string WaitTrainActivityBehavior::frame_tick_output()
 {
-	return std::string();
+    return std::string();
 }
 
 WaitTrainActivityMovement::WaitTrainActivityMovement() :
@@ -38,46 +38,46 @@ WaitTrainActivityMovement::~WaitTrainActivityMovement()
 
 void WaitTrainActivityMovement::setParent(sim_mob::medium::WaitTrainActivity* parentWaitTrainActivity)
 {
-	this->parentWaitTrainActivity = parentWaitTrainActivity;
+    this->parentWaitTrainActivity = parentWaitTrainActivity;
 }
 
 void WaitTrainActivityBehavior::setParent(sim_mob::medium::WaitTrainActivity* parentWaitTrainActivity)
 {
-	this->parentWaitTrainActivity = parentWaitTrainActivity;
+    this->parentWaitTrainActivity = parentWaitTrainActivity;
 }
 
 void WaitTrainActivityMovement::frame_init()
 {
-	if(parentWaitTrainActivity)
-	{
-		UpdateParams& params = parentWaitTrainActivity->getParams();
-		Person* person = parentWaitTrainActivity->parent;
-		person->setStartTime(params.now.ms());
-	}
+    if(parentWaitTrainActivity)
+    {
+        UpdateParams& params = parentWaitTrainActivity->getParams();
+        Person* person = parentWaitTrainActivity->parent;
+        person->setStartTime(params.now.ms());
+    }
 }
 
 void WaitTrainActivityMovement::frame_tick()
 {
-	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
-	if(parentWaitTrainActivity)
-	{
-		parentWaitTrainActivity->increaseWaitingTime(tickMS);
-		parentWaitTrainActivity->setTravelTime(parentWaitTrainActivity->getWaitingTime());
-	}
-	parentWaitTrainActivity->parent->setRemainingTimeThisTick(0);
+    unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
+    if(parentWaitTrainActivity)
+    {
+        parentWaitTrainActivity->increaseWaitingTime(tickMS);
+        parentWaitTrainActivity->setTravelTime(parentWaitTrainActivity->getWaitingTime());
+    }
+    parentWaitTrainActivity->parent->setRemainingTimeThisTick(0);
 }
 
 std::string WaitTrainActivityMovement::frame_tick_output()
 {
-	return std::string();
+    return std::string();
 }
 
 TravelMetric& WaitTrainActivityMovement::startTravelTimeMetric()
 {
-	return travelMetric;
+    return travelMetric;
 }
 
 TravelMetric& WaitTrainActivityMovement::finalizeTravelTimeMetric()
 {
-	return travelMetric;
+    return travelMetric;
 }

@@ -35,33 +35,33 @@ double UnitType::getConstructionCostPerUnit() const {
 
 double UnitType::getDemolitionCostPerUnit() const
 {
-	return demolitionCostPerUnit;
+    return demolitionCostPerUnit;
 }
 
 double UnitType::getMinLosize() const
 {
-	return minLosize;
+    return minLosize;
 }
 
 
 void UnitType::setWtpOffset(double value)
 {
-	wtpOffset  = value;
+    wtpOffset  = value;
 }
 
 double UnitType::getWtpOffset() const
 {
-	return wtpOffset;
+    return wtpOffset;
 }
 
 int UnitType::getAggregatedUnitType() const
 {
-	return aggregatedUnitType;
+    return aggregatedUnitType;
 }
 
 void UnitType::setAggregatedUnitType(int aggregatedUnitType)
 {
-	this->aggregatedUnitType = aggregatedUnitType;
+    this->aggregatedUnitType = aggregatedUnitType;
 }
 
 namespace sim_mob {
@@ -75,7 +75,7 @@ namespace sim_mob {
                     << "\" constructionCostPerUnit\":\"" << data.constructionCostPerUnit << "\""
                     << "\" demolitionCostPerUnit\":\"" << data.demolitionCostPerUnit << "\""
                     << "\" minLosize\":\"" << data.minLosize << "\""
-					<< "\" wtpOffset \":\"" << data.wtpOffset << "\""
+                    << "\" wtpOffset \":\"" << data.wtpOffset << "\""
                     << "}";
         }
     }

@@ -18,306 +18,306 @@
 using namespace sim_mob::long_term;
 
 Individual::Individual( BigSerial id, BigSerial individualTypeId, BigSerial householdId, BigSerial jobId, BigSerial ethnicityId, BigSerial employmentStatusId,
-						BigSerial genderId, BigSerial educationId, BigSerial occupationId, BigSerial vehicleCategoryId, BigSerial transitCategoryId,
-						BigSerial ageCategoryId, BigSerial residentialStatusId, bool householdHead, float income, int memberId, bool workAtHome, bool carLicense,
-						bool motorLicense, bool vanbusLicense, std::tm dateOfBirth,	BigSerial studentId, BigSerial industryId, BigSerial ageDetailedCategory, int taxiDriver, int fixed_workplace, int fixed_hours) :
-						id(id), individualTypeId(individualTypeId), householdId(householdId), jobId(jobId), ethnicityId(ethnicityId), employmentStatusId(employmentStatusId),
-						genderId(genderId), educationId(educationId), occupationId(occupationId), vehicleCategoryId(vehicleCategoryId), transitCategoryId(transitCategoryId),
-						ageCategoryId(ageCategoryId), residentialStatusId(residentialStatusId), householdHead(householdHead), income(income), memberId(memberId), workAtHome(workAtHome),
-						carLicense(carLicense), motorLicense(motorLicense), vanbusLicense(vanbusLicense), dateOfBirth(dateOfBirth),
-						 studentId(studentId), industryId(industryId), ageDetailedCategory(ageDetailedCategory), taxiDriver(taxiDriver), fixed_workplace(fixed_workplace), fixed_hours(fixed_hours){}
+                        BigSerial genderId, BigSerial educationId, BigSerial occupationId, BigSerial vehicleCategoryId, BigSerial transitCategoryId,
+                        BigSerial ageCategoryId, BigSerial residentialStatusId, bool householdHead, float income, int memberId, bool workAtHome, bool carLicense,
+                        bool motorLicense, bool vanbusLicense, std::tm dateOfBirth, BigSerial studentId, BigSerial industryId, BigSerial ageDetailedCategory, int taxiDriver, int fixed_workplace, int fixed_hours) :
+                        id(id), individualTypeId(individualTypeId), householdId(householdId), jobId(jobId), ethnicityId(ethnicityId), employmentStatusId(employmentStatusId),
+                        genderId(genderId), educationId(educationId), occupationId(occupationId), vehicleCategoryId(vehicleCategoryId), transitCategoryId(transitCategoryId),
+                        ageCategoryId(ageCategoryId), residentialStatusId(residentialStatusId), householdHead(householdHead), income(income), memberId(memberId), workAtHome(workAtHome),
+                        carLicense(carLicense), motorLicense(motorLicense), vanbusLicense(vanbusLicense), dateOfBirth(dateOfBirth),
+                         studentId(studentId), industryId(industryId), ageDetailedCategory(ageDetailedCategory), taxiDriver(taxiDriver), fixed_workplace(fixed_workplace), fixed_hours(fixed_hours){}
 
 Individual::~Individual() {}
 
 Individual& Individual::operator=(const Individual& source)
 {
-	this->id = source.id;
-	this->individualTypeId = source.individualTypeId;
-	this->householdId = source.householdId;
-	this->jobId = source.jobId;
-	this->ethnicityId = source.ethnicityId;
-	this->employmentStatusId = source.employmentStatusId;
-	this->genderId = source.genderId;
-	this->educationId = source.educationId;
-	this->occupationId = source.occupationId;
-	this->vehicleCategoryId = source.vehicleCategoryId;
-	this->transitCategoryId = source.transitCategoryId;
-	this->ageCategoryId = source.ageCategoryId;
-	this->residentialStatusId = source.residentialStatusId;
-	this->householdHead = source.householdHead;
-	this->income = source.income;
-	this->memberId = source.memberId;
-	this->workAtHome = source.workAtHome;
-	this->carLicense = source.carLicense;
-	this->motorLicense = source.motorLicense;
-	this->vanbusLicense = source.vanbusLicense;
-	this->dateOfBirth = source.dateOfBirth;
-	this->studentId = source.studentId;
-	this->industryId = source.industryId;
-	this->ageDetailedCategory = source.ageDetailedCategory;
-	this->taxiDriver = source.taxiDriver;
-	this->fixed_workplace = source.fixed_workplace;
-	this->fixed_hours = source.fixed_hours;
+    this->id = source.id;
+    this->individualTypeId = source.individualTypeId;
+    this->householdId = source.householdId;
+    this->jobId = source.jobId;
+    this->ethnicityId = source.ethnicityId;
+    this->employmentStatusId = source.employmentStatusId;
+    this->genderId = source.genderId;
+    this->educationId = source.educationId;
+    this->occupationId = source.occupationId;
+    this->vehicleCategoryId = source.vehicleCategoryId;
+    this->transitCategoryId = source.transitCategoryId;
+    this->ageCategoryId = source.ageCategoryId;
+    this->residentialStatusId = source.residentialStatusId;
+    this->householdHead = source.householdHead;
+    this->income = source.income;
+    this->memberId = source.memberId;
+    this->workAtHome = source.workAtHome;
+    this->carLicense = source.carLicense;
+    this->motorLicense = source.motorLicense;
+    this->vanbusLicense = source.vanbusLicense;
+    this->dateOfBirth = source.dateOfBirth;
+    this->studentId = source.studentId;
+    this->industryId = source.industryId;
+    this->ageDetailedCategory = source.ageDetailedCategory;
+    this->taxiDriver = source.taxiDriver;
+    this->fixed_workplace = source.fixed_workplace;
+    this->fixed_hours = source.fixed_hours;
 
-	return *this;
+    return *this;
 }
 
 template<class Archive>
 void Individual::serialize(Archive & ar,const unsigned int version)
 {
-	ar & id;
-	ar & individualTypeId;
-	ar & householdId;
-	ar & jobId;
-	ar & ethnicityId;
-	ar & employmentStatusId;
-	ar & genderId;
-	ar & educationId;
-	ar & occupationId;
-	ar & vehicleCategoryId;
-	ar & transitCategoryId;
-	ar & ageCategoryId;
-	ar & residentialStatusId;
-	ar & householdHead;
-	ar & income;
-	ar & memberId;
-	ar & workAtHome;
-	ar & carLicense;
-	ar & motorLicense;
-	ar & vanbusLicense;
-	ar & BOOST_SERIALIZATION_NVP(dateOfBirth.tm_year);
-	ar & BOOST_SERIALIZATION_NVP(dateOfBirth.tm_mon);
-	ar & BOOST_SERIALIZATION_NVP(dateOfBirth.tm_mday);
-	dateOfBirth.tm_year = dateOfBirth.tm_year+1900;
-	ar & studentId;
-	ar & industryId;
-	ar & ageDetailedCategory;
-	ar & taxiDriver;
-	ar & fixed_workplace;
-	ar & fixed_hours;
+    ar & id;
+    ar & individualTypeId;
+    ar & householdId;
+    ar & jobId;
+    ar & ethnicityId;
+    ar & employmentStatusId;
+    ar & genderId;
+    ar & educationId;
+    ar & occupationId;
+    ar & vehicleCategoryId;
+    ar & transitCategoryId;
+    ar & ageCategoryId;
+    ar & residentialStatusId;
+    ar & householdHead;
+    ar & income;
+    ar & memberId;
+    ar & workAtHome;
+    ar & carLicense;
+    ar & motorLicense;
+    ar & vanbusLicense;
+    ar & BOOST_SERIALIZATION_NVP(dateOfBirth.tm_year);
+    ar & BOOST_SERIALIZATION_NVP(dateOfBirth.tm_mon);
+    ar & BOOST_SERIALIZATION_NVP(dateOfBirth.tm_mday);
+    dateOfBirth.tm_year = dateOfBirth.tm_year+1900;
+    ar & studentId;
+    ar & industryId;
+    ar & ageDetailedCategory;
+    ar & taxiDriver;
+    ar & fixed_workplace;
+    ar & fixed_hours;
 
 }
 
 void Individual::saveData(std::vector<Individual*> &individuals)
 {
-	// make an archive
-	std::ofstream ofs(filename);
-	boost::archive::binary_oarchive oa(ofs);
-	oa & individuals;
+    // make an archive
+    std::ofstream ofs(filename);
+    boost::archive::binary_oarchive oa(ofs);
+    oa & individuals;
 }
 
 std::vector<Individual*> Individual::loadSerializedData()
 {
-	std::vector<Individual*> individuals;
-	// Restore from saved data and print to verify contents
-	std::vector<Individual*> restored_info;
-	{
-		// Create and input archive
-		std::ifstream ifs( filename );
-		boost::archive::binary_iarchive ar( ifs );
+    std::vector<Individual*> individuals;
+    // Restore from saved data and print to verify contents
+    std::vector<Individual*> restored_info;
+    {
+        // Create and input archive
+        std::ifstream ifs( filename );
+        boost::archive::binary_iarchive ar( ifs );
 
-		// Load the data
-		ar & restored_info;
-	}
+        // Load the data
+        ar & restored_info;
+    }
 
-	for (auto *itr :restored_info)
-	{
-		Individual *ind = itr;
-		individuals.push_back(ind);
-	}
+    for (auto *itr :restored_info)
+    {
+        Individual *ind = itr;
+        individuals.push_back(ind);
+    }
 
-	return individuals;
+    return individuals;
 
 }
 
 BigSerial Individual::getId() const
 {
-	return id;
+    return id;
 }
 
 BigSerial Individual::getIndividualTypeId() const
 {
-	return individualTypeId;
+    return individualTypeId;
 }
 
 BigSerial Individual::getHouseholdId() const
 {
-	return householdId;
+    return householdId;
 }
 
 BigSerial Individual::getJobId() const
 {
-	return jobId;
+    return jobId;
 }
 
 BigSerial Individual::getEthnicityId() const
 {
-	return ethnicityId;
+    return ethnicityId;
 }
 
 BigSerial Individual::getEmploymentStatusId() const
 {
-	return employmentStatusId;
+    return employmentStatusId;
 }
 
 BigSerial Individual::getGenderId() const
 {
-	return genderId;
+    return genderId;
 }
 
 BigSerial Individual::getEducationId() const
 {
-	return educationId;
+    return educationId;
 }
 
 BigSerial Individual::getOccupationId() const
 {
-	return occupationId;
+    return occupationId;
 }
 
 BigSerial Individual::getVehicleCategoryId() const
 {
-	return vehicleCategoryId;
+    return vehicleCategoryId;
 }
 
 BigSerial Individual::getTransitCategoryId() const
 {
-	return transitCategoryId;
+    return transitCategoryId;
 }
 
 BigSerial Individual::getAgeCategoryId() const
 {
-	return ageCategoryId;
+    return ageCategoryId;
 }
 
 BigSerial Individual::getResidentialStatusId() const
 {
-	return residentialStatusId;
+    return residentialStatusId;
 }
 
 bool Individual::getHouseholdHead() const
 {
-	return householdHead;
+    return householdHead;
 }
 
 float Individual::getIncome() const
 {
-	return income;
+    return income;
 }
 
 int Individual::getMemberId() const
 {
-	return memberId;
+    return memberId;
 }
 
 bool Individual::getWorkAtHome() const
 {
-	return workAtHome;
+    return workAtHome;
 }
 
 bool Individual::getCarLicense() const
 {
-	return carLicense;
+    return carLicense;
 }
 
 bool Individual::getMotorLicense() const
 {
-	return motorLicense;
+    return motorLicense;
 }
 
 bool Individual::getVanBusLicense() const
 {
-	return vanbusLicense;
+    return vanbusLicense;
 }
 
 
 std::tm Individual::getDateOfBirth() const
 {
-	return dateOfBirth;
+    return dateOfBirth;
 }
 
 bool Individual::getIsPrimarySchoolWithin5Km(BigSerial primarySchoolId) const
 {
-	boost::unordered_map<BigSerial,School*>::const_iterator itr = primarySchoolsWithin5KmById.find(primarySchoolId);
-	if (itr != primarySchoolsWithin5KmById.end())
-	{
-		return true;
-	}
-	return false;
+    boost::unordered_map<BigSerial,School*>::const_iterator itr = primarySchoolsWithin5KmById.find(primarySchoolId);
+    if (itr != primarySchoolsWithin5KmById.end())
+    {
+        return true;
+    }
+    return false;
 }
 
 
 BigSerial Individual::getStudentId() const
 {
-	return studentId;
+    return studentId;
 }
 
 BigSerial Individual::getIndustryId() const
 {
-	return industryId;
+    return industryId;
 }
 
 BigSerial Individual::getAgeDetailedCategory() const
 {
-	return ageDetailedCategory;
+    return ageDetailedCategory;
 }
 
 
-int		  Individual::getTaxiDriver() const
+int       Individual::getTaxiDriver() const
 {
-	return taxiDriver;
+    return taxiDriver;
 }
 
 
-int		  Individual::getFixed_workplace() const
+int       Individual::getFixed_workplace() const
 {
-	return fixed_workplace;
+    return fixed_workplace;
 }
 
 
-int		  Individual::getFixed_hours() const
+int       Individual::getFixed_hours() const
 {
-	return fixed_hours;
+    return fixed_hours;
 }
 
 void Individual::setDateOfBirth( std::tm dob )
 {
-	this->dateOfBirth = dob;
+    this->dateOfBirth = dob;
 }
 
 void Individual::addprimarySchoolIdWithin5km(BigSerial schoolId,School *primarySchool)
 {
-	this->primarySchoolsWithin5KmById.insert(std::make_pair(schoolId,primarySchool));
+    this->primarySchoolsWithin5KmById.insert(std::make_pair(schoolId,primarySchool));
 }
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		std::ostream& operator<<(std::ostream& strm, const Individual& data)
-		{
-			return strm << "{" << "\"id \":\"" << data.id << "\","
-						<< "\"individualTypeId \":\"" 	<< data.individualTypeId << "\","
-						<< "\"householdId \":\"" 		<< data.householdId << "\","
-						<< "\"jobId \":\"" 				<< data.jobId << "\","
-						<< "\"ethnicityId \":\""		<< data.ethnicityId << "\","
-						<< "\"employmentStatusId \":\""	<< data.employmentStatusId
-						<< "\"," << "\"genderId \":\""	<< data.genderId << "\","
-						<< "\"educationId \":\""		<< data.educationId << "\","
-						<< "\"occupationId \":\""		<< data.occupationId << "\","
-						<< "\"vehiculeCategoryId \":\""	<< data.vehicleCategoryId << "\","
-						<< "\"transitCategoryId \":\""	<< data.transitCategoryId << "\","
-						<< "\"ageCategoryId \":\""		<< data.ageCategoryId << "\","
-						<< "\"residentialStatusId \":\"" << data.residentialStatusId << "\","
-						<< "\"householdHead \":\""		<< data.householdHead << "\","
-						<< "\"income \":\"" 	<< data.income << "\","
-						<< "\"memberId \":\"" 	<< data.memberId << "\","
-						<< "\"workerAtHome \":\"" 	<< data.workAtHome << "\","
-						<< "\"carLicense \":\"" << data.carLicense << "\","
-						<< "\"motorLicense \":\"" << data.motorLicense << "\","
-						<< "\"vanbusLicense \":\"" << data.vanbusLicense << "\","
-						<< "\"dateOfBirth \":\"" 	<< data.dateOfBirth.tm_year << " " << data.dateOfBirth.tm_mon 	<< " " << data.dateOfBirth.tm_mday << "\"" << "}";
-		}
-	}
+    namespace long_term
+    {
+        std::ostream& operator<<(std::ostream& strm, const Individual& data)
+        {
+            return strm << "{" << "\"id \":\"" << data.id << "\","
+                        << "\"individualTypeId \":\""   << data.individualTypeId << "\","
+                        << "\"householdId \":\""        << data.householdId << "\","
+                        << "\"jobId \":\""              << data.jobId << "\","
+                        << "\"ethnicityId \":\""        << data.ethnicityId << "\","
+                        << "\"employmentStatusId \":\"" << data.employmentStatusId
+                        << "\"," << "\"genderId \":\""  << data.genderId << "\","
+                        << "\"educationId \":\""        << data.educationId << "\","
+                        << "\"occupationId \":\""       << data.occupationId << "\","
+                        << "\"vehiculeCategoryId \":\"" << data.vehicleCategoryId << "\","
+                        << "\"transitCategoryId \":\""  << data.transitCategoryId << "\","
+                        << "\"ageCategoryId \":\""      << data.ageCategoryId << "\","
+                        << "\"residentialStatusId \":\"" << data.residentialStatusId << "\","
+                        << "\"householdHead \":\""      << data.householdHead << "\","
+                        << "\"income \":\""     << data.income << "\","
+                        << "\"memberId \":\""   << data.memberId << "\","
+                        << "\"workerAtHome \":\""   << data.workAtHome << "\","
+                        << "\"carLicense \":\"" << data.carLicense << "\","
+                        << "\"motorLicense \":\"" << data.motorLicense << "\","
+                        << "\"vanbusLicense \":\"" << data.vanbusLicense << "\","
+                        << "\"dateOfBirth \":\""    << data.dateOfBirth.tm_year << " " << data.dateOfBirth.tm_mon   << " " << data.dateOfBirth.tm_mday << "\"" << "}";
+        }
+    }
 }
 

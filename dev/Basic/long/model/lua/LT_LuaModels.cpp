@@ -62,17 +62,17 @@ namespace {
         getGlobalNamespace(state)
             .beginClass <Unit> ("Unit")
             .addProperty("fmUnitId", &Unit::getId)
-        	.addProperty("fmBuildingId", &Unit::getBuildingId)
-        	.addProperty("unitType", &Unit::getUnitType)
-        	.addProperty("storeyRange", &Unit::getStoreyRange)
-        	.addProperty("unitStatus", &Unit::getConstructionStatus)
-        	.addProperty("floorArea", &Unit::getFloorArea)
-        	.addProperty("storey", &Unit::getStorey)
-        	.addProperty("mothlyRent", &Unit::getMonthlyRent)
-        	.addProperty("saleFromDate", &Unit::getSaleFromDate)
-        	.addProperty("physicalFromYear", &Unit::getOccupancyFromYear)
-        	.addProperty("saleStatus", &Unit::getSaleStatus)
-        	.addProperty("occupancyStatus", &Unit::getOccupancyStatus)
+            .addProperty("fmBuildingId", &Unit::getBuildingId)
+            .addProperty("unitType", &Unit::getUnitType)
+            .addProperty("storeyRange", &Unit::getStoreyRange)
+            .addProperty("unitStatus", &Unit::getConstructionStatus)
+            .addProperty("floorArea", &Unit::getFloorArea)
+            .addProperty("storey", &Unit::getStorey)
+            .addProperty("mothlyRent", &Unit::getMonthlyRent)
+            .addProperty("saleFromDate", &Unit::getSaleFromDate)
+            .addProperty("physicalFromYear", &Unit::getOccupancyFromYear)
+            .addProperty("saleStatus", &Unit::getSaleStatus)
+            .addProperty("occupancyStatus", &Unit::getOccupancyStatus)
             .endClass();
     getGlobalNamespace(state)
             .beginClass <Postcode> ("Postcode")
@@ -231,12 +231,12 @@ void HM_LuaModel::mapClasses()
 
 void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, double logsum, double lagCoefficient, vector<ExpectationEntry>& outValues ) const
 {
-	assert(0);
-	PrintOutV("We no longer use this function.");
+    assert(0);
+    PrintOutV("We no longer use this function.");
     const BigSerial pcId = 0;//unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calulateUnitExpectations");
 
-	LuaRef retVal = funcRef(&unit, timeOnMarket, logsum, lagCoefficient, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
+    LuaRef retVal = funcRef(&unit, timeOnMarket, logsum, lagCoefficient, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
 
     if (retVal.isTable())
     {
@@ -250,19 +250,19 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, d
 
     if( retVal.length() == 0 )
     {
-    	const Building* build = getBuilding(unit.getBuildingId());
-    	const Postcode* postcode = getPostcode(pcId);
-    	const PostcodeAmenities* amen = getAmenities(pcId);
+        const Building* build = getBuilding(unit.getBuildingId());
+        const Postcode* postcode = getPostcode(pcId);
+        const PostcodeAmenities* amen = getAmenities(pcId);
 
-    	//PrintOutV("[ERROR] Unit Expectations is empty for unit " << unit.getId() << " from building ID: "  << build->getFmBuildingId() << " at addressId: " << postcode->getAddressId() << " with building name: " << buildingName << std::endl );
+        //PrintOutV("[ERROR] Unit Expectations is empty for unit " << unit.getId() << " from building ID: "  << build->getFmBuildingId() << " at addressId: " << postcode->getAddressId() << " with building name: " << buildingName << std::endl );
 
     }
 }
 
 double HM_LuaModel::calculateHedonicPrice(const Unit& unit) const
 {
-	assert(0);
-	PrintOutV("We no longer use this function.");
+    assert(0);
+    PrintOutV("We no longer use this function.");
     const BigSerial pcId = 0;//unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calculateHedonicPrice");
     LuaRef retVal = funcRef(&unit, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
@@ -287,8 +287,8 @@ double HM_LuaModel::calculateSpeculation(const HousingMarket::Entry& entry, int 
 
 double HM_LuaModel::calulateWP(const Household& hh, const Unit& unit, const HM_Model::TazStats& stats) const
 {
-	assert(0);
-	PrintOutV("We no longer use this function.");
+    assert(0);
+    PrintOutV("We no longer use this function.");
     const BigSerial pcId = 0;//unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calculateWP");
     LuaRef retVal = funcRef(&hh, &unit, &stats, getAmenities(pcId));

@@ -15,23 +15,23 @@ Job::~Job() {}
 
 void Job::setId(BigSerial val)
 {
-	id = val;
+    id = val;
 }
 
 void Job::setEstablishmentId(BigSerial val)
 {
-	establishmentId = val;
+    establishmentId = val;
 }
 
 
 BigSerial Job::getId() const
 {
-	return id;
+    return id;
 }
 
 BigSerial Job::getEstablishmentId() const
 {
-	return establishmentId;
+    return establishmentId;
 }
 
 

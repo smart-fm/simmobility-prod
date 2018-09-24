@@ -29,12 +29,12 @@ public:
     /**
      * Constructor
      */
-	World();
+    World();
 
     /**
      * Destructor
      */
-	virtual ~World();
+    virtual ~World();
 
     /**
      * loads the locations, vehicles and customers into the amod world
@@ -78,7 +78,7 @@ public:
      * @param eitr - end iterator
      */
     virtual void getVehicles(std::unordered_map<int, Vehicle>::const_iterator* bitr,
-    		std::unordered_map<int, Vehicle>::const_iterator* eitr) const;
+            std::unordered_map<int, Vehicle>::const_iterator* eitr) const;
 
     /**
      * get number of vehicles in the amod world
@@ -112,7 +112,7 @@ public:
      * @param eitr - end iterator
      */
     virtual void getLocations(std::unordered_map<int, Location>::const_iterator* bitr,
-    		std::unordered_map<int, Location>::const_iterator* eitr);
+            std::unordered_map<int, Location>::const_iterator* eitr);
 
     /**
      * get number of locations in the amod world
@@ -146,7 +146,7 @@ public:
      * @param eitr - end iterator
      */
     virtual void getCustomers(std::unordered_map<int, Customer>::const_iterator* bitr,
-    		std::unordered_map<int, Customer>::const_iterator* eitr);
+            std::unordered_map<int, Customer>::const_iterator* eitr);
 
     /**
      * get number of customers in the amod world
@@ -170,19 +170,19 @@ public:
      * add a vehicle to amod world
      * @param veh - vehicle to be added
      */
-	virtual void addVehicle(const Vehicle &veh);
+    virtual void addVehicle(const Vehicle &veh);
 
     /**
      * add a vehicle to amod world
      * @param veh - vehicle to be added
      */
-	virtual void setVehicle(const Vehicle &veh);
+    virtual void setVehicle(const Vehicle &veh);
 
     /**
      * add vehicles to the amod world
      * @param vehs - vehicles to be added
      */
-	virtual void addVehicles(const std::vector<Vehicle> &vehs);
+    virtual void addVehicles(const std::vector<Vehicle> &vehs);
 
     /**
      * remove a vehicle from amod world
@@ -260,13 +260,13 @@ public:
      * add an event
      * @param event
      */
-	virtual void addEvent(Event &event);
+    virtual void addEvent(Event &event);
 
     /**
      * set an event
      * @param event
      */
-	virtual void setEvent(Event &event);
+    virtual void setEvent(Event &event);
 
     /**
      * add a list of events
@@ -283,7 +283,7 @@ public:
     /**
      * clears all the events
      */
-	virtual void clearEvents();
+    virtual void clearEvents();
 
     /**
      * sets the current simulation time

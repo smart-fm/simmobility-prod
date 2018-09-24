@@ -55,37 +55,37 @@ const std::string MODE_TAXI_STOP = "mode_taxi_stop";
 
 size_t getModeIdx(int mode)
 {
-	size_t modeIdx;
-	switch(mode)
-	{
-	case 1: // public bus
-		modeIdx = 0;
-		break;
-	case 2: // MRT/LRT
-		modeIdx = 1;
-		break;
-	case 3: // private bus
-		modeIdx = 2;
-		break;
-	case 4: // drive 1
-		modeIdx = 3;
-		break;
-	case 5: // shared 2
-	case 6: // shared 3
-		// Shared 2 and shared 3 are both car passenger. (i.e) shared 2 - driver shares car with 1 pax. shared 3 - driver shares the car with 2 pax.
-		modeIdx = 4;
-		break;
-	case 7: // motor bike
-		modeIdx = 5;
-		break;
-	case 8: // walk
-		// We are not collecting stats for walk
-		return true;
-	case 9: // taxi
-		modeIdx = 6;
-		break;
-	}
-	return modeIdx;
+    size_t modeIdx;
+    switch(mode)
+    {
+    case 1: // public bus
+        modeIdx = 0;
+        break;
+    case 2: // MRT/LRT
+        modeIdx = 1;
+        break;
+    case 3: // private bus
+        modeIdx = 2;
+        break;
+    case 4: // drive 1
+        modeIdx = 3;
+        break;
+    case 5: // shared 2
+    case 6: // shared 3
+        // Shared 2 and shared 3 are both car passenger. (i.e) shared 2 - driver shares car with 1 pax. shared 3 - driver shares the car with 2 pax.
+        modeIdx = 4;
+        break;
+    case 7: // motor bike
+        modeIdx = 5;
+        break;
+    case 8: // walk
+        // We are not collecting stats for walk
+        return true;
+    case 9: // taxi
+        modeIdx = 6;
+        break;
+    }
+    return modeIdx;
 }
 
 /**
@@ -97,13 +97,13 @@ size_t getModeIdx(int mode)
  */
 bool computePctVector(const std::vector<double>& countVector, const double total, std::vector<double>& pctVector)
 {
-	if(total <= 0 || countVector.empty()) { return false;}
-	pctVector.clear();
-	for(std::vector<double>::const_iterator i=countVector.begin(); i!=countVector.end(); i++)
-	{
-		pctVector.push_back((*i)/total);
-	}
-	return true;
+    if(total <= 0 || countVector.empty()) { return false;}
+    pctVector.clear();
+    for(std::vector<double>::const_iterator i=countVector.begin(); i!=countVector.end(); i++)
+    {
+        pctVector.push_back((*i)/total);
+    }
+    return true;
 }
 }
 
@@ -127,52 +127,52 @@ sim_mob::medium::CalibrationStatistics::CalibrationStatistics(const boost::unord
   tripPctWithMode(std::vector<double>(SIZE_MODE_SHARE_STATS, 0)),
   totalTours(0), totalTrips(0), isSimulated(false)
 {
-	try
-	{
-		addToTourCountStats(0, boost::lexical_cast<double>(observedValuesMap.at(NUM_0_TOURS)));
-		addToTourCountStats(1, boost::lexical_cast<double>(observedValuesMap.at(NUM_1_TOURS)));
-		addToTourCountStats(2, boost::lexical_cast<double>(observedValuesMap.at(NUM_2_TOURS)));
-		addToTourCountStats(3, boost::lexical_cast<double>(observedValuesMap.at(NUM_3PLUS_TOURS)));
+    try
+    {
+        addToTourCountStats(0, boost::lexical_cast<double>(observedValuesMap.at(NUM_0_TOURS)));
+        addToTourCountStats(1, boost::lexical_cast<double>(observedValuesMap.at(NUM_1_TOURS)));
+        addToTourCountStats(2, boost::lexical_cast<double>(observedValuesMap.at(NUM_2_TOURS)));
+        addToTourCountStats(3, boost::lexical_cast<double>(observedValuesMap.at(NUM_3PLUS_TOURS)));
 
-		addToStopCountStats(0, boost::lexical_cast<double>(observedValuesMap.at(NUM_0_STOPS)));
-		addToStopCountStats(1, boost::lexical_cast<double>(observedValuesMap.at(NUM_1_STOPS)));
-		addToStopCountStats(2, boost::lexical_cast<double>(observedValuesMap.at(NUM_2_STOPS)));
-		addToStopCountStats(3, boost::lexical_cast<double>(observedValuesMap.at(NUM_3_STOPS)));
-		addToStopCountStats(4, boost::lexical_cast<double>(observedValuesMap.at(NUM_4PLUS_STOPS)));
+        addToStopCountStats(0, boost::lexical_cast<double>(observedValuesMap.at(NUM_0_STOPS)));
+        addToStopCountStats(1, boost::lexical_cast<double>(observedValuesMap.at(NUM_1_STOPS)));
+        addToStopCountStats(2, boost::lexical_cast<double>(observedValuesMap.at(NUM_2_STOPS)));
+        addToStopCountStats(3, boost::lexical_cast<double>(observedValuesMap.at(NUM_3_STOPS)));
+        addToStopCountStats(4, boost::lexical_cast<double>(observedValuesMap.at(NUM_4PLUS_STOPS)));
 
-		addToTravelDistanceStats(0, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_0_5_KM)));
-		addToTravelDistanceStats(5, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_5_10_KM)));
-		addToTravelDistanceStats(10, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_10_15_KM)));
-		addToTravelDistanceStats(15, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_15_20_KM)));
-		addToTravelDistanceStats(20, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_20_25_KM)));
-		addToTravelDistanceStats(25, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_25_30_KM)));
-		addToTravelDistanceStats(30, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_30_40_KM)));
-		addToTravelDistanceStats(40, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_40PLUS_KM)));
+        addToTravelDistanceStats(0, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_0_5_KM)));
+        addToTravelDistanceStats(5, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_5_10_KM)));
+        addToTravelDistanceStats(10, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_10_15_KM)));
+        addToTravelDistanceStats(15, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_15_20_KM)));
+        addToTravelDistanceStats(20, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_20_25_KM)));
+        addToTravelDistanceStats(25, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_25_30_KM)));
+        addToTravelDistanceStats(30, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_30_40_KM)));
+        addToTravelDistanceStats(40, boost::lexical_cast<double>(observedValuesMap.at(NUM_TRIPS_40PLUS_KM)));
 
-		setTourModeSharePct(0, boost::lexical_cast<double>(observedValuesMap.at(MODE_BUS_TOUR)));
-		setTourModeSharePct(1, boost::lexical_cast<double>(observedValuesMap.at(MODE_MRT_TOUR)));
-		setTourModeSharePct(2, boost::lexical_cast<double>(observedValuesMap.at(MODE_PRIVATE_BUS_TOUR)));
-		setTourModeSharePct(3, boost::lexical_cast<double>(observedValuesMap.at(MODE_CAR_TOUR)));
-		setTourModeSharePct(4, boost::lexical_cast<double>(observedValuesMap.at(MODE_CAR_PASSENGER_TOUR)));
-		setTourModeSharePct(5, boost::lexical_cast<double>(observedValuesMap.at(MODE_MOTOR_BIKE_TOUR)));
-		setTourModeSharePct(6, boost::lexical_cast<double>(observedValuesMap.at(MODE_TAXI_TOUR)));
+        setTourModeSharePct(0, boost::lexical_cast<double>(observedValuesMap.at(MODE_BUS_TOUR)));
+        setTourModeSharePct(1, boost::lexical_cast<double>(observedValuesMap.at(MODE_MRT_TOUR)));
+        setTourModeSharePct(2, boost::lexical_cast<double>(observedValuesMap.at(MODE_PRIVATE_BUS_TOUR)));
+        setTourModeSharePct(3, boost::lexical_cast<double>(observedValuesMap.at(MODE_CAR_TOUR)));
+        setTourModeSharePct(4, boost::lexical_cast<double>(observedValuesMap.at(MODE_CAR_PASSENGER_TOUR)));
+        setTourModeSharePct(5, boost::lexical_cast<double>(observedValuesMap.at(MODE_MOTOR_BIKE_TOUR)));
+        setTourModeSharePct(6, boost::lexical_cast<double>(observedValuesMap.at(MODE_TAXI_TOUR)));
 
-		setTripModeSharePct(0, boost::lexical_cast<double>(observedValuesMap.at(MODE_BUS_STOP)));
-		setTripModeSharePct(1, boost::lexical_cast<double>(observedValuesMap.at(MODE_MRT_STOP)));
-		setTripModeSharePct(2, boost::lexical_cast<double>(observedValuesMap.at(MODE_PRIVATE_BUS_STOP)));
-		setTripModeSharePct(3, boost::lexical_cast<double>(observedValuesMap.at(MODE_CAR_STOP)));
-		setTripModeSharePct(4, boost::lexical_cast<double>(observedValuesMap.at(MODE_CAR_PASSENGER_STOP)));
-		setTripModeSharePct(5, boost::lexical_cast<double>(observedValuesMap.at(MODE_MOTOR_BIKE_STOP)));
-		setTripModeSharePct(6, boost::lexical_cast<double>(observedValuesMap.at(MODE_TAXI_STOP)));
-	}
-	catch(const std::out_of_range& oor)
-	{
-		throw std::runtime_error("attempt to get value that is not in file");
-	}
-	catch(boost::bad_lexical_cast const& badCast)
-	{
-		throw std::runtime_error("observed values file has non-numeric values");
-	}
+        setTripModeSharePct(0, boost::lexical_cast<double>(observedValuesMap.at(MODE_BUS_STOP)));
+        setTripModeSharePct(1, boost::lexical_cast<double>(observedValuesMap.at(MODE_MRT_STOP)));
+        setTripModeSharePct(2, boost::lexical_cast<double>(observedValuesMap.at(MODE_PRIVATE_BUS_STOP)));
+        setTripModeSharePct(3, boost::lexical_cast<double>(observedValuesMap.at(MODE_CAR_STOP)));
+        setTripModeSharePct(4, boost::lexical_cast<double>(observedValuesMap.at(MODE_CAR_PASSENGER_STOP)));
+        setTripModeSharePct(5, boost::lexical_cast<double>(observedValuesMap.at(MODE_MOTOR_BIKE_STOP)));
+        setTripModeSharePct(6, boost::lexical_cast<double>(observedValuesMap.at(MODE_TAXI_STOP)));
+    }
+    catch(const std::out_of_range& oor)
+    {
+        throw std::runtime_error("attempt to get value that is not in file");
+    }
+    catch(boost::bad_lexical_cast const& badCast)
+    {
+        throw std::runtime_error("observed values file has non-numeric values");
+    }
 }
 
 sim_mob::medium::CalibrationStatistics::~CalibrationStatistics()
@@ -181,159 +181,159 @@ sim_mob::medium::CalibrationStatistics::~CalibrationStatistics()
 
 void sim_mob::medium::CalibrationStatistics::reset()
 {
-	numPersonsWithTourCount = std::vector<double>(SIZE_NUM_TOURS_STATS,0);
-	numToursWithStopCount = std::vector<double>(SIZE_NUM_STOPS_STATS,0);
-	numToursWithMode = std::vector<double>(SIZE_MODE_SHARE_STATS, 0);
-	numTripsWithMode = std::vector<double>(SIZE_MODE_SHARE_STATS,0);
-	numTripsWithDistance = std::vector<double>(SIZE_TRAVEL_DISTANCE_STATS,0);
-	totalTrips = 0;
-	totalTours = 0;
+    numPersonsWithTourCount = std::vector<double>(SIZE_NUM_TOURS_STATS,0);
+    numToursWithStopCount = std::vector<double>(SIZE_NUM_STOPS_STATS,0);
+    numToursWithMode = std::vector<double>(SIZE_MODE_SHARE_STATS, 0);
+    numTripsWithMode = std::vector<double>(SIZE_MODE_SHARE_STATS,0);
+    numTripsWithDistance = std::vector<double>(SIZE_TRAVEL_DISTANCE_STATS,0);
+    totalTrips = 0;
+    totalTours = 0;
 }
 
 void sim_mob::medium::CalibrationStatistics::getAllStatistics(std::vector<double>& outStatistics)
 {
 
-	outStatistics.insert(outStatistics.end(), numPersonsWithTourCount.begin(), numPersonsWithTourCount.end());
-	outStatistics.insert(outStatistics.end(), numToursWithStopCount.begin(), numToursWithStopCount.end());
-	outStatistics.insert(outStatistics.end(), numTripsWithDistance.begin(), numTripsWithDistance.end());
-	if(isSimulated)
-	{
-		computePctVector(numToursWithMode, totalTours, tourPctWithMode);
-		outStatistics.insert(outStatistics.end(), tourPctWithMode.begin(), tourPctWithMode.end());
-		computePctVector(numTripsWithMode, totalTrips, tripPctWithMode);
-		outStatistics.insert(outStatistics.end(), tripPctWithMode.begin(), tripPctWithMode.end());
-	}
-	else
-	{
-		outStatistics.insert(outStatistics.end(), tourPctWithMode.begin(), tourPctWithMode.end());
-		outStatistics.insert(outStatistics.end(), tripPctWithMode.begin(), tripPctWithMode.end());
-	}
+    outStatistics.insert(outStatistics.end(), numPersonsWithTourCount.begin(), numPersonsWithTourCount.end());
+    outStatistics.insert(outStatistics.end(), numToursWithStopCount.begin(), numToursWithStopCount.end());
+    outStatistics.insert(outStatistics.end(), numTripsWithDistance.begin(), numTripsWithDistance.end());
+    if(isSimulated)
+    {
+        computePctVector(numToursWithMode, totalTours, tourPctWithMode);
+        outStatistics.insert(outStatistics.end(), tourPctWithMode.begin(), tourPctWithMode.end());
+        computePctVector(numTripsWithMode, totalTrips, tripPctWithMode);
+        outStatistics.insert(outStatistics.end(), tripPctWithMode.begin(), tripPctWithMode.end());
+    }
+    else
+    {
+        outStatistics.insert(outStatistics.end(), tourPctWithMode.begin(), tourPctWithMode.end());
+        outStatistics.insert(outStatistics.end(), tripPctWithMode.begin(), tripPctWithMode.end());
+    }
 }
 
 bool sim_mob::medium::CalibrationStatistics::addToTourCountStats(size_t numTours, double toAdd)
 {
-	if(numTours < numPersonsWithTourCount.size())
-	{
-		numPersonsWithTourCount[numTours] = numPersonsWithTourCount[numTours] + toAdd;
-		return true;
-	}
-	return false;
+    if(numTours < numPersonsWithTourCount.size())
+    {
+        numPersonsWithTourCount[numTours] = numPersonsWithTourCount[numTours] + toAdd;
+        return true;
+    }
+    return false;
 }
 
 bool sim_mob::medium::CalibrationStatistics::addToStopCountStats(size_t numStops, double toAdd)
 {
-	if(numStops > 4) { numStops = 4; } // 4+
-	numToursWithStopCount[numStops] = numToursWithStopCount[numStops] + toAdd;
-	return true;
+    if(numStops > 4) { numStops = 4; } // 4+
+    numToursWithStopCount[numStops] = numToursWithStopCount[numStops] + toAdd;
+    return true;
 }
 
 bool sim_mob::medium::CalibrationStatistics::addToTripModeShareStats(int mode, double toAdd)
 {
-	if(mode > 9 || mode < 1) { return false; }
-	size_t modeIdx = getModeIdx(mode);
-	numTripsWithMode[modeIdx] = numTripsWithMode[modeIdx] + toAdd;
-	totalTrips = totalTrips + toAdd;
-	return true;
+    if(mode > 9 || mode < 1) { return false; }
+    size_t modeIdx = getModeIdx(mode);
+    numTripsWithMode[modeIdx] = numTripsWithMode[modeIdx] + toAdd;
+    totalTrips = totalTrips + toAdd;
+    return true;
 }
 
 bool sim_mob::medium::CalibrationStatistics::addToTourModeShareStats(int mode, double toAdd)
 {
-	if(mode > 9 || mode < 1) { return false; }
-	size_t modeIdx = getModeIdx(mode);
-	numToursWithMode[modeIdx] = numToursWithMode[modeIdx] + toAdd;
-	totalTours = totalTours + toAdd;
-	return true;
+    if(mode > 9 || mode < 1) { return false; }
+    size_t modeIdx = getModeIdx(mode);
+    numToursWithMode[modeIdx] = numToursWithMode[modeIdx] + toAdd;
+    totalTours = totalTours + toAdd;
+    return true;
 }
 
 
 bool sim_mob::medium::CalibrationStatistics::setTripModeSharePct(size_t modeIdx, double toAdd)
 {
-	tripPctWithMode[modeIdx] = toAdd;
-	return true;
+    tripPctWithMode[modeIdx] = toAdd;
+    return true;
 }
 
 bool sim_mob::medium::CalibrationStatistics::setTourModeSharePct(size_t modeIdx, double toAdd)
 {
-	tourPctWithMode[modeIdx] = toAdd;
-	return true;
+    tourPctWithMode[modeIdx] = toAdd;
+    return true;
 }
 
 bool sim_mob::medium::CalibrationStatistics::addToTravelDistanceStats(double distance, double toAdd)
 {
-	if(distance < 0) { return false; } // inadmissible
-	else if(distance >= 40) { numTripsWithDistance[7] = numTripsWithDistance[7] + toAdd; } // [40,infinity) km
-	else if(distance >= 30) { numTripsWithDistance[6] = numTripsWithDistance[6] + toAdd; } // [30, 40) km
-	else if(distance >= 25) { numTripsWithDistance[5] = numTripsWithDistance[5] + toAdd; } // [25, 30) km
-	else if(distance >= 20) { numTripsWithDistance[4] = numTripsWithDistance[4] + toAdd; } // [20, 25) km
-	else if(distance >= 15) { numTripsWithDistance[3] = numTripsWithDistance[3] + toAdd; } // [15, 20) km
-	else if(distance >= 10) { numTripsWithDistance[2] = numTripsWithDistance[2] + toAdd; } // [10, 15) km
-	else if(distance >= 5) { numTripsWithDistance[1] = numTripsWithDistance[1] + toAdd; }  // [5 , 10) km
-	else { numTripsWithDistance[0] = numTripsWithDistance[0] + toAdd; }                    // [0 , 5 ) km
-	return true;
+    if(distance < 0) { return false; } // inadmissible
+    else if(distance >= 40) { numTripsWithDistance[7] = numTripsWithDistance[7] + toAdd; } // [40,infinity) km
+    else if(distance >= 30) { numTripsWithDistance[6] = numTripsWithDistance[6] + toAdd; } // [30, 40) km
+    else if(distance >= 25) { numTripsWithDistance[5] = numTripsWithDistance[5] + toAdd; } // [25, 30) km
+    else if(distance >= 20) { numTripsWithDistance[4] = numTripsWithDistance[4] + toAdd; } // [20, 25) km
+    else if(distance >= 15) { numTripsWithDistance[3] = numTripsWithDistance[3] + toAdd; } // [15, 20) km
+    else if(distance >= 10) { numTripsWithDistance[2] = numTripsWithDistance[2] + toAdd; } // [10, 15) km
+    else if(distance >= 5) { numTripsWithDistance[1] = numTripsWithDistance[1] + toAdd; }  // [5 , 10) km
+    else { numTripsWithDistance[0] = numTripsWithDistance[0] + toAdd; }                    // [0 , 5 ) km
+    return true;
 }
 
 CalibrationStatistics& sim_mob::medium::CalibrationStatistics::operator+(const CalibrationStatistics& rightOperand)
 {
-	if(isSimulated && rightOperand.isSimulated)
-	{
-		std::transform(numPersonsWithTourCount.begin(), numPersonsWithTourCount.end(),
-				rightOperand.numPersonsWithTourCount.begin(), numPersonsWithTourCount.begin(), std::plus<double>());
+    if(isSimulated && rightOperand.isSimulated)
+    {
+        std::transform(numPersonsWithTourCount.begin(), numPersonsWithTourCount.end(),
+                rightOperand.numPersonsWithTourCount.begin(), numPersonsWithTourCount.begin(), std::plus<double>());
 
-		std::transform(numToursWithStopCount.begin(), numToursWithStopCount.end(),
-				rightOperand.numToursWithStopCount.begin(), numToursWithStopCount.begin(), std::plus<double>());
+        std::transform(numToursWithStopCount.begin(), numToursWithStopCount.end(),
+                rightOperand.numToursWithStopCount.begin(), numToursWithStopCount.begin(), std::plus<double>());
 
-		std::transform(numToursWithMode.begin(), numToursWithMode.end(),
-				rightOperand.numToursWithMode.begin(), numToursWithMode.begin(), std::plus<double>());
+        std::transform(numToursWithMode.begin(), numToursWithMode.end(),
+                rightOperand.numToursWithMode.begin(), numToursWithMode.begin(), std::plus<double>());
 
-		std::transform(numTripsWithMode.begin(), numTripsWithMode.end(),
-				rightOperand.numTripsWithMode.begin(), numTripsWithMode.begin(), std::plus<double>());
+        std::transform(numTripsWithMode.begin(), numTripsWithMode.end(),
+                rightOperand.numTripsWithMode.begin(), numTripsWithMode.begin(), std::plus<double>());
 
-		std::transform(numTripsWithDistance.begin(), numTripsWithDistance.end(),
-				rightOperand.numTripsWithDistance.begin(), numTripsWithDistance.begin(), std::plus<double>());
+        std::transform(numTripsWithDistance.begin(), numTripsWithDistance.end(),
+                rightOperand.numTripsWithDistance.begin(), numTripsWithDistance.begin(), std::plus<double>());
 
-		totalTours = totalTours + rightOperand.totalTours;
-		totalTrips = totalTrips + rightOperand.totalTrips;
-	}
-	return *this;  // Return a reference to myself.
+        totalTours = totalTours + rightOperand.totalTours;
+        totalTrips = totalTrips + rightOperand.totalTrips;
+    }
+    return *this;  // Return a reference to myself.
 }
 
 void sim_mob::medium::CalibrationStatistics::prettyPrint()
 {
-	std::stringstream ss;
-	ss << "numPersonsWithTourCount - ";
-	for(size_t i=0; i<SIZE_NUM_TOURS_STATS; i++)
-	{
-		ss << "\t" << i << ":" << numPersonsWithTourCount[i];
-	}
-	ss << std::endl;
+    std::stringstream ss;
+    ss << "numPersonsWithTourCount - ";
+    for(size_t i=0; i<SIZE_NUM_TOURS_STATS; i++)
+    {
+        ss << "\t" << i << ":" << numPersonsWithTourCount[i];
+    }
+    ss << std::endl;
 
-	ss << "numToursWithStopCount - ";
-	for(size_t i=0; i<SIZE_NUM_STOPS_STATS; i++)
-	{
-		ss << "\t" << i << ":" << numToursWithStopCount[i];
-	}
-	ss << std::endl;
+    ss << "numToursWithStopCount - ";
+    for(size_t i=0; i<SIZE_NUM_STOPS_STATS; i++)
+    {
+        ss << "\t" << i << ":" << numToursWithStopCount[i];
+    }
+    ss << std::endl;
 
-	ss << "numTripsWithDistance - ";
-	for(size_t i=0; i<SIZE_TRAVEL_DISTANCE_STATS; i++)
-	{
-		ss << "\t" << i << ":" << numTripsWithDistance[i];
-	}
-	ss << std::endl;
+    ss << "numTripsWithDistance - ";
+    for(size_t i=0; i<SIZE_TRAVEL_DISTANCE_STATS; i++)
+    {
+        ss << "\t" << i << ":" << numTripsWithDistance[i];
+    }
+    ss << std::endl;
 
-	ss << "numToursWithMode - ";
-	for(size_t i=0; i<SIZE_MODE_SHARE_STATS; i++)
-	{
-		ss << "\t" << i << ":" << numToursWithMode[i];
-	}
-	ss << std::endl;
+    ss << "numToursWithMode - ";
+    for(size_t i=0; i<SIZE_MODE_SHARE_STATS; i++)
+    {
+        ss << "\t" << i << ":" << numToursWithMode[i];
+    }
+    ss << std::endl;
 
-	ss << "numTripsWithMode - ";
-	for(size_t i=0; i<SIZE_MODE_SHARE_STATS; i++)
-	{
-		ss << "\t" << i << ":" << numTripsWithMode[i];
-	}
-	ss << std::endl;
+    ss << "numTripsWithMode - ";
+    for(size_t i=0; i<SIZE_MODE_SHARE_STATS; i++)
+    {
+        ss << "\t" << i << ":" << numTripsWithMode[i];
+    }
+    ss << std::endl;
 
-	Print() << ss.str();
+    Print() << ss.str();
 }

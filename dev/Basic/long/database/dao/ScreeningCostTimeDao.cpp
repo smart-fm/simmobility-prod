@@ -17,20 +17,20 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 ScreeningCostTimeDao::ScreeningCostTimeDao(DB_Connection& connection): SqlAbstractDao<ScreeningCostTime>( connection, "","", "", "",
-																													  "SELECT * FROM " + connection.getSchema()+"cost_time",
-																													  ""){}
+                                                                                                                      "SELECT * FROM " + connection.getSchema()+"cost_time",
+                                                                                                                      ""){}
 
 ScreeningCostTimeDao::~ScreeningCostTimeDao(){}
 
 void ScreeningCostTimeDao::fromRow(Row& result, ScreeningCostTime& outObj)
 {
-	outObj.id						= result.get<BigSerial>( "id", INVALID_ID);
-    outObj.planningAreaOrigin		= result.get<int>( "planning_area_origin", INVALID_ID);
-    outObj.areaOrigin 				= result.get<std::string>( "area_origin", "");
-    outObj.planningAreaDestination 	= result.get<int>( "planning_area_destination", INVALID_ID);
-    outObj.areaDestination			= result.get<std::string>( "area_destination", "");
-    outObj.time						= result.get<double>( "time", 0);
-    outObj.cost						= result.get<double>( "cost", 0);
+    outObj.id                       = result.get<BigSerial>( "id", INVALID_ID);
+    outObj.planningAreaOrigin       = result.get<int>( "planning_area_origin", INVALID_ID);
+    outObj.areaOrigin               = result.get<std::string>( "area_origin", "");
+    outObj.planningAreaDestination  = result.get<int>( "planning_area_destination", INVALID_ID);
+    outObj.areaDestination          = result.get<std::string>( "area_destination", "");
+    outObj.time                     = result.get<double>( "time", 0);
+    outObj.cost                     = result.get<double>( "cost", 0);
 }
 
 void ScreeningCostTimeDao::toRow(ScreeningCostTime& data, Parameters& outParams, bool update) {}

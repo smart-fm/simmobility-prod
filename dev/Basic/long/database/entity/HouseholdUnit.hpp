@@ -16,7 +16,7 @@ namespace sim_mob {
 
         class HouseholdUnit {
         public:
-        	HouseholdUnit(BigSerial houseHoldId = INVALID_ID,BigSerial unitId = INVALID_ID, std::tm moveInDate = std::tm());
+            HouseholdUnit(BigSerial houseHoldId = INVALID_ID,BigSerial unitId = INVALID_ID, std::tm moveInDate = std::tm());
 
             virtual ~HouseholdUnit();
 

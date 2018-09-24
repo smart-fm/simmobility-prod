@@ -24,59 +24,59 @@ class StartTimePriorityQueue;
 class PeriodicPersonLoader :  private boost::noncopyable
 {
 protected:
-	/** our active agents list*/
-	std::set<sim_mob::Entity*>& activeAgents;
+    /** our active agents list*/
+    std::set<sim_mob::Entity*>& activeAgents;
 
-	/** out pending agents list*/
-	StartTimePriorityQueue& pendingAgents;
+    /** out pending agents list*/
+    StartTimePriorityQueue& pendingAgents;
 
-	/** data load interval in seconds*/
-	unsigned dataLoadInterval;
+    /** data load interval in seconds*/
+    unsigned dataLoadInterval;
 
-	/** start time of next load interval*/
-	double nextLoadStart;
+    /** start time of next load interval*/
+    double nextLoadStart;
 
-	/** stored procedure to periodically load data*/
-	std::string storedProcName;
+    /** stored procedure to periodically load data*/
+    std::string storedProcName;
 
-	/** time elapsed since previous load in seconds*/
-	unsigned elapsedTimeSinceLastLoad;
+    /** time elapsed since previous load in seconds*/
+    unsigned elapsedTimeSinceLastLoad;
 
-	/**
-	 * adds person to active or pending agents list depending on start time
-	 */
-	void addOrStashPerson(Person* p);
+    /**
+     * adds person to active or pending agents list depending on start time
+     */
+    void addOrStashPerson(Person* p);
 
 public:
-	PeriodicPersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents);
-	virtual ~PeriodicPersonLoader();
+    PeriodicPersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents);
+    virtual ~PeriodicPersonLoader();
 
-	unsigned getDataLoadInterval() const
-	{
-		return dataLoadInterval;
-	}
+    unsigned getDataLoadInterval() const
+    {
+        return dataLoadInterval;
+    }
 
-	unsigned getNextLoadStart() const
-	{
-		return nextLoadStart;
-	}
+    unsigned getNextLoadStart() const
+    {
+        return nextLoadStart;
+    }
 
-	const std::string& getStoredProcName() const
-	{
-		return storedProcName;
-	}
+    const std::string& getStoredProcName() const
+    {
+        return storedProcName;
+    }
 
-	/**
-	 * load person demand for next interval
-	 */
-	virtual void loadPersonDemand() = 0;
+    /**
+     * load person demand for next interval
+     */
+    virtual void loadPersonDemand() = 0;
 
-	/**
-	 * tracks the number of ticks elapsed since last load
-	 * this function *must* be called in every tick
-	 * @return true if data has to be loaded in this tick; false otherwise
-	 */
-	bool checkTimeForNextLoad();
+    /**
+     * tracks the number of ticks elapsed since last load
+     * this function *must* be called in every tick
+     * @return true if data has to be loaded in this tick; false otherwise
+     */
+    bool checkTimeForNextLoad();
 };
 }
 

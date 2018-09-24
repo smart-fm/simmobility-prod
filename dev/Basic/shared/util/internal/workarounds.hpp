@@ -19,43 +19,43 @@ namespace xml {
 template <> inline
 void write_xml(sim_mob::xml::XmlWriter& write, const std::string& temp)
 {
-	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+    throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
 }
 
 template <> inline
 void write_xml(sim_mob::xml::XmlWriter& write, const int& temp)
 {
-	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+    throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
 }
 
 template <> inline
 void write_xml(sim_mob::xml::XmlWriter& write, const unsigned int& temp)
 {
-	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+    throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
 }
 
 template <> inline
 void write_xml(sim_mob::xml::XmlWriter& write, const long& temp)
 {
-	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+    throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
 }
 
 template <> inline
 void write_xml(sim_mob::xml::XmlWriter& write, const unsigned long& temp)
 {
-	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+    throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
 }
 
 template <> inline
 void write_xml(sim_mob::xml::XmlWriter& write, const double& temp)
 {
-	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+    throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
 }
 
 template <> inline
 void write_xml(sim_mob::xml::XmlWriter& write, const bool& temp)
 {
-	throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
+    throw std::runtime_error("write_xml() was somehow accidentally called with a primitive type.");
 }
 
 }}

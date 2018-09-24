@@ -18,7 +18,7 @@ namespace sim_mob {
          */
         class SimulationStoppedPointDao : public db::SqlAbstractDao<SimulationStoppedPoint> {
         public:
-        	SimulationStoppedPointDao(db::DB_Connection& connection);
+            SimulationStoppedPointDao(db::DB_Connection& connection);
             virtual ~SimulationStoppedPointDao();
 
         private:

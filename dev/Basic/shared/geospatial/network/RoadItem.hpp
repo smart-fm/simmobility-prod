@@ -10,34 +10,34 @@ namespace sim_mob
 class RoadItem
 {
 protected:
-	/**Unique identifier for the road item*/
-	unsigned int roadItemId;
+    /**Unique identifier for the road item*/
+    unsigned int roadItemId;
 
-	/**Indicates the id of the geometry information*/
-	unsigned int geometryId;
+    /**Indicates the id of the geometry information*/
+    unsigned int geometryId;
 
-	/**Indicates the id of the poly-line for the road item*/
-	unsigned int polyLineId;
+    /**Indicates the id of the poly-line for the road item*/
+    unsigned int polyLineId;
 
-	/**Indicates the id of the road segment to which the road item belongs*/
-	unsigned int roadSegmentId;
+    /**Indicates the id of the road segment to which the road item belongs*/
+    unsigned int roadSegmentId;
 
 public:
-	RoadItem();
-	RoadItem(unsigned int id, unsigned int geomteryId, unsigned int polyLineId, unsigned int roadSectionId);
-	virtual ~RoadItem();
+    RoadItem();
+    RoadItem(unsigned int id, unsigned int geomteryId, unsigned int polyLineId, unsigned int roadSectionId);
+    virtual ~RoadItem();
 
-	unsigned int getRoadItemId() const;
-	void setRoadItemId(unsigned int roadItemId);
+    unsigned int getRoadItemId() const;
+    void setRoadItemId(unsigned int roadItemId);
 
-	unsigned int getGeometryId() const;
-	void setGeometryId(unsigned int geometryId);
+    unsigned int getGeometryId() const;
+    void setGeometryId(unsigned int geometryId);
 
-	unsigned int getPolyLineId() const;
-	void setPolyLineId(unsigned int polyLineId);
+    unsigned int getPolyLineId() const;
+    void setPolyLineId(unsigned int polyLineId);
 
-	unsigned int getRoadSegmentId() const;
-	void setRoadSegmentId(unsigned int roadSegmentId);
+    unsigned int getRoadSegmentId() const;
+    void setRoadSegmentId(unsigned int roadSegmentId);
 };
 }
 

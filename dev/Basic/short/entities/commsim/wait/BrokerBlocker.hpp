@@ -18,17 +18,17 @@ class BrokerBase;
  */
 class BrokerBlocker {
 protected:
-	BrokerBlocker(); ///<Only a subclass can instantiate this.
+    BrokerBlocker(); ///<Only a subclass can instantiate this.
 public:
-	virtual ~BrokerBlocker();
+    virtual ~BrokerBlocker();
 
-	///If true, the condition this BrokerBlocker was created to check has passed, and will continue to pass for the rest of the simulation.
-	bool pass(BrokerBase& broker);
+    ///If true, the condition this BrokerBlocker was created to check has passed, and will continue to pass for the rest of the simulation.
+    bool pass(BrokerBase& broker);
 
 protected:
-	///Override this function to differentiate the behavior of multiple BrokerBase classes.
-	virtual bool calculateWaitStatus(BrokerBase& broker) const = 0;
-	bool passed; ///<Once passed, the check will always short-circuit as "pass". Sub-classes can reset this to re-test on the next time tick.
+    ///Override this function to differentiate the behavior of multiple BrokerBase classes.
+    virtual bool calculateWaitStatus(BrokerBase& broker) const = 0;
+    bool passed; ///<Once passed, the check will always short-circuit as "pass". Sub-classes can reset this to re-test on the next time tick.
 
 };
 

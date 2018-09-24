@@ -16,7 +16,7 @@ namespace sim_mob {
 
         class HouseHoldHitsSample {
         public:
-        	HouseHoldHitsSample(std::string houseHoldHitsId = std::string(),BigSerial houseHoldId = INVALID_ID, BigSerial groupId = INVALID_ID);
+            HouseHoldHitsSample(std::string houseHoldHitsId = std::string(),BigSerial houseHoldId = INVALID_ID, BigSerial groupId = INVALID_ID);
 
             virtual ~HouseHoldHitsSample();
 

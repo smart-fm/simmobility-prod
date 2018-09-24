@@ -23,43 +23,43 @@ std::ofstream   sim_mob::ControllerLog::log_file;
 sim_mob::ControllerLog::ControllerLog()
 {
 
-	if (log_mutex) {
-		local_lock = boost::mutex::scoped_lock(*log_mutex);
-	}
+    if (log_mutex) {
+        local_lock = boost::mutex::scoped_lock(*log_mutex);
+    }
 }
 
 
 sim_mob::ControllerLog::~ControllerLog()
 {
-	//Flush any pending output to stdout.
-	if (log_handle) {
-		(*log_handle) <<std::flush;
-	}
+    //Flush any pending output to stdout.
+    if (log_handle) {
+        (*log_handle) <<std::flush;
+    }
 }
 
 std::ostream* sim_mob::ControllerLog::CreateStream(const string& path, std::ofstream& file)
 {
-	if (path=="<stdout>") { return &std::cout; }
-	if (path=="<stderr>") { return &std::cerr; }
-	file.open(path.c_str(), std::ofstream::trunc);
-	if (file.fail()) { return &std::cout; }
-	return &file;
+    if (path=="<stdout>") { return &std::cout; }
+    if (path=="<stderr>") { return &std::cerr; }
+    file.open(path.c_str(), std::ofstream::trunc);
+    if (file.fail()) { return &std::cout; }
+    return &file;
 }
 
 void sim_mob::ControllerLog::Init(const string& path)
 {
-	log_handle = CreateStream(path, log_file);
-	log_mutex = RegisterStream(log_handle);
+    log_handle = CreateStream(path, log_file);
+    log_mutex = RegisterStream(log_handle);
 }
 
 void sim_mob::ControllerLog::Ignore()
 {
-	log_handle = nullptr;
-	log_mutex.reset();
+    log_handle = nullptr;
+    log_mutex.reset();
 }
 
 bool sim_mob::ControllerLog::IsEnabled()
 {
-	return log_handle;
+    return log_handle;
 }
 

@@ -18,31 +18,31 @@ const bool doWeComputeBarycenter = true;
 
 enum MobilityServiceControllerMessage
 {
-	MSG_DRIVER_SUBSCRIBE = 7100000,
-	MSG_DRIVER_UNSUBSCRIBE,
-	MSG_UNSUBSCRIBE_SUCCESSFUL,
-	MSG_DRIVER_AVAILABLE,
-	MSG_DRIVER_SHIFT_END,
-	MSG_DELAY_SHIFT_END,
-	MSG_DRIVER_SCHEDULE_STATUS,
-	MSG_TRIP_REQUEST,
-	MSG_SCHEDULE_PROPOSITION,
-	MSG_SCHEDULE_PROPOSITION_REPLY,
-	MSG_SCHEDULE_UPDATE,
-	MSG_SYNC_SCHEDULE
+    MSG_DRIVER_SUBSCRIBE = 7100000,
+    MSG_DRIVER_UNSUBSCRIBE,
+    MSG_UNSUBSCRIBE_SUCCESSFUL,
+    MSG_DRIVER_AVAILABLE,
+    MSG_DRIVER_SHIFT_END,
+    MSG_DELAY_SHIFT_END,
+    MSG_DRIVER_SCHEDULE_STATUS,
+    MSG_TRIP_REQUEST,
+    MSG_SCHEDULE_PROPOSITION,
+    MSG_SCHEDULE_PROPOSITION_REPLY,
+    MSG_SCHEDULE_UPDATE,
+    MSG_SYNC_SCHEDULE
 };
 
 /**Enumeration to indicate the type of trip requested by the passenger*/
 enum class RequestType
 {
-	/**Specifies that the trip must be exclusive to the passenger - single rider request*/
-	TRIP_REQUEST_SINGLE,
+    /**Specifies that the trip must be exclusive to the passenger - single rider request*/
+    TRIP_REQUEST_SINGLE,
 
-	/**Specifies that the trip may be shared with another passenger - shared trip request*/
-	TRIP_REQUEST_SHARED,
+    /**Specifies that the trip may be shared with another passenger - shared trip request*/
+    TRIP_REQUEST_SHARED,
 
-	/**Does not specify any preference - the controller will assign arbitrarily*/
-	TRIP_REQUEST_DEFAULT
+    /**Does not specify any preference - the controller will assign arbitrarily*/
+    TRIP_REQUEST_DEFAULT
 };
 
 /**
@@ -51,15 +51,15 @@ enum class RequestType
 class DriverSubscribeMessage : public messaging::Message
 {
 public:
-	DriverSubscribeMessage(Person *p) : person(p)
-	{
-	}
+    DriverSubscribeMessage(Person *p) : person(p)
+    {
+    }
 
-	virtual ~DriverSubscribeMessage()
-	{
-	}
+    virtual ~DriverSubscribeMessage()
+    {
+    }
 
-	Person *person;
+    Person *person;
 };
 
 /**
@@ -68,15 +68,15 @@ public:
 class DriverUnsubscribeMessage : public messaging::Message
 {
 public:
-	DriverUnsubscribeMessage(Person *p) : person(p)
-	{
-	}
+    DriverUnsubscribeMessage(Person *p) : person(p)
+    {
+    }
 
-	virtual ~DriverUnsubscribeMessage()
-	{
-	}
+    virtual ~DriverUnsubscribeMessage()
+    {
+    }
 
-	Person *person;
+    Person *person;
 };
 
 /**
@@ -85,16 +85,16 @@ public:
 class DriverAvailableMessage : public messaging::Message
 {
 public:
-	DriverAvailableMessage(Person *p) : person(p)
-	{
-		priority = 8;
-	}
+    DriverAvailableMessage(Person *p) : person(p)
+    {
+        priority = 8;
+    }
 
-	virtual ~DriverAvailableMessage()
-	{
-	}
+    virtual ~DriverAvailableMessage()
+    {
+    }
 
-	Person *person;
+    Person *person;
 };
 
 /**
@@ -103,29 +103,29 @@ public:
 class DriverShiftCompleted : public messaging::Message
 {
 public:
-	DriverShiftCompleted(Person *p) : person(p)
-	{
-	}
+    DriverShiftCompleted(Person *p) : person(p)
+    {
+    }
 
-	virtual ~DriverShiftCompleted()
-	{
-	}
+    virtual ~DriverShiftCompleted()
+    {
+    }
 
-	Person *person;
+    Person *person;
 };
 
 class DelayShiftEndMessage : public messaging::Message
 {
 public:
-	DelayShiftEndMessage(Person *p) : person(p)
-	{
-	}
+    DelayShiftEndMessage(Person *p) : person(p)
+    {
+    }
 
-	virtual ~DelayShiftEndMessage()
-	{
-	}
+    virtual ~DelayShiftEndMessage()
+    {
+    }
 
-	Person *person;
+    Person *person;
 };
 
 /**
@@ -134,16 +134,16 @@ public:
 class DriverScheduleStatusMsg : public messaging::Message
 {
 public:
-	DriverScheduleStatusMsg(Person *p) : person(p)
-	{
-		priority = 10;
-	}
+    DriverScheduleStatusMsg(Person *p) : person(p)
+    {
+        priority = 10;
+    }
 
-	virtual ~DriverScheduleStatusMsg()
-	{
-	}
+    virtual ~DriverScheduleStatusMsg()
+    {
+    }
 
-	Person *person;
+    Person *person;
 };
 
 /**
@@ -152,16 +152,16 @@ public:
 class TripRequestMessage : public messaging::Message
 {
 public:
-	TripRequestMessage() : timeOfRequest(timeslice(0, 0)),person(nullptr), userId("no-id"), startNode(0),
-	                       destinationNode(0), extraTripTimeThreshold(0), requestType(RequestType::TRIP_REQUEST_DEFAULT)
-	{};
+    TripRequestMessage() : timeOfRequest(timeslice(0, 0)),person(nullptr), userId("no-id"), startNode(0),
+                           destinationNode(0), extraTripTimeThreshold(0), requestType(RequestType::TRIP_REQUEST_DEFAULT)
+    {};
 
-	TripRequestMessage(const TripRequestMessage &r) :
-			timeOfRequest(r.timeOfRequest),person(r.person), userId(r.userId), startNode(r.startNode),
-			destinationNode(r.destinationNode), extraTripTimeThreshold(r.extraTripTimeThreshold),
-			requestType(r.requestType)
-	{
-	};
+    TripRequestMessage(const TripRequestMessage &r) :
+            timeOfRequest(r.timeOfRequest),person(r.person), userId(r.userId), startNode(r.startNode),
+            destinationNode(r.destinationNode), extraTripTimeThreshold(r.extraTripTimeThreshold),
+            requestType(r.requestType)
+    {
+    };
 
     TripRequestMessage(const timeslice &ct,Person *person, const std::string &p, const Node *sn, const Node *dn,
                        const unsigned int &threshold, const RequestType reqType = RequestType::TRIP_REQUEST_DEFAULT) :
@@ -170,180 +170,180 @@ public:
     {
     };
 
-	~TripRequestMessage()
-	{
-	}
+    ~TripRequestMessage()
+    {
+    }
 
-	bool operator==(const TripRequestMessage &other) const;
+    bool operator==(const TripRequestMessage &other) const;
 
-	bool operator!=(const TripRequestMessage &other) const;
+    bool operator!=(const TripRequestMessage &other) const;
 
-	bool operator<(const TripRequestMessage &other) const;
+    bool operator<(const TripRequestMessage &other) const;
 
-	bool operator>(const TripRequestMessage &other) const;
+    bool operator>(const TripRequestMessage &other) const;
 
-	timeslice timeOfRequest;
-	std::string userId;
-	const Node *startNode;
-	const Node *destinationNode;
-	RequestType requestType;
+    timeslice timeOfRequest;
+    std::string userId;
+    const Node *startNode;
+    const Node *destinationNode;
+    RequestType requestType;
     Person *person;
 
-	/**
-	 * The time the passenger can tolerate to spend more w.r.t. the fastest option in which
-	 * she travels alone without any other passenger to share the trip with
-	 */
-	unsigned int extraTripTimeThreshold; // seconds
+    /**
+     * The time the passenger can tolerate to spend more w.r.t. the fastest option in which
+     * she travels alone without any other passenger to share the trip with
+     */
+    unsigned int extraTripTimeThreshold; // seconds
 };
 
 enum ScheduleItemType
 {
-	INVALID, PICKUP, DROPOFF, CRUISE, PARK
+    INVALID, PICKUP, DROPOFF, CRUISE, PARK
 };
 
 struct ScheduleItem
 {
-	ScheduleItem(const ScheduleItemType scheduleItemType_, const TripRequestMessage tripRequest_)
-			: scheduleItemType(scheduleItemType_), tripRequest(tripRequest_), nodeToCruiseTo(NULL), parking(nullptr)
-	{
+    ScheduleItem(const ScheduleItemType scheduleItemType_, const TripRequestMessage tripRequest_)
+            : scheduleItemType(scheduleItemType_), tripRequest(tripRequest_), nodeToCruiseTo(NULL), parking(nullptr)
+    {
 #ifndef NDEBUG
-		if (scheduleItemType != ScheduleItemType::PICKUP && scheduleItemType != ScheduleItemType::DROPOFF)
-		{
-			throw std::runtime_error("Only PICKUP or DROPOFF is admitted here");
-		}
+        if (scheduleItemType != ScheduleItemType::PICKUP && scheduleItemType != ScheduleItemType::DROPOFF)
+        {
+            throw std::runtime_error("Only PICKUP or DROPOFF is admitted here");
+        }
 #endif
 
-	};
+    };
 
-	ScheduleItem(const ScheduleItemType scheduleItemType_, const Node *nodeToCruiseTo_)
-			: scheduleItemType(scheduleItemType_), nodeToCruiseTo(nodeToCruiseTo_), tripRequest(), parking(nullptr)
-	{
+    ScheduleItem(const ScheduleItemType scheduleItemType_, const Node *nodeToCruiseTo_)
+            : scheduleItemType(scheduleItemType_), nodeToCruiseTo(nodeToCruiseTo_), tripRequest(), parking(nullptr)
+    {
 #ifndef NDEBUG
-		if (scheduleItemType != ScheduleItemType::CRUISE)
-		{
-			throw std::runtime_error("Only CRUISE is admitted here");
-		}
+        if (scheduleItemType != ScheduleItemType::CRUISE)
+        {
+            throw std::runtime_error("Only CRUISE is admitted here");
+        }
 #endif
-	};
+    };
 
-	ScheduleItem(const ScheduleItemType scheduleItemType_, const SMSVehicleParking *parkingLocation)
-			: scheduleItemType(scheduleItemType_), nodeToCruiseTo(NULL), tripRequest(), parking(parkingLocation)
-	{
+    ScheduleItem(const ScheduleItemType scheduleItemType_, const SMSVehicleParking *parkingLocation)
+            : scheduleItemType(scheduleItemType_), nodeToCruiseTo(NULL), tripRequest(), parking(parkingLocation)
+    {
 #ifndef NDEBUG
-		if (scheduleItemType != ScheduleItemType::PARK)
-		{
-			throw std::runtime_error("Only PARK is admitted here");
-		}
+        if (scheduleItemType != ScheduleItemType::PARK)
+        {
+            throw std::runtime_error("Only PARK is admitted here");
+        }
 #endif
-	};
+    };
 
-	ScheduleItem()
-	{
-	};
+    ScheduleItem()
+    {
+    };
 
-	bool operator<(const ScheduleItem &other) const;
+    bool operator<(const ScheduleItem &other) const;
 
-	bool operator==(const ScheduleItem &rhs) const;
+    bool operator==(const ScheduleItem &rhs) const;
 
-	const Node *getNode() const;
+    const Node *getNode() const;
 
-	ScheduleItemType scheduleItemType;
+    ScheduleItemType scheduleItemType;
 
-	TripRequestMessage tripRequest;
+    TripRequestMessage tripRequest;
 
-	const Node *nodeToCruiseTo;
+    const Node *nodeToCruiseTo;
 
-	const SMSVehicleParking *parking;
+    const SMSVehicleParking *parking;
 };
 
 class Schedule
 {
 private:
-	//TODO: It would be more elegant using std::variant, available from c++17
-	//aa!!: Given that we are inserting many elements now, it may be better to use a list instead of a vector
-	//			(see http://john-ahlgren.blogspot.com/2013/10/stl-container-performance.html)
-	std::vector<ScheduleItem> items;
+    //TODO: It would be more elegant using std::variant, available from c++17
+    //aa!!: Given that we are inserting many elements now, it may be better to use a list instead of a vector
+    //          (see http://john-ahlgren.blogspot.com/2013/10/stl-container-performance.html)
+    std::vector<ScheduleItem> items;
 
-	/**
-	 * The barycenter of all the dropOff locations.
-	 * Only needed for the ProximityBased controller
-	 */
-	Point dropOffBarycenter;
+    /**
+     * The barycenter of all the dropOff locations.
+     * Only needed for the ProximityBased controller
+     */
+    Point dropOffBarycenter;
 
-	short passengerCount;
+    short passengerCount;
 
 public:
-	Schedule() : passengerCount(0), dropOffBarycenter(Point())
-	{};
+    Schedule() : passengerCount(0), dropOffBarycenter(Point())
+    {};
 
-	//{ EMULATE STANDARD CONTAINER FUNCTIONS
-	typedef std::vector<ScheduleItem>::const_iterator const_iterator;
-	typedef std::vector<ScheduleItem>::iterator iterator;
+    //{ EMULATE STANDARD CONTAINER FUNCTIONS
+    typedef std::vector<ScheduleItem>::const_iterator const_iterator;
+    typedef std::vector<ScheduleItem>::iterator iterator;
 
-	const std::vector<ScheduleItem> &getItems() const;
+    const std::vector<ScheduleItem> &getItems() const;
 
-	const size_t size() const;
+    const size_t size() const;
 
-	const bool empty() const;
+    const bool empty() const;
 
-	Schedule::iterator begin();
+    Schedule::iterator begin();
 
-	Schedule::const_iterator begin() const;
+    Schedule::const_iterator begin() const;
 
-	const_iterator end() const;
+    const_iterator end() const;
 
-	iterator end();
+    iterator end();
 
-	void insert(iterator position, const ScheduleItem scheduleItem);
+    void insert(iterator position, const ScheduleItem scheduleItem);
 
-	void insert(iterator position, iterator first, iterator last);
+    void insert(iterator position, iterator first, iterator last);
 
-	const ScheduleItem &back() const;
+    const ScheduleItem &back() const;
 
-	ScheduleItem &front();
+    ScheduleItem &front();
 
-	const ScheduleItem &front() const;
+    const ScheduleItem &front() const;
 
-	void pop_back();
+    void pop_back();
 
-	void push_back(ScheduleItem item);
+    void push_back(ScheduleItem item);
 
-	iterator erase(iterator position);
+    iterator erase(iterator position);
 
-	ScheduleItem &at(size_t n);
+    ScheduleItem &at(size_t n);
 
-	const ScheduleItem &at(size_t n) const;
+    const ScheduleItem &at(size_t n) const;
 
-	const TripRequestMessage *findTrip(const ScheduleItem item);
-	//} EMULATE STANDARD CONTAINER FUNCTIONS
+    const TripRequestMessage *findTrip(const ScheduleItem item);
+    //} EMULATE STANDARD CONTAINER FUNCTIONS
 
-	/**
-	 * Performs the appropriate internal data update when a pick up is added
-	 */
-	void onAddingScheduleItem(const ScheduleItem &item);
+    /**
+     * Performs the appropriate internal data update when a pick up is added
+     */
+    void onAddingScheduleItem(const ScheduleItem &item);
 
-	void onRemovingScheduleItem(const ScheduleItem &item);
+    void onRemovingScheduleItem(const ScheduleItem &item);
 
-	const Point &getDropOffBarycenter() const;
+    const Point &getDropOffBarycenter() const;
 
-	short getPassengerCount() const;
+    short getPassengerCount() const;
 };
 
 class SchedulePropositionMessage : public messaging::Message
 {
 public:
-	SchedulePropositionMessage(const timeslice currTick_, Schedule schedule_, messaging::MessageHandler *msgSender) :
-			currTick(currTick_), schedule(schedule_)
-	{
-		sender = msgSender;
-	};
+    SchedulePropositionMessage(const timeslice currTick_, Schedule schedule_, messaging::MessageHandler *msgSender) :
+            currTick(currTick_), schedule(schedule_)
+    {
+        sender = msgSender;
+    };
 
-	const Schedule &getSchedule() const;
+    const Schedule &getSchedule() const;
 
-	const timeslice currTick;
+    const timeslice currTick;
 
 private:
-	Schedule schedule;
+    Schedule schedule;
 };
 
 /**
@@ -352,12 +352,12 @@ private:
 class SyncScheduleMsg : public messaging::Message
 {
 public:
-	SyncScheduleMsg(Person *p, Schedule s) : person(p), schedule(s)
-	{
-	}
+    SyncScheduleMsg(Person *p, Schedule s) : person(p), schedule(s)
+    {
+    }
 
-	Person *person;
-	Schedule schedule;
+    Person *person;
+    Schedule schedule;
 };
 
 /**
@@ -366,38 +366,38 @@ public:
 class SchedulePropositionReplyMessage : public messaging::Message
 {
 public:
-	SchedulePropositionReplyMessage(timeslice ct, const std::string &p,
-	                                Person *t, const Node *sn, const Node *dn,
-	                                const unsigned int threshold, const bool s) : currTick(ct),
-	                                                                              personId(p), driver(t),
-	                                                                              startNode(sn),
-	                                                                              destinationNode(dn),
-	                                                                              extraTripTimeThreshold(threshold),
-	                                                                              success(s)
-	{
-	}
+    SchedulePropositionReplyMessage(timeslice ct, const std::string &p,
+                                    Person *t, const Node *sn, const Node *dn,
+                                    const unsigned int threshold, const bool s) : currTick(ct),
+                                                                                  personId(p), driver(t),
+                                                                                  startNode(sn),
+                                                                                  destinationNode(dn),
+                                                                                  extraTripTimeThreshold(threshold),
+                                                                                  success(s)
+    {
+    }
 
-	virtual ~SchedulePropositionReplyMessage()
-	{
-	}
+    virtual ~SchedulePropositionReplyMessage()
+    {
+    }
 
-	const timeslice currTick;
-	const bool success;
-	const std::string personId;
-	Person *driver;
-	const Node *startNode;
-	const Node *destinationNode;
-	const unsigned int extraTripTimeThreshold;
+    const timeslice currTick;
+    const bool success;
+    const std::string personId;
+    Person *driver;
+    const Node *startNode;
+    const Node *destinationNode;
+    const unsigned int extraTripTimeThreshold;
 };
 
 class ScheduleException : public std::runtime_error
 {
 public:
-	ScheduleException(const std::string &xmsg) : std::runtime_error(xmsg)
-	{};
+    ScheduleException(const std::string &xmsg) : std::runtime_error(xmsg)
+    {};
 
-	virtual ~ScheduleException()
-	{};
+    virtual ~ScheduleException()
+    {};
 };
 
 }

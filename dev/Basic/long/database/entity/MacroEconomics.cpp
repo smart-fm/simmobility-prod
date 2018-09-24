@@ -22,7 +22,7 @@ HPIValues::~HPIValues() {
 }
 
 MacroEconomics::MacroEconomics(std::tm exDate, BigSerial exFactorId,
-		double exFactorValue) : exDate(exDate), exFactorId(exFactorId), exFactorValue(exFactorValue) {
+        double exFactorValue) : exDate(exDate), exFactorId(exFactorId), exFactorValue(exFactorValue) {
 }
 
 MacroEconomics::~MacroEconomics() {

@@ -15,148 +15,148 @@ isHOV_Allowed(false), laneIndex(0), parentSegment(NULL), polyLine(NULL), roadSeg
 
 Lane::~Lane()
 {
-	clear_delete_vector(laneConnectors);
-	safe_delete_item(polyLine);
+    clear_delete_vector(laneConnectors);
+    safe_delete_item(polyLine);
 }
 
 unsigned int Lane::getLaneId() const
 {
-	return laneId;
+    return laneId;
 }
 
 void Lane::setLaneId(unsigned int laneId)
 {
-	this->laneId = laneId;
-	this->laneIndex = laneId % 10;
+    this->laneId = laneId;
+    this->laneIndex = laneId % 10;
 }
 
 BusLaneRules Lane::getBusLaneRules() const
 {
-	return busLaneRules;
+    return busLaneRules;
 }
 
 void Lane::setBusLaneRules(BusLaneRules busLaneRules)
 {
-	this->busLaneRules = busLaneRules;
+    this->busLaneRules = busLaneRules;
 }
 
 bool Lane::isParkingAllowed() const
 {
-	return canVehiclePark;
+    return canVehiclePark;
 }
 
 void Lane::setCanVehiclePark(bool canVehiclePark)
 {
-	this->canVehiclePark = canVehiclePark;
+    this->canVehiclePark = canVehiclePark;
 }
 
 bool Lane::isStoppingAllowed() const
 {
-	return canVehicleStop;
+    return canVehicleStop;
 }
 
 void Lane::setCanVehicleStop(bool canVehicleStop)
 {
-	this->canVehicleStop = canVehicleStop;
+    this->canVehicleStop = canVehicleStop;
 }
 
 bool Lane::doesLaneHaveRoadShoulder() const
 {
-	return hasRoadShoulder;
+    return hasRoadShoulder;
 }
 
 void Lane::setHasRoadShoulder(bool hasRoadShoulder)
 {
-	this->hasRoadShoulder = hasRoadShoulder;
+    this->hasRoadShoulder = hasRoadShoulder;
 }
 
 bool Lane::isHighOccupancyVehicleAllowed() const
 {
-	return isHOV_Allowed;
+    return isHOV_Allowed;
 }
 
 void Lane::setHighOccupancyVehicleAllowed(bool HighOccupancyVehicleAllowed)
 {
-	isHOV_Allowed = HighOccupancyVehicleAllowed;
+    isHOV_Allowed = HighOccupancyVehicleAllowed;
 }
 
 const std::vector<LaneConnector *>& Lane::getLaneConnectors() const
 {
-	return laneConnectors;
+    return laneConnectors;
 }
 
 void Lane::getPhysicalConnectors(std::vector<const LaneConnector *> &phyConnectors) const
 {
-	for(std::vector<LaneConnector *>::const_iterator it = laneConnectors.begin(); it != laneConnectors.end(); ++it)
-	{
-		if((*it)->isTrueConnector())
-		{
-			phyConnectors.push_back(*it);
-		}
-	}
+    for(std::vector<LaneConnector *>::const_iterator it = laneConnectors.begin(); it != laneConnectors.end(); ++it)
+    {
+        if((*it)->isTrueConnector())
+        {
+            phyConnectors.push_back(*it);
+        }
+    }
 }
 
 void Lane::addLaneConnector(LaneConnector *laneConnector)
 {
-	this->laneConnectors.push_back(laneConnector);
+    this->laneConnectors.push_back(laneConnector);
 }
 
 unsigned int Lane::getLaneIndex() const
 {
-	return laneIndex;
+    return laneIndex;
 }
 
 void Lane::setParentSegment(RoadSegment *parentSegment)
 {
-	this->parentSegment = parentSegment;
+    this->parentSegment = parentSegment;
 }
 
 const RoadSegment* Lane::getParentSegment() const
 {
-	return parentSegment;
+    return parentSegment;
 }
 
 PolyLine* Lane::getPolyLine() const
 {
-	return polyLine;
+    return polyLine;
 }
 
 void Lane::setPolyLine(PolyLine *polyLine)
 {
-	this->polyLine = polyLine;
+    this->polyLine = polyLine;
 }
 
 unsigned int Lane::getRoadSegmentId() const
 {
-	return roadSegmentId;
+    return roadSegmentId;
 }
 
 void Lane::setRoadSegmentId(unsigned int roadSegmentId)
 {
-	this->roadSegmentId = roadSegmentId;
+    this->roadSegmentId = roadSegmentId;
 }
 
 double Lane::getWidth() const
 {
-	return width;
+    return width;
 }
 
 void Lane::setWidth(double width)
 {
-	this->width = width;
+    this->width = width;
 }
 
 double Lane::getLength() const
 {
-	return this->polyLine->getLength();
+    return this->polyLine->getLength();
 }
 
 bool Lane::isPedestrianLane() const
 {
-	return (vehicleMode & PEDESTRIAN_LANE);
+    return (vehicleMode & PEDESTRIAN_LANE);
 }
 
 bool Lane::isBicycleLane() const
 {
-	return (vehicleMode & BICYCLE_LANE);
+    return (vehicleMode & BICYCLE_LANE);
 }

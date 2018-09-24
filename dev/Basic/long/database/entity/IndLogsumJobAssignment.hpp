@@ -21,7 +21,7 @@ namespace sim_mob
         class IndLogsumJobAssignment
         {
         public:
-        	IndLogsumJobAssignment(BigSerial individualId = INVALID_ID,std::string tazId = std::string(), float logsum = .0);
+            IndLogsumJobAssignment(BigSerial individualId = INVALID_ID,std::string tazId = std::string(), float logsum = .0);
 
             virtual ~IndLogsumJobAssignment();
 
@@ -49,7 +49,7 @@ namespace sim_mob
         private:
             BigSerial individualId;
             std::string tazId;
-            double	logsum;
+            double  logsum;
          };
     }
 }

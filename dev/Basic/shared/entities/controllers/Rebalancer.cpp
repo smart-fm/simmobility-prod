@@ -25,12 +25,12 @@
 namespace sim_mob {
 
 Rebalancer::Rebalancer(const OnCallController* parentController_):parentController(parentController_ ) {
-	// TODO Auto-generated constructor stub
+    // TODO Auto-generated constructor stub
 
 }
 
 Rebalancer::~Rebalancer() {
-	// TODO Auto-generated destructor stub
+    // TODO Auto-generated destructor stub
 }
 
 
@@ -39,21 +39,21 @@ Rebalancer::~Rebalancer() {
 
 void Rebalancer::onRequestReceived(const Node* startNode)
 {
-	latestStartNodes.push_back(startNode);
+    latestStartNodes.push_back(startNode);
 }
 
 void SimpleRebalancer::rebalance(const std::vector<const Person*>& availableDrivers, const timeslice currTick)
 {
-	if (!availableDrivers.empty() && !latestStartNodes.empty() )
-	{
-		int seed = 1;
-		srand(seed);
-		const Person* driver = availableDrivers[rand()%availableDrivers.size() ];
-		const Node* node = latestStartNodes[rand()%latestStartNodes.size()];
+    if (!availableDrivers.empty() && !latestStartNodes.empty() )
+    {
+        int seed = 1;
+        srand(seed);
+        const Person* driver = availableDrivers[rand()%availableDrivers.size() ];
+        const Node* node = latestStartNodes[rand()%latestStartNodes.size()];
 
-		parentController->sendCruiseCommand(driver, node, currTick );
-		latestStartNodes.clear();
-	}
+        parentController->sendCruiseCommand(driver, node, currTick );
+        latestStartNodes.clear();
+    }
 }
 
 // *******************************************************************
@@ -61,92 +61,92 @@ void SimpleRebalancer::rebalance(const std::vector<const Person*>& availableDriv
 // *******************************************************************
 
 int Rebalancer::getNumCustomers(int TazId) {
-	// obtains demand per zone based on latestStartNodes
-	int count ;
-	std::vector<Node*>:: iterator inode;
-	for (auto inode = latestStartNodes.begin(); inode!= latestStartNodes.end(); ++inode) {
-		int taz;
-		taz = (*inode)->getTazId() ;
-		if (taz == TazId ){
-			count += 1 ;
-		}
-	}
-	return count;
+    // obtains demand per zone based on latestStartNodes
+    int count ;
+    std::vector<Node*>:: iterator inode;
+    for (auto inode = latestStartNodes.begin(); inode!= latestStartNodes.end(); ++inode) {
+        int taz;
+        taz = (*inode)->getTazId() ;
+        if (taz == TazId ){
+            count += 1 ;
+        }
+    }
+    return count;
 }
 
 int Rebalancer::getNumVehicles(const std::vector<const Person*>& availableDrivers, int TazId) {
-	// obtains demand per zone based on latestStartNodes
-	int count ;
-	std::vector<const Person *>::const_iterator driver = availableDrivers.begin();
-	while (driver != availableDrivers.end())
-	{
-		if (parentController->isCruising(*driver))
-		{
-			const Node *driverNode = parentController->getCurrentNode(*driver);
-			int taz;
-			taz = driverNode->getTazId() ;
-			if (taz == TazId ){
-				count += 1 ;
-			}
-		}
-	}
-	return count;
+    // obtains demand per zone based on latestStartNodes
+    int count ;
+    std::vector<const Person *>::const_iterator driver = availableDrivers.begin();
+    while (driver != availableDrivers.end())
+    {
+        if (parentController->isCruising(*driver))
+        {
+            const Node *driverNode = parentController->getCurrentNode(*driver);
+            int taz;
+            taz = driverNode->getTazId() ;
+            if (taz == TazId ){
+                count += 1 ;
+            }
+        }
+    }
+    return count;
 }
 
 
 
 void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrivers, const timeslice currTick) {
-	Print() << "available drivers: " << availableDrivers.size() << "; latest start nodes: " << latestStartNodes.size() << std::endl;
+    Print() << "available drivers: " << availableDrivers.size() << "; latest start nodes: " << latestStartNodes.size() << std::endl;
 
-	const SimulationParams &simParams = ConfigManager::GetInstance().FullConfig().simulation;
+    const SimulationParams &simParams = ConfigManager::GetInstance().FullConfig().simulation;
 
-	int startTimeSeconds = simParams.simStartTime.getValue() ;
-	int currentTimeSeconds = currTick.ms() / 1000 ;
-	int totalTimeSeconds = startTimeSeconds + currentTimeSeconds ;
-	int thirtyMinuteIndex = 1 + ((totalTimeSeconds - 1) / 1800) ; // totalTimeSeconds != 0
+    int startTimeSeconds = simParams.simStartTime.getValue() ;
+    int currentTimeSeconds = currTick.ms() / 1000 ;
+    int totalTimeSeconds = startTimeSeconds + currentTimeSeconds ;
+    int thirtyMinuteIndex = 1 + ((totalTimeSeconds - 1) / 1800) ; // totalTimeSeconds != 0
 
-	if(!availableDrivers.empty() && !latestStartNodes.empty()){
+    if(!availableDrivers.empty() && !latestStartNodes.empty()){
 
     // create variables for solving lp
 
-	// { jo: We need to get the entire TAZ list for the network; for now using latestStartNodes will do
-	Print() << "Starting rebalancer..." << std::endl;
-	std::vector<int> stations ;
-	std::vector<Node*>:: iterator inode;
-	for (auto inode = latestStartNodes.begin(); inode!= latestStartNodes.end(); ++inode) {
-		//Node& ii = *i;
-		int taz;
-		taz = (*inode)->getTazId() ;
-		stations.push_back (taz) ;
-	}
-	sort(stations.begin(), stations.end()) ;
-	std::vector<int>:: iterator it;
-	it = unique(stations.begin(), stations.end()) ; // get unique TAZ's represented
-	stations.resize(distance(stations.begin(),it)); // resize stations vector
-	Print() << "Number of zones in which requests available: " << stations.size() << std::endl;
+    // { jo: We need to get the entire TAZ list for the network; for now using latestStartNodes will do
+    Print() << "Starting rebalancer..." << std::endl;
+    std::vector<int> stations ;
+    std::vector<Node*>:: iterator inode;
+    for (auto inode = latestStartNodes.begin(); inode!= latestStartNodes.end(); ++inode) {
+        //Node& ii = *i;
+        int taz;
+        taz = (*inode)->getTazId() ;
+        stations.push_back (taz) ;
+    }
+    sort(stations.begin(), stations.end()) ;
+    std::vector<int>:: iterator it;
+    it = unique(stations.begin(), stations.end()) ; // get unique TAZ's represented
+    stations.resize(distance(stations.begin(),it)); // resize stations vector
+    Print() << "Number of zones in which requests available: " << stations.size() << std::endl;
 
 
-//	//// =====================================================================================
-//	std::vector<const Person *>::const_iterator driver = availableDrivers.begin();
-//	while (driver != availableDrivers.end())
-//	{
-//		if (isCruising(*driver))
-//		{
-//			const Node *driverNode = getCurrentNode(*driver);
-//			// jo{ don't need to find distance
-//			// double currDistance = dist(node->getLocation(), driverNode->getLocation());
-//			// }jo
-//		}
-//	}
-//	//// ================================================================================================
+//  //// =====================================================================================
+//  std::vector<const Person *>::const_iterator driver = availableDrivers.begin();
+//  while (driver != availableDrivers.end())
+//  {
+//      if (isCruising(*driver))
+//      {
+//          const Node *driverNode = getCurrentNode(*driver);
+//          // jo{ don't need to find distance
+//          // double currDistance = dist(node->getLocation(), driverNode->getLocation());
+//          // }jo
+//      }
+//  }
+//  //// ================================================================================================
 
 
     int nvehs = availableDrivers.size();
     int nstations = stations.size();
 
     if (nstations==0){
-    	Print() << "No stations loaded" << std::endl ;
-    	return;
+        Print() << "No stations loaded" << std::endl ;
+        return;
     }
     else {
     int nstationsServed = 0;
@@ -173,12 +173,12 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     int k = 1;
     // { jo: since `stations` is a vector not a map (as in previous AMOD branch, all refs to `first`,`second` removed
     for (auto sitr = stations.begin(); sitr != stations.end(); ++sitr){
-    	int sitrIndex ;
-    	sitrIndex = std::distance(stations.begin(), sitr);
-    	for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
+        int sitrIndex ;
+        sitrIndex = std::distance(stations.begin(), sitr);
+        for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
             // store the indices to make lookups easier (can be optimized in future iterations)
-        	int sitr2Index ;
-        	sitr2Index = std::distance(stations.begin(), sitr2) ;
+            int sitr2Index ;
+            sitr2Index = std::distance(stations.begin(), sitr2) ;
             indexToIds[k] = std::make_pair(sitrIndex, sitr2Index);
             idsToIndex[std::make_pair(sitrIndex, sitr2Index)] = k;
 
@@ -191,7 +191,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
 
             if(origin==destination){
-            	cost = -1 ;
+                cost = -1 ;
             }
             else
             {
@@ -229,7 +229,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
         }
 
         // compute variables for the lp
-		// jo { WE are going to use current demand for now } jo
+        // jo { WE are going to use current demand for now } jo
         int cexi = getNumCustomers(sitrIndex) - getNumVehicles(availableDrivers, sitrIndex); // excess customers in zone `sitr`
 
         cex[sitrIndex] = cexi; // excess customers at this station
@@ -246,12 +246,12 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     // set up available vehicles at each station
     // jo{ this is different now, since stations is the list of zone (TAZ) IDs, so we just call
        for (auto vitr = availableDrivers.begin(); vitr != availableDrivers.end(); ++vitr) {
-    	   // get which station this vehicle belongs
-    	   const Node *driverNode = parentController->getCurrentNode(*vitr); //current node of driver
-    	   int taz;
-    	   taz = driverNode->getTazId() ; // get TAZ id of associated node with driver
-    	   const Person* vitrPerson = *vitr ;
-    	   vi[taz].insert( vitrPerson->getDatabaseId() ); // will need to fix if doesn't work (DatabaseId is a std::string)
+           // get which station this vehicle belongs
+           const Node *driverNode = parentController->getCurrentNode(*vitr); //current node of driver
+           int taz;
+           taz = driverNode->getTazId() ; // get TAZ id of associated node with driver
+           const Person* vitrPerson = *vitr ;
+           vi[taz].insert( vitrPerson->getDatabaseId() ); // will need to fix if doesn't work (DatabaseId is a std::string)
     }
 
     // set up constraints
@@ -272,8 +272,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
         // constraint for net flow to match (or exceed) excess customers
         for (auto sitr = stations.begin(); sitr!= stations.end(); ++sitr) {
-        	int sitrIndex ;
-        	sitrIndex = std::distance(stations.begin(), sitr);
+            int sitrIndex ;
+            sitrIndex = std::distance(stations.begin(), sitr);
             std::stringstream ss;
             ss << "st " << sitrIndex ; // ->second.getId();
             const std::string& tmp = ss.str();
@@ -284,8 +284,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
             for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
                 if (sitr2 == sitr) continue;
-            	int sitr2Index ;
-            	sitr2Index = std::distance(stations.begin(), sitr2);
+                int sitr2Index ;
+                sitr2Index = std::distance(stations.begin(), sitr2);
                 // from i to j
                 ia[k] = i;
                 int st_source = sitrIndex;// ->second.getId();
@@ -305,8 +305,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
         // constraint to make sure stations don't send more vehicles than they have
         for (auto sitr = stations.begin(); sitr!= stations.end(); ++sitr) {
-        	int sitrIndex ;
-        	sitrIndex = std::distance(stations.begin(), sitr);
+            int sitrIndex ;
+            sitrIndex = std::distance(stations.begin(), sitr);
             std::stringstream ss;
             ss << "st " << sitrIndex << " veh constraint";
             const std::string& tmp = ss.str();
@@ -317,8 +317,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
             for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
                 if (sitr2 == sitr) continue;
-            	int sitr2Index ;
-            	sitr2Index = std::distance(stations.begin(), sitr2);
+                int sitr2Index ;
+                sitr2Index = std::distance(stations.begin(), sitr2);
                 // from i to j
                 ia[k] = i;
                 int stSrc = sitrIndex; //jo ->second.getId();
@@ -348,8 +348,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
         // if (verbose_) std::cout << "Even distribution: " <<  floor(vi_total/nstations_underserved) << std::endl;
         // constraint for net flow to match (or exceed) excess customers
         for (auto sitr = stations.begin(); sitr!= stations.end(); ++sitr) {
-        	int sitrIndex ;
-        	sitrIndex = std::distance(stations.begin(), sitr);
+            int sitrIndex ;
+            sitrIndex = std::distance(stations.begin(), sitr);
             std::stringstream ss;
             ss << "st " << sitrIndex;
             const std::string& tmp = ss.str();
@@ -362,8 +362,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
             for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
                 if (sitr2 == sitr) continue;
-            	int sitr2Index ;
-            	sitr2Index = std::distance(stations.begin(), sitr2);
+                int sitr2Index ;
+                sitr2Index = std::distance(stations.begin(), sitr2);
                 // from i to j
                 ia[k] = i;
                 int stSrc = sitrIndex; //jo ->second.getId();
@@ -383,8 +383,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
         // constraint to make sure stations don't send more vehicles than they have
         for (auto sitr = stations.begin(); sitr!= stations.end(); ++sitr) {
-        	int sitrIndex ;
-        	sitrIndex = std::distance(stations.begin(), sitr);
+            int sitrIndex ;
+            sitrIndex = std::distance(stations.begin(), sitr);
             std::stringstream ss;
             ss << "st " << sitrIndex << " veh constraint";
             const std::string& tmp = ss.str();
@@ -395,8 +395,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
             for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
                 // from i to j
                 if (sitr2 == sitr) continue;
-            	int sitr2Index ;
-            	sitr2Index = std::distance(stations.begin(), sitr2);
+                int sitr2Index ;
+                sitr2Index = std::distance(stations.begin(), sitr2);
                 ia[k] = i;
                 int stSrc = sitrIndex ; //jo this param is the zone ID itself ->second.getId(); ->second.getId();
                 int stDest   = sitr2Index; //jo (same comment as above) ->second.getId();
@@ -409,8 +409,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
         // constraint for stations to send as many vehicles as possible
         for (auto sitr = stations.begin(); sitr!= stations.end(); ++sitr) {
-        	int sitrIndex ;
-        	sitrIndex = std::distance(stations.begin(), sitr);
+            int sitrIndex ;
+            sitrIndex = std::distance(stations.begin(), sitr);
             std::stringstream ss;
             ss << "st " << sitrIndex << " send all constraint";
             const std::string& tmp = ss.str();
@@ -421,8 +421,8 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
             for (auto sitr2 = stations.begin(); sitr2 != stations.end(); ++sitr2) {
                 if (sitr2 == sitr) continue;
-            	int sitr2Index ;
-            	sitr2Index = std::distance(stations.begin(), sitr2);
+                int sitr2Index ;
+                sitr2Index = std::distance(stations.begin(), sitr2);
                 // from i to j
                 ia[k] = i;
                 int stSrc = sitrIndex ; //jo this param is the zone ID itself ->second.getId();
@@ -477,23 +477,23 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
                 //                                VehicleStatus::MOVING_TO_REBALANCE, VehicleStatus::FREE);
 
                 // randomly select node in zone based on recent demand
-        		int seed = 1;
-        		srand(seed);
-        		// const Person* driver = availableDrivers[rand()%availableDrivers.size() ];
-        		int randNodeTaz; // random node in TAZ initialized here
-        		const Node* node ;
-        		do {
-        			node = latestStartNodes[rand()%latestStartNodes.size()];
-        			randNodeTaz = node->getTazId();
-        		} while (randNodeTaz != stDest);
+                int seed = 1;
+                srand(seed);
+                // const Person* driver = availableDrivers[rand()%availableDrivers.size() ];
+                int randNodeTaz; // random node in TAZ initialized here
+                const Node* node ;
+                do {
+                    node = latestStartNodes[rand()%latestStartNodes.size()];
+                    randNodeTaz = node->getTazId();
+                } while (randNodeTaz != stDest);
 
 
                 for (auto driver : availableDrivers){
-                	//const Person* driverPerson = *driver;
-                	std::string id = (driver->getDatabaseId()) ;
-                	if (id == vehId) {
-                		parentController->sendCruiseCommand(driver, node, currTick ); //jo NEEDS WORK
-                	}
+                    //const Person* driverPerson = *driver;
+                    std::string id = (driver->getDatabaseId()) ;
+                    if (id == vehId) {
+                        parentController->sendCruiseCommand(driver, node, currTick ); //jo NEEDS WORK
+                    }
                 }
 
                 // change station ownership of vehicle (these are moot in this implementation I think }jo
@@ -532,7 +532,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
     }
 
     // housekeeping
-	latestStartNodes.clear();
+    latestStartNodes.clear();
     glp_delete_prob(lp);
     glp_free_env();
 
@@ -547,7 +547,7 @@ void KasiaRebalancer::rebalance(const std::vector<const Person*>& availableDrive
 
 void LazyRebalancer::rebalance(const std::vector<const Person*>& availableDrivers, const timeslice currTick)
 {
-	//Does nothing
+    //Does nothing
 }
 
 } /* namespace sim_mob */

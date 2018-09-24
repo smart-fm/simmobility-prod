@@ -24,7 +24,7 @@ namespace sim_mob
         class PlanningAreaDao : public db::SqlAbstractDao<PlanningArea>
         {
         public:
-        	PlanningAreaDao(db::DB_Connection& connection);
+            PlanningAreaDao(db::DB_Connection& connection);
             virtual ~PlanningAreaDao();
 
         private:

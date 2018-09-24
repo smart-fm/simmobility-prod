@@ -11,18 +11,18 @@ namespace sim_mob
 class SimulationInfoPrinter : private boost::noncopyable
 {
 public:
-	SimulationInfoPrinter(ConfigParams& cfg, const std::string& filename);
+    SimulationInfoPrinter(ConfigParams& cfg, const std::string& filename);
 
-	/**
-	 * Prints the simulation information
-	 */
-	void printSimulationInfo();
+    /**
+     * Prints the simulation information
+     */
+    void printSimulationInfo();
 private:
-	/** The output stream to which we are writing the file */
-	std::ofstream out;
+    /** The output stream to which we are writing the file */
+    std::ofstream out;
 
-	/** The configuration parameters */
-	ConfigParams &cfg;
+    /** The configuration parameters */
+    ConfigParams &cfg;
 };
 
 }

@@ -19,13 +19,13 @@ namespace unit_tests {
 class ModelTest : public CppUnit::TestFixture{
 
 public:
-	void setUp();
+    void setUp();
 
 private:
-	DeveloperModel *developerModel;
+    DeveloperModel *developerModel;
 
-	CPPUNIT_TEST_SUITE(ModelTest);
-	CPPUNIT_TEST_SUITE_END();
+    CPPUNIT_TEST_SUITE(ModelTest);
+    CPPUNIT_TEST_SUITE_END();
 
 };
 }

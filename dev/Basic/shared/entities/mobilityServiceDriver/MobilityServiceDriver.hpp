@@ -18,57 +18,57 @@ class MobilityServiceController;
 
 enum MobilityServiceDriverStatus
 {
-	DRIVE_START = 0,
-	CRUISING,
-	DRIVE_TO_TAXISTAND,
-	DRIVE_WITH_PASSENGER,
-	DRIVE_FOR_DRIVER_CHANGE_SHIFT,
-	QUEUING_AT_TAXISTAND,
-	DRIVE_FOR_BREAK,
-	DRIVER_IN_BREAK,
-	DRIVE_ON_CALL,
-	DRIVE_TO_PARKING,
-	PARKED
+    DRIVE_START = 0,
+    CRUISING,
+    DRIVE_TO_TAXISTAND,
+    DRIVE_WITH_PASSENGER,
+    DRIVE_FOR_DRIVER_CHANGE_SHIFT,
+    QUEUING_AT_TAXISTAND,
+    DRIVE_FOR_BREAK,
+    DRIVER_IN_BREAK,
+    DRIVE_ON_CALL,
+    DRIVE_TO_PARKING,
+    PARKED
 };
 
 class MobilityServiceDriver
 {
 public:
-	MobilityServiceDriver() : driverStatus(DRIVE_START)
-	{};
+    MobilityServiceDriver() : driverStatus(DRIVE_START)
+    {};
 
-	virtual ~MobilityServiceDriver()
-	{};
+    virtual ~MobilityServiceDriver()
+    {};
 
-	/**
-	 * the interface function to get current node
-	 * @return current node.
-	 */
-	virtual const Node *getCurrentNode() const = 0;
+    /**
+     * the interface function to get current node
+     * @return current node.
+     */
+    virtual const Node *getCurrentNode() const = 0;
 
-	virtual const unsigned getNumAssigned() const;
+    virtual const unsigned getNumAssigned() const;
 
-	virtual const MobilityServiceDriverStatus getDriverStatus() const;
+    virtual const MobilityServiceDriverStatus getDriverStatus() const;
 
-	virtual const std::string getDriverStatusStr() const;
+    virtual const std::string getDriverStatusStr() const;
 
-	virtual void setDriverStatus(const MobilityServiceDriverStatus status);
+    virtual void setDriverStatus(const MobilityServiceDriverStatus status);
 
-	virtual const std::vector<MobilityServiceController *> &getSubscribedControllers() const = 0;
+    virtual const std::vector<MobilityServiceController *> &getSubscribedControllers() const = 0;
 
-	virtual const std::string getSubscribedControllerTypesStr() const;
+    virtual const std::string getSubscribedControllerTypesStr() const;
 
-	virtual bool hasMultipleSubscriptions() const;
+    virtual bool hasMultipleSubscriptions() const;
 
-	virtual unsigned long getPassengerCount() const = 0;
+    virtual unsigned long getPassengerCount() const = 0;
 
-	virtual sim_mob::Schedule getAssignedSchedule() const = 0;
+    virtual sim_mob::Schedule getAssignedSchedule() const = 0;
 
-	virtual bool isDriverControllerStudyAreaEnabled();
+    virtual bool isDriverControllerStudyAreaEnabled();
 
     virtual sim_mob::VehicleBase::VehicleType getVehicleType() const;
 protected:
-	MobilityServiceDriverStatus driverStatus;
+    MobilityServiceDriverStatus driverStatus;
 };
 
 bool isMobilityServiceDriver(const Person *person);

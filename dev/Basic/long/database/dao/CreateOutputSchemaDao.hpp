@@ -18,7 +18,7 @@ namespace sim_mob {
          */
         class CreateOutputSchemaDao : public db::SqlAbstractDao<CreateOutputSchema> {
         public:
-        	CreateOutputSchemaDao(db::DB_Connection& connection);
+            CreateOutputSchemaDao(db::DB_Connection& connection);
             virtual ~CreateOutputSchemaDao();
 
         private:

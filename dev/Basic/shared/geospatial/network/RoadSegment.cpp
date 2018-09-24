@@ -18,166 +18,166 @@ parentLink(nullptr), busTerminusSegment(false)
 
 RoadSegment::~RoadSegment()
 {
-	clear_delete_vector(lanes);
+    clear_delete_vector(lanes);
 
-	if (polyLine)
-	{
-		delete polyLine;
-		polyLine = nullptr;
-	}
+    if (polyLine)
+    {
+        delete polyLine;
+        polyLine = nullptr;
+    }
 
-	clear_delete_map(obstacles);
-	clear_delete_vector(surveillanceStations);
+    clear_delete_map(obstacles);
+    clear_delete_vector(surveillanceStations);
 }
 
 unsigned int RoadSegment::getRoadSegmentId() const
 {
-	return roadSegmentId;
+    return roadSegmentId;
 }
 
 void RoadSegment::setRoadSegmentId(unsigned int roadSegmentId)
 {
-	this->roadSegmentId = roadSegmentId;
+    this->roadSegmentId = roadSegmentId;
 }
 
 double RoadSegment::getCapacity() const
 {
-	return capacity;
+    return capacity;
 }
 
 void RoadSegment::setCapacity(unsigned int capacityVph)
 {
-	this->capacity = ((double)capacityVph) / 3600.0;
+    this->capacity = ((double)capacityVph) / 3600.0;
 }
 
 const std::vector<const Lane *>& RoadSegment::getLanes() const
 {
-	return lanes;
+    return lanes;
 }
 
 const Lane* RoadSegment::getLane(int index) const
 {
-	return lanes.at(index);
+    return lanes.at(index);
 }
 
 unsigned int RoadSegment::getLinkId() const
 {
-	return linkId;
+    return linkId;
 }
 
 void RoadSegment::setLinkId(unsigned int linkId)
 {
-	this->linkId = linkId;
+    this->linkId = linkId;
 }
 
 double RoadSegment::getMaxSpeed() const
 {
-	return maxSpeed;
+    return maxSpeed;
 }
 
 void RoadSegment::setMaxSpeed(double maxSpeedKmph)
 {
-	this->maxSpeed = maxSpeedKmph / 3.6;
+    this->maxSpeed = maxSpeedKmph / 3.6;
 }
 
 const Link* RoadSegment::getParentLink() const
 {
-	return parentLink;
+    return parentLink;
 }
 
 void RoadSegment::setParentLink(Link *parentLink)
 {
-	this->parentLink = parentLink;
+    this->parentLink = parentLink;
 }
 
 PolyLine* RoadSegment::getPolyLine() const
 {
-	return polyLine;
+    return polyLine;
 }
 
 void RoadSegment::setPolyLine(PolyLine *polyLine)
 {
-	this->polyLine = polyLine;
+    this->polyLine = polyLine;
 }
 
 unsigned int RoadSegment::getSequenceNumber() const
 {
-	return sequenceNumber;
+    return sequenceNumber;
 }
 
 void RoadSegment::setSequenceNumber(unsigned int sequenceNumber)
 {
-	this->sequenceNumber = sequenceNumber;
+    this->sequenceNumber = sequenceNumber;
 }
 
 bool RoadSegment::isBusTerminusSegment() const
 {
-	return busTerminusSegment;
+    return busTerminusSegment;
 }
 
 void RoadSegment::setBusTerminusSegment()
 {
-	this->busTerminusSegment = true;
+    this->busTerminusSegment = true;
 }
 
 const std::map<double, RoadItem *>& RoadSegment::getObstacles() const
 {
-	return obstacles;
+    return obstacles;
 }
 
 unsigned int RoadSegment::getNoOfLanes() const
 {
-	return lanes.size();
+    return lanes.size();
 }
 
 double RoadSegment::getLength() const
 {
-	return polyLine->getLength();
+    return polyLine->getLength();
 }
 
 void RoadSegment::addLane(const Lane *lane)
 {
-	this->lanes.push_back(lane);
+    this->lanes.push_back(lane);
 }
 
 const std::vector<SurveillanceStation *>& RoadSegment::getSurveillanceStations() const
 {
-	return surveillanceStations;
+    return surveillanceStations;
 }
 
 void RoadSegment::addObstacle(double offset, RoadItem *item)
 {
-	if (offset < 0)
-	{
-		std::stringstream msg;
-		msg << "Could not add obstacle " << item->getRoadItemId() << " to road segment " << this->roadSegmentId
-			<< "\nOffset < 0";
-		throw std::runtime_error(msg.str());
-	}
+    if (offset < 0)
+    {
+        std::stringstream msg;
+        msg << "Could not add obstacle " << item->getRoadItemId() << " to road segment " << this->roadSegmentId
+            << "\nOffset < 0";
+        throw std::runtime_error(msg.str());
+    }
 
-	if (offset > this->getLength())
-	{
-		std::stringstream msg;
-		msg << "Could not add obstacle " << item->getRoadItemId() << " to road segment " << this->roadSegmentId
-			<< "\nOffset " << offset << " > Segment length " << this->getLength();
-		throw std::runtime_error(msg.str());
-	}
+    if (offset > this->getLength())
+    {
+        std::stringstream msg;
+        msg << "Could not add obstacle " << item->getRoadItemId() << " to road segment " << this->roadSegmentId
+            << "\nOffset " << offset << " > Segment length " << this->getLength();
+        throw std::runtime_error(msg.str());
+    }
 
-	if (obstacles.count(offset) > 0)
-	{
-		std::stringstream msg;
-		msg << "Could not add obstacle " << item->getRoadItemId() << " to road segment " << this->roadSegmentId
-			<< "\nAnother obstacle at the same offset";
-		throw std::runtime_error(msg.str());
-	}
+    if (obstacles.count(offset) > 0)
+    {
+        std::stringstream msg;
+        msg << "Could not add obstacle " << item->getRoadItemId() << " to road segment " << this->roadSegmentId
+            << "\nAnother obstacle at the same offset";
+        throw std::runtime_error(msg.str());
+    }
 
-	obstacles[offset] = item;
+    obstacles[offset] = item;
 }
 
 void RoadSegment::addSurveillanceStation(SurveillanceStation *surveillanceStn)
 {
-	surveillanceStations.push_back(surveillanceStn);
+    surveillanceStations.push_back(surveillanceStn);
 
-	//Add to the static container
-	SurveillanceStation::surveillanceStations.push_back(surveillanceStn);
+    //Add to the static container
+    SurveillanceStation::surveillanceStations.push_back(surveillanceStn);
 }

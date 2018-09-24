@@ -34,41 +34,41 @@ using namespace sim_mob;
 
 sim_mob::BoundaryProcessor::BoundaryProcessor(): BOUNDARY_PROCOSS_TAG(2)
 {
-	std::cout << "Do nothing" << std::endl;
-//		downstream_ips.clear();
+    std::cout << "Do nothing" << std::endl;
+//      downstream_ips.clear();
 }
 
 
 string sim_mob::BoundaryProcessor::boundaryProcessing(int time_step)
 {
-	std::cout << "Do nothing" << std::endl;
-	return "";
+    std::cout << "Do nothing" << std::endl;
+    return "";
 }
 
 void sim_mob::BoundaryProcessor::initBoundaryTrafficItems()
 {
-	std::cout << "Do nothing" << std::endl;
+    std::cout << "Do nothing" << std::endl;
 }
 
 string sim_mob::BoundaryProcessor::releaseResources()
 {
-	std::cout << "Do nothing" << std::endl;
-	return "";
+    std::cout << "Do nothing" << std::endl;
+    return "";
 }
 
 void sim_mob::BoundaryProcessor::setEntityWorkGroup(WorkGroup* entity_group, WorkGroup* singal_group)
 {
-	std::cout << "Do nothing" << std::endl;
+    std::cout << "Do nothing" << std::endl;
 }
 
 void sim_mob::BoundaryProcessor::loadInBoundarySegment(string id, BoundarySegment* boundary)
 {
-	std::cout << "Do nothing" << std::endl;
+    std::cout << "Do nothing" << std::endl;
 }
 
 void sim_mob::BoundaryProcessor::setConfigure(PartitionConfigure* partition_config, SimulationScenario* scenario)
 {
-	std::cout << "Do nothing" << std::endl;
+    std::cout << "Do nothing" << std::endl;
 }
 
 

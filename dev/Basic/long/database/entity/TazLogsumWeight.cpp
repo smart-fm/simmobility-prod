@@ -23,42 +23,42 @@ TazLogsumWeight::~TazLogsumWeight(){}
  */
 int TazLogsumWeight::getGroupLogsum() const
 {
-	return groupLogsum;
+    return groupLogsum;
 }
 
 int TazLogsumWeight::getIndividualId() const
 {
-	return individualId;
+    return individualId;
 }
 
 double TazLogsumWeight::getWeight() const
 {
-	return weight;
+    return weight;
 }
 
 int TazLogsumWeight::getHouseholdId() const
 {
-	return householdId;
+    return householdId;
 }
 
 void TazLogsumWeight::setGroupLogsum( int value)
 {
-	groupLogsum = value;
+    groupLogsum = value;
 }
 
 void TazLogsumWeight::setIndividualId( int value )
 {
-	individualId = value;
+    individualId = value;
 }
 
 void TazLogsumWeight::setWeight( double value )
 {
-	weight = value;
+    weight = value;
 }
 
 void TazLogsumWeight::setHouseholdId( int value )
 {
-	householdId = value;
+    householdId = value;
 }
 
 

@@ -14,32 +14,32 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
+    namespace long_term
+    {
 
-		class JobAssignmentModel
-		{
-		public:
-			JobAssignmentModel(HM_Model *model = nullptr );
+        class JobAssignmentModel
+        {
+        public:
+            JobAssignmentModel(HM_Model *model = nullptr );
 
-			virtual ~JobAssignmentModel();
+            virtual ~JobAssignmentModel();
 
-			/*
-			 * call this function for each individual with employment status id < 4 (worker)
-			 * and individuals in households with tenure_status != 3 (non foreign) to
-			 * compute the job assignment probability for each taz.
-			 */
-			void computeJobAssignmentProbability(BigSerial individualId);
-			int getIncomeCategoryId(float income);
+            /*
+             * call this function for each individual with employment status id < 4 (worker)
+             * and individuals in households with tenure_status != 3 (non foreign) to
+             * compute the job assignment probability for each taz.
+             */
+            void computeJobAssignmentProbability(BigSerial individualId);
+            int getIncomeCategoryId(float income);
 
-		private:
-			HM_Model* model;
-			boost::mutex mtx;
-			int jobId ;
+        private:
+            HM_Model* model;
+            boost::mutex mtx;
+            int jobId ;
 
-		};
+        };
 
-	}
+    }
 }
 
 

@@ -70,13 +70,13 @@ private:
      * @param node node corresponding to the system element in the xml file
      */
     void processSystemNode(xercesc::DOMElement* node);
-	
-	/**
+    
+    /**
      * Processes the model scripts element in config file
      *
-	 * @param node node corresponding to model_scripts element inside the xml file
-	 */
-	void processModelScriptsNode(xercesc::DOMElement* node);
+     * @param node node corresponding to model_scripts element inside the xml file
+     */
+    void processModelScriptsNode(xercesc::DOMElement* node);
 
     /**
      * Processes the network element in the config file
@@ -170,22 +170,22 @@ private:
     void processAuraManagerImpNode(xercesc::DOMElement* node);
 
     /**
-	 * Helper function to process integer from nodes represented with "value" attribute
-	 *
-	 * @param node xml element to be processed
-	 *
-	 * @return extracted integer value
-	 */
-	int processValueInteger(xercesc::DOMElement* node);
+     * Helper function to process integer from nodes represented with "value" attribute
+     *
+     * @param node xml element to be processed
+     *
+     * @return extracted integer value
+     */
+    int processValueInteger(xercesc::DOMElement* node);
 
-	/**
-	 * Helper function to process boolean from nodes represented with "value" attribute
-	 *
-	 * @param node xml element to be processed
-	 *
-	 * @return extracted boolean value
-	 */
-	bool processValueBoolean(xercesc::DOMElement* node);
+    /**
+     * Helper function to process boolean from nodes represented with "value" attribute
+     *
+     * @param node xml element to be processed
+     *
+     * @return extracted boolean value
+     */
+    bool processValueBoolean(xercesc::DOMElement* node);
 
     /**
      * Processes the commsim element in the config file
@@ -228,76 +228,76 @@ private:
      * @param node node corresponding to the busController element in the config file
      */
     void processBusControllerNode(xercesc::DOMElement* node);
-	
-	/**
+    
+    /**
      * Processes the bus capacity element in the config file
      *
      * @param node node corresponding to the bus capacity element in the config file
      */
-	void processBusCapacityNode(xercesc::DOMElement* node);
+    void processBusCapacityNode(xercesc::DOMElement* node);
 
-	/**
+    /**
      * Processes the publicTransit element in config xml
      *
      * @param node node corresponding to the publicTransit element inside xml file
      */
     void processPublicTransit(xercesc::DOMElement* node);
-	
-	/**
+    
+    /**
      * Processes the output_statistics element in config xml
      *
      * @param node node corresponding to the output_statistics element inside xml file
      */
     void processOutputStatistics(xercesc::DOMElement* node);
-	
+    
     /**
      * Processes the pathSet element in the config file
      *
      * @param node node corresponding to the pathSetFile element in the xml file
      */
     void processPathSetFileName(xercesc::DOMElement* node);
-	
-	/**
+    
+    /**
      * processes the travel time element the config xml
      *
      * @param node node corresponding to trave_time element inside xml file
      */
     void processTT_Update(xercesc::DOMElement* node);
-	
-	/**
+    
+    /**
      * processes the journey_time element in config xml
      *
      * @param node node corresponding to journey_time element inside xml file
      */
     void processJourneyTimeNode(xercesc::DOMElement* node);
-	
-	/**
+    
+    /**
      * processes the waiting_time element in config xml
      *
      * @param node node corresponding to waiting_time element inside xml file
      */
-	void processWaitingTimeNode(xercesc::DOMElement* node);
-	
-	/**
+    void processWaitingTimeNode(xercesc::DOMElement* node);
+    
+    /**
      * processes the waiting_counts element in config xml
      *
      * @param node node corresponding to waiting_counts element inside xml file
      */
-	void processWaitingCountsNode(xercesc::DOMElement* node);
-	
-	/**
+    void processWaitingCountsNode(xercesc::DOMElement* node);
+    
+    /**
      * processes the travel_time element in config xml
      *
      * @param node node corresponding to travel_time element inside xml file
      */
-	void processTravelTimeNode(xercesc::DOMElement* node);
-	
-	/**
+    void processTravelTimeNode(xercesc::DOMElement* node);
+    
+    /**
      * processes the pt_stop_stats element in config xml
      *
      * @param node node corresponding to pt_stop_stats element inside xml file
      */
-	void processPT_StopStatsNode(xercesc::DOMElement* node);
+    void processPT_StopStatsNode(xercesc::DOMElement* node);
 
     /**
      * processes the assignment_matrix element in config xml
@@ -314,22 +314,22 @@ private:
     void processODTravelTimeNode(xercesc::DOMElement* node);
 
     /**
-	 * processes the Segment Travel Time node in the config xml
-	 *
-	 * @param node node corresponding to link travel time element inside xml file
-	 */
+     * processes the Segment Travel Time node in the config xml
+     *
+     * @param node node corresponding to link travel time element inside xml file
+     */
     void processSegmentTravelTimeNode(xercesc::DOMElement* node);
 
-	/**
-	 * processes the link travel time node in the config xml
-	 * @param node
-	 */
-	void processLinkTravelTimeNode(xercesc::DOMElement* node);
+    /**
+     * processes the link travel time node in the config xml
+     * @param node
+     */
+    void processLinkTravelTimeNode(xercesc::DOMElement* node);
 
     /// Short Term config reference
     ST_Config& stCfg;
-	
-	/// Shared configuration
+    
+    /// Shared configuration
     ConfigParams& cfg;
 };
 

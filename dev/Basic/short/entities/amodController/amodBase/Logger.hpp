@@ -26,7 +26,7 @@ public:
     /**
      * Constructor
      */
-	Logger();
+    Logger();
 
     /**
      * Constructor
@@ -37,7 +37,7 @@ public:
     /**
      * Destructor
      */
-	virtual ~Logger();
+    virtual ~Logger();
     
     /**
      * openLogFile

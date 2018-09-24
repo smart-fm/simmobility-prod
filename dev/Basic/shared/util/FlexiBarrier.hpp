@@ -31,17 +31,17 @@ namespace sim_mob {
  */
 class FlexiBarrier {
 public:
-	///Create a FlexiBarrier that requires *count* to be accumulated before it passes.
-	FlexiBarrier(unsigned int count);
+    ///Create a FlexiBarrier that requires *count* to be accumulated before it passes.
+    FlexiBarrier(unsigned int count);
 
-	///Add *amount* to the total count and wait. If this call to wait caused the count to reach zero,
-	///  then return (true) immediately and unlock all others waiting on this barrier. Otherwise, wait
-	///  (and eventually return false).
-	bool wait(unsigned int amount=1);
+    ///Add *amount* to the total count and wait. If this call to wait caused the count to reach zero,
+    ///  then return (true) immediately and unlock all others waiting on this barrier. Otherwise, wait
+    ///  (and eventually return false).
+    bool wait(unsigned int amount=1);
 
-	///Contribute *amount* to the total count, but don't wait. If this contribution caused the count to
-	///  reach zero, then unlock all others waiting on this barrier and return (true). Otherwise, return false.
-	bool contribute(unsigned int amount=1);
+    ///Contribute *amount* to the total count, but don't wait. If this contribution caused the count to
+    ///  reach zero, then unlock all others waiting on this barrier and return (true). Otherwise, return false.
+    bool contribute(unsigned int amount=1);
 
 private:
     boost::mutex m_mutex;

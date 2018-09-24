@@ -21,7 +21,7 @@ namespace sim_mob
         class TaxiAccessCoefficientsDao : public db::SqlAbstractDao<TaxiAccessCoefficients>
         {
         public:
-        	TaxiAccessCoefficientsDao(db::DB_Connection& connection);
+            TaxiAccessCoefficientsDao(db::DB_Connection& connection);
             virtual ~TaxiAccessCoefficientsDao();
 
         private:

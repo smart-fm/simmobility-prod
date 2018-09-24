@@ -15,34 +15,34 @@ SchoolDesk::~SchoolDesk(){}
 
 SchoolDesk::SchoolDesk( const SchoolDesk &source)
 {
-	this->schoolId = source.schoolId;
-	this->schoolDeskId = source.schoolDeskId;
+    this->schoolId = source.schoolId;
+    this->schoolDeskId = source.schoolDeskId;
 }
 
 SchoolDesk& SchoolDesk::operator=(const SchoolDesk& source)
 {
-	this->schoolId = source.schoolId;
-	this->schoolDeskId = source.schoolDeskId;
+    this->schoolId = source.schoolId;
+    this->schoolDeskId = source.schoolDeskId;
 
-	return *this;
+    return *this;
 }
 
 BigSerial SchoolDesk::getSchoolDeskId() const
 {
-	return schoolDeskId;
+    return schoolDeskId;
 }
 
 void SchoolDesk::setSchoolDeskId(BigSerial schoolDeskId)
 {
-	this->schoolDeskId = schoolDeskId;
+    this->schoolDeskId = schoolDeskId;
 }
 
 BigSerial SchoolDesk::getSchoolId() const
 {
-	return schoolId;
+    return schoolId;
 }
 
 void SchoolDesk::setSchoolId(BigSerial schoolId)
 {
-	this->schoolId = schoolId;
+    this->schoolId = schoolId;
 }

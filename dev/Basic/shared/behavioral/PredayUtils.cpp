@@ -17,38 +17,38 @@ OD_Pair::~OD_Pair()
 
 bool OD_Pair::operator ==(const OD_Pair& rhs) const
 {
-	return ((origin == rhs.origin) && (destination == rhs.destination));
+    return ((origin == rhs.origin) && (destination == rhs.destination));
 }
 
 bool OD_Pair::operator !=(const OD_Pair& rhs) const
 {
-	return !(*this == rhs);
+    return !(*this == rhs);
 }
 
 bool OD_Pair::operator >(const OD_Pair& rhs) const
 {
-	if (origin > rhs.origin)
-	{
-		return true;
-	}
-	if (origin == rhs.origin && destination > rhs.destination)
-	{
-		return true;
-	}
-	return false;
+    if (origin > rhs.origin)
+    {
+        return true;
+    }
+    if (origin == rhs.origin && destination > rhs.destination)
+    {
+        return true;
+    }
+    return false;
 }
 
 bool OD_Pair::operator <(const OD_Pair& rhs) const
 {
-	if (origin < rhs.origin)
-	{
-		return true;
-	}
-	if (origin == rhs.origin && destination < rhs.destination)
-	{
-		return true;
-	}
-	return false;
+    if (origin < rhs.origin)
+    {
+        return true;
+    }
+    if (origin == rhs.origin && destination < rhs.destination)
+    {
+        return true;
+    }
+    return false;
 }
 
 } //end namespace sim_mob

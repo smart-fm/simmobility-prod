@@ -25,15 +25,15 @@
 int main(int argc, char *argv[])
 {
 #ifdef SIMMOB_USE_TEST_GUI
-	QApplication app(argc, argv);
-	QxCppUnit::TestRunner runner;
+    QApplication app(argc, argv);
+    QxCppUnit::TestRunner runner;
 
-	runner.addTest(CPPUNIT_NS::TestFactoryRegistry::getRegistry().makeTest());
-	runner.run();
+    runner.addTest(CPPUNIT_NS::TestFactoryRegistry::getRegistry().makeTest());
+    runner.run();
 
-	return 0;
+    return 0;
 #else
-	CppUnit::TestResult controller;
+    CppUnit::TestResult controller;
 
     CppUnit::TestResultCollector result;
     controller.addListener(&result);

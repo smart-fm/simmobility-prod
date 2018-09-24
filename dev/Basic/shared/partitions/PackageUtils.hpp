@@ -45,36 +45,36 @@ namespace sim_mob {
 class PackageUtils {
 
 public:
-	PackageUtils() CHECK_MPI_THROW ;
-	~PackageUtils() CHECK_MPI_THROW ;
+    PackageUtils() CHECK_MPI_THROW ;
+    ~PackageUtils() CHECK_MPI_THROW ;
 public:
-	/**
-	 * DATA_TYPE can be:
-	 * (1)Basic Data Type: int {unsigned, signed}, long, short, float, double, char, bool.
-	 * (2)STL Data Type: list, array, set.
-	*/
-	template<class DATA_TYPE>
-	void operator<<(DATA_TYPE& value) CHECK_MPI_THROW ;
+    /**
+     * DATA_TYPE can be:
+     * (1)Basic Data Type: int {unsigned, signed}, long, short, float, double, char, bool.
+     * (2)STL Data Type: list, array, set.
+    */
+    template<class DATA_TYPE>
+    void operator<<(DATA_TYPE& value) CHECK_MPI_THROW ;
 
-	/**
-	 * xuyan:
-	 * double value is processed specially, because sometimes the double value is NaN.
-	 */
-	void operator<<(double value) CHECK_MPI_THROW ;
+    /**
+     * xuyan:
+     * double value is processed specially, because sometimes the double value is NaN.
+     */
+    void operator<<(double value) CHECK_MPI_THROW ;
 
 public:
-	std::string getPackageData() CHECK_MPI_THROW ;
+    std::string getPackageData() CHECK_MPI_THROW ;
 
 private:
-	friend class unit_tests::PackUnpackUnitTests;
+    friend class unit_tests::PackUnpackUnitTests;
 
 #ifndef SIMMOB_DISABLE_MPI
-//	friend class BoundaryProcessor;
-//	friend class ShortTermBoundaryProcessor;
+//  friend class BoundaryProcessor;
+//  friend class ShortTermBoundaryProcessor;
 
-	std::stringstream buffer;
-	//Should change to binary archive
-	boost::archive::text_oarchive* package;
+    std::stringstream buffer;
+    //Should change to binary archive
+    boost::archive::text_oarchive* package;
 #endif
 
 };
@@ -86,7 +86,7 @@ private:
 
 template<class DATA_TYPE>
 inline void sim_mob::PackageUtils::operator<<(DATA_TYPE& value) {
-	(*package) & value;
+    (*package) & value;
 }
 
 #endif

@@ -29,20 +29,20 @@ typedef bg::model::box<point_t> loop_detector_box;
  */
 struct AABB
 {
-	Point lowerLeft_;
-	Point upperRight_;
+    Point lowerLeft_;
+    Point upperRight_;
 
-	// Expand this AABB to include another AABB.  That is, this = this union <another>.
-	// union is a keyword in C++, so the method name is united.
-	void united(AABB const &another);
+    // Expand this AABB to include another AABB.  That is, this = this union <another>.
+    // union is a keyword in C++, so the method name is united.
+    void united(AABB const &another);
 };
 
 struct Box
 {
-	Point lowerLeft_;
-	Point upperLeft_;
-	Point upperRight_;
-	Point lowerRight_;
+    Point lowerLeft_;
+    Point upperLeft_;
+    Point upperRight_;
+    Point lowerRight_;
 };
 
 /**
@@ -72,41 +72,41 @@ struct Box
 class LoopDetectorEntity : public sim_mob::Sensor
 {
 public:
-	LoopDetectorEntity(MutexStrategy const & mutexStrategy) : Sensor(mutexStrategy), pimpl_(0)
-	{
-	}
-	virtual ~LoopDetectorEntity();
+    LoopDetectorEntity(MutexStrategy const & mutexStrategy) : Sensor(mutexStrategy), pimpl_(0)
+    {
+    }
+    virtual ~LoopDetectorEntity();
 
-	/**
-	 * @return true, as Loop detectors are non-spatial in nature.
-	 */
-	virtual bool isNonspatial()
-	{
-		return true;
-	}
+    /**
+     * @return true, as Loop detectors are non-spatial in nature.
+     */
+    virtual bool isNonspatial()
+    {
+        return true;
+    }
 
-	void init(Signal const & signal);
+    void init(Signal const & signal);
 
-	virtual void load(const std::map<std::string, std::string>& configProps)
-	{
-	}
+    virtual void load(const std::map<std::string, std::string>& configProps)
+    {
+    }
 
-	/**
-	 * Called by the Signal object at the end of its cycle to reset all CountAndTimePair.
-	 */
-	virtual void reset();
+    /**
+     * Called by the Signal object at the end of its cycle to reset all CountAndTimePair.
+     */
+    virtual void reset();
 
-	/**
-	 * Called by the Signal object at the end of its cycle to reset the CountAndTimePair
-	 * for the specified \c lane.
-	 */
-	void reset(Lane const & lane);
+    /**
+     * Called by the Signal object at the end of its cycle to reset the CountAndTimePair
+     * for the specified \c lane.
+     */
+    void reset(Lane const & lane);
 
 protected:
-	virtual Entity::UpdateStatus frame_tick(timeslice now);
-	class Impl;
-	Impl* pimpl_;
-	friend class Impl;
+    virtual Entity::UpdateStatus frame_tick(timeslice now);
+    class Impl;
+    Impl* pimpl_;
+    friend class Impl;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,63 +129,63 @@ protected:
 class LoopDetector : private boost::noncopyable
 {
 public:
-	LoopDetector(Lane const *lane, meter_t length, Shared<Sensor::CountAndTimePair> &pair);
+    LoopDetector(Lane const *lane, meter_t length, Shared<Sensor::CountAndTimePair> &pair);
 
-	// Check if any vehicle in the <vehicles> list is hovering over the loop detector.  If there
-	// is no vehicle, then set <vehicle_> to 0 and increment the space-time attribute.  If a
-	// vehicle (or part of) is hovering over the loop detector, set <vehicle_> to it; increment
-	// the vehicle count whenever <vehicle_> changes.
-	bool check(boost::unordered_set<Vehicle const *> &vehicles, std::vector<Vehicle const *>& vehsInLoopDetector);
+    // Check if any vehicle in the <vehicles> list is hovering over the loop detector.  If there
+    // is no vehicle, then set <vehicle_> to 0 and increment the space-time attribute.  If a
+    // vehicle (or part of) is hovering over the loop detector, set <vehicle_> to it; increment
+    // the vehicle count whenever <vehicle_> changes.
+    bool check(boost::unordered_set<Vehicle const *> &vehicles, std::vector<Vehicle const *>& vehsInLoopDetector);
 
-	/**
-	 * @return the AABB that would contain the monitoring area of this object.
-	 */
-	Box getLDBox() const;
+    /**
+     * @return the AABB that would contain the monitoring area of this object.
+     */
+    Box getLDBox() const;
 
-	const std::vector<const Vehicle* > vehicle() const
-	{
-		return vehicles_;
-	}
+    const std::vector<const Vehicle* > vehicle() const
+    {
+        return vehicles_;
+    }
 
-	/**
-	 * Called by the Signal object at the end of its cycle to reset the CountAndTimePair
-	 */
-	void reset()
-	{
-		request_to_reset_ = true;
-	}
+    /**
+     * Called by the Signal object at the end of its cycle to reset the CountAndTimePair
+     */
+    void reset()
+    {
+        request_to_reset_ = true;
+    }
 
-	Point center_;
-	meter_t width_;
+    Point center_;
+    meter_t width_;
 
-	Box ld_area;
+    Box ld_area;
 
-	Vector2D<double> leftEdge;
-	Vector2D<double> bottomEdge;
+    Vector2D<double> leftEdge;
+    Vector2D<double> bottomEdge;
 
-	double sqLenOfLeftEdge;
-	double sqLenOfBottomEdge;
+    double sqLenOfLeftEdge;
+    double sqLenOfBottomEdge;
 private:
-	unsigned int timeStepInMilliSeconds_; // The loop detector entity runs at this rate.
-	bool request_to_reset_; // See the comment in check().
-	Shared<Sensor::CountAndTimePair> & countAndTimePair_;
-	std::vector<const Vehicle*> vehicles_;
+    unsigned int timeStepInMilliSeconds_; // The loop detector entity runs at this rate.
+    bool request_to_reset_; // See the comment in check().
+    Shared<Sensor::CountAndTimePair> & countAndTimePair_;
+    std::vector<const Vehicle*> vehicles_;
 private:
-	// Return true if any part of <vehicle> is hovering over the loop detector.
-	bool check(Vehicle const &vehicle);
+    // Return true if any part of <vehicle> is hovering over the loop detector.
+    bool check(Vehicle const &vehicle);
 
-	void incrementSpaceTime()
-	{
-		Sensor::CountAndTimePair pair(countAndTimePair_);
-		pair.spaceTimeInMilliSeconds += timeStepInMilliSeconds_;
-		countAndTimePair_.set(pair);
-	}
+    void incrementSpaceTime()
+    {
+        Sensor::CountAndTimePair pair(countAndTimePair_);
+        pair.spaceTimeInMilliSeconds += timeStepInMilliSeconds_;
+        countAndTimePair_.set(pair);
+    }
 
-	void incrementVehicleCount()
-	{
-		Sensor::CountAndTimePair pair(countAndTimePair_);
-		++pair.vehicleCount;
-		countAndTimePair_.set(pair);
-	}
+    void incrementVehicleCount()
+    {
+        Sensor::CountAndTimePair pair(countAndTimePair_);
+        ++pair.vehicleCount;
+        countAndTimePair_.set(pair);
+    }
 };
 }

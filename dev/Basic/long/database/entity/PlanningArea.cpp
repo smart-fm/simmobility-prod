@@ -15,40 +15,40 @@ PlanningArea::~PlanningArea(){}
 
 PlanningArea::PlanningArea(const PlanningArea& source)
 {
-	this->id = source.id;
-	this->name = source.name;
+    this->id = source.id;
+    this->name = source.name;
 
 }
 
 PlanningArea& PlanningArea::operator=(const PlanningArea& source)
 {
-	this->id = source.id;
-	this->name = source.name;
+    this->id = source.id;
+    this->name = source.name;
 
-	return *this;
+    return *this;
 }
 
 BigSerial PlanningArea::getId() const
 {
-	return id;
+    return id;
 }
 std::string PlanningArea::getName() const
 {
-	return name;
+    return name;
 }
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		std::ostream& operator<<(std::ostream& strm, const PlanningArea& data)
-		{
-			return strm << "{"
-					<< "\"id\":\"" << data.id << "\","
-					<< "\"name\":\"" << data.name << "\""
-					<< "}";
-		}
-	}
+    namespace long_term
+    {
+        std::ostream& operator<<(std::ostream& strm, const PlanningArea& data)
+        {
+            return strm << "{"
+                    << "\"id\":\"" << data.id << "\","
+                    << "\"name\":\"" << data.name << "\""
+                    << "}";
+        }
+    }
 }
 
 

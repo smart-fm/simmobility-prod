@@ -19,7 +19,7 @@ namespace sim_mob {
          */
         class UnitSaleDao : public db::SqlAbstractDao<UnitSale> {
         public:
-        	UnitSaleDao(db::DB_Connection& connection);
+            UnitSaleDao(db::DB_Connection& connection);
             virtual ~UnitSaleDao();
 
         private:

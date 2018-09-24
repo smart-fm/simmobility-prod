@@ -179,12 +179,12 @@ const std::string DB_GET_ALL_OP_COSTS = "SELECT * FROM " + DB_TABLE_OP_COSTS;
 
 /** load zone-zone tt data for a given OD zones **/
 const std::string DB_GET_TCOST_PT_FOR_OD = "SELECT * FROM " + DB_TABLE_TCOST_PT +
-		                                    " WHERE " + DB_FIELD_TCOST_ORIGIN + " = :origin"
-		                                    "   AND " + DB_FIELD_TCOST_DESTINATION + " = :dest";
+                                            " WHERE " + DB_FIELD_TCOST_ORIGIN + " = :origin"
+                                            "   AND " + DB_FIELD_TCOST_DESTINATION + " = :dest";
 
 const std::string DB_GET_TCOST_PVT_FOR_OD = "SELECT * FROM " + DB_TABLE_TCOST_PVT +
-		                                    " WHERE " + DB_FIELD_TCOST_ORIGIN + " = :origin"
-		                                    "   AND " + DB_FIELD_TCOST_DESTINATION + " = :dest";
+                                            " WHERE " + DB_FIELD_TCOST_ORIGIN + " = :origin"
+                                            "   AND " + DB_FIELD_TCOST_DESTINATION + " = :dest";
 
 const std::string DB_GET_PUB_UNAVAILABLE_OD = "SELECT "+ DB_FIELD_TCOST_ORIGIN + ", " + DB_FIELD_TCOST_DESTINATION + " FROM " + DB_TABLE_TCOST_PT + " WHERE info_unavailable = TRUE";
 const std::string DB_GET_PVT_UNAVAILABLE_OD = "SELECT "+ DB_FIELD_TCOST_ORIGIN + ", " + DB_FIELD_TCOST_DESTINATION + " FROM " + DB_TABLE_TCOST_PVT + " WHERE info_unavailable = TRUE";

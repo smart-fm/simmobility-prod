@@ -19,7 +19,7 @@ namespace sim_mob {
          */
         class IndLogsumJobAssignmentDao : public db::SqlAbstractDao<IndLogsumJobAssignment> {
         public:
-        	IndLogsumJobAssignmentDao(db::DB_Connection& connection);
+            IndLogsumJobAssignmentDao(db::DB_Connection& connection);
             virtual ~IndLogsumJobAssignmentDao();
 
         private:

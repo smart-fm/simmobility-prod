@@ -40,21 +40,21 @@ class UnPackageUtils {
 
 
 private:
-	std::stringstream buffer;
+    std::stringstream buffer;
 
 #ifndef SIMMOB_DISABLE_MPI
-	boost::archive::text_iarchive* package;
+    boost::archive::text_iarchive* package;
 
-//	friend class BoundaryProcessor;
-//	friend class ShortTermBoundaryProcessor;
+//  friend class BoundaryProcessor;
+//  friend class ShortTermBoundaryProcessor;
 #endif
 
 public:
-	UnPackageUtils(std::string data) CHECK_MPI_THROW ;
-	~UnPackageUtils() CHECK_MPI_THROW ;
+    UnPackageUtils(std::string data) CHECK_MPI_THROW ;
+    ~UnPackageUtils() CHECK_MPI_THROW ;
 
-	template<class DATA_TYPE>
-	void operator>>(DATA_TYPE& value) CHECK_MPI_THROW ;
+    template<class DATA_TYPE>
+    void operator>>(DATA_TYPE& value) CHECK_MPI_THROW ;
 
 };
 }
@@ -67,7 +67,7 @@ public:
 
 template<class DATA_TYPE>
 inline void sim_mob::UnPackageUtils::operator>>(DATA_TYPE& value) {
-	(*package) & value;
+    (*package) & value;
 }
 
 #endif

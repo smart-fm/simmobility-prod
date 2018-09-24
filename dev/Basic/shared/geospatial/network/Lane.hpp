@@ -22,14 +22,14 @@ namespace sim_mob
 /**Defines the rules for the bus lanes*/
 enum BusLaneRules
 {
-	/**Both cars and buses can use the lane during the entire day*/
-	BUS_LANE_RULES_CAR_AND_BUS = 0,
+    /**Both cars and buses can use the lane during the entire day*/
+    BUS_LANE_RULES_CAR_AND_BUS = 0,
 
-	/**Buses only from Mon-Fri: 0730-0930 and 1700-2000*/
-	BUS_LANE_RULES_NORMAL_BUS_LANE = 1,
+    /**Buses only from Mon-Fri: 0730-0930 and 1700-2000*/
+    BUS_LANE_RULES_NORMAL_BUS_LANE = 1,
 
-	/**Buses only from Mon-Sat: 0730-2000*/
-	BUS_LANE_RULES_FULL_DAY_BUS_LANE = 2
+    /**Buses only from Mon-Sat: 0730-2000*/
+    BUS_LANE_RULES_FULL_DAY_BUS_LANE = 2
 };
 
 class LaneConnector;
@@ -44,107 +44,107 @@ class Lane
 {
 private:
 
-	/**Unique identifier for the lane*/
-	unsigned int laneId;
+    /**Unique identifier for the lane*/
+    unsigned int laneId;
 
-	/**Identifies the rule applicable for the bus lane*/
-	BusLaneRules busLaneRules;
+    /**Identifies the rule applicable for the bus lane*/
+    BusLaneRules busLaneRules;
 
-	/**Defines if a vehicle can park on the lane*/
-	bool canVehiclePark;
+    /**Defines if a vehicle can park on the lane*/
+    bool canVehiclePark;
 
-	/**Defines if a vehicle can stop on the lane*/
-	bool canVehicleStop;
+    /**Defines if a vehicle can stop on the lane*/
+    bool canVehicleStop;
 
-	/**Defines whether the lane has a road shoulder*/
-	bool hasRoadShoulder;
+    /**Defines whether the lane has a road shoulder*/
+    bool hasRoadShoulder;
 
-	/**Defines whether a high occupancy vehicle is allowed on the lane*/
-	bool isHOV_Allowed;
+    /**Defines whether a high occupancy vehicle is allowed on the lane*/
+    bool isHOV_Allowed;
 
-	/**The outgoing lane connector*/
-	std::vector<LaneConnector *> laneConnectors;
+    /**The outgoing lane connector*/
+    std::vector<LaneConnector *> laneConnectors;
 
-	/**Indicates the index of the lane*/
-	unsigned int laneIndex;
+    /**Indicates the index of the lane*/
+    unsigned int laneIndex;
 
-	/**The road segment to which the lane belongs*/
-	RoadSegment *parentSegment;
+    /**The road segment to which the lane belongs*/
+    RoadSegment *parentSegment;
 
-	/**Represents the poly-line of the lane*/
-	PolyLine *polyLine;
+    /**Represents the poly-line of the lane*/
+    PolyLine *polyLine;
 
-	/**The id of the road segment to which the lane belongs*/
-	unsigned int roadSegmentId;
+    /**The id of the road segment to which the lane belongs*/
+    unsigned int roadSegmentId;
 
-	/**Defines the types of vehicles that can use the lane 
-	 * 7 bits are used to identify the modes as follows:
-	 * (MSB) Pedestrian Bicycle Car Van Truck Bus Taxi (LSB)
-	 * Note: Number is stored as decimal in the database
-	 */
-	unsigned int vehicleMode;
+    /**Defines the types of vehicles that can use the lane 
+     * 7 bits are used to identify the modes as follows:
+     * (MSB) Pedestrian Bicycle Car Van Truck Bus Taxi (LSB)
+     * Note: Number is stored as decimal in the database
+     */
+    unsigned int vehicleMode;
 
-	/**The width of the lane*/
-	double width;
+    /**The width of the lane*/
+    double width;
 
 public:
-	Lane();
-	virtual ~Lane();
+    Lane();
+    virtual ~Lane();
 
-	unsigned int getLaneId() const;
-	void setLaneId(unsigned int laneId);
+    unsigned int getLaneId() const;
+    void setLaneId(unsigned int laneId);
 
-	BusLaneRules getBusLaneRules() const;
-	void setBusLaneRules(BusLaneRules busLaneRules);
+    BusLaneRules getBusLaneRules() const;
+    void setBusLaneRules(BusLaneRules busLaneRules);
 
-	bool isParkingAllowed() const;
-	void setCanVehiclePark(bool canVehiclePark);
+    bool isParkingAllowed() const;
+    void setCanVehiclePark(bool canVehiclePark);
 
-	bool isStoppingAllowed() const;
-	void setCanVehicleStop(bool canVehicleStop);
+    bool isStoppingAllowed() const;
+    void setCanVehicleStop(bool canVehicleStop);
 
-	bool doesLaneHaveRoadShoulder() const;
-	void setHasRoadShoulder(bool hasRoadShoulder);
+    bool doesLaneHaveRoadShoulder() const;
+    void setHasRoadShoulder(bool hasRoadShoulder);
 
-	bool isHighOccupancyVehicleAllowed() const;
-	void setHighOccupancyVehicleAllowed(bool HighOccupancyVehicleAllowed);
+    bool isHighOccupancyVehicleAllowed() const;
+    void setHighOccupancyVehicleAllowed(bool HighOccupancyVehicleAllowed);
 
-	const std::vector<LaneConnector *>& getLaneConnectors() const;
+    const std::vector<LaneConnector *>& getLaneConnectors() const;
 
-	void getPhysicalConnectors(std::vector<const LaneConnector *> &phyConnectors) const;
+    void getPhysicalConnectors(std::vector<const LaneConnector *> &phyConnectors) const;
 
-	unsigned int getLaneIndex() const;
+    unsigned int getLaneIndex() const;
 
-	const RoadSegment* getParentSegment() const;
-	void setParentSegment(RoadSegment *parentSegment);
+    const RoadSegment* getParentSegment() const;
+    void setParentSegment(RoadSegment *parentSegment);
 
-	PolyLine* getPolyLine() const;
-	void setPolyLine(PolyLine* polyLine);
+    PolyLine* getPolyLine() const;
+    void setPolyLine(PolyLine* polyLine);
 
-	unsigned int getRoadSegmentId() const;
-	void setRoadSegmentId(unsigned int roadSegmentId);
+    unsigned int getRoadSegmentId() const;
+    void setRoadSegmentId(unsigned int roadSegmentId);
 
-	double getWidth() const;
-	void setWidth(double width);
+    double getWidth() const;
+    void setWidth(double width);
 
-	double getLength() const;
+    double getLength() const;
 
-	/**
-	 * Adds a lane connector to the set of out-going lane connections from this lane
-	 * @param laneConnector the lane connection to add
-	 */
-	void addLaneConnector(LaneConnector *laneConnector);
+    /**
+     * Adds a lane connector to the set of out-going lane connections from this lane
+     * @param laneConnector the lane connection to add
+     */
+    void addLaneConnector(LaneConnector *laneConnector);
 
-	/**
-	 * Checks if the lane is a pedestrian lane
-	 * @return true if the lane is a pedestrian lane; false otherwise
-	 */
-	bool isPedestrianLane() const;
+    /**
+     * Checks if the lane is a pedestrian lane
+     * @return true if the lane is a pedestrian lane; false otherwise
+     */
+    bool isPedestrianLane() const;
 
-	/**
-	 * Checks if the lane is a bicycle lane
-	 * @return true if the lane is a bicycle lane; false otherwise
-	 */
-	bool isBicycleLane() const;
+    /**
+     * Checks if the lane is a bicycle lane
+     * @return true if the lane is a bicycle lane; false otherwise
+     */
+    bool isBicycleLane() const;
 };
 }

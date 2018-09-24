@@ -23,7 +23,7 @@ sim_mob::tcp_server::tcp_server(boost::asio::io_service& io_service,int port, Co
   : acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), comDataMgr(&comDataMgr), ctrlMgr(&ctrlMgr),
     myPort(port)
 {
-	start_accept();
+    start_accept();
 }
 
 void sim_mob::tcp_server::start_accept()
@@ -40,22 +40,22 @@ void sim_mob::tcp_server::handle_accept(boost::shared_ptr<tcp_connection> new_co
 {
   if (!error)
   {
-  	if(myPort==13333)
-  	{
-  		new_connection->trafficDataStart(*comDataMgr);
-  	}
-  	else if(myPort==13334)
-		{
-			new_connection->cmdDataStart(*comDataMgr, *ctrlMgr);
-		}
-  	else if(myPort==13335)
-		{
-			new_connection->roadNetworkDataStart(*comDataMgr);
-		}
-  	else
-  	{
-  		std::cout<<"handle_accept: what port it is? "<<myPort<<std::endl;
-  	}
+    if(myPort==13333)
+    {
+        new_connection->trafficDataStart(*comDataMgr);
+    }
+    else if(myPort==13334)
+        {
+            new_connection->cmdDataStart(*comDataMgr, *ctrlMgr);
+        }
+    else if(myPort==13335)
+        {
+            new_connection->roadNetworkDataStart(*comDataMgr);
+        }
+    else
+    {
+        std::cout<<"handle_accept: what port it is? "<<myPort<<std::endl;
+    }
 
   }
 

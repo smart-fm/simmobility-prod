@@ -26,7 +26,7 @@ namespace sim_mob {
          */
         class AgentsLookup {
         public:
-        	typedef boost::unordered_map<BigSerial, const RealEstateAgent*> RealEstateAgentMap;
+            typedef boost::unordered_map<BigSerial, const RealEstateAgent*> RealEstateAgentMap;
             typedef boost::unordered_map<BigSerial, const HouseholdAgent*> HouseholdAgentMap;
             typedef boost::unordered_map<BigSerial, const DeveloperAgent*> DeveloperAgentMap;
 
@@ -46,9 +46,9 @@ namespace sim_mob {
             void addDeveloperAgent(const DeveloperAgent* agent);
 
             /**
-			 * Adds new real estate agent for lookup.
-			 * @param agent pointer to add.
-			 */
+             * Adds new real estate agent for lookup.
+             * @param agent pointer to add.
+             */
             void addRealEstateAgent(const RealEstateAgent* agent);
             
             /**

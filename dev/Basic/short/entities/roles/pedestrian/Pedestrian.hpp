@@ -16,24 +16,24 @@ class Pedestrian : public Role<Person_ST>
 {
 private:
 public:
-	Pedestrian(Person_ST *parent, PedestrianBehaviour *behaviour = NULL, PedestrianMovement *movement = NULL,
-			 Role<Person_ST>::Type roleType_ = Role<Person_ST>::RL_PEDESTRIAN, std::string roleName = "pedestrian");
-	
-	virtual ~Pedestrian();
-	
-	virtual Role<Person_ST>* clone(Person_ST *parent) const;
+    Pedestrian(Person_ST *parent, PedestrianBehaviour *behaviour = NULL, PedestrianMovement *movement = NULL,
+             Role<Person_ST>::Type roleType_ = Role<Person_ST>::RL_PEDESTRIAN, std::string roleName = "pedestrian");
+    
+    virtual ~Pedestrian();
+    
+    virtual Role<Person_ST>* clone(Person_ST *parent) const;
 
-	virtual void make_frame_tick_params(timeslice now);
+    virtual void make_frame_tick_params(timeslice now);
 
-	virtual std::vector<BufferedBase *> getSubscriptionParams();
-	
-	/**
-	 * Collect travel time for current role
-	 */
-	virtual void collectTravelTime();
+    virtual std::vector<BufferedBase *> getSubscriptionParams();
+    
+    /**
+     * Collect travel time for current role
+     */
+    virtual void collectTravelTime();
 
-	friend class PedestrianBehaviour;
-	friend class PedestrianMovement;
+    friend class PedestrianBehaviour;
+    friend class PedestrianMovement;
 };
 
 }

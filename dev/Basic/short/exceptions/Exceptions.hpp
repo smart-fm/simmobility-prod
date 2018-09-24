@@ -15,12 +15,12 @@ using namespace std;
 class no_turning_path_exception : public runtime_error
 {
 public:
-	const Lane *fromLane;
-	const RoadSegment *toSegment;
-	
-	explicit no_turning_path_exception(const string &arg, const Lane *fLane, const RoadSegment *tSegment) : runtime_error(arg), fromLane(fLane), toSegment(tSegment)
-	{		
-	}
+    const Lane *fromLane;
+    const RoadSegment *toSegment;
+    
+    explicit no_turning_path_exception(const string &arg, const Lane *fLane, const RoadSegment *tSegment) : runtime_error(arg), fromLane(fLane), toSegment(tSegment)
+    {       
+    }
 };
 class no_path_error : public runtime_error
 {

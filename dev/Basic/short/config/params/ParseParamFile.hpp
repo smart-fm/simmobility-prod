@@ -26,13 +26,13 @@ class ParameterManager;
 class ParseParamFile
 {
 public:
-	ParameterManager *paramMgr;
-	std::string fileName;
-	std::string modelName;
-	
-	ParseParamFile(const std::string& paramFileName, ParameterManager *paramMgr);
-	virtual ~ParseParamFile();
-	void parseElement(DOMElement *e);
+    ParameterManager *paramMgr;
+    std::string fileName;
+    std::string modelName;
+    
+    ParseParamFile(const std::string& paramFileName, ParameterManager *paramMgr);
+    virtual ~ParseParamFile();
+    void parseElement(DOMElement *e);
 };
 
 }

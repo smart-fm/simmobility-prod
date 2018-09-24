@@ -65,9 +65,9 @@ class Broker;
  */
 class ConfigParams : public RawConfigParams {
 public:
-	friend class ConfigManager;
+    friend class ConfigManager;
 
-	~ConfigParams();
+    ~ConfigParams();
 
     /**
      * If any Agents specify manual IDs, we must ensure that:
@@ -75,12 +75,12 @@ public:
      * all manual IDs are unique.
      * We do this using the Agent constraints struct
      */
-	struct AgentConstraints {
-		AgentConstraints() : startingAutoAgentID(0) {}
+    struct AgentConstraints {
+        AgentConstraints() : startingAutoAgentID(0) {}
 
-		int startingAutoAgentID;
-		std::set<unsigned int> manualAgentIDs;
-	};
+        int startingAutoAgentID;
+        std::set<unsigned int> manualAgentIDs;
+    };
 
     /**
      * Retrieves the Broker Factory
@@ -96,40 +96,40 @@ public:
     unsigned int totalWarmupTicks;
 
     /// Output network file name
-	std::string outNetworkFileName;
+    std::string outNetworkFileName;
 
-	/// Output train network filename
-	std::string outTrainNetworkFilename;
+    /// Output train network filename
+    std::string outTrainNetworkFilename;
 
-	/// Output simulation information file name
-	std::string outSimInfoFileName;
+    /// Output simulation information file name
+    std::string outSimInfoFileName;
 
     /// Is the simulation run using MPI?
-	bool using_MPI;
+    bool using_MPI;
 
     /// Is the simulation repeatable?
-	bool is_simulation_repeatable;
+    bool is_simulation_repeatable;
 
-	/// Number of agents killed due to errors
-	std::atomic<unsigned int> numAgentsKilled;
+    /// Number of agents killed due to errors
+    std::atomic<unsigned int> numAgentsKilled;
 
-	///Total number of trips loaded into SimMobility
-	std::atomic<unsigned int> numTripsLoaded;
+    ///Total number of trips loaded into SimMobility
+    std::atomic<unsigned int> numTripsLoaded;
 
-	///Total number of trips that could not be loaded into SimMobility
-	std::atomic<unsigned int> numTripsNotLoaded;
+    ///Total number of trips that could not be loaded into SimMobility
+    std::atomic<unsigned int> numTripsNotLoaded;
 
-	///Total number of trips simulated
-	std::atomic<unsigned int> numTripsSimulated;
+    ///Total number of trips simulated
+    std::atomic<unsigned int> numTripsSimulated;
 
-	///Total number of trips that were completed
-	std::atomic<unsigned int> numTripsCompleted;
+    ///Total number of trips that were completed
+    std::atomic<unsigned int> numTripsCompleted;
 
-	///Total number of persons loaded into SimMobility
-	std::atomic<unsigned int> numPersonsLoaded;
+    ///Total number of persons loaded into SimMobility
+    std::atomic<unsigned int> numPersonsLoaded;
 
-	///Total number of person that could not be loaded due to path not found errors
-	std::atomic<unsigned int> numPathNotFound;
+    ///Total number of person that could not be loaded due to path not found errors
+    std::atomic<unsigned int> numPathNotFound;
 
 public:
     /**
@@ -148,10 +148,10 @@ public:
      */
     StoredProcedureMap getDatabaseProcMappings() const;
 
-	/**
-	 * Seal the network. After this, no more editing of the network can take place.
-	 */
-	void sealNetwork();
+    /**
+     * Seal the network. After this, no more editing of the network can take place.
+     */
+    void sealNetwork();
 
     /**
      * Retrieves a reference to the current communication data manager
@@ -165,35 +165,35 @@ public:
      *
      * @return Reference to the current control manager
      */
-	sim_mob::ControlManager* getControlMgr() const;
+    sim_mob::ControlManager* getControlMgr() const;
 
     /**
      * Retrives a reference to the bus stop num to bus stop map
      *
      * @return reference to the bus stop num to bus stop map
      */
-	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops();
+    std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops();
 
     /**
      * Retrives a const reference to the bus stop num to bus stop map
      *
      * @return const reference to the bus stop num to bus stop map
      */
-	const std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() const;
+    const std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() const;
 
     /**
      * Retrives a const reference to the lua scripts map
      *
      * @return const refernence to the lua scripts map
      */
-	const ModelScriptsMap& getLuaScriptsMap() const;
+    const ModelScriptsMap& getLuaScriptsMap() const;
 
     /**
      * Checks whether pathset mode is enabled
      *
      * @return true if enabled, else false
      */
-	bool PathSetMode() const;
+    bool PathSetMode() const;
 
     /**
      * Retrieves a const reference to the pathset configuration
@@ -224,19 +224,19 @@ private:
     /**
      * Constructor
      */
-	ConfigParams();
+    ConfigParams();
 
     /// Broker Factory
     sim_mob::Factory<sim_mob::Broker> brokerFact;
 
     /// Bus stop number to Bus stop mapping
-	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
+    std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
 
     /// Mutable because they are set when retrieved.
-	mutable ControlManager* controlMgr;
+    mutable ControlManager* controlMgr;
 
     /// Flag to indicate whether the network is sealed after loading
-	bool sealedNetwork;
+    bool sealedNetwork;
 
     bool workerPublisherEnabled;
 
@@ -246,68 +246,68 @@ private:
     /// pt edge travel time generation
     bool enabledEdgeTravelTime;
 
-	/** name of file to store journey statistics */
-	std::string journeyTimeStatsFilename;
+    /** name of file to store journey statistics */
+    std::string journeyTimeStatsFilename;
 
-	/** name of file to store waiting time statistics*/
-	std::string waitingTimeStatsFilename;
+    /** name of file to store waiting time statistics*/
+    std::string waitingTimeStatsFilename;
 
-	/** name of file to store waiting count statistics*/
-	std::string waitingCountStatsFilename;
-	
-	/** interval (ms) of storage of the waiting count statistics*/
-	unsigned int waitingCountStatsStorageInterval;
+    /** name of file to store waiting count statistics*/
+    std::string waitingCountStatsFilename;
+    
+    /** interval (ms) of storage of the waiting count statistics*/
+    unsigned int waitingCountStatsStorageInterval;
 
-	/** name of file to store travel time statistics*/
-	std::string travelTimeStatsFilename;
+    /** name of file to store travel time statistics*/
+    std::string travelTimeStatsFilename;
 
-	/** name of file to store PT stop statistics */
-	std::string ptStopStatsFilename;
+    /** name of file to store PT stop statistics */
+    std::string ptStopStatsFilename;
 
-	/** name of the file to store the person rerouting information (public transit)*/
-	std::string ptPersonRerouteFilename;
+    /** name of the file to store the person rerouting information (public transit)*/
+    std::string ptPersonRerouteFilename;
 
-	/**link travel time file name*/
-	std::string linkTravelTimesFile;
+    /**link travel time file name*/
+    std::string linkTravelTimesFile;
 
-	/** Taxi Trajectory enable/disable*/
-	bool onCallTaxiTrajectoryEnabled;
-	bool onHailTaxiTrajectoryEnabled;
-	///	is study area  enforced
-	bool studyAreaEnabled;
+    /** Taxi Trajectory enable/disable*/
+    bool onCallTaxiTrajectoryEnabled;
+    bool onHailTaxiTrajectoryEnabled;
+    /// is study area  enforced
+    bool studyAreaEnabled;
 
 
-	/**whether link travel time feedback is enabled*/
-	bool linktravelTimeFeedbackEnabled;
+    /**whether link travel time feedback is enabled*/
+    bool linktravelTimeFeedbackEnabled;
 
-	/**value of alpha for link travel time feedback*/
-	float alphaForLinkTTFeedback;
+    /**value of alpha for link travel time feedback*/
+    float alphaForLinkTTFeedback;
 
 public:
-	/////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////
     /// These are helper functions, to make compatibility between old/new parsing easier.
-	/////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * Retrives a reference to Base system granularity, in milliseconds. Each "tick" is this long.
      *
      * @return reference to base system granularity in milliseconds
      */
-	unsigned int& baseGranMS();
+    unsigned int& baseGranMS();
 
     /**
      * Retrieves a const reference to base system granularity in milliseconds. Each "tick" is this long.
      *
      * @return const reference to base system granularity in milliseconds
      */
-	const unsigned int& baseGranMS() const;
+    const unsigned int& baseGranMS() const;
 
     /**
      * Retrievs a const reference to base system granularity, in seconds. Each "tick" is this long.
      *
      * @return const reference to base system granularity in seconds
      */
-	const double& baseGranSecond() const;
+    const double& baseGranSecond() const;
 
     /**
      * Checks whether to merge log files at the end of simulation
@@ -315,7 +315,7 @@ public:
      *
      * @return true is allowed to merge, else false
      */
-	bool& isMergeLogFiles();
+    bool& isMergeLogFiles();
 
     /**
      * Checks whether to merge log files at the end of simulation
@@ -330,21 +330,21 @@ public:
      *
      * @return workgroup assignment stratergy
      */
-	WorkGroup::ASSIGNMENT_STRATEGY& defaultWrkGrpAssignment();
+    WorkGroup::ASSIGNMENT_STRATEGY& defaultWrkGrpAssignment();
 
     /**
      * Retrieves the default workgroup assignment stratergy
      *
      * @return workgroup assignment stratergy
      */
-	const WorkGroup::ASSIGNMENT_STRATEGY& defaultWrkGrpAssignment() const;
+    const WorkGroup::ASSIGNMENT_STRATEGY& defaultWrkGrpAssignment() const;
 
     /**
      * Retrieves the mutex stratergy
      *
      * @return mutex stratergy
      */
-	sim_mob::MutexStrategy& mutexStategy();
+    sim_mob::MutexStrategy& mutexStategy();
 
     /**
      * Retrieves the mutex stratergy
@@ -358,28 +358,28 @@ public:
      *
      * @return simulation start time
      */
-	DailyTime& simStartTime();
+    DailyTime& simStartTime();
 
     /**
      * Retrieves the simulation start time
      *
      * @return simulation start time (const reference)
      */
-	const DailyTime& simStartTime() const;
+    const DailyTime& simStartTime() const;
 
     /**
      * retrieves realtime travel time table name for route choice model
      *
      * @return realtime travel time table
      */
-	const std::string& getRTTT() const;
+    const std::string& getRTTT() const;
 
     /**
      * retrieves default travel time table name for route choice model
      *
      * @return default travel time table
      */
-	const std::string& getDTT() const;
+    const std::string& getDTT() const;
 
     /**
      * Retrieves the total runtime in milliseconds
@@ -393,7 +393,7 @@ public:
      *
      * @return warmup time in milliseconds
      */
-	unsigned int warmupTimeInMilliSeconds() const;
+    unsigned int warmupTimeInMilliSeconds() const;
 
     bool isWorkerPublisherEnabled() const;
 
@@ -421,163 +421,163 @@ public:
 
     void setPublicTransitEnabled(bool value);
 
-	/**
+    /**
     * Checks whether study Area (Mount Pleasant Area )enforced
-	*
-	* @return true if study area enforced, else false
-	*/
-	bool isStudyAreaEnabled() const;
+    *
+    * @return true if study area enforced, else false
+    */
+    bool isStudyAreaEnabled() const;
 
-	void setStudyAreaEnabled(bool value);
+    void setStudyAreaEnabled(bool value);
 
     bool isEnabledEdgeTravelTime() const;
 
     void setEnabledEdgeTravelTime(bool enabledEdgeTravelTime);
 
-	/**
+    /**
      * Retrives journey time stats file name
      *
      * @return journey time file name
      */
-	const std::string& getJourneyTimeStatsFilename() const;
+    const std::string& getJourneyTimeStatsFilename() const;
 
-	/**
+    /**
      * Sets journey time stats file name
      *
      * @param str journey time stats file name to be set
      */
-	void setJourneyTimeStatsFilename(const std::string& str);
+    void setJourneyTimeStatsFilename(const std::string& str);
 
     /**
      * Retrieves waiting time stats file name
      *
      * @return waiting time file name
      */
-	const std::string& getWaitingTimeStatsFilename() const;
+    const std::string& getWaitingTimeStatsFilename() const;
 
     /**
      * Sets waiting time stats file name
      *
      * @param str waiting time stats file name to be set
      */
-	void setWaitingTimeStatsFilename(const std::string& str);
+    void setWaitingTimeStatsFilename(const std::string& str);
 
     /**
      * Retrieves waiting count stats file name
      *
      * @return waiting count stats file name
      */
-	const std::string& getWaitingCountStatsFilename() const;
+    const std::string& getWaitingCountStatsFilename() const;
 
     /**
      * Sets waiting count stats file name
      *
      * @param str waiting count stats file name to be set
      */
-	void setWaitingCountStatsFilename(const std::string& str);
-	
-	/**
-	 * Retrieves the storage interval for waiting counts
-	 * 
-	 * @return storage interval for waiting counts
-	 */
-	unsigned int getWaitingCountStatsInterval() const;
-	
-	/**
-	 * Sets the storage interval for the waiting counts statistics
-	 * 
-	 * @param interval the interval in milli-seconds
-	 */
-	void setWaitingCountStatsInterval(unsigned int interval);
+    void setWaitingCountStatsFilename(const std::string& str);
+    
+    /**
+     * Retrieves the storage interval for waiting counts
+     * 
+     * @return storage interval for waiting counts
+     */
+    unsigned int getWaitingCountStatsInterval() const;
+    
+    /**
+     * Sets the storage interval for the waiting counts statistics
+     * 
+     * @param interval the interval in milli-seconds
+     */
+    void setWaitingCountStatsInterval(unsigned int interval);
 
     /**
      * Retrieves travel time stats file name
      *
      * @return travel time stats file name
      */
-	const std::string& getTravelTimeStatsFilename() const;
+    const std::string& getTravelTimeStatsFilename() const;
 
     /**
      * Sets travel time stats file name
      *
      * @param str travel time stats file name to be set
      */
-	void setTravelTimeStatsFilename(const std::string& str);
+    void setTravelTimeStatsFilename(const std::string& str);
 
     /**
      * Retrieves PT stop stats file name
      *
      * @return PT stop  stats file name
      */
-	const std::string& getPT_StopStatsFilename() const;
+    const std::string& getPT_StopStatsFilename() const;
 
     /**
      * Sets PT stop  stats file name
      *
      * @param str PT stop  stats file name to be set
      */
-	void setPT_StopStatsFilename(const std::string& str);
+    void setPT_StopStatsFilename(const std::string& str);
 
-	/**
-	 * Retrieves the Person reroute filename (public transit)
-	 * @return PT Person reroute filename
-	 */
-	const std::string &getPT_PersonRerouteFilename() const;
+    /**
+     * Retrieves the Person reroute filename (public transit)
+     * @return PT Person reroute filename
+     */
+    const std::string &getPT_PersonRerouteFilename() const;
 
-	/**
-	 * Sets the PT person reroute filename
-	 *
-	 * @param ptPersonRerouteFilename filename to be set
-	 */
-	void setPT_PersonRerouteFilename(const std::string &ptPersonRerouteFilename);
+    /**
+     * Sets the PT person reroute filename
+     *
+     * @param ptPersonRerouteFilename filename to be set
+     */
+    void setPT_PersonRerouteFilename(const std::string &ptPersonRerouteFilename);
 
-	/**
-	 * Retrieves the lik travel times file name
-	 * @return link travel time filename
-	 */
-	const std::string &getLinkTravelTimesFile() const;
+    /**
+     * Retrieves the lik travel times file name
+     * @return link travel time filename
+     */
+    const std::string &getLinkTravelTimesFile() const;
 
-	/**
-	 * Sets the link travel times filename
-	 *
-	 * @param linkTravelTimesFile filename to be set
-	 */
-	void setLinkTravelTimesFile(const std::string &linkTravelTimesFile);
+    /**
+     * Sets the link travel times filename
+     *
+     * @param linkTravelTimesFile filename to be set
+     */
+    void setLinkTravelTimesFile(const std::string &linkTravelTimesFile);
 
-	/**
-	 * Sets the link travel time feedback true or false
-	 *
-	 * @param value true or false to be sent
-	 */
-	void setLinkTravelTimeFeedback(const bool value);
+    /**
+     * Sets the link travel time feedback true or false
+     *
+     * @param value true or false to be sent
+     */
+    void setLinkTravelTimeFeedback(const bool value);
 
-	/**
-	 * sets the value of alpha for link travel time feedback
-	 *
-	 * @param alpha: value of alpha as read from the config file
-	 */
-	void setAlphaValueForLinkTTFeedback(const float alpha);
+    /**
+     * sets the value of alpha for link travel time feedback
+     *
+     * @param alpha: value of alpha as read from the config file
+     */
+    void setAlphaValueForLinkTTFeedback(const float alpha);
 
-	//Taxi Trajectory Enable/Disable: related Functions
-	void setOnCallTaxiTrajectoryEnabled(bool value);
-	void setOnHailTaxiTrajectoryEnabled(bool value);
+    //Taxi Trajectory Enable/Disable: related Functions
+    void setOnCallTaxiTrajectoryEnabled(bool value);
+    void setOnHailTaxiTrajectoryEnabled(bool value);
 
-	bool isOnCallTaxiTrajectoryEnabled() const;
-	bool isOnHailTaxiTrajectoryEnabled() const;
+    bool isOnCallTaxiTrajectoryEnabled() const;
+    bool isOnHailTaxiTrajectoryEnabled() const;
 
-	/**
-	 * Returns whether the link travel travel feedback is enabled or disabled
-	 *
-	 * @return true if link travel travel feedback is enabled
-	 */
-	bool isLinkTravelTimeFeedbackEnabled();
+    /**
+     * Returns whether the link travel travel feedback is enabled or disabled
+     *
+     * @return true if link travel travel feedback is enabled
+     */
+    bool isLinkTravelTimeFeedbackEnabled();
 
-	/**
-	 * Returns value of alpha for link travel time feedback
-	 *
-	 * @return the value of alpha
-	 */
-	float getAlphaValueForLinkTTFeedback();
+    /**
+     * Returns value of alpha for link travel time feedback
+     *
+     * @return the value of alpha
+     */
+    float getAlphaValueForLinkTTFeedback();
 
 };
 

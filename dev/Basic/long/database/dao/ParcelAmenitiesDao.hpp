@@ -19,7 +19,7 @@ namespace sim_mob {
          */
         class ParcelAmenitiesDao : public db::SqlAbstractDao<ParcelAmenities> {
         public:
-        	ParcelAmenitiesDao(db::DB_Connection& connection);
+            ParcelAmenitiesDao(db::DB_Connection& connection);
             virtual ~ParcelAmenitiesDao();
 
         private:

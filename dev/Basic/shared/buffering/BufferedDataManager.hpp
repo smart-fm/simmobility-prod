@@ -41,7 +41,7 @@ class BufferedDataManager;
 class BufferedBase : private boost::noncopyable
 {
 protected:
-	BufferedBase() : refCount(0) {}
+    BufferedBase() : refCount(0) {}
     virtual ~BufferedBase();
 
     /**
@@ -49,7 +49,7 @@ protected:
      * what happens to the old value; e.g., calling flip() twice without a set() in
      * between has undefined behavior.
      */
-	virtual void flip() = 0;
+    virtual void flip() = 0;
 
     //Allow access to protected methods by BufferedDataManager.
     friend class BufferedDataManager;
@@ -80,9 +80,9 @@ private:
 class BufferedDataManager
 {
 public:
-	virtual ~BufferedDataManager();
+    virtual ~BufferedDataManager();
 
-	///Become responsible for a buffered data item.
+    ///Become responsible for a buffered data item.
     void beginManaging(BufferedBase* datum);
 
     ///Stop tracking a buffered data item.

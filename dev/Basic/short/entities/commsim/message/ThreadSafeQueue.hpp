@@ -19,25 +19,25 @@ namespace sim_mob {
 template<class T>
 class ThreadSafeQueue {
 public:
-	///Push an item into the queue.
-	///\param item The item to add to the queue.
-	void push(const T& item);
+    ///Push an item into the queue.
+    ///\param item The item to add to the queue.
+    void push(const T& item);
 
-	///Pop an item off the queue and store it in res.
-	///\param res The item that was removed from the queue.
-	///\returns true if an item was retrieved, false otherwise.
-	bool pop(T& res);
+    ///Pop an item off the queue and store it in res.
+    ///\param res The item that was removed from the queue.
+    ///\returns true if an item was retrieved, false otherwise.
+    bool pop(T& res);
 
-	///Returns the size of the queue
-	///\returns the size of the queue.
-	int size() const;
+    ///Returns the size of the queue
+    ///\returns the size of the queue.
+    int size() const;
 
-	///Remove all items in the queue (used for testing)
-	void clear();
+    ///Remove all items in the queue (used for testing)
+    void clear();
 
 private:
-	std::queue<T> messageList;
-	boost::mutex mutex;
+    std::queue<T> messageList;
+    boost::mutex mutex;
 };
 
 } //End sim_mob
@@ -50,39 +50,39 @@ private:
 template<class T>
 void sim_mob::ThreadSafeQueue<T>::push(const T& item)
 {
-	boost::lock_guard<boost::mutex> lock(mutex);
+    boost::lock_guard<boost::mutex> lock(mutex);
 
-	messageList.push(item);
+    messageList.push(item);
 }
 
 template<class T>
 bool sim_mob::ThreadSafeQueue<T>::pop(T &res)
 {
-	boost::lock_guard<boost::mutex> lock(mutex);
+    boost::lock_guard<boost::mutex> lock(mutex);
 
-	if(!messageList.empty()) {
-		res = messageList.front();
-		messageList.pop();
-		return true;
-	}
-	return false;
+    if(!messageList.empty()) {
+        res = messageList.front();
+        messageList.pop();
+        return true;
+    }
+    return false;
 }
 
 
 template<class T>
 int sim_mob::ThreadSafeQueue<T>::size() const
 {
-	boost::lock_guard<boost::mutex> lock(mutex);
+    boost::lock_guard<boost::mutex> lock(mutex);
 
-	return messageList.size();
+    return messageList.size();
 }
 
 template<class T>
 void sim_mob::ThreadSafeQueue<T>::clear()
 {
-	boost::lock_guard<boost::mutex> lock(mutex);
+    boost::lock_guard<boost::mutex> lock(mutex);
 
-	messageList = std::queue<T>();
+    messageList = std::queue<T>();
 }
 
 

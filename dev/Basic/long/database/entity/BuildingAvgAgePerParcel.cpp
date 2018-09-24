@@ -15,35 +15,35 @@ BuildingAvgAgePerParcel::~BuildingAvgAgePerParcel() {}
 
 BuildingAvgAgePerParcel::BuildingAvgAgePerParcel( const BuildingAvgAgePerParcel &source)
 {
-	this->fmParcelId 			= source.fmParcelId;
-	this->age = source.age;
+    this->fmParcelId            = source.fmParcelId;
+    this->age = source.age;
 }
 
 BuildingAvgAgePerParcel& BuildingAvgAgePerParcel::operator=(const BuildingAvgAgePerParcel& source)
 {
-	this->fmParcelId 			= source.fmParcelId;
-	this->age			= source.age;
+    this->fmParcelId            = source.fmParcelId;
+    this->age           = source.age;
     return *this;
 }
 
 
 BigSerial BuildingAvgAgePerParcel::getFmParcelId() const
 {
-	return fmParcelId;
+    return fmParcelId;
 }
 
 
 int BuildingAvgAgePerParcel::getAge() const
 {
-	return age;
+    return age;
 }
 
 void BuildingAvgAgePerParcel::setFmParcelId(BigSerial parcelId) {
-	this->fmParcelId = parcelId;
+    this->fmParcelId = parcelId;
 }
 
 void BuildingAvgAgePerParcel::setAge(int age) {
-	this->age = age;
+    this->age = age;
 }
 
 
@@ -54,9 +54,9 @@ namespace sim_mob
         std::ostream& operator<<(std::ostream& strm, const BuildingAvgAgePerParcel& data)
         {
             return strm << "{"
-						<< "\"fm_building_id \":\"" << data.fmParcelId 	<< "\","
-						<< "\"age \":\"" 	<< data.age 	<< "\","
-						<< "}";
+                        << "\"fm_building_id \":\"" << data.fmParcelId  << "\","
+                        << "\"age \":\""    << data.age     << "\","
+                        << "}";
         }
     }
 }

@@ -18,7 +18,7 @@ namespace sim_mob
         class SimulationStoppedPoint
         {
         public:
-        	SimulationStoppedPoint(BigSerial simVersionId = INVALID_ID, BigSerial postcode = INVALID_ID, BigSerial buildingId = INVALID_ID, BigSerial unitId = INVALID_ID, BigSerial projectId = INVALID_ID, BigSerial bidId = INVALID_ID, BigSerial unitSaleId = INVALID_ID);
+            SimulationStoppedPoint(BigSerial simVersionId = INVALID_ID, BigSerial postcode = INVALID_ID, BigSerial buildingId = INVALID_ID, BigSerial unitId = INVALID_ID, BigSerial projectId = INVALID_ID, BigSerial bidId = INVALID_ID, BigSerial unitSaleId = INVALID_ID);
 
             virtual ~SimulationStoppedPoint();
 

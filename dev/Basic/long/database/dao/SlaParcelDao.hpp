@@ -17,7 +17,7 @@ namespace sim_mob {
          */
         class SlaParcelDao : public db::SqlAbstractDao<SlaParcel> {
         public:
-        	SlaParcelDao(db::DB_Connection& connection);
+            SlaParcelDao(db::DB_Connection& connection);
             virtual ~SlaParcelDao();
 
         private:

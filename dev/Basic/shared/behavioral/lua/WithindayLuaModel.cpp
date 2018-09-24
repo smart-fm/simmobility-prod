@@ -20,32 +20,32 @@ namespace
 
 struct ModelContext
 {
-	WithindayLuaModel wdModel;
+    WithindayLuaModel wdModel;
 };
 
 thread_local std::unique_ptr<ModelContext> threadContext;
 
 void ensureContext()
 {
-	if (!threadContext)
-	{
-		try
-		{
-			const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMap;
-			const std::string& scriptsPath = extScripts.getPath();
-			ModelContext* modelCtx = new ModelContext();
-			modelCtx->wdModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
-			modelCtx->wdModel.loadFile(scriptsPath + extScripts.getScriptFileName("wdmw"));
-			modelCtx->wdModel.loadFile(scriptsPath + extScripts.getScriptFileName("wdme"));
-			modelCtx->wdModel.loadFile(scriptsPath + extScripts.getScriptFileName("wdmso"));
-			modelCtx->wdModel.initialize();
-			threadContext.reset(modelCtx);
-		}
-		catch (const std::runtime_error& ex)
-		{
-			throw ex;
-		}
-	}
+    if (!threadContext)
+    {
+        try
+        {
+            const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMap;
+            const std::string& scriptsPath = extScripts.getPath();
+            ModelContext* modelCtx = new ModelContext();
+            modelCtx->wdModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
+            modelCtx->wdModel.loadFile(scriptsPath + extScripts.getScriptFileName("wdmw"));
+            modelCtx->wdModel.loadFile(scriptsPath + extScripts.getScriptFileName("wdme"));
+            modelCtx->wdModel.loadFile(scriptsPath + extScripts.getScriptFileName("wdmso"));
+            modelCtx->wdModel.initialize();
+            threadContext.reset(modelCtx);
+        }
+        catch (const std::runtime_error& ex)
+        {
+            throw ex;
+        }
+    }
 }
 } //end anonymous namespace
 
@@ -57,60 +57,60 @@ sim_mob::WithindayLuaModel::~WithindayLuaModel()
 
 void sim_mob::WithindayLuaModel::mapClasses()
 {
-	getGlobalNamespace(state.get())
-			.beginClass <PersonParams> ("WithindayPersonParams")
-				.addProperty("person_id", &PersonParams::getPersonId)
-				.addProperty("person_type_id", &PersonParams::getPersonTypeId)
-				.addProperty("age_id", &PersonParams::getAgeId)
-				.addProperty("universitystudent", &PersonParams::getIsUniversityStudent)
-				.addProperty("female_dummy", &PersonParams::getIsFemale)
-				.addProperty("student_dummy", &PersonParams::isStudent) //not used in lua
-				.addProperty("worker_dummy", &PersonParams::isWorker) //not used in lua
-				.addProperty("income_id", &PersonParams::getIncomeId)
-				.addProperty("missing_income", &PersonParams::getMissingIncome)
-				.addProperty("work_at_home_dummy", &PersonParams::getWorksAtHome)
-				.addProperty("vehicle_ownership_category", &PersonParams::getVehicleOwnershipCategory)
-				.addProperty("fixed_work_hour", &PersonParams::getHasFixedWorkTiming) //not used in lua
-				.addProperty("homeLocation", &PersonParams::getHomeLocation) //not used in lua
-				.addProperty("fixed_place", &PersonParams::hasFixedWorkPlace)
-				.addProperty("fixedSchoolLocation", &PersonParams::getFixedSchoolLocation) //not used in lua
-				.addProperty("only_adults", &PersonParams::getHH_OnlyAdults)
-				.addProperty("only_workers", &PersonParams::getHH_OnlyWorkers)
-				.addProperty("num_underfour", &PersonParams::getHH_NumUnder4)
+    getGlobalNamespace(state.get())
+            .beginClass <PersonParams> ("WithindayPersonParams")
+                .addProperty("person_id", &PersonParams::getPersonId)
+                .addProperty("person_type_id", &PersonParams::getPersonTypeId)
+                .addProperty("age_id", &PersonParams::getAgeId)
+                .addProperty("universitystudent", &PersonParams::getIsUniversityStudent)
+                .addProperty("female_dummy", &PersonParams::getIsFemale)
+                .addProperty("student_dummy", &PersonParams::isStudent) //not used in lua
+                .addProperty("worker_dummy", &PersonParams::isWorker) //not used in lua
+                .addProperty("income_id", &PersonParams::getIncomeId)
+                .addProperty("missing_income", &PersonParams::getMissingIncome)
+                .addProperty("work_at_home_dummy", &PersonParams::getWorksAtHome)
+                .addProperty("vehicle_ownership_category", &PersonParams::getVehicleOwnershipCategory)
+                .addProperty("fixed_work_hour", &PersonParams::getHasFixedWorkTiming) //not used in lua
+                .addProperty("homeLocation", &PersonParams::getHomeLocation) //not used in lua
+                .addProperty("fixed_place", &PersonParams::hasFixedWorkPlace)
+                .addProperty("fixedSchoolLocation", &PersonParams::getFixedSchoolLocation) //not used in lua
+                .addProperty("only_adults", &PersonParams::getHH_OnlyAdults)
+                .addProperty("only_workers", &PersonParams::getHH_OnlyWorkers)
+                .addProperty("num_underfour", &PersonParams::getHH_NumUnder4)
                 .addProperty("presence_of_under15", &PersonParams::getHH_HasUnder15)
                 .addFunction("activity_logsum", &PersonParams::getActivityLogsum)
-				.addProperty("dptour_logsum", &PersonParams::getDptLogsum)
-				.addProperty("dpstop_logsum", &PersonParams::getDpsLogsum)
-				.addProperty("travel_probability", &PersonParams::getTravelProbability)
-				.addProperty("num_expected_trips", &PersonParams::getTripsExpected)
-			.endClass()
+                .addProperty("dptour_logsum", &PersonParams::getDptLogsum)
+                .addProperty("dpstop_logsum", &PersonParams::getDpsLogsum)
+                .addProperty("travel_probability", &PersonParams::getTravelProbability)
+                .addProperty("num_expected_trips", &PersonParams::getTripsExpected)
+            .endClass()
 
-			.beginClass<WithindayModeParams>("WithindayModeParams")
-				.addProperty("average_transfer_number",&WithindayModeParams::getAvgTransfer)
-				.addProperty("central_dummy",&WithindayModeParams::isCentralZone)
-				.addProperty("parking_rate",&WithindayModeParams::getCostCarParking)
-				.addProperty("tt_ivt_car",&WithindayModeParams::getTtCarInVehicle)
-				.addProperty("tt_public_ivt",&WithindayModeParams::getTtPublicInVehicle)
-				.addProperty("tt_public_waiting",&WithindayModeParams::getTtPublicWaiting)
-				.addProperty("tt_public_walk",&WithindayModeParams::getTtPublicWalk)
-				.addProperty("destination_area",&WithindayModeParams::getDestinationArea)
-				.addProperty("origin_area",&WithindayModeParams::getOriginArea)
-				.addProperty("resident_size",&WithindayModeParams::getOriginResidentSize)
-				.addProperty("work_op",&WithindayModeParams::getDestinationWorkerSize)
-				.addProperty("population", &WithindayModeParams::getDestinationPopulation)
-				.addProperty("education_op",&WithindayModeParams::getDestinationStudentsSize)
-				.addProperty("shop", &WithindayModeParams::getDestinationShops)
-				.addProperty("distance_remaining", &WithindayModeParams::getDistance)
-				.addProperty("drive1_AV",&WithindayModeParams::isDrive1Available)
-				.addProperty("motor_AV",&WithindayModeParams::isMotorAvailable)
-				.addProperty("mrt_AV",&WithindayModeParams::isMrtAvailable)
-				.addProperty("privatebus_AV",&WithindayModeParams::isPrivateBusAvailable)
-				.addProperty("publicbus_AV",&WithindayModeParams::isPublicBusAvailable)
-				.addProperty("share2_AV",&WithindayModeParams::isShare2Available)
-				.addProperty("share3_AV",&WithindayModeParams::isShare3Available)
-				.addProperty("taxi_AV",&WithindayModeParams::isTaxiAvailable)
-				.addProperty("walk_AV",&WithindayModeParams::isWalkAvailable)
-			.endClass();
+            .beginClass<WithindayModeParams>("WithindayModeParams")
+                .addProperty("average_transfer_number",&WithindayModeParams::getAvgTransfer)
+                .addProperty("central_dummy",&WithindayModeParams::isCentralZone)
+                .addProperty("parking_rate",&WithindayModeParams::getCostCarParking)
+                .addProperty("tt_ivt_car",&WithindayModeParams::getTtCarInVehicle)
+                .addProperty("tt_public_ivt",&WithindayModeParams::getTtPublicInVehicle)
+                .addProperty("tt_public_waiting",&WithindayModeParams::getTtPublicWaiting)
+                .addProperty("tt_public_walk",&WithindayModeParams::getTtPublicWalk)
+                .addProperty("destination_area",&WithindayModeParams::getDestinationArea)
+                .addProperty("origin_area",&WithindayModeParams::getOriginArea)
+                .addProperty("resident_size",&WithindayModeParams::getOriginResidentSize)
+                .addProperty("work_op",&WithindayModeParams::getDestinationWorkerSize)
+                .addProperty("population", &WithindayModeParams::getDestinationPopulation)
+                .addProperty("education_op",&WithindayModeParams::getDestinationStudentsSize)
+                .addProperty("shop", &WithindayModeParams::getDestinationShops)
+                .addProperty("distance_remaining", &WithindayModeParams::getDistance)
+                .addProperty("drive1_AV",&WithindayModeParams::isDrive1Available)
+                .addProperty("motor_AV",&WithindayModeParams::isMotorAvailable)
+                .addProperty("mrt_AV",&WithindayModeParams::isMrtAvailable)
+                .addProperty("privatebus_AV",&WithindayModeParams::isPrivateBusAvailable)
+                .addProperty("publicbus_AV",&WithindayModeParams::isPublicBusAvailable)
+                .addProperty("share2_AV",&WithindayModeParams::isShare2Available)
+                .addProperty("share3_AV",&WithindayModeParams::isShare3Available)
+                .addProperty("taxi_AV",&WithindayModeParams::isTaxiAvailable)
+                .addProperty("walk_AV",&WithindayModeParams::isWalkAvailable)
+            .endClass();
 }
 
 int sim_mob::WithindayLuaModel::chooseMode(const PersonParams& personParams, const WithindayModeParams& wdModeParams) const
@@ -128,6 +128,6 @@ int sim_mob::WithindayLuaModel::chooseMode(const PersonParams& personParams, con
 
 const WithindayLuaModel& sim_mob::WithindayLuaProvider::getWithindayModel()
 {
-	ensureContext();
-	return threadContext.get()->wdModel;
+    ensureContext();
+    return threadContext.get()->wdModel;
 }

@@ -18,7 +18,7 @@ namespace sim_mob {
          */
         class TAO_Dao : public db::SqlAbstractDao<TAO> {
         public:
-        	TAO_Dao(db::DB_Connection& connection);
+            TAO_Dao(db::DB_Connection& connection);
             virtual ~TAO_Dao();
 
         private:

@@ -18,7 +18,7 @@ namespace sim_mob
         class ParcelsWithHDB
         {
         public:
-        	ParcelsWithHDB(BigSerial fmParcelId = INVALID_ID, int unitTypeId = 0);
+            ParcelsWithHDB(BigSerial fmParcelId = INVALID_ID, int unitTypeId = 0);
 
             virtual ~ParcelsWithHDB();
 
@@ -26,7 +26,7 @@ namespace sim_mob
              * Getters and Setters
              */
             BigSerial getFmParcelId() const;
-            int	getUnitTypeId() const;
+            int getUnitTypeId() const;
 
             /**
              * Assign operator.
@@ -49,7 +49,7 @@ namespace sim_mob
 
         private:
             BigSerial fmParcelId;
-            int	unitTypeId;
+            int unitTypeId;
          };
     }
 }

@@ -18,35 +18,35 @@ using namespace std;
 
 namespace sim_mob {
 
-	namespace long_term
-	{
-		class TenureTransitionRate
-		{
-		public:
-			TenureTransitionRate( BigSerial id = 0, string ageGroup = "", string currentStatus = "", string futureStatus = "", double rate = 0.0 );
-			virtual ~TenureTransitionRate();
+    namespace long_term
+    {
+        class TenureTransitionRate
+        {
+        public:
+            TenureTransitionRate( BigSerial id = 0, string ageGroup = "", string currentStatus = "", string futureStatus = "", double rate = 0.0 );
+            virtual ~TenureTransitionRate();
 
-			BigSerial getId() const;
-			string getAgeGroup() const;
-			string getCurrentStatus() const;
-			string getFutureStatus() const;
-			double getRate() const;
+            BigSerial getId() const;
+            string getAgeGroup() const;
+            string getCurrentStatus() const;
+            string getFutureStatus() const;
+            double getRate() const;
 
-			 /**
-			 * Operator to print the data.
-			 */
-			friend std::ostream& operator<<(std::ostream& strm, const TenureTransitionRate& data);
+             /**
+             * Operator to print the data.
+             */
+            friend std::ostream& operator<<(std::ostream& strm, const TenureTransitionRate& data);
 
-		private:
+        private:
 
-			friend class TenureTransitionRateDao;
+            friend class TenureTransitionRateDao;
 
-			BigSerial id;
-			string ageGroup;
-			string currentStatus;
-			string futureStatus;
-			double rate;
+            BigSerial id;
+            string ageGroup;
+            string currentStatus;
+            string futureStatus;
+            double rate;
 
-		};
-	}
+        };
+    }
 }

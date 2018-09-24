@@ -18,30 +18,30 @@ namespace medium
 class BusControllerMT : public sim_mob::BusController
 {
 public:
-	virtual ~BusControllerMT();
+    virtual ~BusControllerMT();
 
-	/**
-	 * Initialize a single BusController with the given start time and MutexStrategy.
-	 */
-	static void RegisterBusController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
+    /**
+     * Initialize a single BusController with the given start time and MutexStrategy.
+     */
+    static void RegisterBusController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
 
-	/**
-	 * processes requests from all bus drivers
-	 */
-	virtual void processRequests();
+    /**
+     * processes requests from all bus drivers
+     */
+    virtual void processRequests();
 
-	/**
-	 * processes bus driver request
-	 */
-	virtual void handleRequest(sim_mob::DriverRequestParams rParams);
+    /**
+     * processes bus driver request
+     */
+    virtual void handleRequest(sim_mob::DriverRequestParams rParams);
 
 private:
-	explicit BusControllerMT(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
+    explicit BusControllerMT(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
 
-	/**
-	 * assign bus trip information to person so as to travel on the road
-	 */
-	virtual void assignBusTripChainWithPerson(std::set<sim_mob::Entity*>& activeAgents);
+    /**
+     * assign bus trip information to person so as to travel on the road
+     */
+    virtual void assignBusTripChainWithPerson(std::set<sim_mob::Entity*>& activeAgents);
 };
 
 }

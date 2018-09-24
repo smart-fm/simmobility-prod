@@ -18,30 +18,30 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class PopulationPerPlanningAreaDao : public db::SqlAbstractDao<PopulationPerPlanningArea>
-		{
-	        public:
-				PopulationPerPlanningAreaDao(db::DB_Connection& connection);
-	            virtual ~PopulationPerPlanningAreaDao();
+    namespace long_term
+    {
+        class PopulationPerPlanningAreaDao : public db::SqlAbstractDao<PopulationPerPlanningArea>
+        {
+            public:
+                PopulationPerPlanningAreaDao(db::DB_Connection& connection);
+                virtual ~PopulationPerPlanningAreaDao();
 
-	        private:
-	            /**
-	             * Fills the given outObj with all values contained on Row.
-	             * @param result row with data to fill the out object.
-	             * @param outObj to fill.
-	             */
-	            void fromRow(db::Row& result, PopulationPerPlanningArea& outObj);
+            private:
+                /**
+                 * Fills the given outObj with all values contained on Row.
+                 * @param result row with data to fill the out object.
+                 * @param outObj to fill.
+                 */
+                void fromRow(db::Row& result, PopulationPerPlanningArea& outObj);
 
-	            /**
-	             * Fills the outParam with all values to insert or update on datasource.
-	             * @param data to get values.
-	             * @param outParams to put the data parameters.
-	             * @param update tells if operation is an Update or Insert.
-	             */
-	            void toRow(PopulationPerPlanningArea& data, db::Parameters& outParams, bool update);
-		};
-	}
+                /**
+                 * Fills the outParam with all values to insert or update on datasource.
+                 * @param data to get values.
+                 * @param outParams to put the data parameters.
+                 * @param update tells if operation is an Update or Insert.
+                 */
+                void toRow(PopulationPerPlanningArea& data, db::Parameters& outParams, bool update);
+        };
+    }
 }
 

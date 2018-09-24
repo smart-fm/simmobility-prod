@@ -24,26 +24,26 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class ScreeningSubModel
-		{
-			public:
-				ScreeningSubModel();
-				virtual ~ScreeningSubModel();
+    namespace long_term
+    {
+        class ScreeningSubModel
+        {
+            public:
+                ScreeningSubModel();
+                virtual ~ScreeningSubModel();
 
-				void getScreeningProbabilities(int hhId, std::vector<double> &probabilities, HM_Model *model, int day);
+                void getScreeningProbabilities(int hhId, std::vector<double> &probabilities, HM_Model *model, int day);
 
-				BigSerial ComputeHomePlanningArea(PlanningArea *planningAreaWork, Household *household);
-				void ComputeHeadOfHousehold(Household* household);
-				int  GetDwellingType(int unitType);
+                BigSerial ComputeHomePlanningArea(PlanningArea *planningAreaWork, Household *household);
+                void ComputeHeadOfHousehold(Household* household);
+                int  GetDwellingType(int unitType);
 
-			private:
+            private:
 
 
-				HM_Model *model;
-				Individual* headOfHousehold;
+                HM_Model *model;
+                Individual* headOfHousehold;
 
-		};
-	}
+        };
+    }
 }

@@ -22,9 +22,9 @@ MtzDao::~MtzDao() {}
 
 void MtzDao::fromRow(Row& result, Mtz& outObj)
 {
-	outObj.id  	= result.get<BigSerial>( "id", INVALID_ID);
-	outObj.planningSubzoneId  	= result.get<BigSerial>( "planning_subzone_id", INVALID_ID);
-	outObj.name = result.get<std::string>(	"name", 	EMPTY_STR);
+    outObj.id   = result.get<BigSerial>( "id", INVALID_ID);
+    outObj.planningSubzoneId    = result.get<BigSerial>( "planning_subzone_id", INVALID_ID);
+    outObj.name = result.get<std::string>(  "name",     EMPTY_STR);
 
 }
 

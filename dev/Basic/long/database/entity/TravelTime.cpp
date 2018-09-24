@@ -10,59 +10,59 @@
 using namespace sim_mob::long_term;
 
 TravelTime::TravelTime(BigSerial origin, BigSerial destination, double carTravelTime,double publicTravelTime,double numTransfers): origin(origin), destination(destination),carTravelTime(carTravelTime),publicTravelTime(publicTravelTime)
-																																  ,numTransfers(numTransfers){}
+                                                                                                                                  ,numTransfers(numTransfers){}
 
 TravelTime::~TravelTime() {}
 
 
 double TravelTime::getCarTravelTime() const
 {
-	return carTravelTime;
+    return carTravelTime;
 }
 
 void TravelTime::setCarTravelTime(double carTravelTime)
 {
-	this->carTravelTime = carTravelTime;
+    this->carTravelTime = carTravelTime;
 }
 
 BigSerial TravelTime::getDestination() const
 {
-	return destination;
+    return destination;
 }
 
 void TravelTime::setDestination(BigSerial destination)
 {
-	this->destination = destination;
+    this->destination = destination;
 }
 
 BigSerial TravelTime::getOrigin() const
 {
-	return origin;
+    return origin;
 }
 
 void TravelTime::setOrigin(BigSerial origin)
 {
-	this->origin = origin;
+    this->origin = origin;
 }
 
 double TravelTime::getPublicTravelTime() const
 {
-	return publicTravelTime;
+    return publicTravelTime;
 }
 
 void TravelTime::setPublicTravelTime(double publicTravelTime)
 {
-	this->publicTravelTime = publicTravelTime;
+    this->publicTravelTime = publicTravelTime;
 }
 
 double TravelTime::getNumTransfers() const
 {
-	return numTransfers;
+    return numTransfers;
 }
 
 void TravelTime::setNumTransfers(double numTransfers)
 {
-	this->numTransfers = numTransfers;
+    this->numTransfers = numTransfers;
 }
 
 

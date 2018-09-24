@@ -34,7 +34,7 @@ namespace
     public:
 
         HM_AddEntryMsg(const HousingMarket::Entry& entry) : entry(entry)
-    	{
+        {
             priority = INTERNAL_MESSAGE_PRIORITY;
         }
         virtual ~HM_AddEntryMsg(){}
@@ -46,7 +46,7 @@ namespace
     public:
 
         HM_RemoveEntryMsg(const BigSerial& unitId) : unitId(unitId)
-    	{
+        {
             priority = INTERNAL_MESSAGE_PRIORITY;
         }
         virtual ~HM_RemoveEntryMsg(){}
@@ -82,47 +82,47 @@ namespace
 }
 
 HousingMarket::Entry::Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice, bool bto,
-							bool _buySellIntervalCompleted, int _zoneHousingType) : owner(owner), unitId(unitId), askingPrice(askingPrice), hedonicPrice(hedonicPrice),
-							postcodeId(postcodeId), tazId(tazId),bto(bto), buySellIntervalCompleted(_buySellIntervalCompleted), zoneHousingType(_zoneHousingType) {}
+                            bool _buySellIntervalCompleted, int _zoneHousingType) : owner(owner), unitId(unitId), askingPrice(askingPrice), hedonicPrice(hedonicPrice),
+                            postcodeId(postcodeId), tazId(tazId),bto(bto), buySellIntervalCompleted(_buySellIntervalCompleted), zoneHousingType(_zoneHousingType) {}
 
 HousingMarket::Entry::Entry(const Entry &source)
 {
-	this->askingPrice = source.askingPrice;
-	this->hedonicPrice = source.hedonicPrice;
-	this->owner = source.owner;
-	this->postcodeId = source.postcodeId;
-	this->tazId = source.tazId;
-	this->unitId = source.unitId;
-	this->bto = source.bto;
-	this->buySellIntervalCompleted = source.buySellIntervalCompleted;
-	this->zoneHousingType = source.zoneHousingType;
+    this->askingPrice = source.askingPrice;
+    this->hedonicPrice = source.hedonicPrice;
+    this->owner = source.owner;
+    this->postcodeId = source.postcodeId;
+    this->tazId = source.tazId;
+    this->unitId = source.unitId;
+    this->bto = source.bto;
+    this->buySellIntervalCompleted = source.buySellIntervalCompleted;
+    this->zoneHousingType = source.zoneHousingType;
 }
 
 HousingMarket::Entry& HousingMarket::Entry::operator=(const Entry& source)
 {
-	this->askingPrice = source.askingPrice;
-	this->hedonicPrice = source.hedonicPrice;
-	this->owner = source.owner;
-	this->postcodeId = source.postcodeId;
-	this->tazId = source.tazId;
-	this->unitId = source.unitId;
-	this->bto = source.bto;
-	this->buySellIntervalCompleted = source.buySellIntervalCompleted;
-	this->zoneHousingType = source.zoneHousingType;
+    this->askingPrice = source.askingPrice;
+    this->hedonicPrice = source.hedonicPrice;
+    this->owner = source.owner;
+    this->postcodeId = source.postcodeId;
+    this->tazId = source.tazId;
+    this->unitId = source.unitId;
+    this->bto = source.bto;
+    this->buySellIntervalCompleted = source.buySellIntervalCompleted;
+    this->zoneHousingType = source.zoneHousingType;
 
-	return *this;
+    return *this;
 }
 
 HousingMarket::Entry::~Entry(){}
 
 bool HousingMarket::Entry::isBuySellIntervalCompleted() const
 {
-	return buySellIntervalCompleted;
+    return buySellIntervalCompleted;
 }
 
 void HousingMarket::Entry::setBuySellIntervalCompleted(bool value)
 {
-	buySellIntervalCompleted = value;
+    buySellIntervalCompleted = value;
 }
 
 BigSerial HousingMarket::Entry::getUnitId() const
@@ -157,17 +157,17 @@ Agent_LT* HousingMarket::Entry::getOwner() const
 
 bool HousingMarket::Entry::isBTO() const
 {
-	return bto;
+    return bto;
 }
 
 int HousingMarket::Entry::getZoneHousingType() const
 {
-	return zoneHousingType;
+    return zoneHousingType;
 }
 
 void HousingMarket::Entry::setZoneHousingType(int value)
 {
-	zoneHousingType = value;
+    zoneHousingType = value;
 }
 
 
@@ -226,10 +226,10 @@ void HousingMarket::getAvailableEntries(const IdVector& tazIds, HousingMarket::C
             //copy lists.
             for (HousingMarket::EntryMap::iterator itMap = map.begin(); itMap != map.end(); itMap++)
             {
-            	if(itMap->second->isBuySellIntervalCompleted())
-            	{
-            		outList.push_back(itMap->second);
-            	}
+                if(itMap->second->isBuySellIntervalCompleted())
+                {
+                    outList.push_back(itMap->second);
+                }
             }
         }
     }
@@ -240,41 +240,41 @@ void HousingMarket::getAvailableEntries(ConstEntryList& outList)
     //copy(entriesById, outList);
     for( auto itr = entriesById.begin(); itr != entriesById.end(); itr++)
     {
-    	if( (*itr).second->isBuySellIntervalCompleted() == true)
-    	{
-    		outList.push_back((*itr).second);
-    	}
+        if( (*itr).second->isBuySellIntervalCompleted() == true)
+        {
+            outList.push_back((*itr).second);
+        }
     }
 }
 
 size_t HousingMarket::getEntrySize(unsigned int currTick)
 {
-	size_t size = 0;
-	for( auto itr = entriesById.begin(); itr != entriesById.end(); itr++)
-	{
-		if( (*itr).second->isBuySellIntervalCompleted() == true)
-		{
-			writeDailyHousingMarketUnitsToFile(currTick,(*itr).second->getUnitId());
-			size++;
-		}
-	}
+    size_t size = 0;
+    for( auto itr = entriesById.begin(); itr != entriesById.end(); itr++)
+    {
+        if( (*itr).second->isBuySellIntervalCompleted() == true)
+        {
+            writeDailyHousingMarketUnitsToFile(currTick,(*itr).second->getUnitId());
+            size++;
+        }
+    }
 
-	return size;
+    return size;
 }
 
 size_t HousingMarket::getBTOEntrySize()
 {
-	return btoEntries.size();
+    return btoEntries.size();
 }
 
 std::set<BigSerial> HousingMarket::getBTOEntries()
 {
-	return btoEntries;
+    return btoEntries;
 }
 
 std::unordered_multimap<int, BigSerial>& HousingMarket::getunitsByZoneHousingType()
 {
-	return unitsByZoneHousingType;
+    return unitsByZoneHousingType;
 }
             
 const HousingMarket::Entry* HousingMarket::getEntryById(const BigSerial& unitId)
@@ -326,7 +326,7 @@ void HousingMarket::HandleMessage(Message::MessageType type, const Message& mess
 
                if( newEntry->isBTO() )
                {
-            	   btoEntries.insert(unitId);
+                   btoEntries.insert(unitId);
                }
 
                unitsByZoneHousingType.insert(std::make_pair<int,BigSerial>( msg.entry.getZoneHousingType(), msg.entry.getUnitId()));
@@ -340,7 +340,7 @@ void HousingMarket::HandleMessage(Message::MessageType type, const Message& mess
             if (entry)
             {
                 if( entry->isBTO() )
-                	btoEntries.erase(entry->getUnitId());
+                    btoEntries.erase(entry->getUnitId());
 
                 auto itr = unitsByZoneHousingType.equal_range(entry->getZoneHousingType());
                 for (auto it = itr.first; it != itr.second; it++)
@@ -379,6 +379,6 @@ bool HousingMarket::isNonspatial()
 
 std::vector<sim_mob::BufferedBase*> HousingMarket::buildSubscriptionList() 
 {
-	return std::vector<sim_mob::BufferedBase*>();
+    return std::vector<sim_mob::BufferedBase*>();
 }
 

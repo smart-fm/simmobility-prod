@@ -22,8 +22,8 @@ PlanningAreaDao::~PlanningAreaDao() {}
 
 void PlanningAreaDao::fromRow(Row& result, PlanningArea& outObj)
 {
-    outObj.id 	= result.get<BigSerial>(	"id", 		INVALID_ID);
-    outObj.name = result.get<std::string>(	"name", 	EMPTY_STR);
+    outObj.id   = result.get<BigSerial>(    "id",       INVALID_ID);
+    outObj.name = result.get<std::string>(  "name",     EMPTY_STR);
 }
 
 void PlanningAreaDao::toRow(PlanningArea& data, Parameters& outParams, bool update) {}

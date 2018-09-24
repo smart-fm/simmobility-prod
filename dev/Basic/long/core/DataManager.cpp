@@ -68,9 +68,9 @@ void DataManager::load()
     conn.connect();
     if (conn.isConnected())
     {
-    	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+        ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-    	conn.setSchema(config.schemas.main_schema);
+        conn.setSchema(config.schemas.main_schema);
         loadData<BuildingDao>(conn, buildings, buildingsById, &Building::getFmBuildingId);
         PrintOutV("Loaded " << buildings.size() << " buildings." << std::endl);
         loadData<PostcodeDao>(conn, postcodes, postcodesById, &Postcode::getAddressId);

@@ -20,7 +20,7 @@ namespace sim_mob
         class TazLogsumWeight
         {
         public:
-        	TazLogsumWeight(int groupLogsum = 0, int individualId = 0, double weight = .0, int householdId = 0);
+            TazLogsumWeight(int groupLogsum = 0, int individualId = 0, double weight = .0, int householdId = 0);
 
             virtual ~TazLogsumWeight();
 

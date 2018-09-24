@@ -18,7 +18,7 @@ namespace sim_mob {
          */
         class HouseholdPlanningAreaDao : public db::SqlAbstractDao<HouseholdPlanningArea> {
         public:
-        	HouseholdPlanningAreaDao(db::DB_Connection& connection);
+            HouseholdPlanningAreaDao(db::DB_Connection& connection);
             virtual ~HouseholdPlanningAreaDao();
 
         private:

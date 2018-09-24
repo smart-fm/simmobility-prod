@@ -15,51 +15,51 @@ ROILimits::~ROILimits(){}
 
 ROILimits::ROILimits(const ROILimits& source)
 {
-	this->developmentTypeId = source.developmentTypeId;
-	this->roiLimit = source.roiLimit;
+    this->developmentTypeId = source.developmentTypeId;
+    this->roiLimit = source.roiLimit;
 
 }
 
 ROILimits& ROILimits::operator=(const ROILimits& source)
 {
-	this->developmentTypeId = source.developmentTypeId;
-	this->roiLimit = source.roiLimit;
+    this->developmentTypeId = source.developmentTypeId;
+    this->roiLimit = source.roiLimit;
 
-	return *this;
+    return *this;
 }
 
 BigSerial ROILimits::getDevelopmentTypeId() const
 {
-		return developmentTypeId;
+        return developmentTypeId;
 }
 
 double ROILimits::getRoiLimit() const
 {
-		return roiLimit;
+        return roiLimit;
 }
 
 void ROILimits::setDevelopmentTypeId(BigSerial developmentTypeId)
 {
-		this->developmentTypeId = developmentTypeId;
+        this->developmentTypeId = developmentTypeId;
 }
 
 void ROILimits::setRoiLimit(double roiLimit)
 {
-		this->roiLimit = roiLimit;
+        this->roiLimit = roiLimit;
 }
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		std::ostream& operator<<(std::ostream& strm, const ROILimits& data)
-		{
-			return strm << "{"
-					<< "\"developmentTypeId\":\"" << data.developmentTypeId << "\","
-					<< "\"roiLimit\":\"" << data.roiLimit << "\""
-					<< "}";
-		}
-	}
+    namespace long_term
+    {
+        std::ostream& operator<<(std::ostream& strm, const ROILimits& data)
+        {
+            return strm << "{"
+                    << "\"developmentTypeId\":\"" << data.developmentTypeId << "\","
+                    << "\"roiLimit\":\"" << data.roiLimit << "\""
+                    << "}";
+        }
+    }
 }
 
 

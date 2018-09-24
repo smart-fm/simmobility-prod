@@ -31,48 +31,48 @@ public:
       * @param ioService is IO service in boost library
       * @return a shared pointer to the instance
       */
-	static boost::shared_ptr<FMOD_Client> create(boost::asio::io_service& ioService);
+    static boost::shared_ptr<FMOD_Client> create(boost::asio::io_service& ioService);
 
-	FMOD_Client(boost::asio::io_service& ioService);
-	virtual ~FMOD_Client();
+    FMOD_Client(boost::asio::io_service& ioService);
+    virtual ~FMOD_Client();
 
     /**
       * send message to MOD simulator
       * @param data is to store message content
       * @return void
       */
-	void sendMessage(std::string& data);
+    void sendMessage(std::string& data);
 
     /**
       * send a list of messages to MOD simulator
       * @param dataList is a list of messages
       * @return void
       */
-	void sendMessage(MessageList& dataList);
+    void sendMessage(MessageList& dataList);
 
     /**
       * force buffered data to be sent out
        * @return void
       */
-	void flush();
+    void flush();
 
     /**
       * retrieve a list of messages from MOD simulator in non blocking mode
       * @return messages list
       */
-	MessageList getMessage();
+    MessageList getMessage();
 
     /**
       * retrieve a messages from MOD simulator in blocking mode
       * @return true if recieve a messages successfully
       */
-	bool waitMessageInBlocking(std::string& msg, int seconds);
+    bool waitMessageInBlocking(std::string& msg, int seconds);
 
     /**
       * retrieve a socket instance
       * @return the socket
       */
-	boost::asio::ip::tcp::socket& socket();
+    boost::asio::ip::tcp::socket& socket();
 
     /**
       * build a connection to server
@@ -80,13 +80,13 @@ public:
       * @param port is MOD simulator port
       * @return true if connection successfully, otherwise false
       */
-	bool connectToServer(std::string& ip, int port);
+    bool connectToServer(std::string& ip, int port);
 
     /**
       * stop a connection to MOD simulator
       * @return void
       */
-	void stop();
+    void stop();
 
 private:
     /**
@@ -95,7 +95,7 @@ private:
       * @param bytesTransferred is to record transfer size
       * @return void
       */
-	void handleWrite(const boost::system::error_code& error, size_t bytesTransferred);
+    void handleWrite(const boost::system::error_code& error, size_t bytesTransferred);
 
     /**
       * reading callback function for boost IO service
@@ -103,27 +103,27 @@ private:
       * @param bytesTransferred is to record transfer size
       * @return void
       */
-	void handleRead(const boost::system::error_code& error, size_t bytesTransferred);
+    void handleRead(const boost::system::error_code& error, size_t bytesTransferred);
 
     /**
       * start sending data to MOD simulator
       * @return true if operation successfully, otherwise false
       */
-	bool sendData();
+    bool sendData();
 
     /**
       * start receive data from MOD simulator
       * @return true if operation successfully, otherwise false
       */
-	bool receiveData();
+    bool receiveData();
 
 private:
-	boost::asio::ip::tcp::socket socket_;
-	FMOD_MsgQueue msgSendQueue;
-	FMOD_MsgQueue msgReceiveQueue;
-	std::string messageSnd;
-	const static int bufferSize = 20480;
-	boost::array<char, bufferSize> ReceivedBuf;
+    boost::asio::ip::tcp::socket socket_;
+    FMOD_MsgQueue msgSendQueue;
+    FMOD_MsgQueue msgReceiveQueue;
+    std::string messageSnd;
+    const static int bufferSize = 20480;
+    boost::array<char, bufferSize> ReceivedBuf;
 };
 
 typedef boost::shared_ptr<FMOD_Client> FmodClientPtr;

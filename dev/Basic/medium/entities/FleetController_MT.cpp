@@ -26,17 +26,17 @@ FleetController_MT::~FleetController_MT()
 
 FleetController_MT * FleetController_MT::getInstance()
 {
-	if(!fleetMgr)
-	{
-		fleetMgr = new FleetController_MT();
-	}
+    if(!fleetMgr)
+    {
+        fleetMgr = new FleetController_MT();
+    }
 
-	return fleetMgr;
+    return fleetMgr;
 }
 
 void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
 {
-	std::map<unsigned int, MobilityServiceControllerConfig>::const_iterator it = ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.begin();
+    std::map<unsigned int, MobilityServiceControllerConfig>::const_iterator it = ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.begin();
 
     while(it !=  ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.end()) {
 
@@ -132,14 +132,14 @@ void FleetController_MT::initialise(std::set<sim_mob::Entity *> &agentList)
 
 void FleetController_MT::addOrStashTaxis(Person *person, std::set<Entity *> &activeAgents)
 {
-	if (person->getStartTime() == 0)
-	{
-		//Only agents with a start time of zero should start immediately in the all_agents list.
-		activeAgents.insert((Entity *)person);
-	}
-	else
-	{
-		//Start later.
-		pendingChildren.push((Entity *)person);
-	}
+    if (person->getStartTime() == 0)
+    {
+        //Only agents with a start time of zero should start immediately in the all_agents list.
+        activeAgents.insert((Entity *)person);
+    }
+    else
+    {
+        //Start later.
+        pendingChildren.push((Entity *)person);
+    }
 }

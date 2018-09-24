@@ -18,7 +18,7 @@ namespace sim_mob {
          */
         class DistanceMRTDao : public db::SqlAbstractDao<DistanceMRT> {
         public:
-        	DistanceMRTDao(db::DB_Connection& connection);
+            DistanceMRTDao(db::DB_Connection& connection);
             virtual ~DistanceMRTDao();
 
         private:

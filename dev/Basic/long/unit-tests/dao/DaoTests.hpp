@@ -19,14 +19,14 @@ namespace unit_tests {
 class DaoTests : public CppUnit::TestFixture{
         
 public:
-	void testGetAll();
-	void testGetById();
+    void testGetAll();
+    void testGetById();
 
 private:
-	CPPUNIT_TEST_SUITE(DaoTests);
-		CPPUNIT_TEST(testGetAll);
-		CPPUNIT_TEST(testGetById);
-	CPPUNIT_TEST_SUITE_END();
+    CPPUNIT_TEST_SUITE(DaoTests);
+        CPPUNIT_TEST(testGetAll);
+        CPPUNIT_TEST(testGetById);
+    CPPUNIT_TEST_SUITE_END();
 
 };
 }

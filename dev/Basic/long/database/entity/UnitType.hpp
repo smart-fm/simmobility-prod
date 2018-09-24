@@ -51,7 +51,7 @@ namespace sim_mob {
             double constructionCostPerUnit;
             double demolitionCostPerUnit;
             double minLosize;
-            int	   dwellingType;
+            int    dwellingType;
             double wtpOffset;
             int aggregatedUnitType;
         };

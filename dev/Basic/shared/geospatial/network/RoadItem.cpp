@@ -22,40 +22,40 @@ RoadItem::~RoadItem()
 
 unsigned int RoadItem::getRoadItemId() const
 {
-	return roadItemId;
+    return roadItemId;
 }
 
 void RoadItem::setRoadItemId(unsigned int roadItemId)
 {
-	this->roadItemId = roadItemId;
+    this->roadItemId = roadItemId;
 }
 
 unsigned int RoadItem::getGeometryId() const
 {
-	return geometryId;
+    return geometryId;
 }
 
 void RoadItem::setGeometryId(unsigned int geometryId)
 {
-	this->geometryId = geometryId;
+    this->geometryId = geometryId;
 }
 
 unsigned int RoadItem::getPolyLineId() const
 {
-	return polyLineId;
+    return polyLineId;
 }
 
 void RoadItem::setPolyLineId(unsigned int polyLineId)
 {
-	this->polyLineId = polyLineId;
+    this->polyLineId = polyLineId;
 }
 
 unsigned int RoadItem::getRoadSegmentId() const
 {
-	return roadSegmentId;
+    return roadSegmentId;
 }
 
 void RoadItem::setRoadSegmentId(unsigned int roadSegmentId)
 {
-	this->roadSegmentId = roadSegmentId;
+    this->roadSegmentId = roadSegmentId;
 }

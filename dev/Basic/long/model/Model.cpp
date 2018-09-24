@@ -21,11 +21,11 @@ using std::string;
 
 namespace
 {
-	void deleteAgents(vector<sim_mob::long_term::Agent_LT*>& agents)
+    void deleteAgents(vector<sim_mob::long_term::Agent_LT*>& agents)
     {
         while (!agents.empty())
         {
-        	sim_mob::long_term::Agent_LT* ag = agents.back();
+            sim_mob::long_term::Agent_LT* ag = agents.back();
             agents.pop_back();
             safe_delete_item(ag);
         }
@@ -68,7 +68,7 @@ void Model::start()
 
 void Model::update(int day)
 {
-	//PrintOut("model update" << std::endl);
+    //PrintOut("model update" << std::endl);
 }
 
 void Model::stop()

@@ -12,15 +12,15 @@ namespace sim_mob {
 
 TrainUpdateParams::TrainUpdateParams():currentSpeed(0),secondsInTick(1.0),elapsedSeconds(0),disToNextPlatform(0),currentSpeedLimit(0)
 ,currentAcelerate(0),disToNextTrain(0),currCase(NORMAL_CASE) {
-	secondsInTick = ConfigManager::GetInstance().FullConfig().baseGranSecond();
+    secondsInTick = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 }
 
 TrainUpdateParams::~TrainUpdateParams() {
-	// TODO Auto-generated destructor stub
+    // TODO Auto-generated destructor stub
 }
 
 void TrainUpdateParams::reset(timeslice now)
 {
-	UpdateParams::reset(now);
+    UpdateParams::reset(now);
 }
 } /* namespace sim_mob */

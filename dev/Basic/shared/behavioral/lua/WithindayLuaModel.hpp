@@ -18,17 +18,17 @@ namespace sim_mob
 class WithindayLuaModel : public lua::LuaModel
 {
 public:
-	WithindayLuaModel();
-	virtual ~WithindayLuaModel();
+    WithindayLuaModel();
+    virtual ~WithindayLuaModel();
 
-	/**
-	 * Choose mode for a trip in withinday
-	 *
-	 * @param personParams object containing person and household related variables. logsums will be updated in this object
-	 * @param wdModeParams parameters specific to withinday mode model
-	 * @return index of mode chosen (1 to 9 (or -1 if no mode could be chosen))
-	 */
-	int chooseMode(const PersonParams& personParams, const WithindayModeParams& wdModeParams) const;
+    /**
+     * Choose mode for a trip in withinday
+     *
+     * @param personParams object containing person and household related variables. logsums will be updated in this object
+     * @param wdModeParams parameters specific to withinday mode model
+     * @return index of mode chosen (1 to 9 (or -1 if no mode could be chosen))
+     */
+    int chooseMode(const PersonParams& personParams, const WithindayModeParams& wdModeParams) const;
 
 private:
     /**
@@ -45,15 +45,15 @@ private:
 class WithindayLuaProvider
 {
 public:
-	/**
-	 * Fetches the Withinday lua model.
-	 *
-	 * NOTE: you should not hold this instance.
-	 *       This provider will give you an instance based on current thread context.
-	 *
-	 * @return withinday Lua model reference.
-	 */
-	static const WithindayLuaModel& getWithindayModel();
+    /**
+     * Fetches the Withinday lua model.
+     *
+     * NOTE: you should not hold this instance.
+     *       This provider will give you an instance based on current thread context.
+     *
+     * @return withinday Lua model reference.
+     */
+    static const WithindayLuaModel& getWithindayModel();
 };
 } //end sim_mob
 

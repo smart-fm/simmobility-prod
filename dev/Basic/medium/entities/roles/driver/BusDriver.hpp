@@ -23,114 +23,114 @@ class Passenger;
 
 class BusDriver : public Driver {
 public:
-	BusDriver(Person_MT* parent, const MutexStrategy& mtxStrat,
-			BusDriverBehavior* behavior = nullptr,
-			BusDriverMovement* movement = nullptr,
-			std::string roleName = std::string(),
-			Role<Person_MT>::Type roleType = Role<Person_MT>::RL_BUSDRIVER);
-	virtual ~BusDriver();
+    BusDriver(Person_MT* parent, const MutexStrategy& mtxStrat,
+            BusDriverBehavior* behavior = nullptr,
+            BusDriverMovement* movement = nullptr,
+            std::string roleName = std::string(),
+            Role<Person_MT>::Type roleType = Role<Person_MT>::RL_BUSDRIVER);
+    virtual ~BusDriver();
 
-	virtual Role<Person_MT>* clone(Person_MT* parent) const;
+    virtual Role<Person_MT>* clone(Person_MT* parent) const;
 
-	//Virtual overrides
-	virtual void make_frame_tick_params(timeslice now);
-	virtual std::vector<BufferedBase*> getSubscriptionParams();
-	virtual DriverRequestParams getDriverRequestParams();
+    //Virtual overrides
+    virtual void make_frame_tick_params(timeslice now);
+    virtual std::vector<BufferedBase*> getSubscriptionParams();
+    virtual DriverRequestParams getDriverRequestParams();
 
-	/**
-	 * gets stops list from bus route
-	 * @return constant pointer to bus stops list
-	 */
-	const std::vector<const BusStop*>* getBusStopsVector() const;
+    /**
+     * gets stops list from bus route
+     * @return constant pointer to bus stops list
+     */
+    const std::vector<const BusStop*>* getBusStopsVector() const;
 
-	/**
-	 * insert a new passenger to bus driver when a passenger
-	 * decide to board on this bus
-	 *
-	 * @param passenger is the pointer to the person who will board on this bus
-	 *
-	 * @return boolean value, if boarding success, the value is true;
-	 * otherwise this value is false.
-	 */
-	bool addPassenger(Passenger* passenger);
+    /**
+     * insert a new passenger to bus driver when a passenger
+     * decide to board on this bus
+     *
+     * @param passenger is the pointer to the person who will board on this bus
+     *
+     * @return boolean value, if boarding success, the value is true;
+     * otherwise this value is false.
+     */
+    bool addPassenger(Passenger* passenger);
 
-	/**
-	 * returns number of passengers on bus
-	 * @return pax count
-	 */
-	unsigned int getPassengerCount() const;
+    /**
+     * returns number of passengers on bus
+     * @return pax count
+     */
+    unsigned int getPassengerCount() const;
 
-	/**
-	 * store the arrival time at bus stop
-	 *
-	 * @param current is current time represented in string
-	 * @param stop is which currently bus driver arrive at
-	 *
-	 */
-	void storeArrivalTime(const std::string& current, const std::string& waitTime, const BusStop* stop);
+    /**
+     * store the arrival time at bus stop
+     *
+     * @param current is current time represented in string
+     * @param stop is which currently bus driver arrive at
+     *
+     */
+    void storeArrivalTime(const std::string& current, const std::string& waitTime, const BusStop* stop);
 
-	/**
-	 * store the passenger alight info  at bus stop
-	 *
-	 * @param current is current time represented in string
-	 * @param stop is which currently bus driver arrive at
-	 *
-	 */
-	void storeAlightInfo(const sim_mob::medium::Passenger* passenger,const std::string& current, const BusStop* stop, const std::string &BusLineId );
+    /**
+     * store the passenger alight info  at bus stop
+     *
+     * @param current is current time represented in string
+     * @param stop is which currently bus driver arrive at
+     *
+     */
+    void storeAlightInfo(const sim_mob::medium::Passenger* passenger,const std::string& current, const BusStop* stop, const std::string &BusLineId );
 
-	/**
-	 * change whether bus is full already
-	 *  @return boolean value, if bus is full, return true, otherwise false
-	 */
-	bool checkIsFull();
+    /**
+     * change whether bus is full already
+     *  @return boolean value, if bus is full, return true, otherwise false
+     */
+    bool checkIsFull();
 
-	/**
-	 * get current waiting time at bus stop
-	 */
-	double getWaitingTimeAtBusStop() {
-		return waitingTimeAtbusStop;
-	}
+    /**
+     * get current waiting time at bus stop
+     */
+    double getWaitingTimeAtBusStop() {
+        return waitingTimeAtbusStop;
+    }
 
-	void collectTravelTime()
-	{
-		//Do Nothing function to avoid calling Driver's class virtual function for Bus Drivers
-	}
+    void collectTravelTime()
+    {
+        //Do Nothing function to avoid calling Driver's class virtual function for Bus Drivers
+    }
 
-	const std::string getBusLineID() const;
+    const std::string getBusLineID() const;
 
-	void updatePassengers();
+    void updatePassengers();
 
-	int busSequenceNumber;
+    int busSequenceNumber;
 
 private:
-	/**passengers list*/
-	std::list<Passenger*> passengerList;
+    /**passengers list*/
+    std::list<Passenger*> passengerList;
 
-	/**final waiting time at bus stop*/
-	double waitingTimeAtbusStop;
+    /**final waiting time at bus stop*/
+    double waitingTimeAtbusStop;
 
-	/**
-	 * alight passengers when those want to alight at next bus stop
-	 * @param bus stop agent is the agent which wrap bus stop and waiting people
-	 * @return the number of alighting people
-	 */
-	unsigned int alightPassenger(BusStopAgent* busStopAgent, const std::string& currentTime);
+    /**
+     * alight passengers when those want to alight at next bus stop
+     * @param bus stop agent is the agent which wrap bus stop and waiting people
+     * @return the number of alighting people
+     */
+    unsigned int alightPassenger(BusStopAgent* busStopAgent, const std::string& currentTime);
 
-	/**
-	 * triggers boarding and alighting at a bus stop
-	 * @param busStopAgent agent managing the stop which is currently served
-	 * @param current is current time represented in string
-	 */
-	void openBusDoors(const std::string& current, BusStopAgent* busStopAgent);
+    /**
+     * triggers boarding and alighting at a bus stop
+     * @param busStopAgent agent managing the stop which is currently served
+     * @param current is current time represented in string
+     */
+    void openBusDoors(const std::string& current, BusStopAgent* busStopAgent);
 
-	/**
-	 * triggers bus departure from a bus stop
-	 * @param busStopAgent agent managing the stop which is currently served
-	 */
-	void closeBusDoors(BusStopAgent* busStopAgent);
+    /**
+     * triggers bus departure from a bus stop
+     * @param busStopAgent agent managing the stop which is currently served
+     */
+    void closeBusDoors(BusStopAgent* busStopAgent);
 
-	friend class BusDriverBehavior;
-	friend class BusDriverMovement;
+    friend class BusDriverBehavior;
+    friend class BusDriverMovement;
 
 
 };

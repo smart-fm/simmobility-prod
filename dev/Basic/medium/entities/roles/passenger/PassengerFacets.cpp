@@ -38,79 +38,79 @@ PassengerMovement::~PassengerMovement()
 
 void PassengerMovement::setParentPassenger(Passenger* parentPassenger)
 {
-	this->parentPassenger = parentPassenger;
+    this->parentPassenger = parentPassenger;
 }
 
 void PassengerBehavior::setParentPassenger(Passenger* parentPassenger)
 {
-	this->parentPassenger = parentPassenger;
+    this->parentPassenger = parentPassenger;
 }
 
 void PassengerMovement::frame_init()
 {
-	totalTimeToCompleteMS = 0;
+    totalTimeToCompleteMS = 0;
 }
 
 void PassengerMovement::frame_tick()
 {
-	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
-	totalTimeToCompleteMS += tickMS;
-	parentPassenger->setTravelTime(totalTimeToCompleteMS);
-	parentPassenger->getParent()->setRemainingTimeThisTick(0);
+    unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
+    totalTimeToCompleteMS += tickMS;
+    parentPassenger->setTravelTime(totalTimeToCompleteMS);
+    parentPassenger->getParent()->setRemainingTimeThisTick(0);
 }
 
 std::string PassengerMovement::frame_tick_output()
 {
-	return std::string();
+    return std::string();
 }
 
 TravelMetric & PassengerMovement::startTravelTimeMetric()
 {
-	travelMetric.startTime = DailyTime(parentPassenger->getArrivalTime());
-	travelMetric.origin = parentPassenger->getStartPoint();
-	if(parentPassenger->getDriver())
-	{
-		if (parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_TAXIDRIVER ||
-		    parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_HAIL_DRIVER ||
-		    parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_CALL_DRIVER)
-		{
-			travelMetric.startTime = DailyTime(const_cast<Driver*>(parentPassenger->getDriver())->getParams().now.ms())
-										+ DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime());
-		}
-	}
-	travelMetric.started = true;
-	return travelMetric;
+    travelMetric.startTime = DailyTime(parentPassenger->getArrivalTime());
+    travelMetric.origin = parentPassenger->getStartPoint();
+    if(parentPassenger->getDriver())
+    {
+        if (parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_TAXIDRIVER ||
+            parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_HAIL_DRIVER ||
+            parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_CALL_DRIVER)
+        {
+            travelMetric.startTime = DailyTime(const_cast<Driver*>(parentPassenger->getDriver())->getParams().now.ms())
+                                        + DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime());
+        }
+    }
+    travelMetric.started = true;
+    return travelMetric;
 }
 
 TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 {
-	travelMetric.destination = parentPassenger->getEndPoint();
-	travelMetric.endTime = DailyTime(parentPassenger->getArrivalTime() + parentPassenger->totalTravelTimeMS);
-	travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime , travelMetric.startTime); // = totalTimeToCompleteMS in hours
-	if(parentPassenger->getDriver())
-	{
-		if (parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_TAXIDRIVER ||
-		    parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_HAIL_DRIVER ||
-		    parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_CALL_DRIVER)
-		{
-			travelMetric.distance = parentPassenger->getFinalPointDriverDistance() - parentPassenger->getStartPointDriverDistance();
-			travelMetric.endTime =DailyTime(const_cast<Driver*>(parentPassenger->getDriver())->getParams().now.ms())
-			                      + DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime());
-			travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime , travelMetric.startTime);
-			parentPassenger->setDriver(NULL);
-		}
-	}
-		travelMetric.finalized = true;
-	return travelMetric;
+    travelMetric.destination = parentPassenger->getEndPoint();
+    travelMetric.endTime = DailyTime(parentPassenger->getArrivalTime() + parentPassenger->totalTravelTimeMS);
+    travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime , travelMetric.startTime); // = totalTimeToCompleteMS in hours
+    if(parentPassenger->getDriver())
+    {
+        if (parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_TAXIDRIVER ||
+            parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_HAIL_DRIVER ||
+            parentPassenger->getDriver()->roleType == Role<Person_MT>::RL_ON_CALL_DRIVER)
+        {
+            travelMetric.distance = parentPassenger->getFinalPointDriverDistance() - parentPassenger->getStartPointDriverDistance();
+            travelMetric.endTime =DailyTime(const_cast<Driver*>(parentPassenger->getDriver())->getParams().now.ms())
+                                  + DailyTime(ConfigManager::GetInstance().FullConfig().simStartTime());
+            travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime , travelMetric.startTime);
+            parentPassenger->setDriver(NULL);
+        }
+    }
+        travelMetric.finalized = true;
+    return travelMetric;
 }
 
 Conflux* PassengerMovement::getDestinationConflux() const
 {
-	if (parentPassenger->roleType == Role<Person_MT>::RL_CARPASSENGER
-			|| parentPassenger->roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER
-			|| parentPassenger->roleType == Role<Person_MT>::RL_TRAINPASSENGER)
-	{
-		return MT_Config::getInstance().getConfluxForNode(parentPassenger->parent->currSubTrip->destination.node);
-	}
-	return nullptr;
+    if (parentPassenger->roleType == Role<Person_MT>::RL_CARPASSENGER
+            || parentPassenger->roleType == Role<Person_MT>::RL_PRIVATEBUSPASSENGER
+            || parentPassenger->roleType == Role<Person_MT>::RL_TRAINPASSENGER)
+    {
+        return MT_Config::getInstance().getConfluxForNode(parentPassenger->parent->currSubTrip->destination.node);
+    }
+    return nullptr;
 }

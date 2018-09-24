@@ -35,63 +35,63 @@ class OnCallController; //forward declaration
 class Rebalancer
 {
 public:
-	Rebalancer(const OnCallController *parentController_);
-	virtual ~Rebalancer();
+    Rebalancer(const OnCallController *parentController_);
+    virtual ~Rebalancer();
 
-	virtual void rebalance(const std::vector<const Person *> &availableDrivers, const timeslice currTick) = 0;
+    virtual void rebalance(const std::vector<const Person *> &availableDrivers, const timeslice currTick) = 0;
 
-	void onRequestReceived(const Node *startNode);
+    void onRequestReceived(const Node *startNode);
 
-	int getNumCustomers(int TazId);
+    int getNumCustomers(int TazId);
 
-	// get supply by Zone
-	int getNumVehicles(const std::vector<const Person *> &availableDrivers, int TazId);
+    // get supply by Zone
+    int getNumVehicles(const std::vector<const Person *> &availableDrivers, int TazId);
 
 protected:
-	std::vector<const Node *> latestStartNodes;
-	const OnCallController *parentController;
+    std::vector<const Node *> latestStartNodes;
+    const OnCallController *parentController;
 };
 
 class SimpleRebalancer : public Rebalancer
 {
 private:
-	using Rebalancer::Rebalancer;
+    using Rebalancer::Rebalancer;
 
-	void rebalance(const std::vector<const Person *> &availableDrivers, const timeslice currTick);
+    void rebalance(const std::vector<const Person *> &availableDrivers, const timeslice currTick);
 
 public:
-	SimpleRebalancer(const OnCallController *controller) : Rebalancer(controller)
-	{}
+    SimpleRebalancer(const OnCallController *controller) : Rebalancer(controller)
+    {}
 };
 
 class LazyRebalancer : public Rebalancer
 {
 private:
-	using Rebalancer::Rebalancer;
+    using Rebalancer::Rebalancer;
 
-	void rebalance(const std::vector<const Person *> &availableDrivers, const timeslice currTick);
+    void rebalance(const std::vector<const Person *> &availableDrivers, const timeslice currTick);
 
 public:
-	LazyRebalancer(const OnCallController *controller) : Rebalancer(controller)
-	{}
+    LazyRebalancer(const OnCallController *controller) : Rebalancer(controller)
+    {}
 };
 
 class KasiaRebalancer : public Rebalancer
 {
-	using Rebalancer::Rebalancer;
+    using Rebalancer::Rebalancer;
 
-	void rebalance(const std::vector<const Person *> &availableDrivers,
-	               const timeslice currTick);
+    void rebalance(const std::vector<const Person *> &availableDrivers,
+                   const timeslice currTick);
 
-	// jo{ need these functions to get supply/demand by zone ID
-//	public:
-//		// get demand by Zone
-//		int getNumCustomers(int TazId);
+    // jo{ need these functions to get supply/demand by zone ID
+//  public:
+//      // get demand by Zone
+//      int getNumCustomers(int TazId);
 //
-//		// get supply by Zone
-//		int getNumVehicles(const std::vector<const Person*>& availableDrivers,
-//			int TazId);
-	// }jo
+//      // get supply by Zone
+//      int getNumVehicles(const std::vector<const Person*>& availableDrivers,
+//          int TazId);
+    // }jo
 
 };
 

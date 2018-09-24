@@ -15,30 +15,30 @@ namespace sim_mob
 class BusControllerST: public BusController
 {
 private:
-	explicit BusControllerST(int id = -1, const MutexStrategy& mtxStrat = MtxStrat_Buffered);
-	virtual ~BusControllerST();
+    explicit BusControllerST(int id = -1, const MutexStrategy& mtxStrat = MtxStrat_Buffered);
+    virtual ~BusControllerST();
 
 public:
-	/**
-	 * Initialize a single BusController with the given start time and MutexStrategy.
-	 */
-	static void RegisterBusController(int id = -1, const MutexStrategy& mtxStrat = MtxStrat_Buffered);
+    /**
+     * Initialize a single BusController with the given start time and MutexStrategy.
+     */
+    static void RegisterBusController(int id = -1, const MutexStrategy& mtxStrat = MtxStrat_Buffered);
 
-	/**
-	 * processes requests from all bus drivers
-	 */
-	virtual void processRequests();
+    /**
+     * processes requests from all bus drivers
+     */
+    virtual void processRequests();
 
-	/**
-	 * processes bus driver request
-	 */
-	virtual void handleRequest(DriverRequestParams rParams);
+    /**
+     * processes bus driver request
+     */
+    virtual void handleRequest(DriverRequestParams rParams);
 
 private:
-	/**
-	 * assign bus trip information to person so as to travel on the road
-	 */
-	virtual void assignBusTripChainWithPerson(std::set<Entity*>& activeAgents);
+    /**
+     * assign bus trip information to person so as to travel on the road
+     */
+    virtual void assignBusTripChainWithPerson(std::set<Entity*>& activeAgents);
 };
 
 }

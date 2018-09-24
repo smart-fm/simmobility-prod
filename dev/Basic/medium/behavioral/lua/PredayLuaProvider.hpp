@@ -17,15 +17,15 @@ namespace medium
 class PredayLuaProvider
 {
 public:
-	/**
-	 * Gets the Preday lua model.
-	 *
-	 * NOTE: you should not hold this instance.
-	 * This provider will give you an instance based on current thread context.
-	 *
-	 * @return Lua preday model reference.
-	 */
-	static const PredayLuaModel& getPredayModel();
+    /**
+     * Gets the Preday lua model.
+     *
+     * NOTE: you should not hold this instance.
+     * This provider will give you an instance based on current thread context.
+     *
+     * @return Lua preday model reference.
+     */
+    static const PredayLuaModel& getPredayModel();
 };
 }
 }

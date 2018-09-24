@@ -21,14 +21,14 @@ HitsIndividualLogsumDao::~HitsIndividualLogsumDao(){}
 
 void HitsIndividualLogsumDao::fromRow(Row& result, HitsIndividualLogsum& outObj)
 {
-	outObj.id			= result.get<int>( "id", 0);
-    outObj.hitsId		= result.get<std::string>( "H1_HHID", "");
-    outObj.paxId 		= result.get<int>( "PAX_ID", 0);
-    outObj.homePostcode	= result.get<int>( "home_postcode", 0);
-    outObj.homeTaz		= result.get<int>( "home_taz", 0);
-    outObj.workPostcode	= result.get<int>( "work_postcode", 0);
-    outObj.workTaz		= result.get<int>( "work_taz", 0);
-    outObj.cars			= result.get<int>( "cars", 0);
+    outObj.id           = result.get<int>( "id", 0);
+    outObj.hitsId       = result.get<std::string>( "H1_HHID", "");
+    outObj.paxId        = result.get<int>( "PAX_ID", 0);
+    outObj.homePostcode = result.get<int>( "home_postcode", 0);
+    outObj.homeTaz      = result.get<int>( "home_taz", 0);
+    outObj.workPostcode = result.get<int>( "work_postcode", 0);
+    outObj.workTaz      = result.get<int>( "work_taz", 0);
+    outObj.cars         = result.get<int>( "cars", 0);
 }
 
 void HitsIndividualLogsumDao::toRow(HitsIndividualLogsum& data, Parameters& outParams, bool update) {}

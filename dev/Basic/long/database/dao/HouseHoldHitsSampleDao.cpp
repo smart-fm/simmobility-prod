@@ -19,7 +19,7 @@ HouseHoldHitsSampleDao::~HouseHoldHitsSampleDao() {
 
 void HouseHoldHitsSampleDao::fromRow(Row& result, HouseHoldHitsSample& outObj)
 {
-	outObj.houseHoldHitsId = result.get<std::string>("H1_HHID", "");
+    outObj.houseHoldHitsId = result.get<std::string>("H1_HHID", "");
     outObj.houseHoldId = result.get<BigSerial>("household_id", INVALID_ID);
     outObj.groupId = result.get<BigSerial>("group_id",INVALID_ID);
 }

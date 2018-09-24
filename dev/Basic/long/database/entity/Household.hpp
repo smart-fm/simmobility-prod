@@ -5,7 +5,7 @@
 /* 
  * File:   Household.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
- * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
+ *         Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  *
  * Created on April 22, 2013, 5:54 PM
  */
@@ -18,74 +18,74 @@ namespace sim_mob
 {
     namespace long_term
     {
-		class HouseholdStatistics
-		{
-			public:
-				HouseholdStatistics(): 	 maleChild(0),
-										 femaleChild(0),
-										 maleAdultYoung(0),
-										 femaleAdultYoung(0),
-										 maleAdultMiddleAged(0),
-										 femaleAdultMiddleAged(0),
-										 maleAdultElderly(0),
-										 femaleAdultElderly(0),
-										 adultSingaporean(0),
-										 maleChild_global(0),
-										 femaleChild_global(0),
-										 maleAdultYoung_global(0),
-										 femaleAdultYoung_global(0),
-										 maleAdultMiddleAged_global(0),
-										 femaleAdultMiddleAged_global(0),
-										 maleAdultElderly_global(0),
-										 femaleAdultElderly_global(0),
-										 adultSingaporean_global(0),
-										 coupleAndChild(0),
-										 siblingsAndParents(0),
-										 singleParent(0),
-										 engagedCouple(0),
-										 orphanSiblings(0),
-										 multigeneration(0)
-										{}
+        class HouseholdStatistics
+        {
+            public:
+                HouseholdStatistics():   maleChild(0),
+                                         femaleChild(0),
+                                         maleAdultYoung(0),
+                                         femaleAdultYoung(0),
+                                         maleAdultMiddleAged(0),
+                                         femaleAdultMiddleAged(0),
+                                         maleAdultElderly(0),
+                                         femaleAdultElderly(0),
+                                         adultSingaporean(0),
+                                         maleChild_global(0),
+                                         femaleChild_global(0),
+                                         maleAdultYoung_global(0),
+                                         femaleAdultYoung_global(0),
+                                         maleAdultMiddleAged_global(0),
+                                         femaleAdultMiddleAged_global(0),
+                                         maleAdultElderly_global(0),
+                                         femaleAdultElderly_global(0),
+                                         adultSingaporean_global(0),
+                                         coupleAndChild(0),
+                                         siblingsAndParents(0),
+                                         singleParent(0),
+                                         engagedCouple(0),
+                                         orphanSiblings(0),
+                                         multigeneration(0)
+                                        {}
 
-				void ResetLocal()
-				{
-					maleChild = 0;
-					femaleChild = 0;
-					maleAdultYoung = 0;
-					femaleAdultYoung = 0;
-					maleAdultMiddleAged = 0;
-					femaleAdultMiddleAged = 0;
-					maleAdultElderly = 0;
-					femaleAdultElderly = 0;
-					adultSingaporean = 0;
-				}
+                void ResetLocal()
+                {
+                    maleChild = 0;
+                    femaleChild = 0;
+                    maleAdultYoung = 0;
+                    femaleAdultYoung = 0;
+                    maleAdultMiddleAged = 0;
+                    femaleAdultMiddleAged = 0;
+                    maleAdultElderly = 0;
+                    femaleAdultElderly = 0;
+                    adultSingaporean = 0;
+                }
 
-				int maleChild;
-				int femaleChild;
-				int maleAdultYoung;
-				int femaleAdultYoung;
-				int maleAdultMiddleAged;
-				int femaleAdultMiddleAged;
-				int maleAdultElderly;
-				int femaleAdultElderly;
-				int adultSingaporean;
-				int maleChild_global;
-				int femaleChild_global;
-				int maleAdultYoung_global;
-				int femaleAdultYoung_global;
-				int maleAdultMiddleAged_global;
-				int femaleAdultMiddleAged_global;
-				int maleAdultElderly_global;
-				int femaleAdultElderly_global;
-				int adultSingaporean_global;
+                int maleChild;
+                int femaleChild;
+                int maleAdultYoung;
+                int femaleAdultYoung;
+                int maleAdultMiddleAged;
+                int femaleAdultMiddleAged;
+                int maleAdultElderly;
+                int femaleAdultElderly;
+                int adultSingaporean;
+                int maleChild_global;
+                int femaleChild_global;
+                int maleAdultYoung_global;
+                int femaleAdultYoung_global;
+                int maleAdultMiddleAged_global;
+                int femaleAdultMiddleAged_global;
+                int maleAdultElderly_global;
+                int femaleAdultElderly_global;
+                int adultSingaporean_global;
 
-				int coupleAndChild;
-				int siblingsAndParents;
-				int singleParent;
-				int engagedCouple;
-				int orphanSiblings;
-				int multigeneration;
-		};
+                int coupleAndChild;
+                int siblingsAndParents;
+                int singleParent;
+                int engagedCouple;
+                int orphanSiblings;
+                int multigeneration;
+        };
 
 
         class Household
@@ -94,10 +94,10 @@ namespace sim_mob
             Household();
 
             Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, int adult, double income,
-            		   int housingDuration,int workers, int ageOfHead, int pendingStatusId,std::tm pendingFromDate,int unitPending,bool twoRoomHdbEligibility, bool threeRoomHdbEligibility,
-					   bool fourRoomHdbEligibility, int familyType, bool taxiAvailability, int vehicleOwnershipOptionId, double logsum, double currentUnitPrice, double householdAffordabilityAmount,
-					   int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved, int tenureStatus,int awakenedDay,bool existInDB,int lastAwakenedDay,int lastBidStatus,
-					   double randomNum,bool liveInToaPayoh,bool workInToaPayoh,int numWhiteCollars,int numWorkers,int numElderly);
+                       int housingDuration,int workers, int ageOfHead, int pendingStatusId,std::tm pendingFromDate,int unitPending,bool twoRoomHdbEligibility, bool threeRoomHdbEligibility,
+                       bool fourRoomHdbEligibility, int familyType, bool taxiAvailability, int vehicleOwnershipOptionId, double logsum, double currentUnitPrice, double householdAffordabilityAmount,
+                       int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved, int tenureStatus,int awakenedDay,bool existInDB,int lastAwakenedDay,int lastBidStatus,
+                       double randomNum,bool liveInToaPayoh,bool workInToaPayoh,int numWhiteCollars,int numWorkers,int numElderly);
 
             virtual ~Household();
 
@@ -139,105 +139,105 @@ namespace sim_mob
             void setIndividual( BigSerial individualId );
             std::vector<BigSerial> getIndividuals() const;
 
-			bool	getTwoRoomHdbEligibility() const;
-			bool	getThreeRoomHdbEligibility() const;
-			bool	getFourRoomHdbEligibility() const;
+            bool    getTwoRoomHdbEligibility() const;
+            bool    getThreeRoomHdbEligibility() const;
+            bool    getFourRoomHdbEligibility() const;
 
-			void	setTwoRoomHdbEligibility(bool);
-			void	setThreeRoomHdbEligibility(bool);
-			void	setFourRoomHdbEligibility(bool);
+            void    setTwoRoomHdbEligibility(bool);
+            void    setThreeRoomHdbEligibility(bool);
+            void    setFourRoomHdbEligibility(bool);
 
-			void	setFamilyType(int);
-			int		getFamilyType();
-			void 	setTaxiAvailability(bool taxiAvailable);
-			bool 	getTaxiAvailability() const;
-			void 	setVehicleOwnershipOptionId(int vehicleOwnershipOption);
-			int 	getVehicleOwnershipOptionId() const;
+            void    setFamilyType(int);
+            int     getFamilyType();
+            void    setTaxiAvailability(bool taxiAvailable);
+            bool    getTaxiAvailability() const;
+            void    setVehicleOwnershipOptionId(int vehicleOwnershipOption);
+            int     getVehicleOwnershipOptionId() const;
 
-			void 	setAffordabilityAmount( double value );
-			double	getAffordabilityAmount() const;
-
-
-			void	setCurrentUnitPrice( double value);
-			double	getCurrentUnitPrice() const;
+            void    setAffordabilityAmount( double value );
+            double  getAffordabilityAmount() const;
 
 
-			int getLastAwakenedDay();
-			void setLastAwakenedDay(int lastAwknedDay);
+            void    setCurrentUnitPrice( double value);
+            double  getCurrentUnitPrice() const;
 
-			int getBuySellInterval() const;
-			int getTimeOffMarket() const ;
-			int getTimeOnMarket() const;
-			double getHouseholdAffordabilityAmount() const;
-			const std::tm& getMoveInDate() const ;
-			int getAdult() const;
-			const std::tm& getPendingFromDate() const;
-			int getPendingStatusId() const ;
-			int getUnitPending() const;
-			int getIsBidder() const;
-			int getIsSeller() const;
-			int getHasMoved() const;
-			int getTenureStatus() const;
-			int getAwaknedDay() const;
-			bool getExistInDB() const;
 
-			void setTenureStatus(int val);
-			void setBuySellInterval(int buyerSellerInterval);
-			void setTimeOffMarket(int timeOffMarket);
-			void setTimeOnMarket(int timeOnMarket);
-			void setHouseholdAffordabilityAmount(double householdAffordabilityAmount);
-			void setMoveInDate(const std::tm& moveInDate);
-			void setAdult(int adult);
-			void setPendingFromDate(const std::tm& pendingFromDate);
-			void setPendingStatusId(int pendingStatusId);
-			void setUnitPending(int unitPending);
-			void setIsBidder(int bidder);
-			void setIsSeller(int seller);
-			void setHasMoved(int hasMove);
-			void setAwakenedDay(int awakenDay);
-			void setExistInDB(bool exist);
+            int getLastAwakenedDay();
+            void setLastAwakenedDay(int lastAwknedDay);
 
-			int getLastBidStatus() const;
-			/* last bid status is set to -1 as default.
-			 * last bid status = 0 : household is on the market.
-			 * last bid status = 1 : household has done a successful bid
-			 * last bid status = 2 : household has done an unsuccessful bid
-			*/
-			void setLastBidStatus(int lastBidStatus);
+            int getBuySellInterval() const;
+            int getTimeOffMarket() const ;
+            int getTimeOnMarket() const;
+            double getHouseholdAffordabilityAmount() const;
+            const std::tm& getMoveInDate() const ;
+            int getAdult() const;
+            const std::tm& getPendingFromDate() const;
+            int getPendingStatusId() const ;
+            int getUnitPending() const;
+            int getIsBidder() const;
+            int getIsSeller() const;
+            int getHasMoved() const;
+            int getTenureStatus() const;
+            int getAwaknedDay() const;
+            bool getExistInDB() const;
 
-			void setHouseholdStats(HouseholdStatistics stats);
-			HouseholdStatistics getHouseholdStats();
+            void setTenureStatus(int val);
+            void setBuySellInterval(int buyerSellerInterval);
+            void setTimeOffMarket(int timeOffMarket);
+            void setTimeOnMarket(int timeOnMarket);
+            void setHouseholdAffordabilityAmount(double householdAffordabilityAmount);
+            void setMoveInDate(const std::tm& moveInDate);
+            void setAdult(int adult);
+            void setPendingFromDate(const std::tm& pendingFromDate);
+            void setPendingStatusId(int pendingStatusId);
+            void setUnitPending(int unitPending);
+            void setIsBidder(int bidder);
+            void setIsSeller(int seller);
+            void setHasMoved(int hasMove);
+            void setAwakenedDay(int awakenDay);
+            void setExistInDB(bool exist);
 
-			bool isLiveInToaPayoh() const;;
-			void setLiveInToaPayoh(bool liveInToaPayoh);
+            int getLastBidStatus() const;
+            /* last bid status is set to -1 as default.
+             * last bid status = 0 : household is on the market.
+             * last bid status = 1 : household has done a successful bid
+             * last bid status = 2 : household has done an unsuccessful bid
+            */
+            void setLastBidStatus(int lastBidStatus);
 
-			int getNumElderly() const;
-			void setNumElderly(int numElderly);
+            void setHouseholdStats(HouseholdStatistics stats);
+            HouseholdStatistics getHouseholdStats();
 
-			int getNumWhiteCollars() const;
-			void setNumWhiteCollars(int numWhiteCollars);
+            bool isLiveInToaPayoh() const;;
+            void setLiveInToaPayoh(bool liveInToaPayoh);
 
-			int getNumWorkers() const;
-			void setNumWorkers(int numWorkers);
+            int getNumElderly() const;
+            void setNumElderly(int numElderly);
 
-			double getRandomNum() const;
-			void setRandomNum(double randomNum);
+            int getNumWhiteCollars() const;
+            void setNumWhiteCollars(int numWhiteCollars);
 
-			bool isWorkInToaPayoh() const;
-			void setWorkInToaPayoh(bool workInToaPayoh);
+            int getNumWorkers() const;
+            void setNumWorkers(int numWorkers);
 
-			void updateTimeOffMarket();
-			void updateTimeOnMarket();
+            double getRandomNum() const;
+            void setRandomNum(double randomNum);
 
-			enum FAMILY_TYPE
-			{
-				COUPLEANDCHILD = 1,
-				SIBLINGSANDPARENTS,
-				SINGLEPARENT,
-				ENGAGEDCOUPLE,
-				ORPHANSIBLINGS,
-				MULTIGENERATION
-			};
+            bool isWorkInToaPayoh() const;
+            void setWorkInToaPayoh(bool workInToaPayoh);
+
+            void updateTimeOffMarket();
+            void updateTimeOnMarket();
+
+            enum FAMILY_TYPE
+            {
+                COUPLEANDCHILD = 1,
+                SIBLINGSANDPARENTS,
+                SINGLEPARENT,
+                ENGAGEDCOUPLE,
+                ORPHANSIBLINGS,
+                MULTIGENERATION
+            };
 
             /**
              * Operator to print the Household data.  
@@ -266,42 +266,42 @@ namespace sim_mob
 
             std::vector<BigSerial> individuals;
 
-			bool twoRoomHdbEligibility;
-			bool threeRoomHdbEligibility;
-			bool fourRoomHdbEligibility;
+            bool twoRoomHdbEligibility;
+            bool threeRoomHdbEligibility;
+            bool fourRoomHdbEligibility;
 
-			int	 familyType;
-			bool taxiAvailability;
-			int vehicleOwnershipOptionId;
+            int  familyType;
+            bool taxiAvailability;
+            int vehicleOwnershipOptionId;
 
-			double householdAffordabilityAmount;
-			double logsum;
+            double householdAffordabilityAmount;
+            double logsum;
 
-			double currentUnitPrice;
+            double currentUnitPrice;
 
-			int buySellInterval;
-			std::tm moveInDate;
-			int timeOnMarket;
-			int timeOffMarket;
-			int isBidder;
-			int isSeller;
-			int hasMoved;
-			int tenureStatus;
-			int awakenedDay;
-			bool existInDB;
+            int buySellInterval;
+            std::tm moveInDate;
+            int timeOnMarket;
+            int timeOffMarket;
+            int isBidder;
+            int isSeller;
+            int hasMoved;
+            int tenureStatus;
+            int awakenedDay;
+            bool existInDB;
 
-			int lastAwakenedDay;
-			int lastBidStatus;
+            int lastAwakenedDay;
+            int lastBidStatus;
 
-			HouseholdStatistics householdStats;
-			static constexpr auto filename = "households";
+            HouseholdStatistics householdStats;
+            static constexpr auto filename = "households";
 
-			double randomNum;
-			bool liveInToaPayoh;
-		    bool workInToaPayoh;
-		    int numWhiteCollars;
-		    int numWorkers;
-		    int numElderly;
+            double randomNum;
+            bool liveInToaPayoh;
+            bool workInToaPayoh;
+            int numWhiteCollars;
+            int numWorkers;
+            int numElderly;
 
         };
     }

@@ -16,44 +16,44 @@ namespace xml {
 ///There is never any need to instantiate this class; use the "namer" and "expander" subclasses, below.
 class prop_parser  {
 protected:
-	///Count the number of occurrences of "letter" in a given input string.
-	static int LetterCount(const std::string& src, char letter);
+    ///Count the number of occurrences of "letter" in a given input string.
+    static int LetterCount(const std::string& src, char letter);
 
-	///Is this string complex? (Does it have <,> anywhere?)
-	static bool IsComplex(const std::string& src);
+    ///Is this string complex? (Does it have <,> anywhere?)
+    static bool IsComplex(const std::string& src);
 
-	///Helper: Scan and break into left/right segments. Results are returned by reference into left and right.
-	void ScanPair(const std::string& nameStr, std::string& left, std::string&right);
+    ///Helper: Scan and break into left/right segments. Results are returned by reference into left and right.
+    void ScanPair(const std::string& nameStr, std::string& left, std::string&right);
 
-	//Only allow construction via subclasses.
-	explicit prop_parser(const std::string& str);
+    //Only allow construction via subclasses.
+    explicit prop_parser(const std::string& str);
 
-	//Container for results
-	struct res_item {
-		res_item() : leaf(true) {}
-		std::string item;  //E.g., "item", or "<first,second>"
-		bool leaf;         //True if "item" or "", not "<first,second>"
-	};
+    //Container for results
+    struct res_item {
+        res_item() : leaf(true) {}
+        std::string item;  //E.g., "item", or "<first,second>"
+        bool leaf;         //True if "item" or "", not "<first,second>"
+    };
 
 public:
-	std::string leftStr() const;
-	std::string rightStr() const;
-	bool leftIsLeaf() const;
-	bool rightIsLeaf() const;
+    std::string leftStr() const;
+    std::string rightStr() const;
+    bool leftIsLeaf() const;
+    bool rightIsLeaf() const;
 
-	///An object is "empty" if it can be safely discarded; e.g., it contains no information (string) whatsoever.
-	bool isEmpty() const;
+    ///An object is "empty" if it can be safely discarded; e.g., it contains no information (string) whatsoever.
+    bool isEmpty() const;
 
 private:
-	void sanity_check(const std::string& str);
+    void sanity_check(const std::string& str);
 
-	///Parse the current string, removing the outer layer of brackets and retrieving the "left" and "right" elements (including remaining components).
-	void parse(const std::string& str);
+    ///Parse the current string, removing the outer layer of brackets and retrieving the "left" and "right" elements (including remaining components).
+    void parse(const std::string& str);
 
 protected:
-	//Our current results set.
-	res_item left;
-	res_item right;
+    //Our current results set.
+    res_item left;
+    res_item right;
 };
 
 
@@ -157,10 +157,10 @@ protected:
 
 class namer : public prop_parser {
 public:
-	explicit namer(const std::string& nameStr="") : prop_parser(nameStr) {}
+    explicit namer(const std::string& nameStr="") : prop_parser(nameStr) {}
 
-	namer leftChild() const;
-	namer rightChild() const;
+    namer leftChild() const;
+    namer rightChild() const;
 };
 
 
@@ -215,16 +215,16 @@ public:
  */
 class expander : public prop_parser {
 public:
-	explicit expander(const std::string& nameStr="") : prop_parser(nameStr) {}
+    explicit expander(const std::string& nameStr="") : prop_parser(nameStr) {}
 
-	expander leftChild() const;
-	expander rightChild() const;
+    expander leftChild() const;
+    expander rightChild() const;
 
-	bool leftIsValue() const;
-	bool rightIsValue() const;
+    bool leftIsValue() const;
+    bool rightIsValue() const;
 
 private:
-	static bool IsValue(const std::string& candidate);
+    static bool IsValue(const std::string& candidate);
 };
 
 }}

@@ -93,9 +93,9 @@ amod::ReturnCode AMODSimulatorSimMobility::init(amod::World *worldState) {
     for(auto it : roadNetwork.getMapOfIdVsLinks())
     {
         const Node* startNode = it.second->getFromNode();
-		const Node* endNode = it.second->getToNode();
-		hasOutgoing[startNode] = true;
-		hasIncoming[endNode] = true;
+        const Node* endNode = it.second->getToNode();
+        hasOutgoing[startNode] = true;
+        hasIncoming[endNode] = true;
 
     }
 
@@ -979,7 +979,7 @@ amod::ReturnCode AMODSimulatorSimMobility::dispatchVehicle(amod::World *worldSta
         bool useShortestPath = true;
 
         if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-        	PrivateTrafficRouteChoice* pmgr = PrivateTrafficRouteChoice::getInstance();
+            PrivateTrafficRouteChoice* pmgr = PrivateTrafficRouteChoice::getInstance();
 
             if (pmgr != nullptr && (dp.fromLocId != dp.toLocId)) {
                 //std::cout << "Pathset manager" << std::endl;
@@ -1014,42 +1014,42 @@ amod::ReturnCode AMODSimulatorSimMobility::dispatchVehicle(amod::World *worldSta
             return amod::NO_PATH_TO_DESTINATION;
         }
 
-    	//The path containing the links and turning groups
-    	vector<WayPoint> path;
+        //The path containing the links and turning groups
+        vector<WayPoint> path;
 
-    	//Add the road segments and turning groups that lie along the links in the path
-    	for (vector<WayPoint>::iterator itWayPts = filteredWaypoints.begin(); itWayPts != filteredWaypoints.end(); ++itWayPts)
-    	{
-    		//The segments in the link
-    		const vector<RoadSegment *> &segments = itWayPts->link->getRoadSegments();
+        //Add the road segments and turning groups that lie along the links in the path
+        for (vector<WayPoint>::iterator itWayPts = filteredWaypoints.begin(); itWayPts != filteredWaypoints.end(); ++itWayPts)
+        {
+            //The segments in the link
+            const vector<RoadSegment *> &segments = itWayPts->link->getRoadSegments();
 
-    		//Create a way point for every segment and insert it into the path
-    		for (vector<RoadSegment *>::const_iterator itSegments = segments.begin(); itSegments != segments.end(); ++itSegments)
-    		{
-    			path.push_back(WayPoint(*itSegments));
-    		}
+            //Create a way point for every segment and insert it into the path
+            for (vector<RoadSegment *>::const_iterator itSegments = segments.begin(); itSegments != segments.end(); ++itSegments)
+            {
+                path.push_back(WayPoint(*itSegments));
+            }
 
-    		if((itWayPts + 1) != filteredWaypoints.end())
-    		{
-    			unsigned int currLink = itWayPts->link->getLinkId();
-    			unsigned int nextLink = (itWayPts + 1)->link->getLinkId();
+            if((itWayPts + 1) != filteredWaypoints.end())
+            {
+                unsigned int currLink = itWayPts->link->getLinkId();
+                unsigned int nextLink = (itWayPts + 1)->link->getLinkId();
 
-    			//Get the turning group between this link and the next link and add it to the path
+                //Get the turning group between this link and the next link and add it to the path
 
-    			const TurningGroup *turningGroup = itWayPts->link->getToNode()->getTurningGroup(currLink, nextLink);
+                const TurningGroup *turningGroup = itWayPts->link->getToNode()->getTurningGroup(currLink, nextLink);
 
-    			if (turningGroup)
-    			{
-    				path.push_back(WayPoint(turningGroup));
-    			}
-    			else
-    			{
-    				stringstream msg;
-    				msg << "No turning between the links " << currLink << " and " << nextLink << "!\nInvalid Path!!!";
-    				throw std::runtime_error(msg.str());
-    			}
-    		}
-    	}
+                if (turningGroup)
+                {
+                    path.push_back(WayPoint(turningGroup));
+                }
+                else
+                {
+                    stringstream msg;
+                    msg << "No turning between the links " << currLink << " and " << nextLink << "!\nInvalid Path!!!";
+                    throw std::runtime_error(msg.str());
+                }
+            }
+        }
 
         sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(),
                 "",

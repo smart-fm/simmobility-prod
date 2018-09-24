@@ -22,14 +22,14 @@ namespace sim_mob
 
 enum MobilityServiceControllerType : unsigned int
 {
-	SERVICE_CONTROLLER_UNKNOWN = 0,
-	SERVICE_CONTROLLER_ON_HAIL = 1,
-	SERVICE_CONTROLLER_GREEDY = 2,
-	SERVICE_CONTROLLER_SHARED = 3,
-	SERVICE_CONTROLLER_FRAZZOLI = 4,
-	SERVICE_CONTROLLER_INCREMENTAL = 5,
-	SERVICE_CONTROLLER_PROXIMITY = 6,
-	SERVICE_CONTROLLER_AMOD = 7
+    SERVICE_CONTROLLER_UNKNOWN = 0,
+    SERVICE_CONTROLLER_ON_HAIL = 1,
+    SERVICE_CONTROLLER_GREEDY = 2,
+    SERVICE_CONTROLLER_SHARED = 3,
+    SERVICE_CONTROLLER_FRAZZOLI = 4,
+    SERVICE_CONTROLLER_INCREMENTAL = 5,
+    SERVICE_CONTROLLER_PROXIMITY = 6,
+    SERVICE_CONTROLLER_AMOD = 7
 };
 
 const std::string toString(const MobilityServiceControllerType type);
@@ -43,111 +43,111 @@ void consistencyChecks(const MobilityServiceControllerType type);
 class MobilityServiceController : public Agent
 {
 protected:
-	// We use explicit to avoid accidentally passing an integer instead of a MobilityServiceControllerType
-	// (see https://stackoverflow.com/a/121163/2110769)
-	// The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
-	explicit MobilityServiceController(const MutexStrategy &mtxStrat,
-	                                   MobilityServiceControllerType type_, unsigned id_, std::string tripSupportMode_,
+    // We use explicit to avoid accidentally passing an integer instead of a MobilityServiceControllerType
+    // (see https://stackoverflow.com/a/121163/2110769)
+    // The constructor is protected to avoid instantiating an OnCallController directly, since it is conceptually abstract
+    explicit MobilityServiceController(const MutexStrategy &mtxStrat,
+                                       MobilityServiceControllerType type_, unsigned id_, std::string tripSupportMode_,
                                        unsigned maxAggregatedRequests_, bool studyAreaEnabledController_,unsigned int toleratedExtraTime_,unsigned int maxWaitingTime_,bool parkingEnabled)
-			: Agent(mtxStrat, id_), controllerServiceType(type_), controllerId(id_), tripSupportMode(tripSupportMode_), maxAggregatedRequests(maxAggregatedRequests_),
+            : Agent(mtxStrat, id_), controllerServiceType(type_), controllerId(id_), tripSupportMode(tripSupportMode_), maxAggregatedRequests(maxAggregatedRequests_),
               studyAreaEnabledController(studyAreaEnabledController_),toleratedExtraTime(toleratedExtraTime_),maxWaitingTime(maxWaitingTime_),parkingEnabled(parkingEnabled)
-	{
+    {
 #ifndef NDEBUG
-		sim_mob::consistencyChecks(type_);
+        sim_mob::consistencyChecks(type_);
 #endif
-		ControllerLog() << "MobilityServiceController instantiated, type:" << sim_mob::toString(controllerServiceType)
-		                << ", id:" << controllerId << ", SupportedTripModes:" << tripSupportMode <<", MaxAggregateRequests:"<< maxAggregatedRequests << ", pointer:" << this << std::endl;
+        ControllerLog() << "MobilityServiceController instantiated, type:" << sim_mob::toString(controllerServiceType)
+                        << ", id:" << controllerId << ", SupportedTripModes:" << tripSupportMode <<", MaxAggregateRequests:"<< maxAggregatedRequests << ", pointer:" << this << std::endl;
 
-	}
+    }
 
-	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message &message);
+    virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message &message);
 
-	/** Store list of subscribed drivers */
-	std::vector<Person *> subscribedDrivers;
+    /** Store list of subscribed drivers */
+    std::vector<Person *> subscribedDrivers;
 
-	/**
-	 * Subscribes a vehicle driver to the controller
-	 * @param person Driver to be added
-	 */
-	virtual void subscribeDriver(Person *person);
+    /**
+     * Subscribes a vehicle driver to the controller
+     * @param person Driver to be added
+     */
+    virtual void subscribeDriver(Person *person);
 
 public:
-	virtual ~MobilityServiceController();
+    virtual ~MobilityServiceController();
 
-	const MobilityServiceControllerType controllerServiceType;
+    const MobilityServiceControllerType controllerServiceType;
 
-	const unsigned controllerId;
+    const unsigned controllerId;
 
-	std::string tripSupportMode;
+    std::string tripSupportMode;
 
-	bool studyAreaEnabledController;
+    bool studyAreaEnabledController;
 
     unsigned toleratedExtraTime; //seconds
 
     bool parkingEnabled;
-	/**
-	 * The maximum that a user is willing to wait before being picked up
-	 */
+    /**
+     * The maximum that a user is willing to wait before being picked up
+     */
     double maxWaitingTime; // seconds
 
-	/**
-	 * Maximum number of people we can put together in a single vehicle
-	 */
-	unsigned maxAggregatedRequests;
+    /**
+     * Maximum number of people we can put together in a single vehicle
+     */
+    unsigned maxAggregatedRequests;
 
-	/**
-	 * Inherited from base class agent to initialize parameters
-	 */
-	virtual Entity::UpdateStatus frame_init(timeslice now);
+    /**
+     * Inherited from base class agent to initialize parameters
+     */
+    virtual Entity::UpdateStatus frame_init(timeslice now);
 
-	/**
-	 * Inherited from base class to update this agent
-	 */
-	virtual Entity::UpdateStatus frame_tick(timeslice now);
+    /**
+     * Inherited from base class to update this agent
+     */
+    virtual Entity::UpdateStatus frame_tick(timeslice now);
 
-	/**
-	 * Inherited.
-	 */
-	virtual bool isNonspatial();
+    /**
+     * Inherited.
+     */
+    virtual bool isNonspatial();
 
-	/**
-	 * Inherited from base class to output result
-	 */
-	void frame_output(timeslice now);
+    /**
+     * Inherited from base class to output result
+     */
+    void frame_output(timeslice now);
 
-	/**
-	 * Overrides the correspondent function of MessageHandler
-	 */
-	virtual void onRegistrationOnTheMessageBus() const;
+    /**
+     * Overrides the correspondent function of MessageHandler
+     */
+    virtual void onRegistrationOnTheMessageBus() const;
 
-	void consistencyChecks() const;
+    void consistencyChecks() const;
 
-	MobilityServiceControllerType getServiceType() const;
+    MobilityServiceControllerType getServiceType() const;
 
-	unsigned getControllerId() const;
+    unsigned getControllerId() const;
 
-	const std::string toString() const;
+    const std::string toString() const;
 
-	/**
-	 * Overrides the parent function
-	 */
-	virtual void setToBeRemoved();
+    /**
+     * Overrides the parent function
+     */
+    virtual void setToBeRemoved();
 
-	/**
- 	* Unsubscribes a vehicle driver from the controller
- 	* @param person Driver to be removed
- 	*/
-	virtual void unsubscribeDriver(Person *person);
+    /**
+    * Unsubscribes a vehicle driver from the controller
+    * @param person Driver to be removed
+    */
+    virtual void unsubscribeDriver(Person *person);
 
-	virtual std::map<const Person*, Schedule> & getControllerCopyDriverSchedulesMap()
-	{
-		//Do Nothing
-	}
+    virtual std::map<const Person*, Schedule> & getControllerCopyDriverSchedulesMap()
+    {
+        //Do Nothing
+    }
 
-	virtual std::set<const Person *> getAvailableDriverSet()
-	{
-		//Do Nothing
-	}
+    virtual std::set<const Person *> getAvailableDriverSet()
+    {
+        //Do Nothing
+    }
 };
 
 

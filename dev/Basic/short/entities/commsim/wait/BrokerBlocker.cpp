@@ -19,9 +19,9 @@ sim_mob::BrokerBlocker::~BrokerBlocker()
 
 bool sim_mob::BrokerBlocker::pass(BrokerBase& broker)
 {
-	if (!passed) {
-		passed = calculateWaitStatus(broker);
-	}
-	return passed;
+    if (!passed) {
+        passed = calculateWaitStatus(broker);
+    }
+    return passed;
 }
 

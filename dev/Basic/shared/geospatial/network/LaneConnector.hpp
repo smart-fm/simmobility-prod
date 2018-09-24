@@ -21,56 +21,56 @@ class LaneConnector
 {
 private:
 
-	/**Unique identifier for the lane connection*/
-	unsigned int laneConnectionId;
+    /**Unique identifier for the lane connection*/
+    unsigned int laneConnectionId;
 
-	/**The lane from which the lane connection originates*/
-	Lane *fromLane;
+    /**The lane from which the lane connection originates*/
+    Lane *fromLane;
 
-	/**Indicates the id of the lane from which the lane connection originates*/
-	unsigned int fromLaneId;
+    /**Indicates the id of the lane from which the lane connection originates*/
+    unsigned int fromLaneId;
 
-	/**Indicates the id of the road segment from which the lane connection originates*/
-	unsigned int fromRoadSegmentId;
+    /**Indicates the id of the road segment from which the lane connection originates*/
+    unsigned int fromRoadSegmentId;
 
-	/**The lane at which the lane connection terminates*/
-	Lane *toLane;
+    /**The lane at which the lane connection terminates*/
+    Lane *toLane;
 
-	/**Indicates the id of the lane at which the lane connection terminates*/
-	unsigned int toLaneId;
+    /**Indicates the id of the lane at which the lane connection terminates*/
+    unsigned int toLaneId;
 
-	/**Indicates the id of the road segment at which the lane connection terminates*/
-	unsigned int toRoadSegmentId;
+    /**Indicates the id of the road segment at which the lane connection terminates*/
+    unsigned int toRoadSegmentId;
 
-	/**Indicates whether this is a true lane connection. If this is true, it means that the poly-lines of the from and to lanes share a common point*/
-	bool isTrueConnection;
+    /**Indicates whether this is a true lane connection. If this is true, it means that the poly-lines of the from and to lanes share a common point*/
+    bool isTrueConnection;
 
 public:
-	LaneConnector();
-	virtual ~LaneConnector();
+    LaneConnector();
+    virtual ~LaneConnector();
 
-	unsigned int getLaneConnectionId() const;
-	void setLaneConnectionId(unsigned int laneConnectionId);
+    unsigned int getLaneConnectionId() const;
+    void setLaneConnectionId(unsigned int laneConnectionId);
     
-	void setFromLane(Lane *fromLane);
+    void setFromLane(Lane *fromLane);
     const Lane* getFromLane() const;
 
-	unsigned int getFromLaneId() const;
-	void setFromLaneId(unsigned int fromLaneId);
+    unsigned int getFromLaneId() const;
+    void setFromLaneId(unsigned int fromLaneId);
 
-	unsigned int getFromRoadSegmentId() const;
-	void setFromRoadSegmentId(unsigned int fromRoadSectionId);
+    unsigned int getFromRoadSegmentId() const;
+    void setFromRoadSegmentId(unsigned int fromRoadSectionId);
     
-	void setToLane(Lane *toLane);
+    void setToLane(Lane *toLane);
     const Lane* getToLane() const;
 
-	unsigned int getToLaneId() const;
-	void setToLaneId(unsigned int toLaneId);
+    unsigned int getToLaneId() const;
+    void setToLaneId(unsigned int toLaneId);
 
-	unsigned int getToRoadSegmentId() const;
-	void setToRoadSegmentId(unsigned int toRoadSectionId);
+    unsigned int getToRoadSegmentId() const;
+    void setToRoadSegmentId(unsigned int toRoadSectionId);
     
-	void setIsTrueConnector(bool TrueConnector);
+    void setIsTrueConnector(bool TrueConnector);
     bool isTrueConnector() const;
 };
 }

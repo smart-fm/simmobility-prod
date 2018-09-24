@@ -21,31 +21,31 @@ class WaitBusActivity;
 class WaitBusActivityBehavior: public BehaviorFacet
 {
 public:
-	explicit WaitBusActivityBehavior();
-	virtual ~WaitBusActivityBehavior();
+    explicit WaitBusActivityBehavior();
+    virtual ~WaitBusActivityBehavior();
 
-	//Virtual overrides
-	virtual void frame_init()
-	{
-	}
+    //Virtual overrides
+    virtual void frame_init()
+    {
+    }
 
-	virtual void frame_tick()
-	{
-	}
+    virtual void frame_tick()
+    {
+    }
 
-	virtual std::string frame_tick_output()
-	{
-		return std::string();
-	}
+    virtual std::string frame_tick_output()
+    {
+        return std::string();
+    }
 
-	/**
-	 * set parent reference to waiting activity role.
-	 * @param parentWaitBusActivity is pointer to parent waiting activity role
-	 */
-	void setParentWaitBusActivity(WaitBusActivity* parentWaitBusActivity);
+    /**
+     * set parent reference to waiting activity role.
+     * @param parentWaitBusActivity is pointer to parent waiting activity role
+     */
+    void setParentWaitBusActivity(WaitBusActivity* parentWaitBusActivity);
 
 protected:
-	WaitBusActivity* parentWaitBusActivity;
+    WaitBusActivity* parentWaitBusActivity;
 };
 
 /**
@@ -55,26 +55,26 @@ protected:
 class WaitBusActivityMovement: public MovementFacet
 {
 public:
-	explicit WaitBusActivityMovement();
-	virtual ~WaitBusActivityMovement();
+    explicit WaitBusActivityMovement();
+    virtual ~WaitBusActivityMovement();
 
-	//Virtual overrides
-	virtual void frame_init();
-	virtual void frame_tick();
-	virtual std::string frame_tick_output();
-	virtual Conflux* getStartingConflux() const;
+    //Virtual overrides
+    virtual void frame_init();
+    virtual void frame_tick();
+    virtual std::string frame_tick_output();
+    virtual Conflux* getStartingConflux() const;
 
-	TravelMetric & startTravelTimeMetric();
-	TravelMetric & finalizeTravelTimeMetric();
+    TravelMetric & startTravelTimeMetric();
+    TravelMetric & finalizeTravelTimeMetric();
 
-	/**
-	 * set parent reference to waiting activity role.
-	 * @param parentWaitBusActivity is pointer to parent waiting activity role
-	 */
-	void setParentWaitBusActivity(WaitBusActivity* parentWaitBusActivity);
+    /**
+     * set parent reference to waiting activity role.
+     * @param parentWaitBusActivity is pointer to parent waiting activity role
+     */
+    void setParentWaitBusActivity(WaitBusActivity* parentWaitBusActivity);
 
 protected:
-	WaitBusActivity* parentWaitBusActivity;
+    WaitBusActivity* parentWaitBusActivity;
 };
 
 }

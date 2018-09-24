@@ -16,20 +16,20 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class AccessibilityFixedPzid
-		{
-		public:
-			AccessibilityFixedPzid(int _id=0, int _planningAreaId = 0, std::string _dgp="", double acc_t_mfg = .0, double acc_t_off = .0);
+    namespace long_term
+    {
+        class AccessibilityFixedPzid
+        {
+        public:
+            AccessibilityFixedPzid(int _id=0, int _planningAreaId = 0, std::string _dgp="", double acc_t_mfg = .0, double acc_t_off = .0);
 
-			virtual ~AccessibilityFixedPzid();
+            virtual ~AccessibilityFixedPzid();
 
-			int getId() const;
-			int getPlanningAreaId() const;
-			std::string getDgp() const;
-			double getAccTMfg() const;
-			double getAccTOff() const;
+            int getId() const;
+            int getPlanningAreaId() const;
+            std::string getDgp() const;
+            double getAccTMfg() const;
+            double getAccTOff() const;
 
             /**
              * Operator to print the data.
@@ -41,10 +41,10 @@ namespace sim_mob
             friend class AccessibilityFixedPzidDao;
 
             int id;
-			int planningAreaId;
-			std::string dgp;
-			double accTMfg;
-			double accTOff;
-		};
-	}
+            int planningAreaId;
+            std::string dgp;
+            double accTMfg;
+            double accTOff;
+        };
+    }
 }

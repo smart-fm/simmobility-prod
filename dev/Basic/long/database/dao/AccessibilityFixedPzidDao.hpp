@@ -15,29 +15,29 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class AccessibilityFixedPzidDao : public db::SqlAbstractDao<AccessibilityFixedPzid>
-		{
-		public:
-			AccessibilityFixedPzidDao(db::DB_Connection& connection);
-			virtual ~AccessibilityFixedPzidDao();
+    namespace long_term
+    {
+        class AccessibilityFixedPzidDao : public db::SqlAbstractDao<AccessibilityFixedPzid>
+        {
+        public:
+            AccessibilityFixedPzidDao(db::DB_Connection& connection);
+            virtual ~AccessibilityFixedPzidDao();
 
-		private:
-			/**
-			 * Fills the given outObj with all values contained on Row.
-			 * @param result row with data to fill the out object.
-			 * @param outObj to fill.
-			 */
-			void fromRow(db::Row& result, AccessibilityFixedPzid& outObj);
+        private:
+            /**
+             * Fills the given outObj with all values contained on Row.
+             * @param result row with data to fill the out object.
+             * @param outObj to fill.
+             */
+            void fromRow(db::Row& result, AccessibilityFixedPzid& outObj);
 
-			/**
-			 * Fills the outParam with all values to insert or update on datasource.
-			 * @param data to get values.
-			 * @param outParams to put the data parameters.
-			 * @param update tells if operation is an Update or Insert.
-			 */
-			void toRow(AccessibilityFixedPzid& data, db::Parameters& outParams, bool update);
-		};
-	}
+            /**
+             * Fills the outParam with all values to insert or update on datasource.
+             * @param data to get values.
+             * @param outParams to put the data parameters.
+             * @param update tells if operation is an Update or Insert.
+             */
+            void toRow(AccessibilityFixedPzid& data, db::Parameters& outParams, bool update);
+        };
+    }
 }

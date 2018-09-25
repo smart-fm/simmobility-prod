@@ -59,25 +59,25 @@ public:
     /**
      * Destructor
      */
-	virtual ~AMODController();
+    virtual ~AMODController();
 
-	/**
-	 * for communication with simmobility
-	 * retrieve a singleton object
-	 * @return a pointer to AMODController .
-	 */
+    /**
+     * for communication with simmobility
+     * retrieve a singleton object
+     * @return a pointer to AMODController .
+     */
     static AMODController* getInstance();
 
     /**
      * deletes the singleton instance
      */
-	static void deleteInstance();
+    static void deleteInstance();
 
     /**
      * check whether the AMODController instance exists
      * @return true if singleton instance exists
      */
-	static bool instanceExists();
+    static bool instanceExists();
 
     /**
      * registers the AMOD Controller
@@ -90,7 +90,7 @@ public:
      * Initiatize AMODController
      * @return true if succeeds
      */
-	virtual bool init();
+    virtual bool init();
 
     /**
      * randomInit
@@ -110,19 +110,19 @@ public:
      * Handler for vehicle arrival event
      * @param vh - Vehicle
      */
-	void handleVHArrive(Person_ST* vh);
+    void handleVHArrive(Person_ST* vh);
 
     /**
      * Handler for vehicle destruction event
      * @param vh - Vehicle
      */
-	void handleVHDestruction(Person_ST* vh);
+    void handleVHDestruction(Person_ST* vh);
 
     /**
      * Handler for pickup event
      * @param vh - Vehicle
      */
-	void handleVHPickup(Person_ST* vh);
+    void handleVHPickup(Person_ST* vh);
     
 protected:
     /**
@@ -130,7 +130,7 @@ protected:
      * @param now current frame
      * @return true if succeeds
      */
-	virtual sim_mob::Entity::UpdateStatus frame_init(timeslice now);
+    virtual sim_mob::Entity::UpdateStatus frame_init(timeslice now);
 
     /**
      * override from the class agent, do frame tick calculation
@@ -143,14 +143,14 @@ protected:
      * override from the class agent, print output information
      * @param now current frame
      */
-	virtual void frame_output(timeslice now);
+    virtual void frame_output(timeslice now);
 
     ///May implement later
     /**
      * load
      * @param config_props
      */
-	virtual void load(const std::map<std::string, std::string>& config_props){}
+    virtual void load(const std::map<std::string, std::string>& config_props){}
 
     /**
      * isNonspatial
@@ -162,7 +162,7 @@ protected:
      * buildSubscriptionList
      * @param subs_list
      */
-	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subs_list){}
+    virtual void buildSubscriptionList(std::vector<BufferedBase*>& subs_list){}
 
     /**
      * override from the class agent, provide a chance to clear up a child

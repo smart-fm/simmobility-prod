@@ -13,7 +13,7 @@ namespace sim_mob
  * Allowed coordinate systems
  */
 enum CoordSystem {
-	COORD_WGS84,
+    COORD_WGS84,
 };
 
 /**
@@ -22,8 +22,8 @@ enum CoordSystem {
  * \todo Add them all in later.
  */
 enum UTM_Zones {
-	UTM_INVALID,
-	UTM_48N,
+    UTM_INVALID,
+    UTM_48N,
 };
 
 
@@ -34,15 +34,15 @@ enum UTM_Zones {
  */
 class UTM_Projection : public CoordinateTransform {
 public:
-	UTM_Projection() : coordSys(COORD_WGS84), utmZone(UTM_INVALID)
-	{}
+    UTM_Projection() : coordSys(COORD_WGS84), utmZone(UTM_INVALID)
+    {}
 
-	virtual LatLngLocation transform(Point source) {
-		throw std::runtime_error("Coordinate transform not yet supported for UTM projections.");
-	}
+    virtual LatLngLocation transform(Point source) {
+        throw std::runtime_error("Coordinate transform not yet supported for UTM projections.");
+    }
 
-	CoordSystem coordSys;
-	UTM_Zones utmZone;
+    CoordSystem coordSys;
+    UTM_Zones utmZone;
 };
 
 

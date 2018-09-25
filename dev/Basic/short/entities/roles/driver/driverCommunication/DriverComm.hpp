@@ -16,10 +16,10 @@ class DriverBehavior;
 class DriverComm : public Driver
 {
 public:
-	DriverComm(Person_ST *parent, MutexStrategy mtxStrat, DriverBehavior* behavior = nullptr, DriverCommMovement* movement = nullptr);
-	virtual ~DriverComm();
+    DriverComm(Person_ST *parent, MutexStrategy mtxStrat, DriverBehavior* behavior = nullptr, DriverCommMovement* movement = nullptr);
+    virtual ~DriverComm();
 
-	virtual Role<Person_ST>* clone(Person_ST *parent) const;
+    virtual Role<Person_ST>* clone(Person_ST *parent) const;
 };
 
 }//namspace sim_mob

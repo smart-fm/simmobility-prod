@@ -42,7 +42,7 @@ namespace sim_mob {
              */
             void toRow(Parcel& data, db::Parameters& outParams, bool update);
 
-        	public:
+            public:
 
             /*
             * Get the parcels with no buildings as a vector

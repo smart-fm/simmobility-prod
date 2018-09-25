@@ -5,7 +5,7 @@
 /* 
  * File:   HouseholdAgent.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
- * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
+ *         Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  *
  * Created on May 16, 2013, 6:36 PM
  */
@@ -39,7 +39,7 @@ namespace sim_mob
             
             enum VehicleOwnershipOption
             {
-            	NO_VEHICLE = 1, PLUS1_MOTOR_ONLY,OFF_PEAK_CAR_W_WO_MOTOR,NORMAL_CAR_ONLY,NORMAL_CAR_1PLUS_MOTOR,NORMAL_CAR_W_WO_MOTOR
+                NO_VEHICLE = 1, PLUS1_MOTOR_ONLY,OFF_PEAK_CAR_W_WO_MOTOR,NORMAL_CAR_ONLY,NORMAL_CAR_1PLUS_MOTOR,NORMAL_CAR_W_WO_MOTOR
             };
             VehicleOwnershipOption vehicleOwnershipOption;
 

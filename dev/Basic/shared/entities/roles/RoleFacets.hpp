@@ -49,32 +49,32 @@ class Facet
 {
 public:
 
-	explicit Facet()
-	{
-	}
+    explicit Facet()
+    {
+    }
 
-	virtual ~Facet()
-	{
-	}
-	///role facets need id if they register for message handlers
-	static unsigned int msgHandlerId;
+    virtual ~Facet()
+    {
+    }
+    ///role facets need id if they register for message handlers
+    static unsigned int msgHandlerId;
 
-	///Called the first time an Agent's update() method is successfully called.
-	/// This will be the tick of its startTime, rounded down(?).
-	virtual void frame_init() = 0;
+    ///Called the first time an Agent's update() method is successfully called.
+    /// This will be the tick of its startTime, rounded down(?).
+    virtual void frame_init() = 0;
 
-	///Perform each frame's update tick for this Agent.
-	virtual void frame_tick() = 0;
+    ///Perform each frame's update tick for this Agent.
+    virtual void frame_tick() = 0;
 
-	///Generate output for this frame's tick for this Agent.
-	virtual std::string frame_tick_output() = 0;
+    ///Generate output for this frame's tick for this Agent.
+    virtual std::string frame_tick_output() = 0;
 
-	/**
-	 * message handler which provide a chance to handle message transfered from parent agent.
-	 * @param type of the message.
-	 * @param message data received.
-	 */
-	virtual void handleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+    /**
+     * message handler which provide a chance to handle message transfered from parent agent.
+     * @param type of the message.
+     * @param message data received.
+     */
+    virtual void handleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 };
 
 /**
@@ -86,33 +86,33 @@ class BehaviorFacet : public Facet
 {
 public:
 
-	explicit BehaviorFacet() : Facet()
-	{
-	}
+    explicit BehaviorFacet() : Facet()
+    {
+    }
 
-	virtual ~BehaviorFacet()
-	{
-	}
+    virtual ~BehaviorFacet()
+    {
+    }
 
-	///NOTE: There is no resource defined in the base class BehaviorFacet. For role facets of drivers, the vehicle of the parent Role could be
-	///      shared between behavior and movement facets. This getter must be overridden in the derived classes to return appropriate resource.
-	virtual Vehicle* getResource()
-	{
-		return nullptr;
-	}
+    ///NOTE: There is no resource defined in the base class BehaviorFacet. For role facets of drivers, the vehicle of the parent Role could be
+    ///      shared between behavior and movement facets. This getter must be overridden in the derived classes to return appropriate resource.
+    virtual Vehicle* getResource()
+    {
+        return nullptr;
+    }
 
 
 public:
-	friend class sim_mob::PartitionManager;
+    friend class sim_mob::PartitionManager;
 
-	//Serialization
+    //Serialization
 #ifndef SIMMOB_DISABLE_MPI
 public:
-	virtual void pack(PackageUtils& packageUtil) = 0;
-	virtual void unpack(UnPackageUtils& unpackageUtil) = 0;
+    virtual void pack(PackageUtils& packageUtil) = 0;
+    virtual void unpack(UnPackageUtils& unpackageUtil) = 0;
 
-	virtual void packProxy(PackageUtils& packageUtil) = 0;
-	virtual void unpackProxy(UnPackageUtils& unpackageUtil) = 0;
+    virtual void packProxy(PackageUtils& packageUtil) = 0;
+    virtual void unpackProxy(UnPackageUtils& unpackageUtil) = 0;
 #endif
 };
 
@@ -124,80 +124,80 @@ public:
 class MovementFacet : public Facet
 {
 public:
-	explicit MovementFacet();
-	virtual ~MovementFacet();
+    explicit MovementFacet();
+    virtual ~MovementFacet();
 
-	virtual void init()
-	{
-	}
+    virtual void init()
+    {
+    }
 
-	virtual bool updateNearbyAgent(const sim_mob::Agent* agent, const sim_mob::Driver* other_driver)
-	{
-		return false;
-	};
+    virtual bool updateNearbyAgent(const sim_mob::Agent* agent, const sim_mob::Driver* other_driver)
+    {
+        return false;
+    };
 
-	virtual void updateNearbyAgent(const sim_mob::Agent* agent, const sim_mob::Pedestrian* pedestrian)
-	{
-	};
+    virtual void updateNearbyAgent(const sim_mob::Agent* agent, const sim_mob::Pedestrian* pedestrian)
+    {
+    };
 
-	///	mark startTimeand origin
-	virtual TravelMetric& startTravelTimeMetric() = 0;
-	///	mark the destination and end time and travel time
-	virtual TravelMetric& finalizeTravelTimeMetric() = 0;
-	//needed if the role are reused rather than deleted!
+    /// mark startTimeand origin
+    virtual TravelMetric& startTravelTimeMetric() = 0;
+    /// mark the destination and end time and travel time
+    virtual TravelMetric& finalizeTravelTimeMetric() = 0;
+    //needed if the role are reused rather than deleted!
 
-	virtual void resetTravelTimeMetric()
-	{
-		travelMetric.reset();
-	}
-	/**
-	 * checks if lane is connected to the next segment
-	 *
-	 * @param lane current lane
-	 * @param nxtRdSeg next road segment
-	 * @return true if lane is connected to nextSegStats; false otherwise
-	 */
-	static bool isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadSegment *nxtRdSeg);
+    virtual void resetTravelTimeMetric()
+    {
+        travelMetric.reset();
+    }
+    /**
+     * checks if lane is connected to the next segment
+     *
+     * @param lane current lane
+     * @param nxtRdSeg next road segment
+     * @return true if lane is connected to nextSegStats; false otherwise
+     */
+    static bool isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadSegment *nxtRdSeg);
 
-	/**
-	 * checks if 'any' lane is connected to the next segment
-	 *
-	 * @param srcRdSeg Road Segment
-	 * @param nxtRdSeg next road segment
-	 * @return true if lane is connected to next Segment; false otherwise
-	 */
-	static bool isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg);
+    /**
+     * checks if 'any' lane is connected to the next segment
+     *
+     * @param srcRdSeg Road Segment
+     * @param nxtRdSeg next road segment
+     * @return true if lane is connected to next Segment; false otherwise
+     */
+    static bool isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg);
 
-	virtual TravelMetric& getTravelMetric()
-	{
-		return travelMetric;
-	}
+    virtual TravelMetric& getTravelMetric()
+    {
+        return travelMetric;
+    }
 
 
 
 public:
-	friend class sim_mob::PartitionManager;
+    friend class sim_mob::PartitionManager;
 protected:
 
 
-    ///	placeholder for various movement measurements
-	TravelMetric travelMetric;
-	/// rerouting member in charge
+    /// placeholder for various movement measurements
+    TravelMetric travelMetric;
+    /// rerouting member in charge
 
 
-	boost::shared_ptr<sim_mob::Reroute> rerouter;
+    boost::shared_ptr<sim_mob::Reroute> rerouter;
 
-	///	list of segments this role has traversed
-	std::vector<const sim_mob::RoadSegment*> traversed;
+    /// list of segments this role has traversed
+    std::vector<const sim_mob::RoadSegment*> traversed;
 
-	//Serialization
+    //Serialization
 #ifndef SIMMOB_DISABLE_MPI
 public:
-	virtual void pack(PackageUtils& packageUtil) = 0;
-	virtual void unpack(UnPackageUtils& unpackageUtil) = 0;
+    virtual void pack(PackageUtils& packageUtil) = 0;
+    virtual void unpack(UnPackageUtils& unpackageUtil) = 0;
 
-	virtual void packProxy(PackageUtils& packageUtil) = 0;
-	virtual void unpackProxy(UnPackageUtils& unpackageUtil) = 0;
+    virtual void packProxy(PackageUtils& packageUtil) = 0;
+    virtual void unpackProxy(UnPackageUtils& unpackageUtil) = 0;
 #endif
 };
 

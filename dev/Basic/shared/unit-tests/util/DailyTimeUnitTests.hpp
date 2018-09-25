@@ -17,16 +17,16 @@ namespace unit_tests
 class DailyTimeUnitTests : public CppUnit::TestFixture
 {
 public:
-	///Test the default DailyTime constructor.
-	///The default sets itself to 00:00
-	void test_default_DailyTime_constructor();
+    ///Test the default DailyTime constructor.
+    ///The default sets itself to 00:00
+    void test_default_DailyTime_constructor();
 
-	///Test the time_t DailyTime constructor.
-	void test_time_t_DailyTime_constructor();
+    ///Test the time_t DailyTime constructor.
+    void test_time_t_DailyTime_constructor();
 
     ///Ensure nonsense isn't parsed
     ///If something which is obviously not a DailyTime is passed into the constructor,
-	///the engine should throw an exception.
+    ///the engine should throw an exception.
     void test_invalid_DailyTime_constructor();
 
     ///Ensure optional seconds can be parsed.

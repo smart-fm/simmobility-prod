@@ -34,11 +34,11 @@ namespace aimsun
 class Loader 
 {
 public:
-	/**Get all CBD nodes*/
-	static void getCBD_Nodes(std::map<unsigned int, const sim_mob::Node*>& nodes);
+    /**Get all CBD nodes*/
+    static void getCBD_Nodes(std::map<unsigned int, const sim_mob::Node*>& nodes);
 
-	/*get all CBD's links*/
-	static void getCBD_Links(std::set<const sim_mob::Link*> & zoneLinks);
+    /*get all CBD's links*/
+    static void getCBD_Links(std::set<const sim_mob::Link*> & zoneLinks);
 };
 
 }

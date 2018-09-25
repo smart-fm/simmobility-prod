@@ -24,16 +24,16 @@
 namespace {
 
 enum {
-	EVENT_DISPATCH_FMOD_SCHEDULES_REQUEST = 4000000
+    EVENT_DISPATCH_FMOD_SCHEDULES_REQUEST = 4000000
 };
 
 enum Stop_Events{
-	EVENT_STOP_DEFALUTEVALUE=0,
-	EVENT_DEPARTURE_STARTSTOP=1,
-	EVENT_ARRIVAL_ENDSTOP=2,
-	EVENT_DEPARTURE_IMMEDIATESTOP=3,
-	EVENT_ARRIVAL_IMMEDIATESTOP=4,
-	EVENT_BYPASS_IMMEDIATESTOP=5
+    EVENT_STOP_DEFALUTEVALUE=0,
+    EVENT_DEPARTURE_STARTSTOP=1,
+    EVENT_ARRIVAL_ENDSTOP=2,
+    EVENT_DEPARTURE_IMMEDIATESTOP=3,
+    EVENT_ARRIVAL_IMMEDIATESTOP=4,
+    EVENT_BYPASS_IMMEDIATESTOP=5
 };
 
 }
@@ -48,40 +48,40 @@ class Node;
 class FMOD_Schedule
 {
 public:
-	struct Stop
-	{
-		std::string	latitude;
-		std::string	longitude;
-		double dwellTime;
-		std::string arrivalTime;
-		std::string depatureTime;
-		std::vector< int > boardingPassengers;
-		std::vector< int > alightingPassengers;
-	};
-	struct Passenger
-	{
-		std::string clientId;
-		double price;
-		std::string	clientName;
-		std::string	clientTel;
-		int	clientSex;
-		int	clientAge;
+    struct Stop
+    {
+        std::string latitude;
+        std::string longitude;
+        double dwellTime;
+        std::string arrivalTime;
+        std::string depatureTime;
+        std::vector< int > boardingPassengers;
+        std::vector< int > alightingPassengers;
+    };
+    struct Passenger
+    {
+        std::string clientId;
+        double price;
+        std::string clientName;
+        std::string clientTel;
+        int clientSex;
+        int clientAge;
 
-	};
-	struct Route
-	{
-		std::string	latitude;
-		std::string	longitude;
-	};
+    };
+    struct Route
+    {
+        std::string latitude;
+        std::string longitude;
+    };
 public:
-	int vehicleId;
-	int scheduleId;
-	int serviceType;
-	int status;
-	std::vector<Passenger> passengers;
-	std::vector<Stop> stopSchdules;
-	std::vector<Node*> routes;
-	std::vector<const Person*> insidePassengers;
+    int vehicleId;
+    int scheduleId;
+    int serviceType;
+    int status;
+    std::vector<Passenger> passengers;
+    std::vector<Stop> stopSchdules;
+    std::vector<Node*> routes;
+    std::vector<const Person*> insidePassengers;
 };
 
 /**
@@ -89,18 +89,18 @@ public:
  */
 class FMOD_RequestEventArgs : public sim_mob::event::EventArgs {
 public:
-	FMOD_RequestEventArgs(std::list<FMOD_Schedule> schs):schedules(schs){;}
-	virtual ~FMOD_RequestEventArgs() {}
-	const std::list<FMOD_Schedule> schedules;
+    FMOD_RequestEventArgs(std::list<FMOD_Schedule> schs):schedules(schs){;}
+    virtual ~FMOD_RequestEventArgs() {}
+    const std::list<FMOD_Schedule> schedules;
 };
 
 //subclassed Eventpublisher coz its destructor is pure virtual
 class FMOD_Publisher: public sim_mob::event::EventPublisher {
 public:
-	FMOD_Publisher() {
-	}
-	virtual ~FMOD_Publisher() {
-	}
+    FMOD_Publisher() {
+    }
+    virtual ~FMOD_Publisher() {
+    }
 };
 
 namespace FMOD
@@ -113,40 +113,40 @@ namespace FMOD
 class FMOD_Message {
 public:
 
-	enum FMOD_MessageID{MSG_DEFALUTVALUE=0, MSG_INITIALIZE=1, MSG_SIMULATION_SETTINGS=2, MSG_LINKTRAVELUPADTE=3, MSG_REQUEST=4, MSG_OFFER=5, MSG_ACCEPT=6, MSG_CONFIRMATION=7,
-		MSG_VEHICLESTOP=81, MSG_VEHICLEPOS=82, MSG_SCHEDULE_FETCH=91, MSG_SCHEDULE=92, MSG_ACK=100, MSG_FINALIZE=11};
+    enum FMOD_MessageID{MSG_DEFALUTVALUE=0, MSG_INITIALIZE=1, MSG_SIMULATION_SETTINGS=2, MSG_LINKTRAVELUPADTE=3, MSG_REQUEST=4, MSG_OFFER=5, MSG_ACCEPT=6, MSG_CONFIRMATION=7,
+        MSG_VEHICLESTOP=81, MSG_VEHICLEPOS=82, MSG_SCHEDULE_FETCH=91, MSG_SCHEDULE=92, MSG_ACK=100, MSG_FINALIZE=11};
 
 
-	FMOD_Message();
-	virtual ~FMOD_Message();
+    FMOD_Message();
+    virtual ~FMOD_Message();
 
     /**
       * build a json string from message value.
       * @return final string which contain FMOD message.
       */
-	virtual std::string buildToString();
+    virtual std::string buildToString();
 
     /**
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(const std::string& msg);
+    virtual void createMessage(const std::string& msg);
 
     /**
       * get message id from current FMOD message
       * @return message id.
       */
-	FMOD_MessageID getMessageID() { return messageID_; }
+    FMOD_MessageID getMessageID() { return messageID_; }
 
     /**
       * analyze a message id from a json string
       * @return message id.
       */
-	static FMOD_MessageID analyzeMessageID(const std::string& msg);
+    static FMOD_MessageID analyzeMessageID(const std::string& msg);
 
 public:
-	std::string msg_;
-	FMOD_MessageID messageID_;
+    std::string msg_;
+    FMOD_MessageID messageID_;
 };
 
 /**
@@ -154,18 +154,18 @@ public:
   */
 class MsgInitialize : public FMOD_Message {
 public:
-	std::string startTime;
-	std::string mapType;
-	std::string mapFile;
-	std::string mapDirectory;
-	int version;
+    std::string startTime;
+    std::string mapType;
+    std::string mapFile;
+    std::string mapDirectory;
+    int version;
 
 public:
     /**
       * build a json string from message value.
       * @return final string which contain FMOD message.
       */
-	virtual std::string buildToString();
+    virtual std::string buildToString();
 };
 
 /**
@@ -173,32 +173,32 @@ public:
   */
 class MsgVehicleInit : public FMOD_Message {
 public:
-	struct Supply
-	{
-		int vehicleId;
-		int nodeId;
-	};
-	std::vector<Supply> vehicles;
+    struct Supply
+    {
+        int vehicleId;
+        int nodeId;
+    };
+    std::vector<Supply> vehicles;
 public:
 
     /**
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(const std::string& msg);
+    virtual void createMessage(const std::string& msg);
 };
 
 struct Request {
-	int clientId;
-	std::string originLongitude;
-	std::string originLatitude;
-	std::string destLongitude;
-	std::string destLatitude;
-	std::string departureTimeEarly;
-	std::string departureTimeLate;
-	std::string arrivalTimeEarly;
-	std::string arrivalTimeLate;
-	int seatNum;
+    int clientId;
+    std::string originLongitude;
+    std::string originLatitude;
+    std::string destLongitude;
+    std::string destLatitude;
+    std::string departureTimeEarly;
+    std::string departureTimeLate;
+    std::string arrivalTimeEarly;
+    std::string arrivalTimeLate;
+    int seatNum;
 };
 
 /**
@@ -206,14 +206,14 @@ struct Request {
   */
 class MsgRequest : public FMOD_Message {
 public:
-	std::string currentTime;
-	Request request;
+    std::string currentTime;
+    Request request;
 public:
     /**
       * build a json string from message value.
       * @return final string which contain FMOD message.
       */
-	virtual std::string buildToString();
+    virtual std::string buildToString();
 };
 
 /**
@@ -221,33 +221,33 @@ public:
   */
 class MsgOffer : public FMOD_Message {
 public:
-	std::string clientId;
-	std::string requestId;
-	struct Offer
-	{
-		std::string productId;
-		std::string scheduleId;
-		std::string pickupLongitude;
-		std::string pickupLatitude;
-		std::string dropoffLongitude;
-		std::string dropoffLatitude;
-		std::string departureTimeEarly;
-		std::string depatureTimeLate;
-		std::string arivalTimeEarly;
-		std::string arrivalTimeLate;
-		double travelTime;
-		double travelDistance;
-		double fare;
-		int serviceType;
-	};
-	std::vector<Offer> offers;
+    std::string clientId;
+    std::string requestId;
+    struct Offer
+    {
+        std::string productId;
+        std::string scheduleId;
+        std::string pickupLongitude;
+        std::string pickupLatitude;
+        std::string dropoffLongitude;
+        std::string dropoffLatitude;
+        std::string departureTimeEarly;
+        std::string depatureTimeLate;
+        std::string arivalTimeEarly;
+        std::string arrivalTimeLate;
+        double travelTime;
+        double travelDistance;
+        double fare;
+        int serviceType;
+    };
+    std::vector<Offer> offers;
 public:
 
     /**
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(const std::string& msg);
+    virtual void createMessage(const std::string& msg);
 };
 
 /**
@@ -255,22 +255,22 @@ public:
   */
 class MsgAccept : public FMOD_Message {
 public:
-	struct Accept{
-		std::string	productId;
-		std::string	pickupTime;
-		std::string	dropoffTime;
-	};
+    struct Accept{
+        std::string productId;
+        std::string pickupTime;
+        std::string dropoffTime;
+    };
 public:
-	std::string currentTime;
-	std::string clientId;
-	std::string requestId;
-	Accept accept;
+    std::string currentTime;
+    std::string clientId;
+    std::string requestId;
+    Accept accept;
 public:
     /**
       * build a json string from message value.
       * @return final string which contain FMOD message.
       */
-	virtual std::string buildToString();
+    virtual std::string buildToString();
 };
 
 /**
@@ -278,16 +278,16 @@ public:
   */
 class MsgConfirmation : public FMOD_Message {
 public:
-	std::string	clientId;
-	std::string	requestId;
-	std::string	productId;
-	int	result;
+    std::string clientId;
+    std::string requestId;
+    std::string productId;
+    int result;
 public:
     /**
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(const std::string& msg);
+    virtual void createMessage(const std::string& msg);
 };
 
 /**
@@ -295,21 +295,21 @@ public:
   */
 class MsgLinkTravel : public FMOD_Message {
 public:
-	std::string currentTime;
-	struct Link
-	{
-		int node1Id;
-		int node2Id;
-		int wayId;
-		double travelTime;
-	};
-	std::vector<Link> links;
+    std::string currentTime;
+    struct Link
+    {
+        int node1Id;
+        int node2Id;
+        int wayId;
+        double travelTime;
+    };
+    std::vector<Link> links;
 public:
     /**
       * build a json string from message value.
       * @return final string which contain FMOD message.
       */
-	virtual std::string buildToString();
+    virtual std::string buildToString();
 };
 
 /**
@@ -317,19 +317,19 @@ public:
   */
 class MsgVehicleStop : public FMOD_Message {
 public:
-	std::string currentTime;
-	std::string vehicleId;
-	int	eventType;
-	std::string scheduleId;
-	std::string stopId;
-	std::vector<int> boardingPassengers;
-	std::vector<int> aligtingPassengers;
+    std::string currentTime;
+    std::string vehicleId;
+    int eventType;
+    std::string scheduleId;
+    std::string stopId;
+    std::vector<int> boardingPassengers;
+    std::vector<int> aligtingPassengers;
 public:
     /**
       * build a json string from message value.
       * @return final string which contain FMOD message.
       */
-	virtual std::string buildToString();
+    virtual std::string buildToString();
 };
 
 /**
@@ -337,16 +337,16 @@ public:
   */
 class MsgVehiclePos : public FMOD_Message {
 public:
-	std::string currentTime;
-	std::string vehicleId;
-	int latitude;
-	int longtitude;
+    std::string currentTime;
+    std::string vehicleId;
+    int latitude;
+    int longtitude;
 public:
     /**
       * build a json string from message value.
       * @return final string which contain FMOD message.
       */
-	virtual std::string buildToString();
+    virtual std::string buildToString();
 };
 
 /**
@@ -354,46 +354,46 @@ public:
   */
 class MsgSchedule : public FMOD_Message {
 public:
-	std::list<FMOD_Schedule> schedules;
+    std::list<FMOD_Schedule> schedules;
 
 public:
     /**
       * get vehicle id in the schedule message
       * @return vehicle id.
       */
-	int getVehicleId();
+    int getVehicleId();
     /**
       * get starting time in the schedule message
       * @return starting time in seconds.
       */
-	unsigned int getStartTime();
+    unsigned int getStartTime();
     /**
       * get first node in the schedule message
       * @return first node.
       */
-	Node* getStartNode();
+    Node* getStartNode();
     /**
       * get last node in the schedule message
       * @return last node.
       */
-	Node* getEndNode();
+    Node* getEndNode();
     /**
       * create message value from a json string
       * @return void.
       */
-	virtual void createMessage(const std::string& msg);
-	virtual std::string buildToString();
+    virtual void createMessage(const std::string& msg);
+    virtual std::string buildToString();
 };
 
 class MsgFinalize : public FMOD_Message {
 public:
-	std::string end_time;
+    std::string end_time;
 public:
     /**
       * build a json string from message value.
       * @return final string which contain FMOD message.
       */
-	virtual std::string buildToString();
+    virtual std::string buildToString();
 };
 }
 

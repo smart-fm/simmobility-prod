@@ -30,57 +30,57 @@ namespace sim_mob {
 ///Simple base class for reaction time distributions
 class ReactionTimeDist {
 public:
-	virtual ~ReactionTimeDist() {}
-	virtual double getReactionTime() = 0;
+    virtual ~ReactionTimeDist() {}
+    virtual double getReactionTime() = 0;
 };
 
 
 ///Pre-specialized sub-classes for reaction time distributions
 class UniformReactionTimeDist : public ReactionTimeDist {
 private:
-	boost::mt19937 gen;
-	boost_uniform_int<> dist;
+    boost::mt19937 gen;
+    boost_uniform_int<> dist;
 
 public:
-	UniformReactionTimeDist(double min, double max)
-	 : gen(), dist(min, max)
-	{}
-	virtual ~UniformReactionTimeDist() {}
+    UniformReactionTimeDist(double min, double max)
+     : gen(), dist(min, max)
+    {}
+    virtual ~UniformReactionTimeDist() {}
 
-	virtual double getReactionTime() { return dist(gen); }
+    virtual double getReactionTime() { return dist(gen); }
 };
 
 
 ///Pre-specialized sub-classes for reaction time distributions
 class NormalReactionTimeDist : public ReactionTimeDist {
 private:
-	boost::mt19937 gen;
-	boost::normal_distribution<double> dist;
-	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > varGen;
+    boost::mt19937 gen;
+    boost::normal_distribution<double> dist;
+    boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > varGen;
 
 public:
-	NormalReactionTimeDist(double mean, double stdev)
-	 : gen(), dist(mean, stdev), varGen(gen, dist)
-	{}
-	virtual ~NormalReactionTimeDist(){}
+    NormalReactionTimeDist(double mean, double stdev)
+     : gen(), dist(mean, stdev), varGen(gen, dist)
+    {}
+    virtual ~NormalReactionTimeDist(){}
 
-	virtual double getReactionTime() { return varGen(); }
+    virtual double getReactionTime() { return varGen(); }
 };
 
 ///Pre-specialized sub-classes for reaction time distributions
 class LognormalReactionTimeDist : public ReactionTimeDist {
 private:
-	boost::mt19937 gen;
-	boost::lognormal_distribution<double> dist;
-	boost::variate_generator<boost::mt19937, boost::lognormal_distribution<double> > varGen;
+    boost::mt19937 gen;
+    boost::lognormal_distribution<double> dist;
+    boost::variate_generator<boost::mt19937, boost::lognormal_distribution<double> > varGen;
 
 public:
-	LognormalReactionTimeDist(double mean, double stdev)
-	 : gen(), dist(mean, stdev), varGen(gen, dist)
-	{}
-	virtual ~LognormalReactionTimeDist(){}
+    LognormalReactionTimeDist(double mean, double stdev)
+     : gen(), dist(mean, stdev), varGen(gen, dist)
+    {}
+    virtual ~LognormalReactionTimeDist(){}
 
-	virtual double getReactionTime() { return varGen(); }
+    virtual double getReactionTime() { return varGen(); }
 };
 
 

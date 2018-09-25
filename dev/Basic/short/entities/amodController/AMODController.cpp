@@ -19,15 +19,15 @@ namespace amod {
 AMODController* AMODController::instance = nullptr;
 
 AMODController::~AMODController() {
-	// TODO Auto-generated destructor stub
+    // TODO Auto-generated destructor stub
 }
 
 
 void AMODController::registerController(int id, const sim_mob::MutexStrategy& mtxStrat)
 {
-	if (getInstance()) {
+    if (getInstance()) {
         delete instance;
-	}
+    }
 
     instance = new AMODController(id, mtxStrat);
 }
@@ -36,7 +36,7 @@ AMODController* AMODController::getInstance()
 {
     if (!instance) {
         instance = new AMODController();
-	}
+    }
 
     return instance;
 }
@@ -44,7 +44,7 @@ AMODController* AMODController::getInstance()
 
 void AMODController::unregisteredChild(sim_mob::Entity* child)
 {
-	// TODO called when agent is unregistered
+    // TODO called when agent is unregistered
 }
 
 
@@ -56,7 +56,7 @@ void AMODController::deleteInstance()
 
 bool AMODController::instanceExists()
 {
-	return getInstance();
+    return getInstance();
 }
 
 AMODController::AMODController(int id,
@@ -455,16 +455,16 @@ bool AMODController::init()
 
 sim_mob::Entity::UpdateStatus AMODController::frame_init(timeslice now)
 {
-	// TODO: Initial frame inits here
+    // TODO: Initial frame inits here
     int currTime = now.ms();
 
-	// initialize the controller
-	init();
+    // initialize the controller
+    init();
 
-	// set the simulator to the current time
+    // set the simulator to the current time
     amodSim->setCurrentTimeMs( currTime ); // needs to be set for trip chains and dispatches
 
-	return sim_mob::Entity::UpdateStatus::Continue;
+    return sim_mob::Entity::UpdateStatus::Continue;
 }
 
 
@@ -483,26 +483,26 @@ sim_mob::Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 
 void AMODController::frame_output(timeslice now)
 {
-	// TODO: overridden but to implement
-	// Ask simmobility team as to relevance
+    // TODO: overridden but to implement
+    // Ask simmobility team as to relevance
 }
 
 
 void AMODController::handleVHArrive(Person_ST* vh) {
-	if (!amodSim) {
-		throw std::runtime_error("Simulation has ended!");
-	}
+    if (!amodSim) {
+        throw std::runtime_error("Simulation has ended!");
+    }
     int amodId = std::stoi(vh->amodId);
     amodSim->setArrival(amodId, currentTime);
 }
 void AMODController::handleVHDestruction(Person_ST *vh) {
-	// TODO
+    // TODO
     Print() << "Vehicle is to be destroyed" << std::endl;
 }
 
 
 void AMODController::handleVHPickup(Person_ST *vh) {
-	// TODO
+    // TODO
 
 }
 

@@ -14,9 +14,9 @@ namespace sim_mob
  * Helper class for representing lat/lng values
  */
 struct LatLngLocation {
-	LatLngLocation(double latitude=0, double longitude=0) : latitude(latitude), longitude(longitude) {}
-	double latitude;
-	double longitude;
+    LatLngLocation(double latitude=0, double longitude=0) : latitude(latitude), longitude(longitude) {}
+    double latitude;
+    double longitude;
 };
 
 
@@ -27,8 +27,8 @@ struct LatLngLocation {
  */
 class CoordinateTransform {
 public:
-	virtual ~CoordinateTransform() {}
-	virtual LatLngLocation transform(Point source) = 0;
+    virtual ~CoordinateTransform() {}
+    virtual LatLngLocation transform(Point source) = 0;
 };
 
 

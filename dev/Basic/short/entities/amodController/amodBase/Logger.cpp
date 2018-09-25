@@ -12,7 +12,7 @@ namespace sim_mob{
 namespace amod {
 
 Logger::Logger() {
-	// TODO Auto-generated constructor stub
+    // TODO Auto-generated constructor stub
     moveEvntInterval = 0;
     nextMoveEvntLogTime = 0;
 }

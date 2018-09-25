@@ -18,24 +18,24 @@ PotentialUnit::PotentialUnit(BigSerial unitTypeId,int numUnits,double floorArea,
 
 PotentialUnit::PotentialUnit( const PotentialUnit& source)
 {
-	this->unitTypeId = source.unitTypeId;
-	this->numUnits = source.numUnits;
-	this->floorArea = source.floorArea;
-	this->freehold = source.freehold;
-	this->profitPerUnit = source.profitPerUnit;
-	this->demolitionCostPerUnit = source.demolitionCostPerUnit;
+    this->unitTypeId = source.unitTypeId;
+    this->numUnits = source.numUnits;
+    this->floorArea = source.floorArea;
+    this->freehold = source.freehold;
+    this->profitPerUnit = source.profitPerUnit;
+    this->demolitionCostPerUnit = source.demolitionCostPerUnit;
 }
 
 PotentialUnit& PotentialUnit::operator=( const PotentialUnit& source)
 {
-	this->unitTypeId = source.unitTypeId;
-	this->numUnits = source.numUnits;
-	this->floorArea = source.floorArea;
-	this->freehold = source.freehold;
-	this->profitPerUnit = source.profitPerUnit;
-	this->demolitionCostPerUnit = source.demolitionCostPerUnit;
+    this->unitTypeId = source.unitTypeId;
+    this->numUnits = source.numUnits;
+    this->floorArea = source.floorArea;
+    this->freehold = source.freehold;
+    this->profitPerUnit = source.profitPerUnit;
+    this->demolitionCostPerUnit = source.demolitionCostPerUnit;
 
-	return *this;
+    return *this;
 }
 
 PotentialUnit::~PotentialUnit() {
@@ -51,7 +51,7 @@ double PotentialUnit::getFloorArea() const {
 
 void PotentialUnit::setFloorArea(double area)
 {
-	this->floorArea = area;
+    this->floorArea = area;
 }
 
 int PotentialUnit::isFreehold() const {
@@ -59,121 +59,121 @@ int PotentialUnit::isFreehold() const {
 }
 
 int PotentialUnit::getNumUnits() const {
-	return numUnits;
+    return numUnits;
 }
 
 void PotentialUnit::setNumUnits(int units){
-	this->numUnits = units;
+    this->numUnits = units;
 }
 
 int PotentialUnit::getNumUnits(){
-	return numUnits;
+    return numUnits;
 }
 
 void PotentialUnit::setUnitTypeId(int typeId){
-	this->unitTypeId = typeId;
+    this->unitTypeId = typeId;
 }
 
 void PotentialUnit::setUnitProfit(double unitProfit)
 {
-	this->profitPerUnit = unitProfit;
+    this->profitPerUnit = unitProfit;
 }
 
 double PotentialUnit::getUnitProfit() const
 {
-	return this->profitPerUnit;
+    return this->profitPerUnit;
 }
 
 void PotentialUnit::setDemolitionCostPerUnit(double demolitionCost)
 {
-	this->demolitionCostPerUnit = demolitionCost;
+    this->demolitionCostPerUnit = demolitionCost;
 }
 
 double PotentialUnit::getDemolitionCostPerUnit()
 {
-	return this->demolitionCostPerUnit;
+    return this->demolitionCostPerUnit;
 }
 
 PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel, BigSerial fmParcelId,std::tm simulationDate, double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio, double demolitionCost, double expRatio,int totalUnits,double acquisitionCost, double landValue, BigSerial buildingTypeId)
-								  : devTemplate(devTemplate), parcel(parcel), fmParcelId(fmParcelId), simulationDate(simulationDate), profit(0) , constructionCost(0),grossArea(0),tempSelectProbability(0),
-								    investmentReturnRatio(0), demolitionCost(0), expRatio(0),totalUnits(0),acquisitionCost(0), landValue(0),buildingTypeId(0){}
+                                  : devTemplate(devTemplate), parcel(parcel), fmParcelId(fmParcelId), simulationDate(simulationDate), profit(0) , constructionCost(0),grossArea(0),tempSelectProbability(0),
+                                    investmentReturnRatio(0), demolitionCost(0), expRatio(0),totalUnits(0),acquisitionCost(0), landValue(0),buildingTypeId(0){}
 
 PotentialProject::PotentialProject( const PotentialProject &source)
 {
-	this->devTemplate = source.devTemplate;
-	this->parcel = source.parcel;
-	this->fmParcelId = source.fmParcelId;
-	this->profit = source.profit;
-	this->constructionCost = source.constructionCost;
-	this->grossArea = source.grossArea;
-	this->tempSelectProbability = source.tempSelectProbability;
-	this->investmentReturnRatio = source.investmentReturnRatio;
-	this->demolitionCost = source.demolitionCost;
-	this->expRatio = source.expRatio;
-	this->totalUnits = source.totalUnits;
-	this->acquisitionCost = source.acquisitionCost;
-	this->landValue = source.landValue;
-	this->simulationDate = source.simulationDate;
-	this->buildingTypeId = source.buildingTypeId;
+    this->devTemplate = source.devTemplate;
+    this->parcel = source.parcel;
+    this->fmParcelId = source.fmParcelId;
+    this->profit = source.profit;
+    this->constructionCost = source.constructionCost;
+    this->grossArea = source.grossArea;
+    this->tempSelectProbability = source.tempSelectProbability;
+    this->investmentReturnRatio = source.investmentReturnRatio;
+    this->demolitionCost = source.demolitionCost;
+    this->expRatio = source.expRatio;
+    this->totalUnits = source.totalUnits;
+    this->acquisitionCost = source.acquisitionCost;
+    this->landValue = source.landValue;
+    this->simulationDate = source.simulationDate;
+    this->buildingTypeId = source.buildingTypeId;
 
-	this->units = source.units;
-	for (int i=0; i < source.units.size(); i++)
-	{
-		PotentialUnit unit;
-		unit.setNumUnits( source.units[i].getNumUnits());
-		unit.setUnitProfit(source.units[i].getUnitProfit());
-		unit.setUnitTypeId( source.units[i].getUnitTypeId());
-		unit.setFloorArea(source.units[i].getFloorArea());
-		this->units[i]= unit;
-	}
+    this->units = source.units;
+    for (int i=0; i < source.units.size(); i++)
+    {
+        PotentialUnit unit;
+        unit.setNumUnits( source.units[i].getNumUnits());
+        unit.setUnitProfit(source.units[i].getUnitProfit());
+        unit.setUnitTypeId( source.units[i].getUnitTypeId());
+        unit.setFloorArea(source.units[i].getFloorArea());
+        this->units[i]= unit;
+    }
 
-	this->templateUnitTypes = source.templateUnitTypes;
-		for (int i=0; i < source.templateUnitTypes.size(); i++)
-		{
-			TemplateUnitType templateUnitType;
-			templateUnitType = source.templateUnitTypes[i];
-			this->templateUnitTypes[i] = templateUnitType;
-		}
+    this->templateUnitTypes = source.templateUnitTypes;
+        for (int i=0; i < source.templateUnitTypes.size(); i++)
+        {
+            TemplateUnitType templateUnitType;
+            templateUnitType = source.templateUnitTypes[i];
+            this->templateUnitTypes[i] = templateUnitType;
+        }
 }
 
 PotentialProject& PotentialProject::operator=(const PotentialProject& source)
 {
-	this->devTemplate = source.devTemplate;
-	this->parcel = source.parcel;
-	this->fmParcelId = source.fmParcelId;
-	this->profit = source.profit;
-	this->constructionCost = source.constructionCost;
-	this->grossArea = source.grossArea;
-	this->tempSelectProbability = source.tempSelectProbability;
-	this->investmentReturnRatio = source.investmentReturnRatio;
-	this->demolitionCost = source.demolitionCost;
-	this->expRatio = source.expRatio;
-	this->totalUnits = source.totalUnits;
-	this->acquisitionCost = source.acquisitionCost;
-	this->landValue = source.landValue;
-	this->simulationDate = source.simulationDate;
-	this->buildingTypeId = source.buildingTypeId;
+    this->devTemplate = source.devTemplate;
+    this->parcel = source.parcel;
+    this->fmParcelId = source.fmParcelId;
+    this->profit = source.profit;
+    this->constructionCost = source.constructionCost;
+    this->grossArea = source.grossArea;
+    this->tempSelectProbability = source.tempSelectProbability;
+    this->investmentReturnRatio = source.investmentReturnRatio;
+    this->demolitionCost = source.demolitionCost;
+    this->expRatio = source.expRatio;
+    this->totalUnits = source.totalUnits;
+    this->acquisitionCost = source.acquisitionCost;
+    this->landValue = source.landValue;
+    this->simulationDate = source.simulationDate;
+    this->buildingTypeId = source.buildingTypeId;
 
-	this->units.resize(source.units.size());
+    this->units.resize(source.units.size());
 
-	for (int i=0; i < source.units.size(); i++)
-		{
-			PotentialUnit unit;
-			unit.setNumUnits( source.units[i].getNumUnits());
-			unit.setUnitProfit(source.units[i].getUnitProfit());
-			unit.setUnitTypeId( source.units[i].getUnitTypeId());
-			unit.setFloorArea(source.units[i].getFloorArea());
-			this->units[i]= unit;
-		}
+    for (int i=0; i < source.units.size(); i++)
+        {
+            PotentialUnit unit;
+            unit.setNumUnits( source.units[i].getNumUnits());
+            unit.setUnitProfit(source.units[i].getUnitProfit());
+            unit.setUnitTypeId( source.units[i].getUnitTypeId());
+            unit.setFloorArea(source.units[i].getFloorArea());
+            this->units[i]= unit;
+        }
 
-	this->templateUnitTypes = source.templateUnitTypes;
-			for (int i=0; i < source.templateUnitTypes.size(); i++)
-			{
-				TemplateUnitType templateUnitType;
-				templateUnitType = source.templateUnitTypes[i];
-				this->templateUnitTypes[i] = templateUnitType;
-			}
-	return *this;
+    this->templateUnitTypes = source.templateUnitTypes;
+            for (int i=0; i < source.templateUnitTypes.size(); i++)
+            {
+                TemplateUnitType templateUnitType;
+                templateUnitType = source.templateUnitTypes[i];
+                this->templateUnitTypes[i] = templateUnitType;
+            }
+    return *this;
 }
 
 PotentialProject::~PotentialProject() {
@@ -185,12 +185,12 @@ void PotentialProject::addUnit(const PotentialUnit& unit) {
 
 void PotentialProject::addTemplateUnitType(const TemplateUnitType& templateUnitType) {
 
-	templateUnitTypes.push_back(templateUnitType);
+    templateUnitTypes.push_back(templateUnitType);
 }
 
 void PotentialProject::addUnits(int unitType,int numUnits) {
 
-	this->unitMap.insert(std::make_pair(unitType, numUnits));
+    this->unitMap.insert(std::make_pair(unitType, numUnits));
 }
 
 
@@ -232,97 +232,97 @@ void PotentialProject::setGrossArea(const double grossArea) {
 
 double PotentialProject::getInvestmentReturnRatio() const
 {
-	return this->investmentReturnRatio;
+    return this->investmentReturnRatio;
 }
 
 void PotentialProject::setInvestmentReturnRatio(double inReturnRatio)
 {
-	this->investmentReturnRatio = inReturnRatio;
+    this->investmentReturnRatio = inReturnRatio;
 }
 
 double PotentialProject::getExpRatio() const
 {
-	return this->expRatio;
+    return this->expRatio;
 }
 
 void PotentialProject::setExpRatio(double exRatio)
 {
-	this->expRatio = exRatio;
+    this->expRatio = exRatio;
 }
 
 double PotentialProject::getTempSelectProbability() const
 {
-	return this->tempSelectProbability;
+    return this->tempSelectProbability;
 }
 
 void PotentialProject::setTempSelectProbability(double probability)
 {
-	this->tempSelectProbability = probability;
+    this->tempSelectProbability = probability;
 }
 
 double PotentialProject::getDemolitionCost() const
 {
-	return this->demolitionCost;
+    return this->demolitionCost;
 }
 
 void PotentialProject::setDemolitionCost(double demCost)
 {
-	this->demolitionCost = demCost;
+    this->demolitionCost = demCost;
 }
 
 int PotentialProject::getTotalUnits()
 {
-	return this->totalUnits;
+    return this->totalUnits;
 }
 
 void PotentialProject::setTotalUnits (int totUnits)
 {
-	this->totalUnits = totUnits;
+    this->totalUnits = totUnits;
 }
 
 void PotentialProject::setAcquisitionCost(double acqCost)
 {
-	this->acquisitionCost = acqCost;
+    this->acquisitionCost = acqCost;
 }
 
 double PotentialProject::getAcquisitionCost() const
 {
-	return this->acquisitionCost;
+    return this->acquisitionCost;
 }
 
 void PotentialProject::setLandValue(double landVal)
 {
-	this->landValue = landVal;
+    this->landValue = landVal;
 }
 
 double PotentialProject::getLandValue() const
 {
-	return this->landValue;
+    return this->landValue;
 }
 
 BigSerial PotentialProject::getFmParcelId() const
 {
-	return this->fmParcelId;
+    return this->fmParcelId;
 }
 
 std::tm PotentialProject::getSimulationDate() const
 {
-	return this->simulationDate;
+    return this->simulationDate;
 }
 
 void PotentialProject::setSimulationDate(std::tm simDate)
 {
-	this->simulationDate = simDate;
+    this->simulationDate = simDate;
 }
 
 BigSerial PotentialProject::getBuildingTypeId() const
 {
-	return this->buildingTypeId;
+    return this->buildingTypeId;
 }
 
 void PotentialProject::setBuildingTypeId(BigSerial buildingType)
 {
-	this->buildingTypeId = buildingType;
+    this->buildingTypeId = buildingType;
 }
 
 namespace sim_mob

@@ -23,7 +23,7 @@ public:
     /**
      * Constructor
      */
-	Location ();
+    Location ();
 
     /**
      * Constructor
@@ -37,7 +37,7 @@ public:
     /**
      * Destructor
      */
-	virtual ~Location();
+    virtual ~Location();
 
     /// Functions to modify the vehicles at this location
     /// Location vehicles are free vehicles in this area.
@@ -48,7 +48,7 @@ public:
      * Retrieves num of vehicles in the location
      * @return num vehicles
      */
-	virtual int getNumVehicles() const;
+    virtual int getNumVehicles() const;
 
     /**
      * addVehicleId
@@ -77,12 +77,12 @@ public:
      * @param bitr - begin iterator
      * @param eitr - end iterator
      */
-	virtual void getVehicleIds(std::unordered_set<int>::const_iterator *bitr, std::unordered_set<int>::const_iterator *eitr);
+    virtual void getVehicleIds(std::unordered_set<int>::const_iterator *bitr, std::unordered_set<int>::const_iterator *eitr);
 
     /**
      * clearVehicleIds
      */
-	virtual void clearVehicleIds();
+    virtual void clearVehicleIds();
 
     /// Functions to modify the customers at this location
     /// Location customers are people who are currently at this node
@@ -107,7 +107,7 @@ public:
      * @param bitr - begin iterator
      * @param eitr - end iterator
      */
-	virtual void getCustomerIds(std::unordered_set<int>::const_iterator *bitr, std::unordered_set<int>::const_iterator *eitr);
+    virtual void getCustomerIds(std::unordered_set<int>::const_iterator *bitr, std::unordered_set<int>::const_iterator *eitr);
 
     /**
      * addCustomerId
@@ -126,21 +126,21 @@ public:
     /**
      * clearCustomerIds
      */
-	virtual void clearCustomerIds();
+    virtual void clearCustomerIds();
 
     /**
      * setCapacity
      * sets the capacity of the location
      * @param capacity
      */
-	virtual void setCapacity(int capacity);
+    virtual void setCapacity(int capacity);
 
     /**
      * getCapacity
      * retrieves the capacity of the location
      * @return capacity of the location
      */
-	virtual int getCapacity() const;
+    virtual int getCapacity() const;
 
     /// operators for KDTree operation
     /// inlined for convenience
@@ -173,10 +173,10 @@ public:
      * @param rhs - right hand side
      * @return true if rhs position equal to this position
      */
-	bool operator==(Location &rhs) {
+    bool operator==(Location &rhs) {
         /// two locations that have the same position are considered equal
-		return (getPosition() == rhs.getPosition());
-	}
+        return (getPosition() == rhs.getPosition());
+    }
 
 private:
     /// Container to store the vehicle ids

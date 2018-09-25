@@ -15,12 +15,12 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class ScreeningModelFactors
-		{
-		public:
-			ScreeningModelFactors(  BigSerial _id = 0,
+    namespace long_term
+    {
+        class ScreeningModelFactors
+        {
+        public:
+            ScreeningModelFactors(  BigSerial _id = 0,
                                     int _dgpid = 0,
                                     int _alt_id = 0,
                                     int _dwl = 0,
@@ -35,7 +35,7 @@ namespace sim_mob
                                     double _acc_t_mfg = 0,
                                     double _acc_t_off = 0);
 
-			virtual ~ScreeningModelFactors();
+            virtual ~ScreeningModelFactors();
 
             BigSerial getId();
             int getDgpid();
@@ -53,11 +53,11 @@ namespace sim_mob
             double getAcc_t_off();
 
 
-		private:
+        private:
 
-			friend class ScreeningModelFactorsDao;
+            friend class ScreeningModelFactorsDao;
 
-			BigSerial id;
+            BigSerial id;
             int dgpid;
             int alt_id;
             int dwl;
@@ -71,9 +71,9 @@ namespace sim_mob
             double cost_ave;
             double acc_t_mfg;
             double acc_t_off;
-		};
+        };
 
-	}
+    }
 
 }
 

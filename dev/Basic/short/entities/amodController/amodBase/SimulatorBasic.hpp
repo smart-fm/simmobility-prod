@@ -36,7 +36,7 @@ public:
     /**
      * Destructor
      */
-	virtual ~SimulatorBasic();
+    virtual ~SimulatorBasic();
 
     /**
      * init
@@ -130,7 +130,7 @@ public:
      */
     virtual amod::ReturnCode teleportCustomer(amod::World *worldState,
                                              int custId,
-											 const amod::Position &to,
+                                             const amod::Position &to,
                                              amod::CustomerStatus custStartStatus = CustomerStatus::TELEPORTING,
                                              amod::CustomerStatus custEndStatus = CustomerStatus::FREE);
 
@@ -269,8 +269,8 @@ private:
         int vehId;
         int toLocId;
         int fromLocId;
-    	Position from;
-    	Position to;
+        Position from;
+        Position to;
         Position grad; ///normalized gradient
         Position curr;
         amod::VehicleStatus vehEndStatus;

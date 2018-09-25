@@ -23,7 +23,7 @@ void PlanningSubzoneDao::fromRow(Row& result, PlanningSubzone& outObj)
 {
     outObj.id  = result.get<BigSerial>("id", INVALID_ID);
     outObj.planningAreaId  = result.get<BigSerial>("planning_area_id", INVALID_ID);
-    outObj.name = result.get<std::string>(	"name", 	EMPTY_STR);
+    outObj.name = result.get<std::string>(  "name",     EMPTY_STR);
 }
 
 void PlanningSubzoneDao::toRow(PlanningSubzone& data, Parameters& outParams, bool update) {}

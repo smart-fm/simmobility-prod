@@ -16,5 +16,5 @@ sim_mob::event::ReRouteEventArgs::~ReRouteEventArgs()
 
 string sim_mob::event::ReRouteEventArgs::getBlacklistRegion() const
 {
-	return blacklistRegion;
+    return blacklistRegion;
 }

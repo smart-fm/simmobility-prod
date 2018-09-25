@@ -27,7 +27,7 @@ namespace sim_mob
         class PlanningSubzoneDao : public db::SqlAbstractDao<PlanningSubzone>
         {
         public:
-        	PlanningSubzoneDao(db::DB_Connection& connection);
+            PlanningSubzoneDao(db::DB_Connection& connection);
             virtual ~PlanningSubzoneDao();
 
         private:

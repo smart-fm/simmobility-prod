@@ -31,100 +31,100 @@ class ConnectionServer;
  */
 class ConnectionHandler: public boost::enable_shared_from_this<ConnectionHandler> {
 protected:
-	friend class ConnectionServer;
+    friend class ConnectionServer;
 
-	///Create a new ConnectionHandler which coordinates input between the io_service and the broker.
-	///Typically only created by the ConnectionServer.
-	ConnectionHandler(boost::asio::io_service& io_service, BrokerBase& broker);
+    ///Create a new ConnectionHandler which coordinates input between the io_service and the broker.
+    ///Typically only created by the ConnectionServer.
+    ConnectionHandler(boost::asio::io_service& io_service, BrokerBase& broker);
 
 public:
-	///Retrieve the type of ClientHandlers that can multiplex on this connection.
-	///NOTE: Clients with the same type are interchangeable; any "new_client" request will dispatch to an *arbitrary*
-	///      type upon receiving an "id_request". Current types are "android" and "ns-3".
-	///\returns the type supported by this ConnectionHandler. If empty, any ClientHandler is allowed.
-	///         If non-empty, only matching types can be multiplexed.
-	std::string getSupportedType() const;
+    ///Retrieve the type of ClientHandlers that can multiplex on this connection.
+    ///NOTE: Clients with the same type are interchangeable; any "new_client" request will dispatch to an *arbitrary*
+    ///      type upon receiving an "id_request". Current types are "android" and "ns-3".
+    ///\returns the type supported by this ConnectionHandler. If empty, any ClientHandler is allowed.
+    ///         If non-empty, only matching types can be multiplexed.
+    std::string getSupportedType() const;
 
-	///Set the ClientHandler type supported by this ConnectionHandler. (NOTE: The first "id_response" message sets this, currently.)
-	///\param type The type of ClientHandler that can multiplex on this connection.
-	void setSupportedType(const std::string& type);
+    ///Set the ClientHandler type supported by this ConnectionHandler. (NOTE: The first "id_response" message sets this, currently.)
+    ///\param type The type of ClientHandler that can multiplex on this connection.
+    void setSupportedType(const std::string& type);
 
-	///Retrieve this ConnectionHandler's token, which is used to uniquely identify this ConnectionHandler.
-	///  This is used to properly match the "id_response" to the "id_request" sent for it.
-	///\returns The identifying token for this ConnecitonHandler.
-	///         NOTE: Currently, this is just the address of the ConnectionHandler, in string form (e.g., 0xEF0609...).
-	std::string getToken() const;
+    ///Retrieve this ConnectionHandler's token, which is used to uniquely identify this ConnectionHandler.
+    ///  This is used to properly match the "id_response" to the "id_request" sent for it.
+    ///\returns The identifying token for this ConnecitonHandler.
+    ///         NOTE: Currently, this is just the address of the ConnectionHandler, in string form (e.g., 0xEF0609...).
+    std::string getToken() const;
 
-	///Post a message on this connection. (Does not require locking).
-	///\param head The BundleHeader for this message.
-	///\param data The (serialized) data string for this message.
-	void postMessage(const BundleHeader& head, const std::string& str);
+    ///Post a message on this connection. (Does not require locking).
+    ///\param head The BundleHeader for this message.
+    ///\param data The (serialized) data string for this message.
+    void postMessage(const BundleHeader& head, const std::string& str);
 
-	///Check if this connection is valid and open.
-	///\returns true if this connection is in a usable state.
-	bool isValid() const;
+    ///Check if this connection is valid and open.
+    ///\returns true if this connection is in a usable state.
+    bool isValid() const;
 
-	///Invalidate the connection (set valid to false).
-	void invalidate();
+    ///Invalidate the connection (set valid to false).
+    void invalidate();
 
 protected:
 
-	///Start listening for (async_receive()) messages by reading the 8-byte header.
-	///NOTE: This function is called once by the ConnectionServer, once the async_accept() has resolved;
-	///      it is also called again immediately once handle_read_data has resolved.
-	void readHeader();
+    ///Start listening for (async_receive()) messages by reading the 8-byte header.
+    ///NOTE: This function is called once by the ConnectionServer, once the async_accept() has resolved;
+    ///      it is also called again immediately once handle_read_data has resolved.
+    void readHeader();
 
 
 private:
-	///Callback triggered by readHeader()'s async read after 8 bytes are available.
-	void handle_read_header(const boost::system::error_code& err);
+    ///Callback triggered by readHeader()'s async read after 8 bytes are available.
+    void handle_read_header(const boost::system::error_code& err);
 
-	///Callback triggered by handle_read_header()'s async read after all remaining bytes are available.
-	void handle_read_data(unsigned int rem_len, const boost::system::error_code& err);
+    ///Callback triggered by handle_read_header()'s async read after all remaining bytes are available.
+    void handle_read_data(unsigned int rem_len, const boost::system::error_code& err);
 
-	///Used internally to publish messages on the io_service's thread. (NOTE: If we lock in multi-threaded mode anyway, we might not need to post this).
-	///NOTE: This parameter *must* be by value, due to the way that post() works.
-	void writeMessage(std::string msg);
+    ///Used internally to publish messages on the io_service's thread. (NOTE: If we lock in multi-threaded mode anyway, we might not need to post this).
+    ///NOTE: This parameter *must* be by value, due to the way that post() works.
+    void writeMessage(std::string msg);
 
-	///Called by writeMessage() or handle_write() to write the message at the front of the writeQueue
-	void writeFrontMessage();
+    ///Called by writeMessage() or handle_write() to write the message at the front of the writeQueue
+    void writeFrontMessage();
 
-	///Called when the current message has been written. Will trigger writing the next message if it is available.
-	void handle_write(const boost::system::error_code& err);
+    ///Called when the current message has been written. Will trigger writing the next message if it is available.
+    void handle_write(const boost::system::error_code& err);
 
 
 protected:
-	///The socket this ConnectionHandler is using for I/O.
-	///NOTE: This property is accessed by the ConnectionServer, via its friend status.
-	boost::asio::ip::tcp::socket socket;
+    ///The socket this ConnectionHandler is using for I/O.
+    ///NOTE: This property is accessed by the ConnectionServer, via its friend status.
+    boost::asio::ip::tcp::socket socket;
 
 private:
-	///Used for callbacks to the Broker (onNewConnection, etc.)
-	BrokerBase& broker;
+    ///Used for callbacks to the Broker (onNewConnection, etc.)
+    BrokerBase& broker;
 
-	///What type of ClientHandlers can be multiplexed onto this connection. Empty = not yet defined (any type).
-	std::string supportedType;
-	mutable boost::mutex supportedTypeLOCK; //NOTE: Probably don't need to lock this, but it's cheap (and worth being extra-careful here).
+    ///What type of ClientHandlers can be multiplexed onto this connection. Empty = not yet defined (any type).
+    std::string supportedType;
+    mutable boost::mutex supportedTypeLOCK; //NOTE: Probably don't need to lock this, but it's cheap (and worth being extra-careful here).
 
-	///A token used to uniquely identify this ConnectionHandler.
-	std::string token;
+    ///A token used to uniquely identify this ConnectionHandler.
+    std::string token;
 
-	///Whether or not this connection is "valid". The Broker can set this flag, although setting it while
-	///  data is incoming or outgoing on the socket leads to undefined behavior.
-	bool valid;
+    ///Whether or not this connection is "valid". The Broker can set this flag, although setting it while
+    ///  data is incoming or outgoing on the socket leads to undefined behavior.
+    bool valid;
 
-	///Saved so that we can post() things.
-	boost::asio::io_service& io_service;
+    ///Saved so that we can post() things.
+    boost::asio::io_service& io_service;
 
-	///The size of the largest message we can expect to receive.
-	enum { MAX_MSG_LENGTH = 30000 };
+    ///The size of the largest message we can expect to receive.
+    enum { MAX_MSG_LENGTH = 30000 };
 
-	///The message we are currently reading; first 8 bytes are the header.
-	char readBuffer[MAX_MSG_LENGTH];
+    ///The message we are currently reading; first 8 bytes are the header.
+    char readBuffer[MAX_MSG_LENGTH];
 
-	///The list of messages we are currently writing. front() is the message in progress.
-	std::list<std::string> writeQueue;
-	boost::mutex writeQueueLOCK;
+    ///The list of messages we are currently writing. front() is the message in progress.
+    std::list<std::string> writeQueue;
+    boost::mutex writeQueueLOCK;
 };
 
 }

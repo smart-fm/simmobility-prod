@@ -16,7 +16,7 @@ LogsumForDevModel::~LogsumForDevModel() {}
 
 BigSerial LogsumForDevModel::gettAZ2012Id() const
 {
-	return taz2012Id;
+    return taz2012Id;
 }
 
 BigSerial LogsumForDevModel::getTaz2008Id() const
@@ -34,7 +34,7 @@ double LogsumForDevModel::getAccessibility() const
 //
 //        std::ostream& operator<<(std::ostream& strm, const LogsumForDevModel& data) {
 //            return strm << "{"
-//            		<< "\"fm_parcel_id\":\"" << data.fmParcelId << "\","
+//                  << "\"fm_parcel_id\":\"" << data.fmParcelId << "\","
 //                    << "\"taz_id\":\"" << data.tazId << "\","
 //                    << "\"accessibility\":\"" << data.accessibility << "\","
 //                    << "}";

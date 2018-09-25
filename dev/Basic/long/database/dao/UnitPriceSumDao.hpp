@@ -19,7 +19,7 @@ namespace sim_mob {
          */
         class UnitPriceSumDao : public db::SqlAbstractDao<UnitPriceSum> {
         public:
-        	UnitPriceSumDao(db::DB_Connection& connection);
+            UnitPriceSumDao(db::DB_Connection& connection);
             virtual ~UnitPriceSumDao();
 
         private:

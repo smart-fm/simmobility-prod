@@ -19,29 +19,29 @@ namespace sim_mob
     namespace long_term
     {
 
-		class LogsumMtzV2
-		{
-		public:
-			LogsumMtzV2(int taz_id = 0, int name = 0, double logsumAvg = .0, double logsumWeighted = .0);
-			virtual ~LogsumMtzV2();
-			LogsumMtzV2(const LogsumMtzV2& source);
-			LogsumMtzV2& operator=(const LogsumMtzV2& source);
+        class LogsumMtzV2
+        {
+        public:
+            LogsumMtzV2(int taz_id = 0, int name = 0, double logsumAvg = .0, double logsumWeighted = .0);
+            virtual ~LogsumMtzV2();
+            LogsumMtzV2(const LogsumMtzV2& source);
+            LogsumMtzV2& operator=(const LogsumMtzV2& source);
 
-			int getTazId() const;
-			int getName() const;
-			double getLogsumAvg() const;
-			double getLogsumWeighted() const;
+            int getTazId() const;
+            int getName() const;
+            double getLogsumAvg() const;
+            double getLogsumWeighted() const;
 
-			friend std::ostream& operator<<(std::ostream& strm, const LogsumMtzV2& data);
+            friend std::ostream& operator<<(std::ostream& strm, const LogsumMtzV2& data);
 
-		private:
-			friend class LogsumMtzV2Dao;
+        private:
+            friend class LogsumMtzV2Dao;
 
-			int taz_id;
-			int name;
-			double logsumAvg;
-			double logsumWeighted;
-		};
+            int taz_id;
+            int name;
+            double logsumAvg;
+            double logsumWeighted;
+        };
     }
 
 } /* namespace sim_mob */

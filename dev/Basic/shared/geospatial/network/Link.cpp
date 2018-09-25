@@ -16,127 +16,127 @@ toNodeId(0)
 
 Link::~Link()
 {
-	//Delete the road segment in the link
-	clear_delete_vector(roadSegments);
+    //Delete the road segment in the link
+    clear_delete_vector(roadSegments);
 }
 
 unsigned int Link::getLinkId() const
 {
-	return linkId;
+    return linkId;
 }
 
 void Link::setLinkId(unsigned int linkId)
 {
-	this->linkId = linkId;
+    this->linkId = linkId;
 }
 
 const Node* Link::getFromNode() const
 {
-	return fromNode;
+    return fromNode;
 }
 
 void Link::setFromNode(Node *fromNode)
 {
-	this->fromNode = fromNode;
+    this->fromNode = fromNode;
 }
 
 unsigned int Link::getFromNodeId() const
 {
-	return fromNodeId;
+    return fromNodeId;
 }
 
 void Link::setFromNodeId(unsigned int fromNodeId)
 {
-	this->fromNodeId = fromNodeId;
+    this->fromNodeId = fromNodeId;
 }
 
 LinkCategory Link::getLinkCategory() const
 {
-	return linkCategory;
+    return linkCategory;
 }
 
 void Link::setLinkCategory(LinkCategory linkCategory)
 {
-	this->linkCategory = linkCategory;
+    this->linkCategory = linkCategory;
 }
 
 LinkType Link::getLinkType() const
 {
-	return linkType;
+    return linkType;
 }
 
 void Link::setLinkType(LinkType linkType)
 {
-	this->linkType = linkType;
+    this->linkType = linkType;
 }
 
 std::string Link::getRoadName() const
 {
-	return roadName;
+    return roadName;
 }
 
 void Link::setRoadName(std::string roadName)
 {
-	this->roadName = roadName;
+    this->roadName = roadName;
 }
 
 const std::vector<RoadSegment*>& Link::getRoadSegments() const
 {
-	return roadSegments;
+    return roadSegments;
 }
 
 const RoadSegment* Link::getRoadSegment(int index) const
 {
-	return roadSegments.at(index);
+    return roadSegments.at(index);
 }
 
 int Link::getRoadSegmentIndex(const RoadSegment * seg)const
 {
-	int index = -1;
-	std::vector<RoadSegment *>::const_iterator it = std::find(roadSegments.begin(), roadSegments.end(), seg);
-	if (it != roadSegments.end()) {
-		index = std::distance(roadSegments.begin(), it);
-	}
-	return index;
+    int index = -1;
+    std::vector<RoadSegment *>::const_iterator it = std::find(roadSegments.begin(), roadSegments.end(), seg);
+    if (it != roadSegments.end()) {
+        index = std::distance(roadSegments.begin(), it);
+    }
+    return index;
 }
 
 const Node* Link::getToNode() const
 {
-	return toNode;
+    return toNode;
 }
 
 void Link::setToNode(Node *toNode)
 {
-	this->toNode = toNode;
+    this->toNode = toNode;
 }
 
 unsigned int Link::getToNodeId() const
 {
-	return toNodeId;
+    return toNodeId;
 }
 
 void Link::setToNodeId(unsigned int toNodeId)
 {
-	this->toNodeId = toNodeId;
+    this->toNodeId = toNodeId;
 }
 
 double Link::getLength() const
-{	
-	return length;
+{   
+    return length;
 }
 
 void Link::addRoadSegment(RoadSegment *roadSegment)
 {
-	this->roadSegments.push_back(roadSegment);
+    this->roadSegments.push_back(roadSegment);
 }
 
 void Link::calculateLength()
 {
-	if(length == 0)
-	{
-		for (int i = 0; i < roadSegments.size(); ++i)
-		{
-			length += roadSegments.at(i)->getLength();
-		}
-	}
+    if(length == 0)
+    {
+        for (int i = 0; i < roadSegments.size(); ++i)
+        {
+            length += roadSegments.at(i)->getLength();
+        }
+    }
 }

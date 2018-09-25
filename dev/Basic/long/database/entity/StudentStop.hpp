@@ -12,27 +12,27 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class StudentStop
-		{
-		public:
-			StudentStop(BigSerial homeStopEzLinkId = 0, BigSerial schoolStopEzLinkId = 0);
-			~StudentStop();
+    namespace long_term
+    {
+        class StudentStop
+        {
+        public:
+            StudentStop(BigSerial homeStopEzLinkId = 0, BigSerial schoolStopEzLinkId = 0);
+            ~StudentStop();
 
-			StudentStop( const StudentStop& source);
+            StudentStop( const StudentStop& source);
 
-			StudentStop& operator=(const StudentStop& source);
+            StudentStop& operator=(const StudentStop& source);
 
-			BigSerial getHomeStopEzLinkId() const;
-			void setHomeStopEzLinkId(BigSerial homeStopEzLinkId);
-			BigSerial getSchoolStopEzLinkId() const;
-			void setSchoolStopEzLinkId(BigSerial schoolStopEzLinkId);
+            BigSerial getHomeStopEzLinkId() const;
+            void setHomeStopEzLinkId(BigSerial homeStopEzLinkId);
+            BigSerial getSchoolStopEzLinkId() const;
+            void setSchoolStopEzLinkId(BigSerial schoolStopEzLinkId);
 
-			BigSerial homeStopEzLinkId;
-			BigSerial schoolStopEzLinkId;
+            BigSerial homeStopEzLinkId;
+            BigSerial schoolStopEzLinkId;
 
-		};
-	}
+        };
+    }
 }
 

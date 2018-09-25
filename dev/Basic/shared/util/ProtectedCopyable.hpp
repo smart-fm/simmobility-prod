@@ -20,10 +20,10 @@ namespace sim_mob {
  */
 class ProtectedCopyable {
 protected:
-	ProtectedCopyable() {}
-	~ProtectedCopyable() {}
-	ProtectedCopyable( const ProtectedCopyable& ) {}
-	ProtectedCopyable& operator=( const ProtectedCopyable& ) { return *this; }
+    ProtectedCopyable() {}
+    ~ProtectedCopyable() {}
+    ProtectedCopyable( const ProtectedCopyable& ) {}
+    ProtectedCopyable& operator=( const ProtectedCopyable& ) { return *this; }
 };
 
 }

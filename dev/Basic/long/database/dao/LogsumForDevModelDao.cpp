@@ -18,7 +18,7 @@ LogsumForDevModelDao::~LogsumForDevModelDao() {}
 
 void LogsumForDevModelDao::fromRow(Row& result, LogsumForDevModel& outObj)
 {
-	outObj.taz2012Id = result.get<BigSerial>("taz_id_2012", INVALID_ID);
+    outObj.taz2012Id = result.get<BigSerial>("taz_id_2012", INVALID_ID);
     outObj.taz2008Id = result.get<BigSerial>("taz_id_2008", INVALID_ID);
     outObj.accessibility = result.get<double>("accessibility", 0);
 }

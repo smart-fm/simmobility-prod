@@ -29,82 +29,82 @@ AuraManager AuraManager::instance_;
 
 void AuraManager::init(AuraManagerImplementation implType)
 {
-	//Reset time tick.
-	time_step = 0;
+    //Reset time tick.
+    time_step = 0;
 
-	if (implType == IMPL_RSTAR)
-	{
-		impl_ = new RStarAuraManager();
-		impl_->init();
-	}
-	else if (implType == IMPL_SIMTREE)
-	{
-		impl_ = new SimAuraManager();
-		impl_->init();
-	}
-	else if (implType == IMPL_RDU)
-	{
-		impl_ = new RDUAuraManager();
-		impl_->init();
-	}
-	else if(implType == IMPL_PACKING)
-	{
-		impl_ = new PackingTreeAuraManager();
-		impl_->init();
-	}
-	else
-	{
-		throw std::runtime_error("Unknown AuraManager Implementation type selected.");
-	}
+    if (implType == IMPL_RSTAR)
+    {
+        impl_ = new RStarAuraManager();
+        impl_->init();
+    }
+    else if (implType == IMPL_SIMTREE)
+    {
+        impl_ = new SimAuraManager();
+        impl_->init();
+    }
+    else if (implType == IMPL_RDU)
+    {
+        impl_ = new RDUAuraManager();
+        impl_->init();
+    }
+    else if(implType == IMPL_PACKING)
+    {
+        impl_ = new PackingTreeAuraManager();
+        impl_->init();
+    }
+    else
+    {
+        throw std::runtime_error("Unknown AuraManager Implementation type selected.");
+    }
 }
 
 void AuraManager::destroy()
 {
-	delete impl_;
+    delete impl_;
 }
 
 void AuraManager::update(const std::set<sim_mob::Entity *>& removedAgentPointers)
 {
-	if (impl_)
-	{
-		impl_->update(time_step, removedAgentPointers);
-	}
-	time_step++;
+    if (impl_)
+    {
+        impl_->update(time_step, removedAgentPointers);
+    }
+    time_step++;
 }
 
 std::vector<Agent const *> AuraManager::agentsInRect(Point const &lowerLeft, Point const &upperRight, const sim_mob::Agent *refAgent) const
 {
-	std::vector<Agent const *> results;
-	if (impl_)
-	{
-		results = impl_->agentsInRect(lowerLeft, upperRight, refAgent);
-	}
-	return results;
+    std::vector<Agent const *> results;
+    if (impl_)
+    {
+        results = impl_->agentsInRect(lowerLeft, upperRight, refAgent);
+    }
+    return results;
 }
 
 
 //The "refAgent" can be used to provide more information (i.e., for the faster bottom-up query).
 std::vector<Agent const *> AuraManager::nearbyAgents(Point const &position, WayPoint const &wayPoint, double distanceInFront, double distanceBehind, 
-													 const sim_mob::Agent *refAgent) const
+                                                     const sim_mob::Agent *refAgent) const
 {
-	std::vector<Agent const *> results;
-	if (impl_)
-	{
-		results = impl_->nearbyAgents(position, wayPoint, distanceInFront, distanceBehind, refAgent);
-	}
-	return results;
+    std::vector<Agent const *> results;
+    if (impl_)
+    {
+        results = impl_->nearbyAgents(position, wayPoint, distanceInFront, distanceBehind, refAgent);
+    }
+    return results;
 }
 
 void AuraManager::registerNewAgent(Agent const *one_agent)
 {
-	if (impl_)
-	{
-		//We only register Person agents
-		if (dynamic_cast<Person const*> (one_agent))
-		{
-			impl_->registerNewAgent(one_agent);
-		}
-	}
+    if (impl_)
+    {
+        //We only register Person agents
+        if (dynamic_cast<Person const*> (one_agent))
+        {
+            impl_->registerNewAgent(one_agent);
+        }
+    }
 }
 
 } // end of sim_mob

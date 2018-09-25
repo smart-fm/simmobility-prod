@@ -10,7 +10,7 @@
 using namespace sim_mob::long_term;
 
 ParcelMatch::ParcelMatch(BigSerial fmParcelId, std::string slaParcelId,int matchCode,std::tm matchDate):
-		fmParcelId(fmParcelId),slaParcelId(slaParcelId),matchCode(matchCode),matchDate(matchDate){
+        fmParcelId(fmParcelId),slaParcelId(slaParcelId),matchCode(matchCode),matchDate(matchDate){
 }
 
 ParcelMatch::~ParcelMatch() {}
@@ -27,12 +27,12 @@ std::string ParcelMatch::getSlaParcelId() const
 
 int ParcelMatch::getMatchCode() const
 {
-	return matchCode;
+    return matchCode;
 }
 
 std::tm ParcelMatch::getMatchDate() const
 {
-	return matchDate;
+    return matchDate;
 }
 
 namespace sim_mob {
@@ -40,11 +40,11 @@ namespace sim_mob {
 
         std::ostream& operator<<(std::ostream& strm, const ParcelMatch& data) {
             return strm << "{"
-						<< "\"fm_parcel_id\":\"" << data.fmParcelId << "\","
-						<< "\"sla_parcel_id\":\"" << data.slaParcelId << "\","
-						<< "\"matchCode\":\"" << data.matchCode << "\","
-						<< "\"matchDate\":\"" << data.matchDate.tm_year << "\","
-						<< "}";
+                        << "\"fm_parcel_id\":\"" << data.fmParcelId << "\","
+                        << "\"sla_parcel_id\":\"" << data.slaParcelId << "\","
+                        << "\"matchCode\":\"" << data.matchCode << "\","
+                        << "\"matchDate\":\"" << data.matchDate.tm_year << "\","
+                        << "}";
         }
     }
 }

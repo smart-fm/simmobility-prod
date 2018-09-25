@@ -23,9 +23,9 @@ namespace sim_mob
         class Building
         {
         public:
-        	Building( BigSerial fmBuildingId = INVALID_ID, BigSerial fmProjectId = INVALID_ID, BigSerial fmParcelId = INVALID_ID, int storeysAboveGround = 0,
-        			  int storeysBelowGround = 0, std::tm fromDate = std::tm(), std::tm toDate = std::tm(), int buildingStatus = 0,float	grossSqMRes = 0, float grossSqMOffice = 0,
-					  float grossSqMRetail = 0, float grossSqMWarehouse = 0, float grossSqMIndustrial = 0, float grossSqMOther = 0, float grossSqMCivic = 0, std::tm lastChangedDate = std::tm(),int freehold = 0,float floorSpace = 0,std::string buildingType = std::string());
+            Building( BigSerial fmBuildingId = INVALID_ID, BigSerial fmProjectId = INVALID_ID, BigSerial fmParcelId = INVALID_ID, int storeysAboveGround = 0,
+                      int storeysBelowGround = 0, std::tm fromDate = std::tm(), std::tm toDate = std::tm(), int buildingStatus = 0,float    grossSqMRes = 0, float grossSqMOffice = 0,
+                      float grossSqMRetail = 0, float grossSqMWarehouse = 0, float grossSqMIndustrial = 0, float grossSqMOther = 0, float grossSqMCivic = 0, std::tm lastChangedDate = std::tm(),int freehold = 0,float floorSpace = 0,std::string buildingType = std::string());
 
             virtual ~Building();
 
@@ -60,7 +60,7 @@ namespace sim_mob
              * Gets the number of floors above ground.
              * @return storeys_above_ground.
              */
-            int	getStoreysAboveGround() const;
+            int getStoreysAboveGround() const;
 
             /**
              * Gets the number of basement floors.
@@ -90,25 +90,25 @@ namespace sim_mob
              * Gets the area used for residential purposes.
              * @return gross_sq_m_res.
              */
-            float	getGrossSqmRes() const;
+            float   getGrossSqmRes() const;
 
             /**
              * Gets the area used for office.
              * @return gross_sq_m_office.
              */
-            float	getGrossSqmOffice() const;
+            float   getGrossSqmOffice() const;
 
             /**
              * Gets the retail space area.
              * @return gross_sq_m_retail.
              */
-            float	getGrossSqmRetail() const;
+            float   getGrossSqmRetail() const;
 
             /**
              * Gets the other space area.
              * @return gross_sq_m_other.
              */
-            float	getGrossSqmOther() const;
+            float   getGrossSqmOther() const;
 
             std::tm getLastChangedDate() const;
 
@@ -119,9 +119,9 @@ namespace sim_mob
             float getGrossSqMWarehouse() const ;
             float getGrossSqMOffice() const;
             int getFreehold() const;
-        	float getGrossSqMOther() const;
-        	float getGrossSqMRetail() const;
-        	float getGrossSqMRes() const;
+            float getGrossSqMOther() const;
+            float getGrossSqMRetail() const;
+            float getGrossSqMRes() const;
             /*
              * setters
              */
@@ -157,16 +157,16 @@ namespace sim_mob
             BigSerial fmProjectId;
             BigSerial fmParcelId;
             int storeysAboveGround;
-            int	storeysBelowGround;
+            int storeysBelowGround;
             std::tm fromDate;
             std::tm toDate;
             int buildingStatus;
-            float	grossSqMRes;
-            float	grossSqMOffice;
-            float	grossSqMRetail;
+            float   grossSqMRes;
+            float   grossSqMOffice;
+            float   grossSqMRetail;
             float grossSqMWarehouse;
             float grossSqMIndustrial;
-            float	grossSqMOther;
+            float   grossSqMOther;
             float grossSqMCivic;
             std::tm lastChangedDate;
             int freehold;

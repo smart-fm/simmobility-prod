@@ -76,232 +76,232 @@ DeveloperModel::~DeveloperModel() {
 
 void DeveloperModel::startImpl() {
 
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	bool resume = config.ltParams.resume;
-	simYear = config.ltParams.year;
-	minLotSize= config.ltParams.developerModel.minLotSize;
-	bool initLoading = config.ltParams.initialLoading;
-	DB_Config dbConfig(LT_DB_CONFIG_FILE);
-	dbConfig.load();
-	// Connect to database and load data for this model.
-	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-	conn.setSchema(config.schemas.main_schema);
-	conn.connect();
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    bool resume = config.ltParams.resume;
+    simYear = config.ltParams.year;
+    minLotSize= config.ltParams.developerModel.minLotSize;
+    bool initLoading = config.ltParams.initialLoading;
+    DB_Config dbConfig(LT_DB_CONFIG_FILE);
+    dbConfig.load();
+    // Connect to database and load data for this model.
+    DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+    conn.setSchema(config.schemas.main_schema);
+    conn.connect();
 
-	DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
-	conn_calibration.setSchema(config.schemas.calibration_schema);
-	conn_calibration.connect();
+    DB_Connection conn_calibration(sim_mob::db::POSTGRES, dbConfig);
+    conn_calibration.setSchema(config.schemas.calibration_schema);
+    conn_calibration.connect();
 
-	const std::string parcelTable = config.ltParams.scenario.parcelsTable;
-	const std::string scenarioSchema = config.ltParams.scenario.scenarioSchema;
+    const std::string parcelTable = config.ltParams.scenario.parcelsTable;
+    const std::string scenarioSchema = config.ltParams.scenario.scenarioSchema;
 
-	//config the db connection based on the scenario.
-	DB_Connection conn_scenario(sim_mob::db::POSTGRES, dbConfig);
-	conn_scenario.setSchema(scenarioSchema);
-	conn_scenario.connect();
+    //config the db connection based on the scenario.
+    DB_Connection conn_scenario(sim_mob::db::POSTGRES, dbConfig);
+    conn_scenario.setSchema(scenarioSchema);
+    conn_scenario.connect();
 
-	if (conn.isConnected())
-	{
-		ParcelsWithHDB *HDB_Parcel = nullptr;
-		if(initLoading)
-		{
-			loadData<ParcelsWithHDBDao>(conn,parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
-			PrintOutV("Parcels with HDB loaded " << parcelsWithHDB.size() << std::endl);
-			HDB_Parcel->saveParcelsWithHDB(parcelsWithHDB,"parcelsWithHDB");
-		}
+    if (conn.isConnected())
+    {
+        ParcelsWithHDB *HDB_Parcel = nullptr;
+        if(initLoading)
+        {
+            loadData<ParcelsWithHDBDao>(conn,parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
+            PrintOutV("Parcels with HDB loaded " << parcelsWithHDB.size() << std::endl);
+            HDB_Parcel->saveParcelsWithHDB(parcelsWithHDB,"parcelsWithHDB");
+        }
 
-		if(!initLoading)
-		{
-			parcelsWithHDB = HDB_Parcel->loadSerializedData();
-			indexData(parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
-			PrintOutV("parcelsWithHDB loaded from disk"<<parcelsWithHDB.size() << std::endl );
-		}
+        if(!initLoading)
+        {
+            parcelsWithHDB = HDB_Parcel->loadSerializedData();
+            indexData(parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
+            PrintOutV("parcelsWithHDB loaded from disk"<<parcelsWithHDB.size() << std::endl );
+        }
 
-		//Load developers
-		//loadData<DeveloperDao>(conn, developers);
-		//Load templates
-		loadData<TemplateDao>(conn, templates);
-		//Load parcels
-		loadData<ParcelDao>(conn_scenario, parcelTable, initParcelList, parcelsById, &Parcel::getId);
-		ParcelDao parcelDao(conn,parcelTable);
-		emptyParcels = parcelDao.getEmptyParcels();
-		//Index all empty parcels.
-		for (ParcelList::iterator it = emptyParcels.begin(); it != emptyParcels.end(); it++) {
-			emptyParcelsById.insert(std::make_pair((*it)->getId(), *it));
-		}
+        //Load developers
+        //loadData<DeveloperDao>(conn, developers);
+        //Load templates
+        loadData<TemplateDao>(conn, templates);
+        //Load parcels
+        loadData<ParcelDao>(conn_scenario, parcelTable, initParcelList, parcelsById, &Parcel::getId);
+        ParcelDao parcelDao(conn,parcelTable);
+        emptyParcels = parcelDao.getEmptyParcels();
+        //Index all empty parcels.
+        for (ParcelList::iterator it = emptyParcels.begin(); it != emptyParcels.end(); it++) {
+            emptyParcelsById.insert(std::make_pair((*it)->getId(), *it));
+        }
 
-		freeholdParcels = parcelDao.getFreeholdParcels();
-		//Index all freehold parcels.
-		for (ParcelList::iterator it = freeholdParcels.begin(); it != freeholdParcels.end(); it++) {
-			freeholdParcelsById.insert(std::make_pair((*it)->getId(), *it));
-		}
+        freeholdParcels = parcelDao.getFreeholdParcels();
+        //Index all freehold parcels.
+        for (ParcelList::iterator it = freeholdParcels.begin(); it != freeholdParcels.end(); it++) {
+            freeholdParcelsById.insert(std::make_pair((*it)->getId(), *it));
+        }
 
-		PostcodeDao postcodeDao(conn);
-		postcodes = postcodeDao.getPostcodeByTaz();
-		for (PostcodeList::iterator it = postcodes.begin(); it != postcodes.end(); it++) {
-			postcodeByTaz.insert(std::make_pair((*it)->getTazId(), *it));
-		}
-		//load DevelopmentType-Templates
-		loadData<DevelopmentTypeTemplateDao>(conn, developmentTypeTemplates);
-		//load Template - UnitType
-		loadData<TemplateUnitTypeDao>(conn, templateUnitTypes);
-		//load the unit types
-		loadData<UnitTypeDao>(conn, unitTypes, unitTypeById,&UnitType::getId);
-		//load buildings
-		loadData<BuildingDao>(conn,buildings);
+        PostcodeDao postcodeDao(conn);
+        postcodes = postcodeDao.getPostcodeByTaz();
+        for (PostcodeList::iterator it = postcodes.begin(); it != postcodes.end(); it++) {
+            postcodeByTaz.insert(std::make_pair((*it)->getTazId(), *it));
+        }
+        //load DevelopmentType-Templates
+        loadData<DevelopmentTypeTemplateDao>(conn, developmentTypeTemplates);
+        //load Template - UnitType
+        loadData<TemplateUnitTypeDao>(conn, templateUnitTypes);
+        //load the unit types
+        loadData<UnitTypeDao>(conn, unitTypes, unitTypeById,&UnitType::getId);
+        //load buildings
+        loadData<BuildingDao>(conn,buildings);
 
-		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
+        loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
 
-		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
+        loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
 
-		//commented as this is not used in 2012 now.
-		//loadData<LogsumForDevModelDao>(conn,accessibilityList,accessibilityByTazId,&LogsumForDevModel::gettAZ2012Id);
+        //commented as this is not used in 2012 now.
+        //loadData<LogsumForDevModelDao>(conn,accessibilityList,accessibilityByTazId,&LogsumForDevModel::gettAZ2012Id);
 
-		//loadData<TAO_Dao>(conn_calibration,taoList,taoByQuarterStr,&TAO::getQuarter);
-		//PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
-		loadTAO(conn_calibration);
+        //loadData<TAO_Dao>(conn_calibration,taoList,taoByQuarterStr,&TAO::getQuarter);
+        //PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
+        loadTAO(conn_calibration);
 
-		loadData<UnitPriceSumDao>(conn,unitPriceSumList,unitPriceSumByParcelId,&UnitPriceSum::getFmParcelId);
-		PrintOutV("unit price sums loaded " << unitPriceSumList.size() << std::endl);
+        loadData<UnitPriceSumDao>(conn,unitPriceSumList,unitPriceSumByParcelId,&UnitPriceSum::getFmParcelId);
+        PrintOutV("unit price sums loaded " << unitPriceSumList.size() << std::endl);
 
-		loadData<TazLevelLandPriceDao>(conn_calibration,tazLevelLandPriceList,tazLevelLandPriceByTazId,&TazLevelLandPrice::getTazId);
-		PrintOutV("land values loaded " << tazLevelLandPriceList.size() << std::endl);
+        loadData<TazLevelLandPriceDao>(conn_calibration,tazLevelLandPriceList,tazLevelLandPriceByTazId,&TazLevelLandPrice::getTazId);
+        PrintOutV("land values loaded " << tazLevelLandPriceList.size() << std::endl);
 
-		loadData<BuildingAvgAgePerParcelDao>(conn,buildingAvgAgePerParcel,BuildingAvgAgeByParceld,&BuildingAvgAgePerParcel::getFmParcelId);
-		PrintOutV("building average age per parcel loaded " << buildingAvgAgePerParcel.size() << std::endl);
-		loadData<ROILimitsDao>(conn_calibration,roiLimits,roiLimitsByDevTypeId,&ROILimits::getDevelopmentTypeId);
-		PrintOutV("roi limits loaded " << roiLimits.size() << std::endl);
+        loadData<BuildingAvgAgePerParcelDao>(conn,buildingAvgAgePerParcel,BuildingAvgAgeByParceld,&BuildingAvgAgePerParcel::getFmParcelId);
+        PrintOutV("building average age per parcel loaded " << buildingAvgAgePerParcel.size() << std::endl);
+        loadData<ROILimitsDao>(conn_calibration,roiLimits,roiLimitsByDevTypeId,&ROILimits::getDevelopmentTypeId);
+        PrintOutV("roi limits loaded " << roiLimits.size() << std::endl);
 
-		std::tm currentSimYear = getDateBySimDay(simYear,0);
-		UnitDao unitDao(conn);
-		if(config.ltParams.launchBTO)
-		{
-			btoUnits = unitDao.getBTOUnits(currentSimYear);
-		}
-		if(config.ltParams.launchPrivatePresale)
-		{
-			privatePresaleUnits = unitDao.getPrivatePresaleUnits();
-		}
-		//ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
+        std::tm currentSimYear = getDateBySimDay(simYear,0);
+        UnitDao unitDao(conn);
+        if(config.ltParams.launchBTO)
+        {
+            btoUnits = unitDao.getBTOUnits(currentSimYear);
+        }
+        if(config.ltParams.launchPrivatePresale)
+        {
+            privatePresaleUnits = unitDao.getPrivatePresaleUnits();
+        }
+        //ongoingBtoUnits = unitDao.getOngoingBTOUnits(currentSimYear);
 
-		setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
+        setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 
-		if(resume)
-		{
-			outputSchema = config.schemas.main_schema;
-			SimulationStoppedPointDao simStoppedPointDao(conn);
-			const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema +"simulation_stopped_point;";
-			simStoppedPointDao.getByQuery(getAllSimStoppedPointParams,simStoppedPointList);
-			if(!simStoppedPointList.empty())
-			{
-				postcodeForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getPostcode();
-				unitIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getUnitId();
-				buildingIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getBuildingId();
-				projectIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getProjectId();
-			}
+        if(resume)
+        {
+            outputSchema = config.schemas.main_schema;
+            SimulationStoppedPointDao simStoppedPointDao(conn);
+            const std::string getAllSimStoppedPointParams = "SELECT * FROM " + outputSchema +"simulation_stopped_point;";
+            simStoppedPointDao.getByQuery(getAllSimStoppedPointParams,simStoppedPointList);
+            if(!simStoppedPointList.empty())
+            {
+                postcodeForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getPostcode();
+                unitIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getUnitId();
+                buildingIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getBuildingId();
+                projectIdForDevAgent = simStoppedPointList[simStoppedPointList.size()-1]->getProjectId();
+            }
 
-			parcelsWithOngoingProjects = parcelDao.getParcelsWithOngoingProjects(config.schemas.main_schema);
-			//Index all parcels with ongoing projects.
-			for (ParcelList::iterator it = parcelsWithOngoingProjects.begin(); it != parcelsWithOngoingProjects.end(); it++) {
-				parcelsWithOngoingProjectsById.insert(std::make_pair((*it)->getId(), *it));
-			}
+            parcelsWithOngoingProjects = parcelDao.getParcelsWithOngoingProjects(config.schemas.main_schema);
+            //Index all parcels with ongoing projects.
+            for (ParcelList::iterator it = parcelsWithOngoingProjects.begin(); it != parcelsWithOngoingProjects.end(); it++) {
+                parcelsWithOngoingProjectsById.insert(std::make_pair((*it)->getId(), *it));
+            }
 
-			//load projects
-			ProjectDao projectDao(conn);
-			projects = projectDao.loadOngoingProjects(config.schemas.main_schema);
-			for (ProjectList::iterator it = projects.begin(); it != projects.end(); it++) {
-				existingProjectIds.push_back((*it)->getProjectId());
-				projectByParcelId.insert(std::make_pair((*it)->getParcelId(),*it));
-			}
+            //load projects
+            ProjectDao projectDao(conn);
+            projects = projectDao.loadOngoingProjects(config.schemas.main_schema);
+            for (ProjectList::iterator it = projects.begin(); it != projects.end(); it++) {
+                existingProjectIds.push_back((*it)->getProjectId());
+                projectByParcelId.insert(std::make_pair((*it)->getParcelId(),*it));
+            }
 
-			PrintOutV("Total number of projects loaded from previous run: "<<existingProjectIds.size()<<std::endl);
-			PrintOutV("Total number of parcels with ongoing projects: "<<parcelsWithOngoingProjects.size()<<std::endl);
-		}
-		else
-		{
-			postcodeForDevAgent = config.ltParams.developerModel.initialPostcode;
-			unitIdForDevAgent = config.ltParams.developerModel.initialUnitId;
-			buildingIdForDevAgent = config.ltParams.developerModel.initialBuildingId;
-			projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
-		}
+            PrintOutV("Total number of projects loaded from previous run: "<<existingProjectIds.size()<<std::endl);
+            PrintOutV("Total number of parcels with ongoing projects: "<<parcelsWithOngoingProjects.size()<<std::endl);
+        }
+        else
+        {
+            postcodeForDevAgent = config.ltParams.developerModel.initialPostcode;
+            unitIdForDevAgent = config.ltParams.developerModel.initialUnitId;
+            buildingIdForDevAgent = config.ltParams.developerModel.initialBuildingId;
+            projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
+        }
 
-		loadHedonicCoeffs(conn);
-		loadPrivateLagT(conn);
-		loadHedonicLogsums(conn);
-		loadHedonicCoeffsByUnitType(conn);
-		loadTaoByUnitType(conn);
-		loadPrivateLagTByUT(conn);
-	}
-
-
-
-	PrintOutV("minLotSize"<<minLotSize<<std::endl);
-	Parcel *parcel = nullptr;
-	if(initLoading)
-	{
-		processParcels();
-		PrintOutV("Parcels processed"<<std::endl);
-		parcel->saveData(developmentCandidateParcelList,"developmentCandidateParcelList");
-		parcel->saveData(parcelsWithProjectsList,"parcelsWithProjectsList");
-		parcel->saveData(parcelsWithDay0Projects,"parcelsWithDay0Projects");
-	}
-	else
-	{
-		developmentCandidateParcelList = parcel->loadSerializedData("developmentCandidateParcelList");
-		parcelsWithProjectsList = parcel->loadSerializedData("parcelsWithProjectsList");
-		parcelsWithDay0Projects  = parcel->loadSerializedData("parcelsWithDay0Projects");
+        loadHedonicCoeffs(conn);
+        loadPrivateLagT(conn);
+        loadHedonicLogsums(conn);
+        loadHedonicCoeffsByUnitType(conn);
+        loadTaoByUnitType(conn);
+        loadPrivateLagTByUT(conn);
+    }
 
 
-	}
 
-	createDeveloperAgents(developmentCandidateParcelList,false,false);
-	createDeveloperAgents(parcelsWithProjectsList,true,false);
-	createDeveloperAgents(parcelsWithDay0Projects,false,true);
-	PrintOutV("Created dev agents"<<std::endl);
-	if(config.ltParams.launchBTO)
-	{
-		createBTODeveloperAgents();
-	}
-	if(config.ltParams.launchPrivatePresale)
-	{
-		createPrivatePresaleDeveloperAgents();
-	}
-	wakeUpDeveloperAgents(getDeveloperAgents());
-	PrintOutV("Wokeup dev agents"<<std::endl);
+    PrintOutV("minLotSize"<<minLotSize<<std::endl);
+    Parcel *parcel = nullptr;
+    if(initLoading)
+    {
+        processParcels();
+        PrintOutV("Parcels processed"<<std::endl);
+        parcel->saveData(developmentCandidateParcelList,"developmentCandidateParcelList");
+        parcel->saveData(parcelsWithProjectsList,"parcelsWithProjectsList");
+        parcel->saveData(parcelsWithDay0Projects,"parcelsWithDay0Projects");
+    }
+    else
+    {
+        developmentCandidateParcelList = parcel->loadSerializedData("developmentCandidateParcelList");
+        parcelsWithProjectsList = parcel->loadSerializedData("parcelsWithProjectsList");
+        parcelsWithDay0Projects  = parcel->loadSerializedData("parcelsWithDay0Projects");
 
-	PrintOutV("Time Interval " << timeInterval << std::endl);
-	PrintOutV("Initial Developers " << developers.size() << std::endl);
-	PrintOutV("Initial Templates " << templates.size() << std::endl);
-	PrintOutV("Initial Parcels " << initParcelList.size() << std::endl);
-	PrintOutV("Initial DevelopmentTypeTemplates " << developmentTypeTemplates.size() << std::endl);
-	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
-	PrintOutV("Parcel Amenities " << parcelsWithHDB.size() << std::endl);
-	PrintOutV("BTO units " << btoUnits.size() << std::endl);
-	PrintOutV("Private presale units " << privatePresaleUnits.size() << std::endl);
-	PrintOutV("Parcels with units to launch on Day 0 " << parcelsWithDay0Projects.size() << std::endl);
 
-	addMetadata("Time Interval", timeInterval);
-	addMetadata("Initial Developers", developers.size());
-	addMetadata("Initial Templates", templates.size());
-	addMetadata("Initial Parcels", initParcelList.size());
-	addMetadata("Initial DevelopmentTypeTemplates",developmentTypeTemplates.size());
-	PrintOutV("Initial Developer Agents"<< developmentCandidateParcelList.size() << std::endl );
-	PrintOut("total eligible parcels"<<developmentCandidateParcelList.size()<< std::endl);
+    }
+
+    createDeveloperAgents(developmentCandidateParcelList,false,false);
+    createDeveloperAgents(parcelsWithProjectsList,true,false);
+    createDeveloperAgents(parcelsWithDay0Projects,false,true);
+    PrintOutV("Created dev agents"<<std::endl);
+    if(config.ltParams.launchBTO)
+    {
+        createBTODeveloperAgents();
+    }
+    if(config.ltParams.launchPrivatePresale)
+    {
+        createPrivatePresaleDeveloperAgents();
+    }
+    wakeUpDeveloperAgents(getDeveloperAgents());
+    PrintOutV("Wokeup dev agents"<<std::endl);
+
+    PrintOutV("Time Interval " << timeInterval << std::endl);
+    PrintOutV("Initial Developers " << developers.size() << std::endl);
+    PrintOutV("Initial Templates " << templates.size() << std::endl);
+    PrintOutV("Initial Parcels " << initParcelList.size() << std::endl);
+    PrintOutV("Initial DevelopmentTypeTemplates " << developmentTypeTemplates.size() << std::endl);
+    PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
+    PrintOutV("Parcel Amenities " << parcelsWithHDB.size() << std::endl);
+    PrintOutV("BTO units " << btoUnits.size() << std::endl);
+    PrintOutV("Private presale units " << privatePresaleUnits.size() << std::endl);
+    PrintOutV("Parcels with units to launch on Day 0 " << parcelsWithDay0Projects.size() << std::endl);
+
+    addMetadata("Time Interval", timeInterval);
+    addMetadata("Initial Developers", developers.size());
+    addMetadata("Initial Templates", templates.size());
+    addMetadata("Initial Parcels", initParcelList.size());
+    addMetadata("Initial DevelopmentTypeTemplates",developmentTypeTemplates.size());
+    PrintOutV("Initial Developer Agents"<< developmentCandidateParcelList.size() << std::endl );
+    PrintOut("total eligible parcels"<<developmentCandidateParcelList.size()<< std::endl);
 }
 
 void DeveloperModel::stopImpl() {
 
-	parcelsById.clear();
-	emptyParcelsById.clear();
-	parcelsById.clear();
-	amenitiesById.clear();
-	macroEconomicsById.clear();
-	parcelsWithHDB_ById.clear();
-	taoByQuarterStr.clear();
+    parcelsById.clear();
+    emptyParcelsById.clear();
+    parcelsById.clear();
+    amenitiesById.clear();
+    macroEconomicsById.clear();
+    parcelsWithHDB_ById.clear();
+    taoByQuarterStr.clear();
 
-	clear_delete_vector(templates);
-	clear_delete_vector(developmentTypeTemplates);
-	clear_delete_vector(templateUnitTypes);
+    clear_delete_vector(templates);
+    clear_delete_vector(developmentTypeTemplates);
+    clear_delete_vector(templateUnitTypes);
     clear_delete_vector(initParcelList);
     clear_delete_vector(existingProjectIds);
     clear_delete_vector(amenities);
@@ -325,7 +325,7 @@ Parcel* DeveloperModel::getParcelById(BigSerial id) const {
 }
 
 const UnitType* DeveloperModel::getUnitTypeById(BigSerial id) const {
-	UnitTypeMap::const_iterator itr = unitTypeById.find(id);
+    UnitTypeMap::const_iterator itr = unitTypeById.find(id);
     if (itr != unitTypeById.end())
     {
         return itr->second;
@@ -345,42 +345,42 @@ const ParcelAmenities* DeveloperModel::getAmenitiesById(BigSerial fmParcelId) co
 
 const MacroEconomics* DeveloperModel::getMacroEconById(BigSerial id) const {
 
-	MacroEconomicsMap::const_iterator itr = macroEconomicsById.find(id);
-		if (itr != macroEconomicsById.end())
-	    {
-			return itr->second;
-	    }
-	    return nullptr;
+    MacroEconomicsMap::const_iterator itr = macroEconomicsById.find(id);
+        if (itr != macroEconomicsById.end())
+        {
+            return itr->second;
+        }
+        return nullptr;
 }
 
 const LogsumForDevModel* DeveloperModel::getAccessibilityLogsumsByTAZId(BigSerial fmParcelId) const
 {
-	AccessibilityLogsumMap::const_iterator itr = accessibilityByTazId.find(fmParcelId);
-	if (itr != accessibilityByTazId.end())
-	{
-		return itr->second;
-	}
-	return nullptr;
+    AccessibilityLogsumMap::const_iterator itr = accessibilityByTazId.find(fmParcelId);
+    if (itr != accessibilityByTazId.end())
+    {
+        return itr->second;
+    }
+    return nullptr;
 }
 
 const ParcelsWithHDB* DeveloperModel::getParcelsWithHDB_ByParcelId(BigSerial fmParcelId) const
 {
-	ParcelsWithHDBMap::const_iterator itr = parcelsWithHDB_ById.find(fmParcelId);
-	if (itr != parcelsWithHDB_ById.end())
-	{
-		return itr->second;
-	}
-	return nullptr;
+    ParcelsWithHDBMap::const_iterator itr = parcelsWithHDB_ById.find(fmParcelId);
+    if (itr != parcelsWithHDB_ById.end())
+    {
+        return itr->second;
+    }
+    return nullptr;
 }
 
 const TAO* DeveloperModel::getTaoByQuarter(std::string& quarterStr)
 {
-	TAOMap::const_iterator itr = taoByQuarterStr.find(quarterStr);
-		if (itr != taoByQuarterStr.end())
-		{
-			return itr->second;
-		}
-		return nullptr;
+    TAOMap::const_iterator itr = taoByQuarterStr.find(quarterStr);
+        if (itr != taoByQuarterStr.end())
+        {
+            return itr->second;
+        }
+        return nullptr;
 }
 
 const DeveloperModel::DevelopmentTypeTemplateList& DeveloperModel::getDevelopmentTypeTemplates() const {
@@ -394,333 +394,333 @@ const DeveloperModel::TemplateUnitTypeList& DeveloperModel::getTemplateUnitType(
 void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList, bool onGoingProject, bool day0Project)
 {
 
-	if (!devCandidateParcelList.empty()) {
-		for (size_t i = 0; i < devCandidateParcelList.size(); i++)
-		{
-			if (devCandidateParcelList[i] != nullptr)
-			{
-				boost::shared_ptr<Parcel> parcelToDevelop (new Parcel(*devCandidateParcelList[i]));
-				DeveloperAgent* devAgent = new DeveloperAgent(parcelToDevelop, this);
-				AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
-				RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
-				devAgent->setRealEstateAgent(realEstateAgent);
-				devAgent->setPostcode(getPostcodeForDeveloperAgent());
-				devAgent->setHousingMarketModel(housingMarketModel);
-				devAgent->setSimYear(simYear);
+    if (!devCandidateParcelList.empty()) {
+        for (size_t i = 0; i < devCandidateParcelList.size(); i++)
+        {
+            if (devCandidateParcelList[i] != nullptr)
+            {
+                boost::shared_ptr<Parcel> parcelToDevelop (new Parcel(*devCandidateParcelList[i]));
+                DeveloperAgent* devAgent = new DeveloperAgent(parcelToDevelop, this);
+                AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
+                RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
+                devAgent->setRealEstateAgent(realEstateAgent);
+                devAgent->setPostcode(getPostcodeForDeveloperAgent());
+                devAgent->setHousingMarketModel(housingMarketModel);
+                devAgent->setSimYear(simYear);
 
-				if(onGoingProject|| day0Project)
-				{
-					std::tm currentSimYear = getDateBySimDay(simYear,0);
-					DB_Config dbConfig(LT_DB_CONFIG_FILE);
-					dbConfig.load();
-					// Connect to database
-					DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-					conn.connect();
-					if(onGoingProject)
-					{
-						std::tm currentSimYear = getDateBySimDay(simYear,0);
-						DB_Config dbConfig(LT_DB_CONFIG_FILE);
-						dbConfig.load();
-						// Connect to database
-						DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-						conn.connect();
-						if(onGoingProject)
-						{
-							devAgent->setParcelDBStatus(true);
-							Project *project = getProjectByParcelId(devCandidateParcelList[i]->getId());
-							if(project != nullptr)
-							{
-								boost::shared_ptr<Project> projectPtr (new Project(*project));
-								devAgent->setProject(projectPtr);
-								projectPtr->setCurrTick(startDay);
-								devAgent->getParcel().get()->setStatus(1);
-							}
+                if(onGoingProject|| day0Project)
+                {
+                    std::tm currentSimYear = getDateBySimDay(simYear,0);
+                    DB_Config dbConfig(LT_DB_CONFIG_FILE);
+                    dbConfig.load();
+                    // Connect to database
+                    DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+                    conn.connect();
+                    if(onGoingProject)
+                    {
+                        std::tm currentSimYear = getDateBySimDay(simYear,0);
+                        DB_Config dbConfig(LT_DB_CONFIG_FILE);
+                        dbConfig.load();
+                        // Connect to database
+                        DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+                        conn.connect();
+                        if(onGoingProject)
+                        {
+                            devAgent->setParcelDBStatus(true);
+                            Project *project = getProjectByParcelId(devCandidateParcelList[i]->getId());
+                            if(project != nullptr)
+                            {
+                                boost::shared_ptr<Project> projectPtr (new Project(*project));
+                                devAgent->setProject(projectPtr);
+                                projectPtr->setCurrTick(startDay);
+                                devAgent->getParcel().get()->setStatus(1);
+                            }
 
-							BuildingList buildingsInOngoingProjects;
+                            BuildingList buildingsInOngoingProjects;
 
-							if (conn.isConnected())
-							{
-								BuildingDao buildingDao(conn);
-								buildingsInOngoingProjects = buildingDao.getBuildingsByParcelId(devCandidateParcelList[i]->getId(),outputSchema);
-							}
+                            if (conn.isConnected())
+                            {
+                                BuildingDao buildingDao(conn);
+                                buildingsInOngoingProjects = buildingDao.getBuildingsByParcelId(devCandidateParcelList[i]->getId(),outputSchema);
+                            }
 
-							std::vector< boost::shared_ptr<Building> > buildingsInOngoingProjectsSharedVec;
-							buildingsInOngoingProjectsSharedVec.reserve(buildingsInOngoingProjects.size());
-							std::transform(buildingsInOngoingProjects.begin(), buildingsInOngoingProjects.end(), std::back_inserter(buildingsInOngoingProjectsSharedVec),to_shared_ptr<Building>);
-							buildingsInOngoingProjects.clear();
-							devAgent->setNewBuildings(buildingsInOngoingProjectsSharedVec);
+                            std::vector< boost::shared_ptr<Building> > buildingsInOngoingProjectsSharedVec;
+                            buildingsInOngoingProjectsSharedVec.reserve(buildingsInOngoingProjects.size());
+                            std::transform(buildingsInOngoingProjects.begin(), buildingsInOngoingProjects.end(), std::back_inserter(buildingsInOngoingProjectsSharedVec),to_shared_ptr<Building>);
+                            buildingsInOngoingProjects.clear();
+                            devAgent->setNewBuildings(buildingsInOngoingProjectsSharedVec);
 
-							std::vector<Unit*> unitsInOngoingProjects;
-							UnitDao unitDao(conn);
-							BuildingList::iterator buildingsItr;
-							for(buildingsItr = buildingsInOngoingProjects.begin(); buildingsItr != buildingsInOngoingProjects.end(); ++buildingsItr)
-							{
-								//TODO:: currently there is only one building with all the new units assigned to it. have to revisit this when there are multiple buildings.
-								unitsInOngoingProjects = unitDao.getUnitsByBuildingId((*buildingsItr)->getFmBuildingId(),outputSchema);
-							}
+                            std::vector<Unit*> unitsInOngoingProjects;
+                            UnitDao unitDao(conn);
+                            BuildingList::iterator buildingsItr;
+                            for(buildingsItr = buildingsInOngoingProjects.begin(); buildingsItr != buildingsInOngoingProjects.end(); ++buildingsItr)
+                            {
+                                //TODO:: currently there is only one building with all the new units assigned to it. have to revisit this when there are multiple buildings.
+                                unitsInOngoingProjects = unitDao.getUnitsByBuildingId((*buildingsItr)->getFmBuildingId(),outputSchema);
+                            }
 
-							std::vector< boost::shared_ptr<Unit> > unitsInOngoingProjectsSharedVec;
-							unitsInOngoingProjectsSharedVec.reserve(unitsInOngoingProjects.size());
-							std::transform(unitsInOngoingProjects.begin(), unitsInOngoingProjects.end(), std::back_inserter(unitsInOngoingProjectsSharedVec),to_shared_ptr<Unit>);
-							unitsInOngoingProjects.clear();
-							devAgent->setNewUnits(unitsInOngoingProjectsSharedVec);
-						}
-						else if(day0Project)
-						{
-							if (conn.isConnected())
-							{
-								UnitDao unitDao(conn);
-								std::tm lastDayOfCurrentSimYear = getDateBySimDay(simYear,364);
-								UnitList unitsOnDay0 = unitDao.loadUnitsToLaunchOnDay0(currentSimYear,lastDayOfCurrentSimYear,devCandidateParcelList[i]->getId());
-								std::vector< boost::shared_ptr<Unit> > unitsOnDay0SharedVec;
-								unitsOnDay0SharedVec.reserve(unitsOnDay0.size());
-								std::transform(unitsOnDay0.begin(), unitsOnDay0.end(), std::back_inserter(unitsOnDay0SharedVec),to_shared_ptr<Unit>);
-								unitsOnDay0.clear();
-								devAgent->setNewUnits(unitsOnDay0SharedVec);
-								devAgent->setIsDay0Project(true);
+                            std::vector< boost::shared_ptr<Unit> > unitsInOngoingProjectsSharedVec;
+                            unitsInOngoingProjectsSharedVec.reserve(unitsInOngoingProjects.size());
+                            std::transform(unitsInOngoingProjects.begin(), unitsInOngoingProjects.end(), std::back_inserter(unitsInOngoingProjectsSharedVec),to_shared_ptr<Unit>);
+                            unitsInOngoingProjects.clear();
+                            devAgent->setNewUnits(unitsInOngoingProjectsSharedVec);
+                        }
+                        else if(day0Project)
+                        {
+                            if (conn.isConnected())
+                            {
+                                UnitDao unitDao(conn);
+                                std::tm lastDayOfCurrentSimYear = getDateBySimDay(simYear,364);
+                                UnitList unitsOnDay0 = unitDao.loadUnitsToLaunchOnDay0(currentSimYear,lastDayOfCurrentSimYear,devCandidateParcelList[i]->getId());
+                                std::vector< boost::shared_ptr<Unit> > unitsOnDay0SharedVec;
+                                unitsOnDay0SharedVec.reserve(unitsOnDay0.size());
+                                std::transform(unitsOnDay0.begin(), unitsOnDay0.end(), std::back_inserter(unitsOnDay0SharedVec),to_shared_ptr<Unit>);
+                                unitsOnDay0.clear();
+                                devAgent->setNewUnits(unitsOnDay0SharedVec);
+                                devAgent->setIsDay0Project(true);
 
-							}
+                            }
 
-							Project *project = new Project();
-							project->setParcelId(devCandidateParcelList[i]->getId());
-							boost::shared_ptr<Project> projectPtr (new Project(*project));
-							devAgent->setProject(projectPtr);
-							projectPtr->setCurrTick(startDay);
-							devAgent->getParcel().get()->setStatus(1);
-						}
+                            Project *project = new Project();
+                            project->setParcelId(devCandidateParcelList[i]->getId());
+                            boost::shared_ptr<Project> projectPtr (new Project(*project));
+                            devAgent->setProject(projectPtr);
+                            projectPtr->setCurrTick(startDay);
+                            devAgent->getParcel().get()->setStatus(1);
+                        }
 
-						agents.push_back(devAgent);
-					}
-				}
+                        agents.push_back(devAgent);
+                    }
+                }
 
-				workGroup.assignAWorker(devAgent);
-				if((!onGoingProject) && (!day0Project))
-				{
-					developers.push_back(devAgent);
-				}
-			}
-			else
-			{
-				throw runtime_error("Invalid parcel.");
-			}
-		}
-	}
+                workGroup.assignAWorker(devAgent);
+                if((!onGoingProject) && (!day0Project))
+                {
+                    developers.push_back(devAgent);
+                }
+            }
+            else
+            {
+                throw runtime_error("Invalid parcel.");
+            }
+        }
+    }
 
 }
 
 void DeveloperModel::createBTODeveloperAgents()
 {
 
-	DeveloperAgent* devAgent = new DeveloperAgent(nullptr, this);
-	AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
-	RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
-	devAgent->setRealEstateAgent(realEstateAgent);
-	devAgent->setHousingMarketModel(housingMarketModel);
-	devAgent->setSimYear(simYear);
-	devAgent->setHasBto(true);
-	devAgent->setActive(true);
-	agents.push_back(devAgent);
-	developers.push_back(devAgent);
-	workGroup.assignAWorker(devAgent);
+    DeveloperAgent* devAgent = new DeveloperAgent(nullptr, this);
+    AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
+    RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
+    devAgent->setRealEstateAgent(realEstateAgent);
+    devAgent->setHousingMarketModel(housingMarketModel);
+    devAgent->setSimYear(simYear);
+    devAgent->setHasBto(true);
+    devAgent->setActive(true);
+    agents.push_back(devAgent);
+    developers.push_back(devAgent);
+    workGroup.assignAWorker(devAgent);
 }
 
 void DeveloperModel::createPrivatePresaleDeveloperAgents()
 {
-	DeveloperAgent* devAgent = new DeveloperAgent(nullptr, this);
-	AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
-	RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
-	devAgent->setRealEstateAgent(realEstateAgent);
-	devAgent->setHousingMarketModel(housingMarketModel);
-	devAgent->setSimYear(simYear);
-	devAgent->setHasPrivatePresale(true);
-	devAgent->setActive(true);
-	agents.push_back(devAgent);
-	developers.push_back(devAgent);
-	workGroup.assignAWorker(devAgent);
+    DeveloperAgent* devAgent = new DeveloperAgent(nullptr, this);
+    AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
+    RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
+    devAgent->setRealEstateAgent(realEstateAgent);
+    devAgent->setHousingMarketModel(housingMarketModel);
+    devAgent->setSimYear(simYear);
+    devAgent->setHasPrivatePresale(true);
+    devAgent->setActive(true);
+    agents.push_back(devAgent);
+    developers.push_back(devAgent);
+    workGroup.assignAWorker(devAgent);
 
 }
 
 void DeveloperModel::wakeUpDeveloperAgents(DeveloperList devAgentList)
 {
-	for (size_t i = 0; i < devAgentList.size(); i++)
-	{
-		if (devAgentList[i])
-		{
-			devAgentList[i]->setActive(true);
-			devAgentCount++;
-		}
-		else
-		{
-			throw runtime_error("Developer Model: Must be a developer agent.");
-		}
-	}
+    for (size_t i = 0; i < devAgentList.size(); i++)
+    {
+        if (devAgentList[i])
+        {
+            devAgentList[i]->setActive(true);
+            devAgentCount++;
+        }
+        else
+        {
+            throw runtime_error("Developer Model: Must be a developer agent.");
+        }
+    }
 }
 
 void DeveloperModel::processParcels()
 {
-	/**
-	 *  Iterates over all developer parcels and
-	 *  get all potential projects.
-	 */
-	for (size_t i = 0; i < initParcelList.size(); i++)
-	{
-		Parcel* parcel = getParcelById(initParcelList[i]->getId());
+    /**
+     *  Iterates over all developer parcels and
+     *  get all potential projects.
+     */
+    for (size_t i = 0; i < initParcelList.size(); i++)
+    {
+        Parcel* parcel = getParcelById(initParcelList[i]->getId());
 
-		if (parcel)
-		{
-			//parcel has an ongoing project.
-			if(getParcelWithOngoingProjectById(parcel->getId())!= nullptr)
-			{
-				parcelsWithProjectsList.push_back(parcel);
-				writeNonEligibleParcelsToFile(parcel->getId(),"on going project");
-			}
-			else
-			{
-				if( parcel->getStatus()==1 )
-				{
-					parcelsWithDay0Projects.push_back(parcel);
-					#ifdef VERBOSE_DEVELOPER
-					writeNonEligibleParcelsToFile(parcel->getId(),"on going project");
-					#endif
-				}
-				/*
-				 * getDevelopmentAllowed()!=2 = "development not allowed"
-				 */
-				else if( (parcel->getDevelopmentAllowed()!=2) || (parcel->getLotSize()< minLotSize) || (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr))
-				{
-					nonEligibleParcelList.push_back(parcel);
-				}
-					else
-					{
-						//TODO:: consider the use_restriction field of parcel as well in the future
-						float allowdGpr = getAllowedGpr(*parcel);
-						if(allowdGpr > 0)
-						{
-						developmentCandidateParcelList.push_back(parcel);
+        if (parcel)
+        {
+            //parcel has an ongoing project.
+            if(getParcelWithOngoingProjectById(parcel->getId())!= nullptr)
+            {
+                parcelsWithProjectsList.push_back(parcel);
+                writeNonEligibleParcelsToFile(parcel->getId(),"on going project");
+            }
+            else
+            {
+                if( parcel->getStatus()==1 )
+                {
+                    parcelsWithDay0Projects.push_back(parcel);
+                    #ifdef VERBOSE_DEVELOPER
+                    writeNonEligibleParcelsToFile(parcel->getId(),"on going project");
+                    #endif
+                }
+                /*
+                 * getDevelopmentAllowed()!=2 = "development not allowed"
+                 */
+                else if( (parcel->getDevelopmentAllowed()!=2) || (parcel->getLotSize()< minLotSize) || (getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr))
+                {
+                    nonEligibleParcelList.push_back(parcel);
+                }
+                    else
+                    {
+                        //TODO:: consider the use_restriction field of parcel as well in the future
+                        float allowdGpr = getAllowedGpr(*parcel);
+                        if(allowdGpr > 0)
+                        {
+                        developmentCandidateParcelList.push_back(parcel);
 
-							int newDevelopment = 0;
-							if(isEmptyParcel(parcel->getId()))
-							{
-								newDevelopment = 1;
-							}
-							#ifdef VERBOSE_DEVELOPER
-							writeEligibleParcelsToFile(parcel->getId(),newDevelopment);
-							#endif
-							devCandidateParcelsById.insert(std::make_pair(parcel->getId(), parcel));
-						}
-						else
-						{
-							nonEligibleParcelList.push_back(parcel);
-							#ifdef VERBOSE_DEVELOPER
-							writeNonEligibleParcelsToFile(parcel->getId(),"parcel gpr is not present");
-							#endif
-						}
+                            int newDevelopment = 0;
+                            if(isEmptyParcel(parcel->getId()))
+                            {
+                                newDevelopment = 1;
+                            }
+                            #ifdef VERBOSE_DEVELOPER
+                            writeEligibleParcelsToFile(parcel->getId(),newDevelopment);
+                            #endif
+                            devCandidateParcelsById.insert(std::make_pair(parcel->getId(), parcel));
+                        }
+                        else
+                        {
+                            nonEligibleParcelList.push_back(parcel);
+                            #ifdef VERBOSE_DEVELOPER
+                            writeNonEligibleParcelsToFile(parcel->getId(),"parcel gpr is not present");
+                            #endif
+                        }
 
-					}
-				}
+                    }
+                }
 
-			}
-		}
+            }
+        }
 }
 
 void DeveloperModel::processProjects()
 {
 
-	ProjectList::iterator projectsItr;
-	for(projectsItr = projects.begin(); projectsItr != this->projects.end(); projectsItr++)
-	{
-		//check whether the project's last planned date is older than 90 days; current date is assumed to be 01/01/2008.
-		if((*projectsItr)->getPlannedDate().tm_year<simYear)
-		{
+    ProjectList::iterator projectsItr;
+    for(projectsItr = projects.begin(); projectsItr != this->projects.end(); projectsItr++)
+    {
+        //check whether the project's last planned date is older than 90 days; current date is assumed to be 01/01/2008.
+        if((*projectsItr)->getPlannedDate().tm_year<simYear)
+        {
 
-		}
-		else if((*projectsItr)->getPlannedDate().tm_year==simYear)
-		{
-			if((*projectsItr)->getPlannedDate().tm_mon<10)
-			{
-				//project is older than 90 days;add it to the development candidate parcel list,if the parcel is not yet added.
-				if(getParcelById((*projectsItr)->getParcelId()) != nullptr)
-				{
-					developmentCandidateParcelList.push_back(getParcelById((*projectsItr)->getParcelId()));
-				}
+        }
+        else if((*projectsItr)->getPlannedDate().tm_year==simYear)
+        {
+            if((*projectsItr)->getPlannedDate().tm_mon<10)
+            {
+                //project is older than 90 days;add it to the development candidate parcel list,if the parcel is not yet added.
+                if(getParcelById((*projectsItr)->getParcelId()) != nullptr)
+                {
+                    developmentCandidateParcelList.push_back(getParcelById((*projectsItr)->getParcelId()));
+                }
 
-			}
-			//project is 90 days old; add it to the candidate parcel list; if it is not yet added.
-			else if((*projectsItr)->getPlannedDate().tm_mon==10)
-			{
-				if((*projectsItr)->getPlannedDate().tm_mday==1)
-				{
-					if(getParcelById((*projectsItr)->getParcelId()) != nullptr)
-					{
-						developmentCandidateParcelList.push_back(getParcelById((*projectsItr)->getParcelId()));
-					}
+            }
+            //project is 90 days old; add it to the candidate parcel list; if it is not yet added.
+            else if((*projectsItr)->getPlannedDate().tm_mon==10)
+            {
+                if((*projectsItr)->getPlannedDate().tm_mday==1)
+                {
+                    if(getParcelById((*projectsItr)->getParcelId()) != nullptr)
+                    {
+                        developmentCandidateParcelList.push_back(getParcelById((*projectsItr)->getParcelId()));
+                    }
 
-				}
-			}
-		}
+                }
+            }
+        }
 
-	}
+    }
 }
 
 DeveloperModel::DeveloperList DeveloperModel::getDeveloperAgents(){
 
-	const int poolSize = developers.size();
-	const float dailyParcelPercentage =  0.001; //we are examining 0.6% of the pool everyday
-	const int dailyAgentFraction = poolSize * dailyParcelPercentage;
-	std::set<int> indexes;
-	DeveloperList dailyDevAgents;
-	int max_index = developers.size() - 1;
+    const int poolSize = developers.size();
+    const float dailyParcelPercentage =  0.001; //we are examining 0.6% of the pool everyday
+    const int dailyAgentFraction = poolSize * dailyParcelPercentage;
+    std::set<int> indexes;
+    DeveloperList dailyDevAgents;
+    int max_index = developers.size() - 1;
 
-	for(unsigned int i = 0; i < dailyAgentFraction ; i++)
-	{
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_int_distribution<int> dis(0, max_index);
-		const unsigned int random_index = dis(gen);
-		if (indexes.find(random_index) == indexes.end())
-		{
-			if(!(developers[random_index]->isActive()))
-			{
-				dailyDevAgents.push_back(developers[random_index]);
-				indexes.insert(random_index);
-			}
-		}
-	}
-	return dailyDevAgents;
+    for(unsigned int i = 0; i < dailyAgentFraction ; i++)
+    {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<int> dis(0, max_index);
+        const unsigned int random_index = dis(gen);
+        if (indexes.find(random_index) == indexes.end())
+        {
+            if(!(developers[random_index]->isActive()))
+            {
+                dailyDevAgents.push_back(developers[random_index]);
+                indexes.insert(random_index);
+            }
+        }
+    }
+    return dailyDevAgents;
 
 }
 
 void DeveloperModel::setDays(int days)
 {
-	numSimulationDays = days;
+    numSimulationDays = days;
 }
 
 void DeveloperModel::reLoadZonesOnRuleChangeEvent()
 {
-	 //reload land use zones
-//	clear_delete_vector(zones);
-//	zonesById.clear();
-//	DB_Config dbConfig(LT_DB_CONFIG_FILE);
-//	dbConfig.load();
-//	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-//	conn.connect();
-//	if (conn.isConnected())
-//	{
-//		loadData<LandUseZoneDao>(conn, zones, zonesById, &LandUseZone::getId);
-//	}
+     //reload land use zones
+//  clear_delete_vector(zones);
+//  zonesById.clear();
+//  DB_Config dbConfig(LT_DB_CONFIG_FILE);
+//  dbConfig.load();
+//  DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+//  conn.connect();
+//  if (conn.isConnected())
+//  {
+//      loadData<LandUseZoneDao>(conn, zones, zonesById, &LandUseZone::getId);
+//  }
 }
 
 float DeveloperModel::getAllowedGpr(Parcel &parcel)
 {
-	if(parcel.getGpr().compare("EVA") == 0 || parcel.getGpr().compare("SDP") == 0 || parcel.getGpr().compare("LND") == 0)
-	{
-		return -1;
-	}
-	else
-	{
-		return atof(parcel.getGpr().c_str());
-	}
-		return -1;
+    if(parcel.getGpr().compare("EVA") == 0 || parcel.getGpr().compare("SDP") == 0 || parcel.getGpr().compare("LND") == 0)
+    {
+        return -1;
+    }
+    else
+    {
+        return atof(parcel.getGpr().c_str());
+    }
+        return -1;
 }
 
 const bool DeveloperModel::isEmptyParcel(BigSerial id) const {
@@ -733,146 +733,146 @@ const bool DeveloperModel::isEmptyParcel(BigSerial id) const {
 
 const int DeveloperModel::isFreeholdParcel(BigSerial id) const
 {
-	ParcelMap::const_iterator itr = freeholdParcelsById.find(id);
-	if (itr != freeholdParcelsById.end()) {
-		return true;
-	}
-	return false;
+    ParcelMap::const_iterator itr = freeholdParcelsById.find(id);
+    if (itr != freeholdParcelsById.end()) {
+        return true;
+    }
+    return false;
 }
 
 BigSerial DeveloperModel::getProjectIdForDeveloperAgent()
 {
-	{
-		boost::mutex::scoped_lock lock(projectIdLock);
-		return ++projectIdForDevAgent;
-	}
+    {
+        boost::mutex::scoped_lock lock(projectIdLock);
+        return ++projectIdForDevAgent;
+    }
 }
 
 BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 {
-	{
-		boost::mutex::scoped_lock lock( buildingIdLock );
-		if(!newBuildingIdList.empty())
-		{
-			BigSerial buildingId = newBuildingIdList.back();
-			//remove the last building Id in the list
-			newBuildingIdList.erase(newBuildingIdList.end()-1);
-			return buildingId;
-		}
-		else
-		{
-			 ++buildingIdForDevAgent;
-		}
-		return buildingIdForDevAgent;
-	}
+    {
+        boost::mutex::scoped_lock lock( buildingIdLock );
+        if(!newBuildingIdList.empty())
+        {
+            BigSerial buildingId = newBuildingIdList.back();
+            //remove the last building Id in the list
+            newBuildingIdList.erase(newBuildingIdList.end()-1);
+            return buildingId;
+        }
+        else
+        {
+             ++buildingIdForDevAgent;
+        }
+        return buildingIdForDevAgent;
+    }
 }
 
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()
 {
-	{
-		boost::mutex::scoped_lock lock( unitIdLock );
-		return ++unitIdForDevAgent;
-	}
+    {
+        boost::mutex::scoped_lock lock( unitIdLock );
+        return ++unitIdForDevAgent;
+    }
 }
 
 void DeveloperModel::setUnitId(BigSerial unitId)
 {
-	this->unitIdForDevAgent = unitId;
+    this->unitIdForDevAgent = unitId;
 }
 
 DeveloperModel::BuildingList DeveloperModel::getBuildings()
 {
-	return buildings;
+    return buildings;
 }
 
 void DeveloperModel::addNewBuildingId(BigSerial buildingId)
 {
-	newBuildingIdList.push_back(buildingId);
+    newBuildingIdList.push_back(buildingId);
 }
 
 int DeveloperModel::getSimYearForDevAgent()
 {
-	return this->simYear;
+    return this->simYear;
 }
 
 const RealEstateAgent* DeveloperModel::getRealEstateAgentForDeveloper()
 {
 
-	const RealEstateAgent* realEstateAgent = AgentsLookupSingleton::getInstance().getRealEstateAgentById(realEstateAgentIds[realEstateAgentIdIndex]);
-	if(realEstateAgentIdIndex >= (realEstateAgentIds.size() - 1))
-	{
-		realEstateAgentIdIndex = 0;
-	}
-	else
-	{
-		realEstateAgentIdIndex++;
-	}
-	return realEstateAgent;
+    const RealEstateAgent* realEstateAgent = AgentsLookupSingleton::getInstance().getRealEstateAgentById(realEstateAgentIds[realEstateAgentIdIndex]);
+    if(realEstateAgentIdIndex >= (realEstateAgentIds.size() - 1))
+    {
+        realEstateAgentIdIndex = 0;
+    }
+    else
+    {
+        realEstateAgentIdIndex++;
+    }
+    return realEstateAgent;
 
 }
 
 void DeveloperModel::setRealEstateAgentIds(std::vector<BigSerial> realEstateAgentIdVec)
 {
-	this->realEstateAgentIds = realEstateAgentIdVec;
+    this->realEstateAgentIds = realEstateAgentIdVec;
 }
 
 void DeveloperModel::setHousingMarketModel(HM_Model *housingModel)
 {
 
-	this->housingMarketModel = housingModel;
+    this->housingMarketModel = housingModel;
 }
 
 
 int DeveloperModel::getPostcodeForDeveloperAgent()
 {
-	{
-		boost::mutex::scoped_lock lock( postcodeLock);
-		if(initPostcode)
-		{
-			initPostcode = false;
-			return postcodeForDevAgent;
-		}
-		else
-		{
-			return ++postcodeForDevAgent;
-		}
-	}
+    {
+        boost::mutex::scoped_lock lock( postcodeLock);
+        if(initPostcode)
+        {
+            initPostcode = false;
+            return postcodeForDevAgent;
+        }
+        else
+        {
+            return ++postcodeForDevAgent;
+        }
+    }
 }
 
 const UnitPriceSum* DeveloperModel::getUnitPriceSumByParcelId(BigSerial fmParcelId) const
 {
-	UnitPriceSumMap::const_iterator itr = unitPriceSumByParcelId.find(fmParcelId);
-	if (itr != unitPriceSumByParcelId.end())
-	{
-		return itr->second;
-	}
-	return nullptr;
+    UnitPriceSumMap::const_iterator itr = unitPriceSumByParcelId.find(fmParcelId);
+    if (itr != unitPriceSumByParcelId.end())
+    {
+        return itr->second;
+    }
+    return nullptr;
 }
 
 const TazLevelLandPrice* DeveloperModel::getTazLevelLandPriceByTazId(BigSerial tazId) const
 {
-	TazLevelLandPriceMap::const_iterator itr = tazLevelLandPriceByTazId.find(tazId);
-	if (itr != tazLevelLandPriceByTazId.end())
-	{
-		return itr->second;
-	}
-	return nullptr;
+    TazLevelLandPriceMap::const_iterator itr = tazLevelLandPriceByTazId.find(tazId);
+    if (itr != tazLevelLandPriceByTazId.end())
+    {
+        return itr->second;
+    }
+    return nullptr;
 }
 
 const BuildingAvgAgePerParcel* DeveloperModel::getBuildingAvgAgeByParcelId(const BigSerial fmParcelId) const
 {
-	BuildingAvgAgePerParcelMap::const_iterator itr = BuildingAvgAgeByParceld.find(fmParcelId);
-		if (itr != BuildingAvgAgeByParceld.end())
-		{
-			return itr->second;
-		}
-		return nullptr;
+    BuildingAvgAgePerParcelMap::const_iterator itr = BuildingAvgAgeByParceld.find(fmParcelId);
+        if (itr != BuildingAvgAgeByParceld.end())
+        {
+            return itr->second;
+        }
+        return nullptr;
 }
 
 const boost::shared_ptr<SimulationStoppedPoint> DeveloperModel::getSimStoppedPointObj(BigSerial simVersionId)
 {
-	const boost::shared_ptr<SimulationStoppedPoint> simStoppedPointObj(new SimulationStoppedPoint(simVersionId,postcodeForDevAgent,buildingIdForDevAgent,unitIdForDevAgent,projectIdForDevAgent,housingMarketModel->getBidId(),housingMarketModel->getUnitSaleId()));
-	return simStoppedPointObj;
+    const boost::shared_ptr<SimulationStoppedPoint> simStoppedPointObj(new SimulationStoppedPoint(simVersionId,postcodeForDevAgent,buildingIdForDevAgent,unitIdForDevAgent,projectIdForDevAgent,housingMarketModel->getBidId(),housingMarketModel->getUnitSaleId()));
+    return simStoppedPointObj;
 }
 
 Parcel* DeveloperModel::getParcelWithOngoingProjectById(BigSerial id) const {
@@ -886,376 +886,376 @@ Parcel* DeveloperModel::getParcelWithOngoingProjectById(BigSerial id) const {
 
 void DeveloperModel::addNewBuildings(boost::shared_ptr<Building> &newBuilding)
 {
-	addBuildingLock.lock();
-	newBuildings.push_back(newBuilding);
-	addBuildingLock.unlock();
+    addBuildingLock.lock();
+    newBuildings.push_back(newBuilding);
+    addBuildingLock.unlock();
 }
 
 void DeveloperModel::addNewProjects(boost::shared_ptr<Project> &newProject)
 {
-	addProjectsLock.lock();
-	newProjects.push_back(newProject);
-	addProjectsLock.unlock();
+    addProjectsLock.lock();
+    newProjects.push_back(newProject);
+    addProjectsLock.unlock();
 }
 
 void DeveloperModel::addNewUnits(boost::shared_ptr<Unit> &newUnit)
 {
-	addUnitsLock.lock();
-	newUnits.push_back(newUnit);
-	addUnitsLock.unlock();
+    addUnitsLock.lock();
+    newUnits.push_back(newUnit);
+    addUnitsLock.unlock();
 }
 
 
 void DeveloperModel::addProfitableParcels(boost::shared_ptr<Parcel> &profitableParcel)
 {
-	addParcelLock.lock();
-	profitableParcels.push_back(profitableParcel);
-	addParcelLock.unlock();
+    addParcelLock.lock();
+    profitableParcels.push_back(profitableParcel);
+    addParcelLock.unlock();
 }
 
 void DeveloperModel::addPotentialProjects(boost::shared_ptr<PotentialProject> &potentialProject)
 {
-	addPotentialProjectsLock.lock();
-	potentialProjects.push_back(potentialProject);
-	addPotentialProjectsLock.unlock();
+    addPotentialProjectsLock.lock();
+    potentialProjects.push_back(potentialProject);
+    addPotentialProjectsLock.unlock();
 }
 
 std::vector<boost::shared_ptr<Building> > DeveloperModel::getBuildingsVec()
 {
-	return newBuildings;
+    return newBuildings;
 }
 
 std::vector<boost::shared_ptr<Unit> > DeveloperModel::getUnitsVec()
 {
-	return newUnits;
+    return newUnits;
 }
 
 std::vector<boost::shared_ptr<Project> > DeveloperModel::getProjectsVec()
 {
-	return newProjects;
+    return newProjects;
 }
 
 std::vector<boost::shared_ptr<Parcel> > DeveloperModel::getProfitableParcelsVec()
 {
-	return profitableParcels;
+    return profitableParcels;
 }
 
 const int DeveloperModel::getOpSchemaloadingInterval()
 {
-	return OpSchemaLoadingInterval;
+    return OpSchemaLoadingInterval;
 }
 
 void DeveloperModel::setOpSchemaloadingInterval(int opSchemaLoadingInt)
 {
-	this->OpSchemaLoadingInterval = opSchemaLoadingInt;
+    this->OpSchemaLoadingInterval = opSchemaLoadingInt;
 }
 
 void DeveloperModel::addDevelopmentPlans(boost::shared_ptr<DevelopmentPlan> &devPlan)
 {
-	addDevPlansLock.lock();
-	developmentPlansVec.push_back(devPlan);
-	addDevPlansLock.unlock();
+    addDevPlansLock.lock();
+    developmentPlansVec.push_back(devPlan);
+    addDevPlansLock.unlock();
 }
 
 std::vector<boost::shared_ptr<DevelopmentPlan> > DeveloperModel::getDevelopmentPlansVec()
 {
-	return developmentPlansVec;
+    return developmentPlansVec;
 }
 
 Project* DeveloperModel::getProjectByParcelId(BigSerial parcelId) const
 {
-	ProjectMap::const_iterator itr = projectByParcelId.find(parcelId);
-	if (itr != projectByParcelId.end())
-	{
-		return itr->second;
-	}
-	return nullptr;
+    ProjectMap::const_iterator itr = projectByParcelId.find(parcelId);
+    if (itr != projectByParcelId.end())
+    {
+        return itr->second;
+    }
+    return nullptr;
 }
 
 void DeveloperModel::setStartDay(int day)
 {
-	startDay = day;
+    startDay = day;
 }
 
 int DeveloperModel::getStartDay() const
 {
-	return this->startDay;
+    return this->startDay;
 }
 
 
 DeveloperModel::ROILimitsList DeveloperModel::getROILimits() const
 {
-	return roiLimits;
+    return roiLimits;
 }
 
 const ROILimits* DeveloperModel::getROILimitsByDevelopmentTypeId(BigSerial devTypeId) const
 {
-	ROILimitsMap::const_iterator itr = roiLimitsByDevTypeId.find(devTypeId);
-	if (itr != roiLimitsByDevTypeId.end())
-	{
-		return itr->second;
-	}
-	return nullptr;
+    ROILimitsMap::const_iterator itr = roiLimitsByDevTypeId.find(devTypeId);
+    if (itr != roiLimitsByDevTypeId.end())
+    {
+        return itr->second;
+    }
+    return nullptr;
 }
 
 std::vector<BigSerial> DeveloperModel::getBTOUnits(std::tm currentDate)
 {
-	std::vector<BigSerial> btoUnitsForSale;
-	for(Unit *unit : btoUnits)
-	{
-		if(compareTMDates(unit->getSaleFromDate(),currentDate))
-			{
-				btoUnitsForSale.push_back(unit->getId());
-			}
-	}
-	return btoUnitsForSale;
+    std::vector<BigSerial> btoUnitsForSale;
+    for(Unit *unit : btoUnits)
+    {
+        if(compareTMDates(unit->getSaleFromDate(),currentDate))
+            {
+                btoUnitsForSale.push_back(unit->getId());
+            }
+    }
+    return btoUnitsForSale;
 }
 
 std::vector<BigSerial>  DeveloperModel::getPrivatePresaleUnits(std::tm currentDate)
 {
-	std::vector<BigSerial> privatePresaleUnitsToLaunch;
-	for(Unit *unit : privatePresaleUnits)
-	{
-		if(compareTMDates(unit->getSaleFromDate(),currentDate))
-		{
-			privatePresaleUnitsToLaunch.push_back(unit->getId());
-		}
-	}
-	return privatePresaleUnitsToLaunch;
+    std::vector<BigSerial> privatePresaleUnitsToLaunch;
+    for(Unit *unit : privatePresaleUnits)
+    {
+        if(compareTMDates(unit->getSaleFromDate(),currentDate))
+        {
+            privatePresaleUnitsToLaunch.push_back(unit->getId());
+        }
+    }
+    return privatePresaleUnitsToLaunch;
 }
 
 void DeveloperModel::loadHedonicCoeffs(DB_Connection &conn)
 {
-	soci::session sql;
-	//sql = conn.getSession<soci::session>();
-	sql.open(soci::postgresql, conn.getConnectionStr());
+    soci::session sql;
+    //sql = conn.getSession<soci::session>();
+    sql.open(soci::postgresql, conn.getConnectionStr());
 
 
-	const std::string storedProc = conn.getSchema() + "getHedonicCoeffs()";
-	//SQL statement
-	soci::rowset<HedonicCoeffs> hedonicCoeffs = (sql.prepare << "select * from " + storedProc);
-	for (soci::rowset<HedonicCoeffs>::const_iterator itCoeffs = hedonicCoeffs.begin(); itCoeffs != hedonicCoeffs.end(); ++itCoeffs)
-	{
-		//Create new node and add it in the map of nodes
-		HedonicCoeffs* coeef = new HedonicCoeffs(*itCoeffs);
-		hedonicCoefficientsList.push_back(coeef);
-		hedonicCoefficientsByPropertyTypeId.insert(std::make_pair(coeef->getPropertyTypeId(), coeef));
+    const std::string storedProc = conn.getSchema() + "getHedonicCoeffs()";
+    //SQL statement
+    soci::rowset<HedonicCoeffs> hedonicCoeffs = (sql.prepare << "select * from " + storedProc);
+    for (soci::rowset<HedonicCoeffs>::const_iterator itCoeffs = hedonicCoeffs.begin(); itCoeffs != hedonicCoeffs.end(); ++itCoeffs)
+    {
+        //Create new node and add it in the map of nodes
+        HedonicCoeffs* coeef = new HedonicCoeffs(*itCoeffs);
+        hedonicCoefficientsList.push_back(coeef);
+        hedonicCoefficientsByPropertyTypeId.insert(std::make_pair(coeef->getPropertyTypeId(), coeef));
 
-	}
-	PrintOutV("Hedonic coeffs by property type rows"<< hedonicCoefficientsList.size()<<std::endl);
+    }
+    PrintOutV("Hedonic coeffs by property type rows"<< hedonicCoefficientsList.size()<<std::endl);
 }
 
 const HedonicCoeffs* DeveloperModel::getHedonicCoeffsByPropertyTypeId(BigSerial propertyId) const
 {
 
-	HedonicCoeffsMap::const_iterator itr = hedonicCoefficientsByPropertyTypeId.find(propertyId);
-	if (itr != hedonicCoefficientsByPropertyTypeId.end())
-	{
-		return itr->second;
-	}
-	return nullptr;
+    HedonicCoeffsMap::const_iterator itr = hedonicCoefficientsByPropertyTypeId.find(propertyId);
+    if (itr != hedonicCoefficientsByPropertyTypeId.end())
+    {
+        return itr->second;
+    }
+    return nullptr;
 }
 
 void DeveloperModel::loadHedonicCoeffsByUnitType(DB_Connection &conn)
 {
-	soci::session sql;
-		//sql = conn.getSession<soci::session>();
-		sql.open(soci::postgresql, conn.getConnectionStr());
+    soci::session sql;
+        //sql = conn.getSession<soci::session>();
+        sql.open(soci::postgresql, conn.getConnectionStr());
 
 
-		const std::string storedProc = conn.getSchema() + "getHedonicCoeffsByUnitTypeId()";
-		//SQL statement
-		soci::rowset<HedonicCoeffsByUnitType> hedonicCoeffsByUT = (sql.prepare << "select * from " + storedProc);
-		for (soci::rowset<HedonicCoeffsByUnitType>::const_iterator itCoeffsByUT = hedonicCoeffsByUT.begin(); itCoeffsByUT != hedonicCoeffsByUT.end(); ++itCoeffsByUT)
-		{
-			//Create new node and add it in the map of nodes
-			HedonicCoeffsByUnitType* coeef = new HedonicCoeffsByUnitType(*itCoeffsByUT);
-			hedonicCoefficientsByUnitTypeList.push_back(coeef);
-			hedonicCoefficientsByUnitTypeId.insert(std::make_pair(coeef->getUnitTypeId(), coeef));
+        const std::string storedProc = conn.getSchema() + "getHedonicCoeffsByUnitTypeId()";
+        //SQL statement
+        soci::rowset<HedonicCoeffsByUnitType> hedonicCoeffsByUT = (sql.prepare << "select * from " + storedProc);
+        for (soci::rowset<HedonicCoeffsByUnitType>::const_iterator itCoeffsByUT = hedonicCoeffsByUT.begin(); itCoeffsByUT != hedonicCoeffsByUT.end(); ++itCoeffsByUT)
+        {
+            //Create new node and add it in the map of nodes
+            HedonicCoeffsByUnitType* coeef = new HedonicCoeffsByUnitType(*itCoeffsByUT);
+            hedonicCoefficientsByUnitTypeList.push_back(coeef);
+            hedonicCoefficientsByUnitTypeId.insert(std::make_pair(coeef->getUnitTypeId(), coeef));
 
-		}
-		PrintOutV("Hedonic coeffs by unit type rows"<< hedonicCoefficientsByUnitTypeList.size()<<std::endl);
+        }
+        PrintOutV("Hedonic coeffs by unit type rows"<< hedonicCoefficientsByUnitTypeList.size()<<std::endl);
 
 }
 
 const HedonicCoeffsByUnitType* DeveloperModel::getHedonicCoeffsByUnitTypeId(BigSerial unitTypeId) const
 {
-	HedonicCoeffsByUnitTypeMap::const_iterator itr = hedonicCoefficientsByUnitTypeId.find(unitTypeId);
-		if (itr != hedonicCoefficientsByUnitTypeId.end())
-		{
-			return itr->second;
-		}
-		return nullptr;
+    HedonicCoeffsByUnitTypeMap::const_iterator itr = hedonicCoefficientsByUnitTypeId.find(unitTypeId);
+        if (itr != hedonicCoefficientsByUnitTypeId.end())
+        {
+            return itr->second;
+        }
+        return nullptr;
 }
 
 void  DeveloperModel::loadPrivateLagT(DB_Connection &conn)
 {
-	soci::session sql;
-	//sql = conn.getSession<soci::session>();
-	sql.open(soci::postgresql, conn.getConnectionStr());
+    soci::session sql;
+    //sql = conn.getSession<soci::session>();
+    sql.open(soci::postgresql, conn.getConnectionStr());
 
-	const std::string storedProc = conn.getSchema() + "getLagPrivateT()";
-	//SQL statement
-	soci::rowset<LagPrivateT> privateLags = (sql.prepare << "select * from " + storedProc);
-	for (soci::rowset<LagPrivateT>::const_iterator itPrivateLags = privateLags.begin(); itPrivateLags != privateLags.end(); ++itPrivateLags)
-	{
-		//Create new node and add it in the map of nodes
-		LagPrivateT* lag = new LagPrivateT(*itPrivateLags);
-		privateLagsList.push_back(lag);
-		privateLagsByPropertyTypeId.insert(std::make_pair(lag->getPropertyTypeId(), lag));
+    const std::string storedProc = conn.getSchema() + "getLagPrivateT()";
+    //SQL statement
+    soci::rowset<LagPrivateT> privateLags = (sql.prepare << "select * from " + storedProc);
+    for (soci::rowset<LagPrivateT>::const_iterator itPrivateLags = privateLags.begin(); itPrivateLags != privateLags.end(); ++itPrivateLags)
+    {
+        //Create new node and add it in the map of nodes
+        LagPrivateT* lag = new LagPrivateT(*itPrivateLags);
+        privateLagsList.push_back(lag);
+        privateLagsByPropertyTypeId.insert(std::make_pair(lag->getPropertyTypeId(), lag));
 
-	}
+    }
 
 }
 
 const LagPrivateT* DeveloperModel::getLagPrivateTByPropertyTypeId(BigSerial propertyId) const
 {
-	LagPrivateTMap::const_iterator itr = privateLagsByPropertyTypeId.find(propertyId);
-		if (itr != privateLagsByPropertyTypeId.end())
-		{
-			return itr->second;
-		}
-		return nullptr;
+    LagPrivateTMap::const_iterator itr = privateLagsByPropertyTypeId.find(propertyId);
+        if (itr != privateLagsByPropertyTypeId.end())
+        {
+            return itr->second;
+        }
+        return nullptr;
 }
 
 void DeveloperModel::loadHedonicLogsums(DB_Connection &conn)
 {
-	soci::session sql;
-	//sql = conn.getSession<soci::session>();
-	sql.open(soci::postgresql, conn.getConnectionStr());
+    soci::session sql;
+    //sql = conn.getSession<soci::session>();
+    sql.open(soci::postgresql, conn.getConnectionStr());
 
 
-		const std::string storedProc = conn.getSchema() + "getHedonicLogsums()";
-		//SQL statement
-		soci::rowset<HedonicLogsums> hedonicLogsums = (sql.prepare << "select * from " + storedProc);
-		for (soci::rowset<HedonicLogsums>::const_iterator itLogsums = hedonicLogsums.begin(); itLogsums != hedonicLogsums.end(); ++itLogsums)
-		{
-			//Create new node and add it in the map of nodes
-			HedonicLogsums* logsum = new HedonicLogsums(*itLogsums);
-			hedonicLogsumsList.push_back(logsum);
-			hedonicLogsumsByTazId.insert(std::make_pair(logsum->getTazId(), logsum));
-		}
+        const std::string storedProc = conn.getSchema() + "getHedonicLogsums()";
+        //SQL statement
+        soci::rowset<HedonicLogsums> hedonicLogsums = (sql.prepare << "select * from " + storedProc);
+        for (soci::rowset<HedonicLogsums>::const_iterator itLogsums = hedonicLogsums.begin(); itLogsums != hedonicLogsums.end(); ++itLogsums)
+        {
+            //Create new node and add it in the map of nodes
+            HedonicLogsums* logsum = new HedonicLogsums(*itLogsums);
+            hedonicLogsumsList.push_back(logsum);
+            hedonicLogsumsByTazId.insert(std::make_pair(logsum->getTazId(), logsum));
+        }
 }
 
 const HedonicLogsums* DeveloperModel::getHedonicLogsumsByTazId(BigSerial tazId) const
 {
-	HedonicLogsumsMap::const_iterator itr = hedonicLogsumsByTazId.find(tazId);
-		if (itr != hedonicLogsumsByTazId.end())
-		{
-			return itr->second;
-		}
-		return nullptr;
+    HedonicLogsumsMap::const_iterator itr = hedonicLogsumsByTazId.find(tazId);
+        if (itr != hedonicLogsumsByTazId.end())
+        {
+            return itr->second;
+        }
+        return nullptr;
 }
 
 void DeveloperModel::loadTaoByUnitType(DB_Connection &conn)
 {
-	soci::session sql;
-	//sql = conn.getSession<soci::session>();
-	sql.open(soci::postgresql, conn.getConnectionStr());
+    soci::session sql;
+    //sql = conn.getSession<soci::session>();
+    sql.open(soci::postgresql, conn.getConnectionStr());
 
-	const std::string storedProc = conn.getSchema() + "getTaoByUnitType()";
-	//SQL statement
-	soci::rowset<TAOByUnitType> taoByUT = (sql.prepare << "select * from " + storedProc);
-	for (soci::rowset<TAOByUnitType>::const_iterator itTAO_UT = taoByUT.begin(); itTAO_UT != taoByUT.end(); ++itTAO_UT)
-	{
-		//Create new node and add it in the map of nodes
-		TAOByUnitType* taoByUT = new TAOByUnitType(*itTAO_UT);
-		taoByUnitTypeList.push_back(taoByUT);
-		taoUTByQuarterStr.insert(std::make_pair(taoByUT->getQuarter(), taoByUT));
-		taoUTById.insert(std::make_pair(taoByUT->getId(), taoByUT));
+    const std::string storedProc = conn.getSchema() + "getTaoByUnitType()";
+    //SQL statement
+    soci::rowset<TAOByUnitType> taoByUT = (sql.prepare << "select * from " + storedProc);
+    for (soci::rowset<TAOByUnitType>::const_iterator itTAO_UT = taoByUT.begin(); itTAO_UT != taoByUT.end(); ++itTAO_UT)
+    {
+        //Create new node and add it in the map of nodes
+        TAOByUnitType* taoByUT = new TAOByUnitType(*itTAO_UT);
+        taoByUnitTypeList.push_back(taoByUT);
+        taoUTByQuarterStr.insert(std::make_pair(taoByUT->getQuarter(), taoByUT));
+        taoUTById.insert(std::make_pair(taoByUT->getId(), taoByUT));
 
-	}
+    }
 
 }
 
 const TAOByUnitType* DeveloperModel::getTaoUTByQuarter(std::string& quarterStr)
 {
-	TAOByUTMap::const_iterator itr = taoUTByQuarterStr.find(quarterStr);
-	if (itr != taoUTByQuarterStr.end())
-	{
-		return itr->second;
-	}
-	return nullptr;
+    TAOByUTMap::const_iterator itr = taoUTByQuarterStr.find(quarterStr);
+    if (itr != taoUTByQuarterStr.end())
+    {
+        return itr->second;
+    }
+    return nullptr;
 }
 
 const TAOByUnitType* DeveloperModel::getTaoUTById(int& id)
 {
-	TAOByIdMap::const_iterator itr = taoUTById.find(id);
-		if (itr != taoUTById.end())
-		{
-			return itr->second;
-		}
-		return nullptr;
+    TAOByIdMap::const_iterator itr = taoUTById.find(id);
+        if (itr != taoUTById.end())
+        {
+            return itr->second;
+        }
+        return nullptr;
 }
 
 void DeveloperModel::loadPrivateLagTByUT(DB_Connection &conn)
 {
-	soci::session sql;
-	//sql = conn.getSession<soci::session>();
-	sql.open(soci::postgresql, conn.getConnectionStr());
+    soci::session sql;
+    //sql = conn.getSession<soci::session>();
+    sql.open(soci::postgresql, conn.getConnectionStr());
 
-	const std::string storedProc = conn.getSchema() + "getPrivateLagByUnitType()";
-	//SQL statement
-	soci::rowset<LagPrivate_TByUnitType> privateLagByUT = (sql.prepare << "select * from " + storedProc);
-	for (soci::rowset<LagPrivate_TByUnitType>::const_iterator itPrivateLagByUT = privateLagByUT.begin(); itPrivateLagByUT != privateLagByUT.end(); ++itPrivateLagByUT)
-	{
-		//Create new node and add it in the map of nodes
-		LagPrivate_TByUnitType* lagPvtByUT = new LagPrivate_TByUnitType(*itPrivateLagByUT);
-		lagPrivateTByUTList.push_back(lagPvtByUT);
-		ptivateLagsByUnitTypeId.insert(std::make_pair(lagPvtByUT->getUnitTypeId(), lagPvtByUT));
+    const std::string storedProc = conn.getSchema() + "getPrivateLagByUnitType()";
+    //SQL statement
+    soci::rowset<LagPrivate_TByUnitType> privateLagByUT = (sql.prepare << "select * from " + storedProc);
+    for (soci::rowset<LagPrivate_TByUnitType>::const_iterator itPrivateLagByUT = privateLagByUT.begin(); itPrivateLagByUT != privateLagByUT.end(); ++itPrivateLagByUT)
+    {
+        //Create new node and add it in the map of nodes
+        LagPrivate_TByUnitType* lagPvtByUT = new LagPrivate_TByUnitType(*itPrivateLagByUT);
+        lagPrivateTByUTList.push_back(lagPvtByUT);
+        ptivateLagsByUnitTypeId.insert(std::make_pair(lagPvtByUT->getUnitTypeId(), lagPvtByUT));
 
-	}
+    }
 }
 
 void DeveloperModel::loadTAO(DB_Connection &conn)
 {
-	loadData<TAO_Dao>(conn,taoList,taoByQuarterStr,&TAO::getQuarter);
-	PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
+    loadData<TAO_Dao>(conn,taoList,taoByQuarterStr,&TAO::getQuarter);
+    PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
 
 }
 
 const LagPrivate_TByUnitType* DeveloperModel::getLagPrivateTByUnitTypeId(BigSerial unitTypeId)
 {
-	LagPrivateTByUTMap::const_iterator itr = ptivateLagsByUnitTypeId.find(unitTypeId);
-	if (itr != ptivateLagsByUnitTypeId.end())
-	{
-		return itr->second;
-	}
-	return nullptr;
+    LagPrivateTByUTMap::const_iterator itr = ptivateLagsByUnitTypeId.find(unitTypeId);
+    if (itr != ptivateLagsByUnitTypeId.end())
+    {
+        return itr->second;
+    }
+    return nullptr;
 }
 
 const std::string &DeveloperModel::getScenario()
 {
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	return config.ltParams.scenario.scenarioName;
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    return config.ltParams.scenario.scenarioName;
 }
 
 bool DeveloperModel::isToaPayohTaz(BigSerial tazId)
 {
-	std::multimap<string, StudyArea*> scenario = housingMarketModel->getStudyAreaByScenarioName();
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	auto itr_range = scenario.equal_range( config.ltParams.scenario.scenarioName );
+    std::multimap<string, StudyArea*> scenario = housingMarketModel->getStudyAreaByScenarioName();
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    auto itr_range = scenario.equal_range( config.ltParams.scenario.scenarioName );
 
-	bool isToaPayohTaz = false;
+    bool isToaPayohTaz = false;
 
-	int dist = std::distance(itr_range.first, itr_range.second);
+    int dist = std::distance(itr_range.first, itr_range.second);
 
-	for(auto itr = itr_range.first; itr != itr_range.second; itr++)
-	{
-		if( itr->second->getFmTazId()  == tazId )
-			isToaPayohTaz = true;
-	}
-	return isToaPayohTaz;
+    for(auto itr = itr_range.first; itr != itr_range.second; itr++)
+    {
+        if( itr->second->getFmTazId()  == tazId )
+            isToaPayohTaz = true;
+    }
+    return isToaPayohTaz;
 
 }
 
 const Postcode* DeveloperModel::getPostcodeByTaz(BigSerial tazId)
 {
-	PostcodeByTazMap::const_iterator itr = postcodeByTaz.find(tazId);
-	if (itr != postcodeByTaz.end())
-	{
-		return itr->second;
-	}
-	return nullptr;
+    PostcodeByTazMap::const_iterator itr = postcodeByTaz.find(tazId);
+    if (itr != postcodeByTaz.end())
+    {
+        return itr->second;
+    }
+    return nullptr;
 
 }

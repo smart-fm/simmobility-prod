@@ -15,35 +15,35 @@ StudentStop::~StudentStop(){}
 
 StudentStop::StudentStop(const StudentStop& source)
 {
-	this->homeStopEzLinkId = source.homeStopEzLinkId;
-	this->schoolStopEzLinkId = source.schoolStopEzLinkId;
+    this->homeStopEzLinkId = source.homeStopEzLinkId;
+    this->schoolStopEzLinkId = source.schoolStopEzLinkId;
 }
 
 
 StudentStop& StudentStop::operator=(const StudentStop& source)
 {
-	this->homeStopEzLinkId = source.homeStopEzLinkId;
-	this->schoolStopEzLinkId = source.schoolStopEzLinkId;
+    this->homeStopEzLinkId = source.homeStopEzLinkId;
+    this->schoolStopEzLinkId = source.schoolStopEzLinkId;
 
-	return *this;
+    return *this;
 }
 
 BigSerial StudentStop::getHomeStopEzLinkId() const
 {
-	return homeStopEzLinkId;
+    return homeStopEzLinkId;
 }
 
 void StudentStop::setHomeStopEzLinkId(BigSerial homeStopEzLinkId)
 {
-	this->homeStopEzLinkId = homeStopEzLinkId;
+    this->homeStopEzLinkId = homeStopEzLinkId;
 }
 
 BigSerial StudentStop::getSchoolStopEzLinkId() const
 {
-	return schoolStopEzLinkId;
+    return schoolStopEzLinkId;
 }
 
 void StudentStop::setSchoolStopEzLinkId(BigSerial schoolStopEzLinkId)
 {
-	this->schoolStopEzLinkId = schoolStopEzLinkId;
+    this->schoolStopEzLinkId = schoolStopEzLinkId;
 }

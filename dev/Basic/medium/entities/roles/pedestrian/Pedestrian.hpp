@@ -28,32 +28,32 @@ class Pedestrian : public sim_mob::Role<Person_MT>
 {
 public:
 
-	explicit Pedestrian(Person_MT* parent,
-						sim_mob::medium::PedestrianBehavior* behavior = nullptr,
-						sim_mob::medium::PedestrianMovement* movement = nullptr,
-						std::string roleName = std::string("Pedestrian_"),
-						Role<Person_MT>::Type roleType = Role<Person_MT>::RL_PEDESTRIAN);
+    explicit Pedestrian(Person_MT* parent,
+                        sim_mob::medium::PedestrianBehavior* behavior = nullptr,
+                        sim_mob::medium::PedestrianMovement* movement = nullptr,
+                        std::string roleName = std::string("Pedestrian_"),
+                        Role<Person_MT>::Type roleType = Role<Person_MT>::RL_PEDESTRIAN);
 
-	virtual ~Pedestrian();
+    virtual ~Pedestrian();
 
-	virtual sim_mob::Role<Person_MT>* clone(Person_MT *parent) const;
+    virtual sim_mob::Role<Person_MT>* clone(Person_MT *parent) const;
 
-	virtual void make_frame_tick_params(timeslice now);
+    virtual void make_frame_tick_params(timeslice now);
 
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+    virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
-	/**
-	 * collect travel time for current role
-	 */
-	virtual void collectTravelTime();
-	/**
-	 * is a on-demand traveller
-	 * return true if it is a on-demand traveller
-	 */
-	bool isOnDemandTraveller();
+    /**
+     * collect travel time for current role
+     */
+    virtual void collectTravelTime();
+    /**
+     * is a on-demand traveller
+     * return true if it is a on-demand traveller
+     */
+    bool isOnDemandTraveller();
 private:
-	friend class PedestrianBehavior;
-	friend class PedestrianMovement;
+    friend class PedestrianBehavior;
+    friend class PedestrianMovement;
 };
 
 }

@@ -20,90 +20,90 @@ Role<Person_ST>(parent, behavior, movement, roleName, roleType), alightVehicle(f
 
 Role<Person_ST>* Passenger::clone(Person_ST *parent) const
 {
-	PassengerBehavior* behavior = new PassengerBehavior();
-	PassengerMovement* movement = new PassengerMovement();
-	Role<Person_ST>::Type personRoleType = Role<Person_ST>::RL_UNKNOWN;
-	
-	if (parent->currSubTrip->getMode() == "BusTravel")
-	{
-		personRoleType = Role<Person_ST>::RL_PASSENGER;
-	}
-	else if(parent->currSubTrip->getMode() == "MRT")
-	{
-		personRoleType = Role<Person_ST>::RL_TRAINPASSENGER;
-	}
-	else if (parent->currSubTrip->getMode() == "Sharing")
-	{
-		personRoleType = Role<Person_ST>::RL_CARPASSENGER;
-	}
-	else if (parent->currSubTrip->getMode() == "PrivateBus")
-	{
-		personRoleType = Role<Person_ST>::RL_PRIVATEBUSPASSENGER;
-	}
+    PassengerBehavior* behavior = new PassengerBehavior();
+    PassengerMovement* movement = new PassengerMovement();
+    Role<Person_ST>::Type personRoleType = Role<Person_ST>::RL_UNKNOWN;
+    
+    if (parent->currSubTrip->getMode() == "BusTravel")
+    {
+        personRoleType = Role<Person_ST>::RL_PASSENGER;
+    }
+    else if(parent->currSubTrip->getMode() == "MRT")
+    {
+        personRoleType = Role<Person_ST>::RL_TRAINPASSENGER;
+    }
+    else if (parent->currSubTrip->getMode() == "Sharing")
+    {
+        personRoleType = Role<Person_ST>::RL_CARPASSENGER;
+    }
+    else if (parent->currSubTrip->getMode() == "PrivateBus")
+    {
+        personRoleType = Role<Person_ST>::RL_PRIVATEBUSPASSENGER;
+    }
     else if (parent->currSubTrip->getMode() == "Taxi" || parent->currSubTrip->getMode() == "SMS" || parent->currSubTrip->getMode() == "AMOD"
              || parent->currSubTrip->getMode() == "SMS_Taxi" || parent->currSubTrip->getMode() == "AMOD_Taxi"
                                                                 || parent->currSubTrip->getMode() == "SMS_Pool_Taxi"|| parent->currSubTrip->getMode() == "AMOD_Pool_Taxi")
     {
         personRoleType = Role<Person_ST>::RL_TAXIPASSENGER;
     }
-	else
-	{
-		std::stringstream msg;
-		msg << __func__ << ": Invalid mode for passenger role: " << parent->currSubTrip->getMode();
-		msg << "\nExpected: BusTravel or MRT or Sharing or PrivateBus";
-		throw std::runtime_error(msg.str());
-	}
-	
-	Passenger *passenger = new Passenger(parent, behavior, movement, "Passenger_", personRoleType);
-	behavior->setParentPassenger(passenger);
-	movement->setParentPassenger(passenger);
-	
-	return passenger;
+    else
+    {
+        std::stringstream msg;
+        msg << __func__ << ": Invalid mode for passenger role: " << parent->currSubTrip->getMode();
+        msg << "\nExpected: BusTravel or MRT or Sharing or PrivateBus";
+        throw std::runtime_error(msg.str());
+    }
+    
+    Passenger *passenger = new Passenger(parent, behavior, movement, "Passenger_", personRoleType);
+    behavior->setParentPassenger(passenger);
+    movement->setParentPassenger(passenger);
+    
+    return passenger;
 }
 
 std::vector<BufferedBase*> Passenger::getSubscriptionParams()
 {
-	return vector<BufferedBase*>();
+    return vector<BufferedBase*>();
 }
 
 void Passenger::makeAlightingDecision(const BusStop *nextStop, BusDriver *driver)
 {
-	if (endPoint.type == WayPoint::BUS_STOP && endPoint.busStop == nextStop)
-	{
-		setAlightVehicle(true);
-		
-		//Send alighting message to the bus driver
-		messaging::MessageBus::PostMessage(driver->getParent(), MSG_ALIGHT_BUS, messaging::MessageBus::MessagePtr(new PersonMessage(parent)));
-	}
+    if (endPoint.type == WayPoint::BUS_STOP && endPoint.busStop == nextStop)
+    {
+        setAlightVehicle(true);
+        
+        //Send alighting message to the bus driver
+        messaging::MessageBus::PostMessage(driver->getParent(), MSG_ALIGHT_BUS, messaging::MessageBus::MessagePtr(new PersonMessage(parent)));
+    }
 }
 
 void Passenger::collectTravelTime()
 {
-	PersonTravelTime personTravelTime;
-	personTravelTime.personId = parent->getDatabaseId();
-	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
-	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
-	personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
-	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
-	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
-	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
-	personTravelTime.mode = parent->currSubTrip->getMode();
-	personTravelTime.service = parent->currSubTrip->ptLineId;
-	personTravelTime.travelTime = ((double)parent->getRole()->getTravelTime()) / 1000.0; //convert to seconds
-	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
-	
-	if(roleType == Role<Person_ST>::RL_TRAINPASSENGER)
-	{
-		personTravelTime.mode = "ON_MRT";
-	}
-	else if(roleType == Role<Person_ST>::RL_CARPASSENGER)
-	{
-		personTravelTime.mode = "ON_SHARINGCAR";
-	}
-	else if(roleType == Role<Person_ST>::RL_PRIVATEBUSPASSENGER)
-	{
-		personTravelTime.mode = "ON_PBUS";
-	}
+    PersonTravelTime personTravelTime;
+    personTravelTime.personId = parent->getDatabaseId();
+    personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
+    personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
+    personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
+    personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
+    personTravelTime.subStartType = parent->currSubTrip->startLocationType;
+    personTravelTime.subEndType = parent->currSubTrip->endLocationType;
+    personTravelTime.mode = parent->currSubTrip->getMode();
+    personTravelTime.service = parent->currSubTrip->ptLineId;
+    personTravelTime.travelTime = ((double)parent->getRole()->getTravelTime()) / 1000.0; //convert to seconds
+    personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
+    
+    if(roleType == Role<Person_ST>::RL_TRAINPASSENGER)
+    {
+        personTravelTime.mode = "ON_MRT";
+    }
+    else if(roleType == Role<Person_ST>::RL_CARPASSENGER)
+    {
+        personTravelTime.mode = "ON_SHARINGCAR";
+    }
+    else if(roleType == Role<Person_ST>::RL_PRIVATEBUSPASSENGER)
+    {
+        personTravelTime.mode = "ON_PBUS";
+    }
     else if (roleType == Role<Person_ST>::RL_TAXIPASSENGER)
     {
         if((*(parent->currSubTrip)).travelMode == "TaxiTravel")
@@ -131,19 +131,19 @@ void Passenger::collectTravelTime()
             personTravelTime.mode = "ON_RAIL_SMS_Veh";
         }
     }
-	else
-	{
-		personTravelTime.mode = "ON_BUS";
-	}
+    else
+    {
+        personTravelTime.mode = "ON_BUS";
+    }
 
-	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_TRAVEL_TIME,
-			messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
+    messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_TRAVEL_TIME,
+            messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
 }
 
 void Passenger::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
-	switch(type)
-	{
+    switch(type)
+    {
         case MSG_WAKEUP_MRT_PAX:
         {
             setAlightVehicle(true);
@@ -160,6 +160,6 @@ void Passenger::HandleParentMessage(messaging::Message::MessageType type, const 
         {
             break;
         }
-	}
+    }
 }
 

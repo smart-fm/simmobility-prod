@@ -17,81 +17,81 @@ LaneConnector::~LaneConnector()
 
 unsigned int LaneConnector::getLaneConnectionId() const
 {
-	return laneConnectionId;
+    return laneConnectionId;
 }
 
 void LaneConnector::setLaneConnectionId(unsigned int laneConnectionId)
 {
-	this->laneConnectionId = laneConnectionId;
+    this->laneConnectionId = laneConnectionId;
 }
 
 void LaneConnector::setFromLane(Lane *fromLane)
 {
-	this->fromLane = fromLane;
+    this->fromLane = fromLane;
 }
 
 const Lane* LaneConnector::getFromLane() const
 {
-	return fromLane;
+    return fromLane;
 }
 
 unsigned int LaneConnector::getFromLaneId() const
 {
-	return fromLaneId;
+    return fromLaneId;
 }
 
 void LaneConnector::setFromLaneId(unsigned int fromLaneId)
 {
-	this->fromLaneId = fromLaneId;
+    this->fromLaneId = fromLaneId;
 }
 
 unsigned int LaneConnector::getFromRoadSegmentId() const
 {
-	return fromRoadSegmentId;
+    return fromRoadSegmentId;
 }
 
 void LaneConnector::setFromRoadSegmentId(unsigned int fromRoadSectionId)
 {
-	this->fromRoadSegmentId = fromRoadSectionId;
+    this->fromRoadSegmentId = fromRoadSectionId;
 }
 
 void LaneConnector::setToLane(Lane *toLane)
 {
-	this->toLane = toLane;
+    this->toLane = toLane;
 }
 
 const Lane* LaneConnector::getToLane() const
 {
-	return toLane;
+    return toLane;
 }
 
 unsigned int LaneConnector::getToLaneId() const
 {
-	return toLaneId;
+    return toLaneId;
 }
 
 void LaneConnector::setToLaneId(unsigned int toLaneId)
 {
-	this->toLaneId = toLaneId;
+    this->toLaneId = toLaneId;
 }
 
 unsigned int LaneConnector::getToRoadSegmentId() const
 {
-	return toRoadSegmentId;
+    return toRoadSegmentId;
 }
 
 void LaneConnector::setToRoadSegmentId(unsigned int toRoadSectionId)
 {
-	this->toRoadSegmentId = toRoadSectionId;
+    this->toRoadSegmentId = toRoadSectionId;
 }
 
 void LaneConnector::setIsTrueConnector(bool TrueConnector)
 {
-	isTrueConnection = TrueConnector;
+    isTrueConnection = TrueConnector;
 }
 
 bool LaneConnector::isTrueConnector() const
 {
-	return isTrueConnection;
+    return isTrueConnection;
 }
 

@@ -16,72 +16,72 @@ using namespace sim_mob::long_term;
 
 
 HitsIndividualLogsum::HitsIndividualLogsum(int id, string hitsId, int paxId, int homePostcode, int homeTaz, int workPostcode, int workTaz, int cars )
-										  :id(id), hitsId(hitsId), paxId(paxId), homePostcode(homePostcode), homeTaz(homeTaz), workPostcode(workPostcode), workTaz(workTaz), cars(cars){}
+                                          :id(id), hitsId(hitsId), paxId(paxId), homePostcode(homePostcode), homeTaz(homeTaz), workPostcode(workPostcode), workTaz(workTaz), cars(cars){}
 
 HitsIndividualLogsum::HitsIndividualLogsum( const HitsIndividualLogsum& source)
 {
-	this->id = source.id;
-	this->hitsId = source.hitsId;
-	this->paxId = source.paxId;
-	this->homePostcode = source.homePostcode;
-	this->homeTaz = source.homeTaz;
-	this->workPostcode = source.workPostcode;
-	this->workTaz = source.workTaz;
-	this->cars = source.cars;
+    this->id = source.id;
+    this->hitsId = source.hitsId;
+    this->paxId = source.paxId;
+    this->homePostcode = source.homePostcode;
+    this->homeTaz = source.homeTaz;
+    this->workPostcode = source.workPostcode;
+    this->workTaz = source.workTaz;
+    this->cars = source.cars;
 }
 
 HitsIndividualLogsum& HitsIndividualLogsum::operator=( const HitsIndividualLogsum& source)
 {
-	this->id = source.id;
-	this->hitsId = source.hitsId;
-	this->paxId = source.paxId;
-	this->homePostcode = source.homePostcode;
-	this->homeTaz = source.homeTaz;
-	this->workPostcode = source.workPostcode;
-	this->workTaz = source.workTaz;
-	this->cars = source.cars;
+    this->id = source.id;
+    this->hitsId = source.hitsId;
+    this->paxId = source.paxId;
+    this->homePostcode = source.homePostcode;
+    this->homeTaz = source.homeTaz;
+    this->workPostcode = source.workPostcode;
+    this->workTaz = source.workTaz;
+    this->cars = source.cars;
 
-	return *this;
+    return *this;
 }
 
 int HitsIndividualLogsum::getId() const
 {
-	return id;
+    return id;
 }
 
 string HitsIndividualLogsum::getHitsId() const
 {
-	return hitsId;
+    return hitsId;
 }
 
 int HitsIndividualLogsum::getPaxId() const
 {
-	return paxId;
+    return paxId;
 }
 
 int HitsIndividualLogsum::getHomePostcode() const
 {
-	return homePostcode;
+    return homePostcode;
 }
 
 int HitsIndividualLogsum::getHomeTaz() const
 {
-	return homeTaz;
+    return homeTaz;
 }
 
 int HitsIndividualLogsum::getWorkPostcode() const
 {
-	return workPostcode;
+    return workPostcode;
 }
 
 int HitsIndividualLogsum::getWorkTaz() const
 {
-	return workTaz;
+    return workTaz;
 }
 
 int HitsIndividualLogsum::getCars() const
 {
-	return cars;
+    return cars;
 }
 
 HitsIndividualLogsum::~HitsIndividualLogsum(){}

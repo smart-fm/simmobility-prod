@@ -20,14 +20,14 @@ class RoadSegment;
 class SMSVehicleParking
 {
 private:
-	/**Identifier for the SMS vehicle parking*/
+    /**Identifier for the SMS vehicle parking*/
     std::string parkingId;
 
-	/**The segment at which the parking is located*/
+    /**The segment at which the parking is located*/
     unsigned int segmentId;
 
-	/**The road segment at which the parking is located*/
-	const RoadSegment *parkingSegment;
+    /**The road segment at which the parking is located*/
+    const RoadSegment *parkingSegment;
     unsigned int parkingType;
 
     unsigned int capacityPCU;
@@ -43,10 +43,10 @@ private:
 
 public:
 
-	/**Stores the vehicle parking as a r-tree*/
-	static GeneralR_TreeManager<SMSVehicleParking> smsParkingRTree;
+    /**Stores the vehicle parking as a r-tree*/
+    static GeneralR_TreeManager<SMSVehicleParking> smsParkingRTree;
 
-	SMSVehicleParking();
+    SMSVehicleParking();
     virtual ~SMSVehicleParking();
 
     const std::string getParkingId() const;
@@ -55,14 +55,14 @@ public:
     const unsigned int getSegmentId() const;
     void setSegmentId(const unsigned int id);
 
-	const RoadSegment *getParkingSegment() const;
-	void setParkingSegment(const RoadSegment *rdSegment);
+    const RoadSegment *getParkingSegment() const;
+    void setParkingSegment(const RoadSegment *rdSegment);
 
-	const Node *getAccessNode() const;
-	const Node *getEgressNode() const;
+    const Node *getAccessNode() const;
+    const Node *getEgressNode() const;
 
-	double getPosX() const;
-	double getPosY() const;
+    double getPosX() const;
+    double getPosY() const;
     const double getStartTime() const;
     void setStartTime(const double startTime);
 

@@ -30,26 +30,26 @@ class ControlManager;
 
 class CommunicationDataManager {
 public:
-	void sendTrafficData(std::string &s);
-	void sendRoadNetworkData(const std::string &s);
-	bool getTrafficData(std::string &s);
-	bool getCmdData(std::string &s);
-	bool getRoadNetworkData(std::string &s);
-	bool isAllTrafficDataOut() { return trafficDataQueue.empty(); }
+    void sendTrafficData(std::string &s);
+    void sendRoadNetworkData(const std::string &s);
+    bool getTrafficData(std::string &s);
+    bool getCmdData(std::string &s);
+    bool getRoadNetworkData(std::string &s);
+    bool isAllTrafficDataOut() { return trafficDataQueue.empty(); }
 
 private:
-	CommunicationDataManager() {}
-	std::queue<std::string> trafficDataQueue;
-	std::queue<std::string> cmdDataQueue;
-	std::queue<std::string> roadNetworkDataQueue;
-	boost::mutex trafficDataGuard;
-	boost::mutex cmdDataGuard;
-	boost::mutex roadNetworkDataGuard;
+    CommunicationDataManager() {}
+    std::queue<std::string> trafficDataQueue;
+    std::queue<std::string> cmdDataQueue;
+    std::queue<std::string> roadNetworkDataQueue;
+    boost::mutex trafficDataGuard;
+    boost::mutex cmdDataGuard;
+    boost::mutex roadNetworkDataGuard;
 
-	//The CommunicationDataManager should be shared for *all* communication, but we want to avoid
-	// making it a singleton. For now, that means we put it in ConfigParams, so ConfigParams needs
-	// friend access.
-	friend class sim_mob::ConfigParams;
+    //The CommunicationDataManager should be shared for *all* communication, but we want to avoid
+    // making it a singleton. For now, that means we put it in ConfigParams, so ConfigParams needs
+    // friend access.
+    friend class sim_mob::ConfigParams;
 };
 
 }

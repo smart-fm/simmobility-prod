@@ -17,32 +17,32 @@ HHCoordinates::~HHCoordinates() {
 
 double HHCoordinates::getCentroidX() const
 {
-	return centroidX;
+    return centroidX;
 }
 
 void HHCoordinates::setCentroidX(double centroidX)
 {
-	this->centroidX = centroidX;
+    this->centroidX = centroidX;
 }
 
 double HHCoordinates::getCentroidY() const
 {
-	return centroidY;
+    return centroidY;
 }
 
 void HHCoordinates::setCentroidY(double centroidY)
 {
-	this->centroidY = centroidY;
+    this->centroidY = centroidY;
 }
 
 BigSerial HHCoordinates::getHouseHoldId() const
 {
-	return houseHoldId;
+    return houseHoldId;
 }
 
 void HHCoordinates::setHouseHoldId(BigSerial houseHoldId)
 {
-	this->houseHoldId = houseHoldId;
+    this->houseHoldId = houseHoldId;
 }
 
 

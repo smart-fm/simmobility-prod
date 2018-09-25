@@ -29,8 +29,8 @@ PedestrianBehavior::~PedestrianBehavior()
 }
 
 PedestrianMovement::PedestrianMovement(double speed) :
-		MovementFacet(), parentPedestrian(nullptr), walkSpeed(speed), destinationNode(nullptr), totalTimeToCompleteSec(10),
-		secondsInTick(ConfigManager::GetInstance().FullConfig().baseGranSecond())
+        MovementFacet(), parentPedestrian(nullptr), walkSpeed(speed), destinationNode(nullptr), totalTimeToCompleteSec(10),
+        secondsInTick(ConfigManager::GetInstance().FullConfig().baseGranSecond())
 {
 }
 
@@ -40,22 +40,22 @@ PedestrianMovement::~PedestrianMovement()
 
 void PedestrianMovement::setParentPedestrian(medium::Pedestrian* parentPedestrian)
 {
-	this->parentPedestrian = parentPedestrian;
+    this->parentPedestrian = parentPedestrian;
 }
 
 TravelMetric& PedestrianMovement::startTravelTimeMetric()
 {
-	return travelMetric;
+    return travelMetric;
 }
 
 TravelMetric& PedestrianMovement::finalizeTravelTimeMetric()
 {
-	return travelMetric;
+    return travelMetric;
 }
 
 void PedestrianBehavior::setParentPedestrian(medium::Pedestrian* parentPedestrian)
 {
-	this->parentPedestrian = parentPedestrian;
+    this->parentPedestrian = parentPedestrian;
 }
 bool PedestrianMovement::ifLoopedNode(unsigned int thisNodeId)
 {
@@ -71,27 +71,27 @@ bool PedestrianMovement::ifLoopedNode(unsigned int thisNodeId)
 }
 void PedestrianMovement::frame_init()
 {
-	destinationNode = getDestNode();
+    destinationNode = getDestNode();
 
-	if(!destinationNode)
-	{
-		throw std::runtime_error("destination segment not found");
-	}
+    if(!destinationNode)
+    {
+        throw std::runtime_error("destination segment not found");
+    }
 
-	SubTrip& subTrip = *(parentPedestrian->parent->currSubTrip);
-	double walkTime = 0.0;
+    SubTrip& subTrip = *(parentPedestrian->parent->currSubTrip);
+    double walkTime = 0.0;
 
-	if(subTrip.isPT_Walk)
-	{
-		walkTime = subTrip.walkTime; //walk time comes from db for PT pedestrians
-	}
-	else if(subTrip.isTT_Walk)
-	{
-		isOnDemandTraveler = false;
-		Person_MT *person = parentPedestrian->getParent();
+    if(subTrip.isPT_Walk)
+    {
+        walkTime = subTrip.walkTime; //walk time comes from db for PT pedestrians
+    }
+    else if(subTrip.isTT_Walk)
+    {
+        isOnDemandTraveler = false;
+        Person_MT *person = parentPedestrian->getParent();
 
         TripChainItem *tcItem = *(person->currTripChainItem);
-		if (subTrip.origin.type == WayPoint::NODE && subTrip.destination.type == WayPoint::NODE) {
+        if (subTrip.origin.type == WayPoint::NODE && subTrip.destination.type == WayPoint::NODE) {
             isOnDemandTraveler = true;
             const Node *taxiStartNode = subTrip.destination.node;
            if (MobilityServiceControllerManager::HasMobilityServiceControllerManager())
@@ -166,170 +166,170 @@ void PedestrianMovement::frame_init()
             }
         }
 
-		if(!isOnDemandTraveler)
-		{
-			const Node* source = subTrip.origin.node;
-			const TaxiStand* stand = subTrip.destination.taxiStand;
-			const Node* destination = stand->getRoadSegment()->getParentLink()->getFromNode();
-			std::vector<WayPoint> path = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*(source), *(destination));
-			for (auto itWayPts = path.begin(); itWayPts != path.end(); ++itWayPts)
-			{
-				if (itWayPts->type == WayPoint::LINK)
-				{
-					TravelTimeAtNode item;
-					item.node = itWayPts->link->getToNode();
-					item.travelTime = itWayPts->link->getLength() / walkSpeed;
-					travelPath.push(item);
-				}
-			}
-		}
+        if(!isOnDemandTraveler)
+        {
+            const Node* source = subTrip.origin.node;
+            const TaxiStand* stand = subTrip.destination.taxiStand;
+            const Node* destination = stand->getRoadSegment()->getParentLink()->getFromNode();
+            std::vector<WayPoint> path = StreetDirectory::Instance().SearchShortestDrivingPath<Node, Node>(*(source), *(destination));
+            for (auto itWayPts = path.begin(); itWayPts != path.end(); ++itWayPts)
+            {
+                if (itWayPts->type == WayPoint::LINK)
+                {
+                    TravelTimeAtNode item;
+                    item.node = itWayPts->link->getToNode();
+                    item.travelTime = itWayPts->link->getLength() / walkSpeed;
+                    travelPath.push(item);
+                }
+            }
+        }
 
-		Conflux* startConflux = this->getStartConflux();
+        Conflux* startConflux = this->getStartConflux();
 
-		if (startConflux)
-		{
-			MessageBus::PostMessage(startConflux, MSG_TRAVELER_TRANSFER,
-			                        MessageBus::MessagePtr(new PersonMessage(person)));
-		}
-	}
-	else // both origin and destination must be nodes
-	{
-		if(subTrip.origin.type != WayPoint::NODE || subTrip.destination.type != WayPoint::NODE)
-		{
-			throw std::runtime_error("non node O/D for not PT pedestrian");
-		}
-		const Node* srcNode = subTrip.origin.node;
-		const Node* destNode = subTrip.destination.node;
+        if (startConflux)
+        {
+            MessageBus::PostMessage(startConflux, MSG_TRAVELER_TRANSFER,
+                                    MessageBus::MessagePtr(new PersonMessage(person)));
+        }
+    }
+    else // both origin and destination must be nodes
+    {
+        if(subTrip.origin.type != WayPoint::NODE || subTrip.destination.type != WayPoint::NODE)
+        {
+            throw std::runtime_error("non node O/D for not PT pedestrian");
+        }
+        const Node* srcNode = subTrip.origin.node;
+        const Node* destNode = subTrip.destination.node;
 
-		DynamicVector distVector(srcNode->getLocation().getX(),srcNode->getLocation().getY(),destNode->getLocation().getX(),destNode->getLocation().getY());
-		double distance = distVector.getMagnitude();
-		walkTime = distance / walkSpeed;
-	}
+        DynamicVector distVector(srcNode->getLocation().getX(),srcNode->getLocation().getY(),destNode->getLocation().getX(),destNode->getLocation().getY());
+        double distance = distVector.getMagnitude();
+        walkTime = distance / walkSpeed;
+    }
 
-	parentPedestrian->setTravelTime(walkTime*1000);
+    parentPedestrian->setTravelTime(walkTime*1000);
 }
 
 const Node* PedestrianMovement::getDestNode()
 {
-	SubTrip& subTrip = *(parentPedestrian->parent->currSubTrip);
-	const Node* destNd = nullptr;
+    SubTrip& subTrip = *(parentPedestrian->parent->currSubTrip);
+    const Node* destNd = nullptr;
 
-	switch(subTrip.destination.type)
-	{
-	case WayPoint::NODE:
-	{
-		destNd = subTrip.destination.node;
-		break;
-	}
-	case WayPoint::TRAIN_STOP:
-	{
-		const Node* srcNode = nullptr;
-		switch(subTrip.origin.type)
-		{
-		case WayPoint::NODE:
-		{
-			srcNode = subTrip.origin.node;
-			break;
-		}
-		case WayPoint::BUS_STOP:
-		{
-			srcNode = subTrip.origin.busStop->getParentSegment()->getParentLink()->getFromNode();
-			break;
-		}
-		case WayPoint::TRAIN_STOP:
-		{
-			//this case should ideally not occur. handling just in case...
-			srcNode = subTrip.origin.trainStop->getRandomStationSegment()->getParentLink()->getFromNode();
-			break;
-		}
-		}
-		destNd = subTrip.destination.trainStop->getStationSegmentForNode(srcNode)->getParentLink()->getToNode();
-		break;
-	}
-	case WayPoint::BUS_STOP:
-	{
-		destNd = subTrip.destination.busStop->getParentSegment()->getParentLink()->getToNode();
-		break;
-	}
-	case WayPoint::TAXI_STAND:
-	{
-		destNd = subTrip.destination.taxiStand->getRoadSegment()->getParentLink()->getFromNode();
-		break;
-	}
-	}
-	return destNd;
+    switch(subTrip.destination.type)
+    {
+    case WayPoint::NODE:
+    {
+        destNd = subTrip.destination.node;
+        break;
+    }
+    case WayPoint::TRAIN_STOP:
+    {
+        const Node* srcNode = nullptr;
+        switch(subTrip.origin.type)
+        {
+        case WayPoint::NODE:
+        {
+            srcNode = subTrip.origin.node;
+            break;
+        }
+        case WayPoint::BUS_STOP:
+        {
+            srcNode = subTrip.origin.busStop->getParentSegment()->getParentLink()->getFromNode();
+            break;
+        }
+        case WayPoint::TRAIN_STOP:
+        {
+            //this case should ideally not occur. handling just in case...
+            srcNode = subTrip.origin.trainStop->getRandomStationSegment()->getParentLink()->getFromNode();
+            break;
+        }
+        }
+        destNd = subTrip.destination.trainStop->getStationSegmentForNode(srcNode)->getParentLink()->getToNode();
+        break;
+    }
+    case WayPoint::BUS_STOP:
+    {
+        destNd = subTrip.destination.busStop->getParentSegment()->getParentLink()->getToNode();
+        break;
+    }
+    case WayPoint::TAXI_STAND:
+    {
+        destNd = subTrip.destination.taxiStand->getRoadSegment()->getParentLink()->getFromNode();
+        break;
+    }
+    }
+    return destNd;
 }
 
 void PedestrianMovement::frame_tick()
 {
-	parentPedestrian->parent->setRemainingTimeThisTick(0);
+    parentPedestrian->parent->setRemainingTimeThisTick(0);
 
-	if (parentPedestrian->roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN)
-	{
-		unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
-		parentPedestrian->setTravelTime(parentPedestrian->getTravelTime()+tickMS);
-		double tickSec = ConfigManager::GetInstance().FullConfig().baseGranSecond();
+    if (parentPedestrian->roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN)
+    {
+        unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
+        parentPedestrian->setTravelTime(parentPedestrian->getTravelTime()+tickMS);
+        double tickSec = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 
-		if (!isOnDemandTraveler)
-		{
-			TravelTimeAtNode& front = travelPath.front();
-			if (front.travelTime < tickSec)
-			{
-				travelPath.pop();
-				Conflux* start = this->getStartConflux();
-				if (start)
-				{
-					MessageBus::PostMessage(start, MSG_TRAVELER_TRANSFER,
-					                        MessageBus::MessagePtr(new PersonMessage(parentPedestrian->parent)));
-				}
-			}
-			else
-			{
-				front.travelTime -= tickSec;
-			}
-			if (travelPath.size() == 0)
-			{
-				parentPedestrian->parent->setToBeRemoved();
-			}
-		}
-		else
-		{
-			parentPedestrian->getParent()->setToBeRemoved();
-		}
-	}
+        if (!isOnDemandTraveler)
+        {
+            TravelTimeAtNode& front = travelPath.front();
+            if (front.travelTime < tickSec)
+            {
+                travelPath.pop();
+                Conflux* start = this->getStartConflux();
+                if (start)
+                {
+                    MessageBus::PostMessage(start, MSG_TRAVELER_TRANSFER,
+                                            MessageBus::MessagePtr(new PersonMessage(parentPedestrian->parent)));
+                }
+            }
+            else
+            {
+                front.travelTime -= tickSec;
+            }
+            if (travelPath.size() == 0)
+            {
+                parentPedestrian->parent->setToBeRemoved();
+            }
+        }
+        else
+        {
+            parentPedestrian->getParent()->setToBeRemoved();
+        }
+    }
 }
 
 std::string PedestrianMovement::frame_tick_output()
 {
-	return std::string();
+    return std::string();
 }
 
 Conflux* PedestrianMovement::getStartConflux() const
 {
-	if (parentPedestrian->roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN && travelPath.size() > 0)
-	{
-		const TravelTimeAtNode &front = travelPath.front();
-		return MT_Config::getInstance().getConfluxForNode(front.node);
-	}
-	else if (parentPedestrian->roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN && isOnDemandTraveler)
-	{
-		SubTrip &subTrip = *(parentPedestrian->parent->currSubTrip);
-		return MT_Config::getInstance().getConfluxForNode(subTrip.origin.node);
-	}
+    if (parentPedestrian->roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN && travelPath.size() > 0)
+    {
+        const TravelTimeAtNode &front = travelPath.front();
+        return MT_Config::getInstance().getConfluxForNode(front.node);
+    }
+    else if (parentPedestrian->roleType == Role<Person_MT>::RL_TRAVELPEDESTRIAN && isOnDemandTraveler)
+    {
+        SubTrip &subTrip = *(parentPedestrian->parent->currSubTrip);
+        return MT_Config::getInstance().getConfluxForNode(subTrip.origin.node);
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
 Conflux* PedestrianMovement::getDestinationConflux() const
 {
-	if (destinationNode)
-	{
-		return MT_Config::getInstance().getConfluxForNode(destinationNode);
-	}
-	return nullptr;
+    if (destinationNode)
+    {
+        return MT_Config::getInstance().getConfluxForNode(destinationNode);
+    }
+    return nullptr;
 }
 
 bool PedestrianMovement::getOnDemandTraveller()
 {
-	return isOnDemandTraveler;
+    return isOnDemandTraveler;
 }

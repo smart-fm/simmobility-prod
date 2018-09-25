@@ -9,31 +9,31 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class WorkersGrpByLogsumParams
-		{
-		public:
-			WorkersGrpByLogsumParams(int _individualId = 0, int logsumCharacteristicsGroupId = 0);
-			virtual ~WorkersGrpByLogsumParams();
+    namespace long_term
+    {
+        class WorkersGrpByLogsumParams
+        {
+        public:
+            WorkersGrpByLogsumParams(int _individualId = 0, int logsumCharacteristicsGroupId = 0);
+            virtual ~WorkersGrpByLogsumParams();
 
-			WorkersGrpByLogsumParams(const WorkersGrpByLogsumParams &src);
-			WorkersGrpByLogsumParams& operator=(const WorkersGrpByLogsumParams &src);
-
-
-			int getIndividualId() const;
-			int getLogsumCharacteristicsGroupId() const;
+            WorkersGrpByLogsumParams(const WorkersGrpByLogsumParams &src);
+            WorkersGrpByLogsumParams& operator=(const WorkersGrpByLogsumParams &src);
 
 
-			void setIndividualId(int value);
-			void setLogsumCharacteristicsGroupId(int value);
-
-		private:
-
-			int individualId;
-			int logsumCharacteristicsGroupId;
+            int getIndividualId() const;
+            int getLogsumCharacteristicsGroupId() const;
 
 
-		};
-	}
+            void setIndividualId(int value);
+            void setLogsumCharacteristicsGroupId(int value);
+
+        private:
+
+            int individualId;
+            int logsumCharacteristicsGroupId;
+
+
+        };
+    }
 }

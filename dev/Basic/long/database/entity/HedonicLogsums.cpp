@@ -9,27 +9,27 @@
 using namespace sim_mob::long_term;
 
 HedonicLogsums::HedonicLogsums( BigSerial tazId, double logsumWeighted) :
-								tazId(tazId),logsumWeighted(logsumWeighted){}
+                                tazId(tazId),logsumWeighted(logsumWeighted){}
 
 HedonicLogsums::~HedonicLogsums() {}
 
 
 double HedonicLogsums::getLogsumWeighted() const
 {
-	return logsumWeighted;
+    return logsumWeighted;
 }
 
 void HedonicLogsums::setLogsumWeighted(double logsumWeighted)
 {
-	this->logsumWeighted = logsumWeighted;
+    this->logsumWeighted = logsumWeighted;
 }
 
 BigSerial HedonicLogsums::getTazId() const
 {
-	return tazId;
+    return tazId;
 }
 
 void HedonicLogsums::setTazId(BigSerial tazId)
 {
-	this->tazId = tazId;
+    this->tazId = tazId;
 }

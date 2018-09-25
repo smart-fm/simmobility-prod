@@ -18,7 +18,7 @@ namespace sim_mob {
          */
         class IndvidualEmpSecDao : public db::SqlAbstractDao<IndvidualEmpSec> {
         public:
-        	IndvidualEmpSecDao(db::DB_Connection& connection);
+            IndvidualEmpSecDao(db::DB_Connection& connection);
             virtual ~IndvidualEmpSecDao();
 
         private:

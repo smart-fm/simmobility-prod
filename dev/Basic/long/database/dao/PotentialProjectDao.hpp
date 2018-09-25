@@ -23,7 +23,7 @@ namespace sim_mob {
          */
         class PotentialProjectDao : public db::SqlAbstractDao<PotentialProject> {
         public:
-        	PotentialProjectDao(db::DB_Connection& connection);
+            PotentialProjectDao(db::DB_Connection& connection);
             virtual ~PotentialProjectDao();
 
         private:
@@ -43,7 +43,7 @@ namespace sim_mob {
              */
             void toRow(PotentialProject& data, db::Parameters& outParams, bool update);
 
-        	public:
+            public:
 
             void insertPotentialProject(PotentialProject& potentialProject,std::string schema);
         };

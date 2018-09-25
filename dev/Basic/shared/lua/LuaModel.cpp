@@ -82,16 +82,16 @@ void LuaModel::loadFile(const std::string& filePath)
         }
         else
         {
-        	std::stringstream msg; msg << "Problem with file "<< filePath <<
-        		". Your file must have the extension .lua";
+            std::stringstream msg; msg << "Problem with file "<< filePath <<
+                ". Your file must have the extension .lua";
             throw runtime_error(msg.str() );
         }
     }
     else
     {
-    	std::stringstream msg; msg << "File "<< filePath <<
-    	        		" does not exist or is invalid";
-    	throw runtime_error(msg.str() );
+        std::stringstream msg; msg << "File "<< filePath <<
+                        " does not exist or is invalid";
+        throw runtime_error(msg.str() );
     }
 }
 

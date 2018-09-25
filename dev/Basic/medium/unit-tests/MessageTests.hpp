@@ -18,10 +18,10 @@ class MessageTests
 
 public:
 
-	/**
-	 * Runs all tests inside of this class.
-	 */
-	void testAll();
+    /**
+     * Runs all tests inside of this class.
+     */
+    void testAll();
 
 };
 }

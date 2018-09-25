@@ -35,71 +35,71 @@ Vehicle::~Vehicle()
 
 double Vehicle::getVelocity() const
 {
-	return forwardVelocity;
+    return forwardVelocity;
 }
 
 double Vehicle::getLateralVelocity() const
 {
-	return lateralVelocity;
+    return lateralVelocity;
 }
 
 double Vehicle::getAcceleration() const
 {
-	return forwardAcceleration;
+    return forwardAcceleration;
 }
 
 LaneChangeTo Vehicle::getTurningDirection() const
 {
-	return turningDirection;
+    return turningDirection;
 }
 
 void Vehicle::setVelocity(double value)
 {
-	forwardVelocity = value;
+    forwardVelocity = value;
 }
 
 void Vehicle::setLateralVelocity(double value)
 {
-	lateralVelocity = value;
+    lateralVelocity = value;
 }
 
 void Vehicle::setAcceleration(double value)
 {
-	forwardAcceleration = value;
+    forwardAcceleration = value;
 }
 
 void Vehicle::setCurrPosition(Point currPosition)
 {
-	currPos = currPosition;
+    currPos = currPosition;
 }
 
 const Point& Vehicle::getCurrPosition() const
 {
-	return currPos;
+    return currPos;
 }
 
 void Vehicle::moveLat(double amt)
 {
-	latMovement += amt;
+    latMovement += amt;
 }
 
 void Vehicle::setTurningDirection(LaneChangeTo direction)
 {
-	turningDirection = direction;
+    turningDirection = direction;
 }
 
 void Vehicle::resetLateralMovement()
 {
-	latMovement = 0;
+    latMovement = 0;
 }
 
 const std::string& Vehicle::getVehicleName() const
 {
-	return vehicleName;
+    return vehicleName;
 }
 
 double Vehicle::getLateralMovement() const
 {
-	return latMovement;
+    return latMovement;
 }
 

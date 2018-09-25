@@ -49,49 +49,49 @@ unsigned int sim_mob::Agent::nextAgentId = 0;
 
 unsigned int sim_mob::Agent::getAndIncrementID(int preferredID)
 {
-	//If the ID is valid, modify next_agent_id;
-	if (preferredID > static_cast<int> (nextAgentId))
-	{
-		nextAgentId = static_cast<unsigned int> (preferredID);
-	}
+    //If the ID is valid, modify next_agent_id;
+    if (preferredID > static_cast<int> (nextAgentId))
+    {
+        nextAgentId = static_cast<unsigned int> (preferredID);
+    }
 
 #ifndef SIMMOB_DISABLE_MPI
-	if (ConfigManager::GetInstance().FullConfig().using_MPI)
-	{
-		PartitionManager& partitionImpl = PartitionManager::instance();
-		int mpi_id = partitionImpl.partition_config->partition_id;
-		int cycle = partitionImpl.partition_config->maximum_agent_id;
-		return (nextAgentId++) +cycle * mpi_id;
-	}
+    if (ConfigManager::GetInstance().FullConfig().using_MPI)
+    {
+        PartitionManager& partitionImpl = PartitionManager::instance();
+        int mpi_id = partitionImpl.partition_config->partition_id;
+        int cycle = partitionImpl.partition_config->maximum_agent_id;
+        return (nextAgentId++) +cycle * mpi_id;
+    }
 #endif
 
-	//Assign either the value asked for (assume it will not conflict) or
-	//  the value of next_agent_id (if it's <0)
-	unsigned int res =
-			(preferredID >= 0) ?
-			static_cast<unsigned int> (preferredID) : nextAgentId++;
+    //Assign either the value asked for (assume it will not conflict) or
+    //  the value of next_agent_id (if it's <0)
+    unsigned int res =
+            (preferredID >= 0) ?
+            static_cast<unsigned int> (preferredID) : nextAgentId++;
 
-	return res;
+    return res;
 }
 
 void sim_mob::Agent::setIncrementIDStartValue(int startID, bool failIfAlreadyUsed)
 {
-	//Check fail condition
-	if (failIfAlreadyUsed && Agent::nextAgentId != 0)
-	{
-		throw std::runtime_error(
-								"Can't call SetIncrementIDStartValue(); Agent ID has already been used.");
-	}
+    //Check fail condition
+    if (failIfAlreadyUsed && Agent::nextAgentId != 0)
+    {
+        throw std::runtime_error(
+                                "Can't call SetIncrementIDStartValue(); Agent ID has already been used.");
+    }
 
-	//Fail if we've already passed this ID.
-	if (Agent::nextAgentId > startID)
-	{
-		throw std::runtime_error(
-								"Can't call SetIncrementIDStartValue(); Agent ID has already been assigned.");
-	}
+    //Fail if we've already passed this ID.
+    if (Agent::nextAgentId > startID)
+    {
+        throw std::runtime_error(
+                                "Can't call SetIncrementIDStartValue(); Agent ID has already been assigned.");
+    }
 
-	//Set
-	Agent::nextAgentId = startID;
+    //Set
+    Agent::nextAgentId = startID;
 }
 
 sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(getAndIncrementID(id)),
@@ -105,175 +105,175 @@ sim_mob::Agent::~Agent()
 
 void sim_mob::Agent::checkFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
 {
-	//Has update() been called early?
-	if (now < startTime)
-	{
-		std::stringstream msg;
-		msg << "Agent(" << agentId << ") specifies a start time of: " << startTime
-				<< " but it is currently: " << now
-				<< "; this indicates an error, and should be handled automatically.";
-		throw std::runtime_error(msg.str().c_str());
-	}
+    //Has update() been called early?
+    if (now < startTime)
+    {
+        std::stringstream msg;
+        msg << "Agent(" << agentId << ") specifies a start time of: " << startTime
+                << " but it is currently: " << now
+                << "; this indicates an error, and should be handled automatically.";
+        throw std::runtime_error(msg.str().c_str());
+    }
 
-	//Has update() been called too late?
-	if (wasRemoved)
-	{
-		std::stringstream msg;
-		msg << "Agent(" << agentId << ") should have already been removed, but was instead updated at: " << now
-				<< "; this indicates an error, and should be handled automatically.";
-		throw std::runtime_error(msg.str().c_str());
-	}
+    //Has update() been called too late?
+    if (wasRemoved)
+    {
+        std::stringstream msg;
+        msg << "Agent(" << agentId << ") should have already been removed, but was instead updated at: " << now
+                << "; this indicates an error, and should be handled automatically.";
+        throw std::runtime_error(msg.str().c_str());
+    }
 
-	//Was frame_init() called at the wrong point in time?
-	if (wasFirstFrame)
-	{
-		unsigned int absoluteDiffTime = std::max(now, startTime) - std::min(now, startTime);
-		if (absoluteDiffTime >= ConfigManager::GetInstance().FullConfig().baseGranMS())
-		{
-			std::stringstream msg;
-			msg << "Agent was not started within one timespan of its requested start time.";
-			msg << "\nStart was: " << startTime << ",  Curr time is: " << now << "\n";
-			msg << "Agent ID: " << agentId << "\n";
-			throw std::runtime_error(msg.str().c_str());
-		}
-	}
+    //Was frame_init() called at the wrong point in time?
+    if (wasFirstFrame)
+    {
+        unsigned int absoluteDiffTime = std::max(now, startTime) - std::min(now, startTime);
+        if (absoluteDiffTime >= ConfigManager::GetInstance().FullConfig().baseGranMS())
+        {
+            std::stringstream msg;
+            msg << "Agent was not started within one timespan of its requested start time.";
+            msg << "\nStart was: " << startTime << ",  Curr time is: " << now << "\n";
+            msg << "Agent ID: " << agentId << "\n";
+            throw std::runtime_error(msg.str().c_str());
+        }
+    }
 }
 
 UpdateStatus sim_mob::Agent::performUpdate(timeslice now)
 {
-	UpdateStatus frameInitRes(UpdateStatus::RS_CONTINUE);
-	UpdateStatus frameTckRes(UpdateStatus::RS_CONTINUE);
-	
-	//We give the Agent the benefit of the doubt here and simply call frame_init().
-	//This allows them to override the start_time if it seems appropriate (e.g., if they
-	// are swapping trip chains). If frame_init() returns false, immediately exit.
-	bool calledFrameInit = false;
-	if (!initialized)
-	{
-		//Call frame_init() and exit early if requested to.
-		frameInitRes = frame_init(now);
-		
-		if (frameInitRes.status == UpdateStatus::RS_DONE)
-		{
+    UpdateStatus frameInitRes(UpdateStatus::RS_CONTINUE);
+    UpdateStatus frameTckRes(UpdateStatus::RS_CONTINUE);
+    
+    //We give the Agent the benefit of the doubt here and simply call frame_init().
+    //This allows them to override the start_time if it seems appropriate (e.g., if they
+    // are swapping trip chains). If frame_init() returns false, immediately exit.
+    bool calledFrameInit = false;
+    if (!initialized)
+    {
+        //Call frame_init() and exit early if requested to.
+        frameInitRes = frame_init(now);
+        
+        if (frameInitRes.status == UpdateStatus::RS_DONE)
+        {
 #ifndef NDEBUG
-			if (dynamic_cast<MobilityServiceController*>(this)  )
-					ControllerLog()<<"The controller is done." << std::endl;
+            if (dynamic_cast<MobilityServiceController*>(this)  )
+                    ControllerLog()<<"The controller is done." << std::endl;
 #endif
-			return frameInitRes;
-		}
+            return frameInitRes;
+        }
 
-		//Set call_frame_init to false here; you can only reset frame_init() in frame_tick()
-		initialized = true; //Only initialize once.
-		calledFrameInit = true;
-	}
+        //Set call_frame_init to false here; you can only reset frame_init() in frame_tick()
+        initialized = true; //Only initialize once.
+        calledFrameInit = true;
+    }
 
-	//Now that frame_init has been called, ensure that it was done so for the correct time tick.
-	checkFrameTimes(getId(), now.ms(), getStartTime(), calledFrameInit, isToBeRemoved());
+    //Now that frame_init has been called, ensure that it was done so for the correct time tick.
+    checkFrameTimes(getId(), now.ms(), getStartTime(), calledFrameInit, isToBeRemoved());
 
-	//Perform the main update tick
+    //Perform the main update tick
 
-	frameTckRes = frame_tick(now);
+    frameTckRes = frame_tick(now);
 
-	//Save the output
-	if (frameTckRes.status != UpdateStatus::RS_DONE)
-	{
-		frame_output(now);
-	}
+    //Save the output
+    if (frameTckRes.status != UpdateStatus::RS_DONE)
+    {
+        frame_output(now);
+    }
 
-	//Output if removal requested.
-	if (Debug::WorkGroupSemantics && isToBeRemoved())
-	{
-		LogOut("Person requested removal: " << "(Role Hidden)" << std::endl);
-	}
-	
-	//The frameInitRes (if the frame_init has been called in this tick) can contain the set of shared variables that
-	//need to be managed by the worker. So, only if the frame_tick method's status is the same as that of the frame_init
-	//method, return frameInitRes, else frameTckRes may contain the set of variables to be managed (after a role change)
-	if(calledFrameInit && frameInitRes.status == frameTckRes.status)
-	{
-		return frameInitRes;
-	}
-	else
-	{
-		return frameTckRes;
-	}	
+    //Output if removal requested.
+    if (Debug::WorkGroupSemantics && isToBeRemoved())
+    {
+        LogOut("Person requested removal: " << "(Role Hidden)" << std::endl);
+    }
+    
+    //The frameInitRes (if the frame_init has been called in this tick) can contain the set of shared variables that
+    //need to be managed by the worker. So, only if the frame_tick method's status is the same as that of the frame_init
+    //method, return frameInitRes, else frameTckRes may contain the set of variables to be managed (after a role change)
+    if(calledFrameInit && frameInitRes.status == frameTckRes.status)
+    {
+        return frameInitRes;
+    }
+    else
+    {
+        return frameTckRes;
+    }   
 }
 
 Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 {
-	PROFILE_LOG_AGENT_UPDATE_BEGIN(currWorkerProvider, this, now);
+    PROFILE_LOG_AGENT_UPDATE_BEGIN(currWorkerProvider, this, now);
 
-	//Update within an optional try/catch block.
-	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
+    //Update within an optional try/catch block.
+    UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 
-	try
-	{
-		//Update functionality
-		retVal = performUpdate(now);
-	}
-	catch (std::exception& ex)
-	{
-		//PROFILE_LOG_AGENT_EXCEPTION(currWorkerProvider->getProfileBuilder(), *this, now, ex);
+    try
+    {
+        //Update functionality
+        retVal = performUpdate(now);
+    }
+    catch (std::exception& ex)
+    {
+        //PROFILE_LOG_AGENT_EXCEPTION(currWorkerProvider->getProfileBuilder(), *this, now, ex);
 
-		//Add a line to the output file.
-		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
-		{
+        //Add a line to the output file.
+        if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
+        {
 
-			std::stringstream msg;
-			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation. Pointer:"<<
-					this <<". The problem is: "
-			    << ex.what() << std::endl;
-			WarnOut(msg.str());
+            std::stringstream msg;
+            msg << "Error updating Agent[" << getId() << "], will be removed from the simulation. Pointer:"<<
+                    this <<". The problem is: "
+                << ex.what() << std::endl;
+            WarnOut(msg.str());
 #ifndef NDEBUG
-			Print()<<"Exception occurred! Check warn.log for details."<<std::endl;
+            Print()<<"Exception occurred! Check warn.log for details."<<std::endl;
 #endif
-		}
+        }
 
-		setToBeRemoved();
-		ConfigManager::GetInstanceRW().FullConfig().numAgentsKilled++;
+        setToBeRemoved();
+        ConfigManager::GetInstanceRW().FullConfig().numAgentsKilled++;
 
-		if (dynamic_cast<MobilityServiceDriver*>(this))
-			throw ex;
-	}
+        if (dynamic_cast<MobilityServiceDriver*>(this))
+            throw ex;
+    }
 
-	//Ensure that isToBeRemoved() and UpdateStatus::status are in sync
-	if (isToBeRemoved() || retVal.status == UpdateStatus::RS_DONE)
-	{
+    //Ensure that isToBeRemoved() and UpdateStatus::status are in sync
+    if (isToBeRemoved() || retVal.status == UpdateStatus::RS_DONE)
+    {
 
-		retVal.status = UpdateStatus::RS_DONE;
-		setToBeRemoved();
+        retVal.status = UpdateStatus::RS_DONE;
+        setToBeRemoved();
 
-		//notify subscribers that this agent is done
-		MessageBus::PublishEvent(event::EVT_CORE_AGENT_DIED, this,
-								MessageBus::EventArgsPtr(new AgentLifeCycleEventArgs(getId(), this)));
+        //notify subscribers that this agent is done
+        MessageBus::PublishEvent(event::EVT_CORE_AGENT_DIED, this,
+                                MessageBus::EventArgsPtr(new AgentLifeCycleEventArgs(getId(), this)));
 
-		//unsubscribes all listeners of this agent to this event.
-		//(it is safe to do this here because the priority between events)
-		MessageBus::UnSubscribeAll(event::EVT_CORE_AGENT_DIED, this);
-	}
+        //unsubscribes all listeners of this agent to this event.
+        //(it is safe to do this here because the priority between events)
+        MessageBus::UnSubscribeAll(event::EVT_CORE_AGENT_DIED, this);
+    }
 
-	PROFILE_LOG_AGENT_UPDATE_END(currWorkerProvider, this, now);
-	return retVal;
+    PROFILE_LOG_AGENT_UPDATE_END(currWorkerProvider, this, now);
+    return retVal;
 }
 
 vector<BufferedBase *> sim_mob::Agent::buildSubscriptionList()
 {
-	return vector<BufferedBase *>();
+    return vector<BufferedBase *>();
 }
 
 bool sim_mob::Agent::isToBeRemoved()
 {
-	return toRemoved;
+    return toRemoved;
 }
 
 void sim_mob::Agent::setToBeRemoved()
 {
-	toRemoved = true;
+    toRemoved = true;
 }
 
 NullableOutputStream sim_mob::Agent::Log() const
 {
-	return NullableOutputStream(currWorkerProvider->getLogFile());
+    return NullableOutputStream(currWorkerProvider->getLogFile());
 }
 
 void sim_mob::Agent::onEvent(EventId eventId, Context ctxId, EventPublisher* sender, const EventArgs& args)

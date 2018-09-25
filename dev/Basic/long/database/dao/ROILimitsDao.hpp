@@ -25,7 +25,7 @@ namespace sim_mob
         class ROILimitsDao : public db::SqlAbstractDao<ROILimits>
         {
         public:
-        	ROILimitsDao(db::DB_Connection& connection);
+            ROILimitsDao(db::DB_Connection& connection);
             virtual ~ROILimitsDao();
 
         private:

@@ -38,67 +38,67 @@ class UnPackageUtils;
 class Vehicle : public VehicleBase
 {
 private:
-	/**Id of the vehicle - currently not used*/
-	int vehicleId;
-	
-	/**
-	 * Lateral movement of the vehicle (in metre). This value represents how far to the LEFT of the current lane 
-	 * the vehicle has moved. Note: This is not the same as lateral position
-	 */
-	double latMovement;
-	
-	/**Forward velocity of the vehicle (m/s)*/
-	double forwardVelocity;
-	
-	/**Lateral velocity of the vehicle (m/s)*/
-	double lateralVelocity;
-	
-	/**The forward acceleration of the vehicle (m/s)*/
-	double forwardAcceleration;
-	
-	/**The lane the vehicle is changing to - left, right or same*/
-	LaneChangeTo turningDirection;
-	
-	/**Current position of the vehicle*/
-	Point currPos;
+    /**Id of the vehicle - currently not used*/
+    int vehicleId;
+    
+    /**
+     * Lateral movement of the vehicle (in metre). This value represents how far to the LEFT of the current lane 
+     * the vehicle has moved. Note: This is not the same as lateral position
+     */
+    double latMovement;
+    
+    /**Forward velocity of the vehicle (m/s)*/
+    double forwardVelocity;
+    
+    /**Lateral velocity of the vehicle (m/s)*/
+    double lateralVelocity;
+    
+    /**The forward acceleration of the vehicle (m/s)*/
+    double forwardAcceleration;
+    
+    /**The lane the vehicle is changing to - left, right or same*/
+    LaneChangeTo turningDirection;
+    
+    /**Current position of the vehicle*/
+    Point currPos;
 
-	/**The name of the vehicle as defined in the configuration file*/
-	std::string vehicleName;
+    /**The name of the vehicle as defined in the configuration file*/
+    std::string vehicleName;
 
 public:
-	Vehicle(const VehicleType vehType, double lengthM, double widthM, const std::string& vehName);
-	Vehicle(const VehicleType vehType, int vehicleId, double lengthM, double widthM, const std::string& vehName);
-	virtual ~Vehicle();
+    Vehicle(const VehicleType vehType, double lengthM, double widthM, const std::string& vehName);
+    Vehicle(const VehicleType vehType, int vehicleId, double lengthM, double widthM, const std::string& vehName);
+    virtual ~Vehicle();
 
-	double getLateralMovement() const;
-	void moveLat(double amt);
-	void resetLateralMovement();	
-	
-	double getVelocity() const;
-	void setVelocity(double value);
-	
-	double getLateralVelocity() const;
-	void setLateralVelocity(double value);
-	
-	double getAcceleration() const;
-	void setAcceleration(double value);
+    double getLateralMovement() const;
+    void moveLat(double amt);
+    void resetLateralMovement();    
+    
+    double getVelocity() const;
+    void setVelocity(double value);
+    
+    double getLateralVelocity() const;
+    void setLateralVelocity(double value);
+    
+    double getAcceleration() const;
+    void setAcceleration(double value);
 
-	LaneChangeTo getTurningDirection() const;
-	void setTurningDirection(LaneChangeTo direction);
-	
-	const Point& getCurrPosition() const;
-	void setCurrPosition(Point currPosition);
+    LaneChangeTo getTurningDirection() const;
+    void setTurningDirection(LaneChangeTo direction);
+    
+    const Point& getCurrPosition() const;
+    void setCurrPosition(Point currPosition);
 
-	const std::string& getVehicleName() const;	
+    const std::string& getVehicleName() const;  
 
 #ifndef SIMMOB_DISABLE_MPI
-	//Serialisation-related friends
-	friend class PackageUtils;
-	friend class UnPackageUtils;
-	
-	///Serialisation
-	static void pack(PackageUtils& package, Vehicle* one_vehicle);
-	static Vehicle* unpack(UnPackageUtils& unpackage);
+    //Serialisation-related friends
+    friend class PackageUtils;
+    friend class UnPackageUtils;
+    
+    ///Serialisation
+    static void pack(PackageUtils& package, Vehicle* one_vehicle);
+    static Vehicle* unpack(UnPackageUtils& unpackage);
 #endif
 };
 

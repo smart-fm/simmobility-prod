@@ -14,10 +14,10 @@ namespace sim_mob
 ///A simple class for representing Road Runner regions. Points are in some order (clockwise?) in Lat/Lng format.
 class RoadRunnerRegion {
 public:
-	RoadRunnerRegion() : id(0) {}
+    RoadRunnerRegion() : id(0) {}
 
-	int id;
-	std::vector<sim_mob::LatLngLocation> points;
+    int id;
+    std::vector<sim_mob::LatLngLocation> points;
 };
 
 

@@ -13,20 +13,20 @@ using std::string;
 using namespace sim_mob;
 
 std::map<string, sim_mob::Services::SIM_MOB_SERVICE> sim_mob::Services::ServiceMap =
-		boost::assign::map_list_of
-			("srv_location", SIMMOB_SRV_LOCATION)
-			("srv_all_locations", SIMMOB_SRV_ALL_LOCATIONS)
-			("srv_regions_and_path", SIMMOB_SRV_REGIONS_AND_PATH)
-			;
+        boost::assign::map_list_of
+            ("srv_location", SIMMOB_SRV_LOCATION)
+            ("srv_all_locations", SIMMOB_SRV_ALL_LOCATIONS)
+            ("srv_regions_and_path", SIMMOB_SRV_REGIONS_AND_PATH)
+            ;
 
 sim_mob::Services::SIM_MOB_SERVICE sim_mob::Services::GetServiceType(std::string type)
 {
-	std::map<std::string, Services::SIM_MOB_SERVICE>::iterator it = Services::ServiceMap.find(type);
-	if (it != Services::ServiceMap.end()) {
-		return it->second;
-	}
+    std::map<std::string, Services::SIM_MOB_SERVICE>::iterator it = Services::ServiceMap.find(type);
+    if (it != Services::ServiceMap.end()) {
+        return it->second;
+    }
 
-	throw std::runtime_error("Unknown service type string.");
+    throw std::runtime_error("Unknown service type string.");
 }
 
 

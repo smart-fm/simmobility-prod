@@ -24,153 +24,153 @@ class RoadNetwork;
 class NetworkLoader
 {
 private:
-	/**Pointer to the singleton instance*/
-	static NetworkLoader *networkLoader;
+    /**Pointer to the singleton instance*/
+    static NetworkLoader *networkLoader;
 
-	/**Represents the road network that is loaded*/
-	RoadNetwork *roadNetwork;
+    /**Represents the road network that is loaded*/
+    RoadNetwork *roadNetwork;
 
-	/**The database connection session*/
-	soci::session sql;
+    /**The database connection session*/
+    soci::session sql;
 
-	/**Indicates whether the road network has been loaded successfully*/
-	bool isNetworkLoaded;
+    /**Indicates whether the road network has been loaded successfully*/
+    bool isNetworkLoaded;
 
-	/**Private constructor as the class is a singleton*/
-	NetworkLoader();
+    /**Private constructor as the class is a singleton*/
+    NetworkLoader();
 
-	/**
-	 * Loads the lanes using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadLanes(const std::string& storedProc);
+    /**
+     * Loads the lanes using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadLanes(const std::string& storedProc);
 
-	/**
-	 * Loads the lane connectors using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadLaneConnectors(const std::string& storedProc);
+    /**
+     * Loads the lane connectors using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadLaneConnectors(const std::string& storedProc);
 
-	/**
-	 * Loads the lane poly-lines using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadLanePolyLines(const std::string& storedProc);
+    /**
+     * Loads the lane poly-lines using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadLanePolyLines(const std::string& storedProc);
 
-	/**
-	 * Loads the Links using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadLinks(const std::string& storedProc);
+    /**
+     * Loads the Links using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadLinks(const std::string& storedProc);
 
-	/**
-	 * Loads the Nodes using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadNodes(const std::string& storedProc);
+    /**
+     * Loads the Nodes using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadNodes(const std::string& storedProc);
 
-	/**
-	 * Load the road segments using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadRoadSegments(const std::string& storedProc);
+    /**
+     * Load the road segments using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadRoadSegments(const std::string& storedProc);
 
-	/**
-	 * Loads the road segment poly-lines using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadSegmentPolyLines(const std::string& storedProc);
+    /**
+     * Loads the road segment poly-lines using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadSegmentPolyLines(const std::string& storedProc);
 
-	/**
-	 * Loads the turning conflicts using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadTurningConflicts(const std::string& storedProc);
+    /**
+     * Loads the turning conflicts using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadTurningConflicts(const std::string& storedProc);
 
-	/**
-	 * Loads the turning groups using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadTurningGroups(const std::string& storedProc);
+    /**
+     * Loads the turning groups using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadTurningGroups(const std::string& storedProc);
 
-	/**
-	 * Loads the turning paths using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadTurningPaths(const std::string& storedProc);
+    /**
+     * Loads the turning paths using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadTurningPaths(const std::string& storedProc);
 
-	/**
-	 * Loads the poly-lines associated with the turnings using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadTurningPolyLines(const std::string& storedProc);
+    /**
+     * Loads the poly-lines associated with the turnings using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadTurningPolyLines(const std::string& storedProc);
 
-	/**
-	 * Loads bus stops associated with parent road segment using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadBusStops(const std::string& storedProc);
+    /**
+     * Loads bus stops associated with parent road segment using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadBusStops(const std::string& storedProc);
 
-	/**
-	 * Loads taxi stands associated with parent road segment using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadTaxiStands(const std::string& storedProc);
-	
-	/**
-	 * Load the parking slots associated with the road segements using the given stored procedure
-	 * 
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	 void loadParkingSlots(const std::string& storedProc);
+    /**
+     * Loads taxi stands associated with parent road segment using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadTaxiStands(const std::string& storedProc);
+    
+    /**
+     * Load the parking slots associated with the road segements using the given stored procedure
+     * 
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+     void loadParkingSlots(const std::string& storedProc);
 
-	/**
-	 * Load All the parking detail associated with Parking ID (OnCALL/MRT) using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadSMSVehicleParking(const std::string &storedProc);
+    /**
+     * Load All the parking detail associated with Parking ID (OnCALL/MRT) using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadSMSVehicleParking(const std::string &storedProc);
 
-	/**
-	 * Loads the surveillance stations and traffic sensors within the network using the given stored procedure
-	 *
-	 * @param storedProc - the stored procedure to be executed in order to retrieve the data
-	 */
-	void loadSurveillanceStns(const std::string& storedProc);
+    /**
+     * Loads the surveillance stations and traffic sensors within the network using the given stored procedure
+     *
+     * @param storedProc - the stored procedure to be executed in order to retrieve the data
+     */
+    void loadSurveillanceStns(const std::string& storedProc);
 
 public:
-	virtual ~NetworkLoader();
+    virtual ~NetworkLoader();
 
-	static NetworkLoader* getInstance();
-	static void deleteInstance();
+    static NetworkLoader* getInstance();
+    static void deleteInstance();
 
-	/**
-	 * Connects to the database using the given connection string and then loads the components of the
-	 * network from the database using the stored procedures specified in the given map of stored procedures
-	 *
-	 * @param connectionStr - the database connection string
-	 * @param storedProcs - the map of stored procedures
-	 */
-	void loadNetwork(const string& connectionStr, const map<string, string>& storedProcs);
-
-	void populateStudyArea();
-
-	/**
-	 * This method does post processing on the road network
+    /**
+     * Connects to the database using the given connection string and then loads the components of the
+     * network from the database using the stored procedures specified in the given map of stored procedures
+     *
+     * @param connectionStr - the database connection string
+     * @param storedProcs - the map of stored procedures
      */
-	void processNetwork();
+    void loadNetwork(const string& connectionStr, const map<string, string>& storedProcs);
+
+    void populateStudyArea();
+
+    /**
+     * This method does post processing on the road network
+     */
+    void processNetwork();
 };
 }

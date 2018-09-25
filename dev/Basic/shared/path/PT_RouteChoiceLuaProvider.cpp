@@ -30,20 +30,20 @@ namespace
     {
         if (!threadContext.get())
         {
-        	try
-        	{
-        		const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMap;
-        		const std::string& scriptsPath = extScripts.getPath();
-        		ModelContext* modelCtx = new ModelContext();
-        		modelCtx->ptrcModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
-        		modelCtx->ptrcModel.loadFile(scriptsPath + extScripts.getScriptFileName("ptrc"));
-        		modelCtx->ptrcModel.initialize();
-        		threadContext.reset(modelCtx);
-        	}
-	        catch (const std::runtime_error& ex)
-	        {
-		        throw ex;
-	        }
+            try
+            {
+                const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMap;
+                const std::string& scriptsPath = extScripts.getPath();
+                ModelContext* modelCtx = new ModelContext();
+                modelCtx->ptrcModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
+                modelCtx->ptrcModel.loadFile(scriptsPath + extScripts.getScriptFileName("ptrc"));
+                modelCtx->ptrcModel.initialize();
+                threadContext.reset(modelCtx);
+            }
+            catch (const std::runtime_error& ex)
+            {
+                throw ex;
+            }
         }
     }
 }

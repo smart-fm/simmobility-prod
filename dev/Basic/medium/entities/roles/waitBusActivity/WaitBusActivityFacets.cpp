@@ -36,56 +36,56 @@ WaitBusActivityMovement::~WaitBusActivityMovement()
 
 void WaitBusActivityMovement::setParentWaitBusActivity(sim_mob::medium::WaitBusActivity* parentWaitBusActivity)
 {
-	this->parentWaitBusActivity = parentWaitBusActivity;
+    this->parentWaitBusActivity = parentWaitBusActivity;
 }
 
 void WaitBusActivityBehavior::setParentWaitBusActivity(sim_mob::medium::WaitBusActivity* parentWaitBusActivity)
 {
-	this->parentWaitBusActivity = parentWaitBusActivity;
+    this->parentWaitBusActivity = parentWaitBusActivity;
 }
 
 void WaitBusActivityMovement::frame_init()
 {
-	if(parentWaitBusActivity)
-	{
-		UpdateParams& params = parentWaitBusActivity->getParams();
-		Person* person = parentWaitBusActivity->parent;
-		person->setStartTime(params.now.ms());
-	}
+    if(parentWaitBusActivity)
+    {
+        UpdateParams& params = parentWaitBusActivity->getParams();
+        Person* person = parentWaitBusActivity->parent;
+        person->setStartTime(params.now.ms());
+    }
 }
 
 void WaitBusActivityMovement::frame_tick()
 {
-	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
-	if(parentWaitBusActivity)
-	{
-		parentWaitBusActivity->increaseWaitingTime(tickMS);
-		parentWaitBusActivity->setTravelTime(parentWaitBusActivity->getWaitingTime());
-	}
-	parentWaitBusActivity->parent->setRemainingTimeThisTick(0);
+    unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
+    if(parentWaitBusActivity)
+    {
+        parentWaitBusActivity->increaseWaitingTime(tickMS);
+        parentWaitBusActivity->setTravelTime(parentWaitBusActivity->getWaitingTime());
+    }
+    parentWaitBusActivity->parent->setRemainingTimeThisTick(0);
 }
 
 std::string WaitBusActivityMovement::frame_tick_output()
 {
-	return std::string();
+    return std::string();
 }
 
 Conflux* WaitBusActivityMovement::getStartingConflux() const
 {
-	const sim_mob::medium::BusStopAgent* stopAg = sim_mob::medium::BusStopAgent::getBusStopAgentForStop(parentWaitBusActivity->getStop());
-	if(stopAg)
-	{
-		return stopAg->getParentSegmentStats()->getParentConflux();
-	}
-	return nullptr;
+    const sim_mob::medium::BusStopAgent* stopAg = sim_mob::medium::BusStopAgent::getBusStopAgentForStop(parentWaitBusActivity->getStop());
+    if(stopAg)
+    {
+        return stopAg->getParentSegmentStats()->getParentConflux();
+    }
+    return nullptr;
 }
 
 TravelMetric& WaitBusActivityMovement::startTravelTimeMetric()
 {
-	return travelMetric;
+    return travelMetric;
 }
 
 TravelMetric& WaitBusActivityMovement::finalizeTravelTimeMetric()
 {
-	return travelMetric;
+    return travelMetric;
 }

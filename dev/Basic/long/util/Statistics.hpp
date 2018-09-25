@@ -24,9 +24,9 @@ namespace sim_mob {
                 N_BIDS = 0,
                 N_BID_RESPONSES = 1,
                 N_ACCEPTED_BIDS = 2,
-				N_WAITING_TO_MOVE = 3,
-				N_BIDDERS = 4,
-				N_SELLERS = 5
+                N_WAITING_TO_MOVE = 3,
+                N_BIDDERS = 4,
+                N_SELLERS = 5
             };
 
             /**

@@ -19,14 +19,14 @@ namespace sim_mob
 class OnHailTaxiController : public MobilityServiceController
 {
 public:
-	OnHailTaxiController(const MutexStrategy &mtxStrat, unsigned id, std::string tripSupportMode_, unsigned maxAggregatedRequests_,bool studyAreaEnabledController_,unsigned int toleratedExtraTime_,
+    OnHailTaxiController(const MutexStrategy &mtxStrat, unsigned id, std::string tripSupportMode_, unsigned maxAggregatedRequests_,bool studyAreaEnabledController_,unsigned int toleratedExtraTime_,
                          unsigned int maxWaitingTime_,bool parkingEnabled) :
-			MobilityServiceController(mtxStrat, MobilityServiceControllerType::SERVICE_CONTROLLER_ON_HAIL, id, tripSupportMode_,maxAggregatedRequests_,studyAreaEnabledController_,toleratedExtraTime_,maxWaitingTime_,parkingEnabled)
-	{
-	}
+            MobilityServiceController(mtxStrat, MobilityServiceControllerType::SERVICE_CONTROLLER_ON_HAIL, id, tripSupportMode_,maxAggregatedRequests_,studyAreaEnabledController_,toleratedExtraTime_,maxWaitingTime_,parkingEnabled)
+    {
+    }
 
-	~OnHailTaxiController()
-	{};
+    ~OnHailTaxiController()
+    {};
 };
 }
 #endif /* OnHailTaxiController_HPP_ */

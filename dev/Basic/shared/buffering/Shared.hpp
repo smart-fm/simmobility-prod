@@ -16,8 +16,8 @@ namespace sim_mob
 ///Strategy for enforcing mutual exclusion
 /// \author Seth N. Hetu
 enum MutexStrategy {
-	MtxStrat_Buffered,
-	MtxStrat_Locked,
+    MtxStrat_Buffered,
+    MtxStrat_Locked,
 };
 
 
@@ -63,70 +63,70 @@ template <typename T>
 class Shared : public BufferedBase
 {
 public:
-	/**
-	 * Create a new Shared data type.
-	 *
-	 * \param value The initial value. You can also set an initial value using "force".
-	 */
-	Shared (const sim_mob::MutexStrategy& mtxStrategy, const T& value = T()) : BufferedBase(),
-		current_ (value), strategy_(mtxStrategy), next_ (value) {}
-	virtual ~Shared() {}
+    /**
+     * Create a new Shared data type.
+     *
+     * \param value The initial value. You can also set an initial value using "force".
+     */
+    Shared (const sim_mob::MutexStrategy& mtxStrategy, const T& value = T()) : BufferedBase(),
+        current_ (value), strategy_(mtxStrategy), next_ (value) {}
+    virtual ~Shared() {}
 
 
-	/**
-	 * Retrieve the current value. Get the current value of the data type. This can
-	 * also be thought of as being one flip "behind" the actual value.
-	 */
+    /**
+     * Retrieve the current value. Get the current value of the data type. This can
+     * also be thought of as being one flip "behind" the actual value.
+     */
     const T& get() const {
-    	/*if (strategy_==MtxStrat_Locked) {
-    		//NOTE: I'm not entirely sure if this will work or is even needed.
-    		//      Have to double-check mutex-locking in boost (but no-one uses locking
-    		//      right now anyway). ~Seth
-    		boost::shared_lock<boost::shared_mutex> lock_(mutex_);
-    		return current_;
-    	}*/
-    	return current_;
+        /*if (strategy_==MtxStrat_Locked) {
+            //NOTE: I'm not entirely sure if this will work or is even needed.
+            //      Have to double-check mutex-locking in boost (but no-one uses locking
+            //      right now anyway). ~Seth
+            boost::shared_lock<boost::shared_mutex> lock_(mutex_);
+            return current_;
+        }*/
+        return current_;
     }
 
     T& getRW() {
-    	/*if (strategy_==MtxStrat_Locked) {
-    		//NOTE: I'm not entirely sure if this will work or is even needed.
-    		//      Have to double-check mutex-locking in boost (but no-one uses locking
-    		//      right now anyway). ~Seth
-    		boost::shared_lock<boost::shared_mutex> lock_(mutex_);
-    		return current_;
-    	}*/
-    	return current_;
+        /*if (strategy_==MtxStrat_Locked) {
+            //NOTE: I'm not entirely sure if this will work or is even needed.
+            //      Have to double-check mutex-locking in boost (but no-one uses locking
+            //      right now anyway). ~Seth
+            boost::shared_lock<boost::shared_mutex> lock_(mutex_);
+            return current_;
+        }*/
+        return current_;
     }
 
 
-	/**
-	 * Set the next value. Set the next value of the data type. This value will
-	 * only take effect when "flip" is called.
-	 */
+    /**
+     * Set the next value. Set the next value of the data type. This value will
+     * only take effect when "flip" is called.
+     */
     void set (const T& value) {
-    	/*if (strategy_==MtxStrat_Locked) {
-        	boost::upgrade_lock<boost::shared_mutex> lock_(mutex_);
-        	boost::upgrade_to_unique_lock<boost::shared_mutex> unique_(lock_);
-        	current_ = value;
-    	} else if (strategy_==MtxStrat_Buffered) {
-    		next_ = value;
-    	}*/
-		next_ = value;
+        /*if (strategy_==MtxStrat_Locked) {
+            boost::upgrade_lock<boost::shared_mutex> lock_(mutex_);
+            boost::upgrade_to_unique_lock<boost::shared_mutex> unique_(lock_);
+            current_ = value;
+        } else if (strategy_==MtxStrat_Buffered) {
+            next_ = value;
+        }*/
+        next_ = value;
     }
 
 
-	/**
-	 * Skips processing for this time tick. If an agent won't be updating a particular
-	 * Buffered type during its time tick, it should call skip() on that type.
-	 *
-	 * \note
-	 * This is intended for later, when we have pointers to arrays of data to update.
-	 * But modelers should definitely respect the limitations of Buffere<> types now.
-	 */
+    /**
+     * Skips processing for this time tick. If an agent won't be updating a particular
+     * Buffered type during its time tick, it should call skip() on that type.
+     *
+     * \note
+     * This is intended for later, when we have pointers to arrays of data to update.
+     * But modelers should definitely respect the limitations of Buffere<> types now.
+     */
     void skip() {
-    	const T& val = this->get();
-    	this->set(val);
+        const T& val = this->get();
+        this->set(val);
     }
 
 
@@ -161,24 +161,24 @@ public:
         return get();
     }
 
-	/**
-	 * Force a new value into effect. Set the current and next value without a call to flip/lock().
-	 * This is usually only needed when loading values from a config file.
-	 *
-	 * Note that calling this function is inherently unsafe in a parallel environment.
-	 */
+    /**
+     * Force a new value into effect. Set the current and next value without a call to flip/lock().
+     * This is usually only needed when loading values from a config file.
+     *
+     * Note that calling this function is inherently unsafe in a parallel environment.
+     */
     void force(const T& value) {
-    	current_ = value;
-    	if (strategy_==MtxStrat_Buffered) {
-    		next_ = value;
-    	}
+        current_ = value;
+        if (strategy_==MtxStrat_Buffered) {
+            next_ = value;
+        }
     }
 
 protected:
     void flip() {
-    	if (strategy_==MtxStrat_Buffered) {
-    		current_ = next_;
-    	}
+        if (strategy_==MtxStrat_Buffered) {
+            current_ = next_;
+        }
     }
 
     //Used by both

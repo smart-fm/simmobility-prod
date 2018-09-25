@@ -8,28 +8,28 @@ class WaitTaxiActivity;
 class WaitTaxiActivityBehavior: public BehaviorFacet
 {
 public:
-	explicit WaitTaxiActivityBehavior();
-	virtual ~WaitTaxiActivityBehavior();
+    explicit WaitTaxiActivityBehavior();
+    virtual ~WaitTaxiActivityBehavior();
 
-	//Virtual overrides
-	virtual void frame_init()
-	{
-	}
+    //Virtual overrides
+    virtual void frame_init()
+    {
+    }
 
-	virtual void frame_tick()
-	{
-	}
+    virtual void frame_tick()
+    {
+    }
 
-	virtual std::string frame_tick_output()
-	{
-		return std::string();
-	}
+    virtual std::string frame_tick_output()
+    {
+        return std::string();
+    }
 
-	/**
-	 * set parent reference to waiting activity role.
-	 * @param waitTaxiActivity is pointer to parent role
-	 */
-	void setWaitTaxiActivity(WaitTaxiActivity* waitTaxiActivity);
+    /**
+     * set parent reference to waiting activity role.
+     * @param waitTaxiActivity is pointer to parent role
+     */
+    void setWaitTaxiActivity(WaitTaxiActivity* waitTaxiActivity);
 
 protected:
     WaitTaxiActivity* waitTaxiActivity;
@@ -38,21 +38,21 @@ protected:
 class WaitTaxiActivityMovement: public MovementFacet
 {
 public:
-	explicit WaitTaxiActivityMovement();
-	virtual ~WaitTaxiActivityMovement();
+    explicit WaitTaxiActivityMovement();
+    virtual ~WaitTaxiActivityMovement();
 
-	//Virtual overrides
-	virtual void frame_init();
-	virtual void frame_tick();
-	virtual std::string frame_tick_output();
+    //Virtual overrides
+    virtual void frame_init();
+    virtual void frame_tick();
+    virtual std::string frame_tick_output();
 
-	TravelMetric & startTravelTimeMetric();
-	TravelMetric & finalizeTravelTimeMetric();
-	/**
-	 * set parent reference to waiting activity role.
-	 * @param waitTaxiActivity is pointer to parent role
-	 */
-	void setWaitTaxiActivity(WaitTaxiActivity* waitTaxiActivity);
+    TravelMetric & startTravelTimeMetric();
+    TravelMetric & finalizeTravelTimeMetric();
+    /**
+     * set parent reference to waiting activity role.
+     * @param waitTaxiActivity is pointer to parent role
+     */
+    void setWaitTaxiActivity(WaitTaxiActivity* waitTaxiActivity);
 
 protected:
     WaitTaxiActivity* waitTaxiActivity;

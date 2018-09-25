@@ -17,15 +17,15 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class MtzTazDao : public db::SqlAbstractDao<MtzTaz>
-		{
-		public:
-			MtzTazDao( db::DB_Connection& connection );
-			virtual ~MtzTazDao();
+    namespace long_term
+    {
+        class MtzTazDao : public db::SqlAbstractDao<MtzTaz>
+        {
+        public:
+            MtzTazDao( db::DB_Connection& connection );
+            virtual ~MtzTazDao();
 
-		private:
+        private:
             /**
              * Fills the given outObj with all values contained on Row.
              * @param result row with data to fill the out object.
@@ -40,6 +40,6 @@ namespace sim_mob
              * @param update tells if operation is an Update or Insert.
              */
             void toRow(MtzTaz& data, db::Parameters& outParams, bool update);
-		};
-	}
+        };
+    }
 }

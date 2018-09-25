@@ -15,14 +15,14 @@ using namespace sim_mob;
 
 sim_mob::UnPackageUtils::UnPackageUtils(std::string data)
 {
-	buffer << data;
-	package = new boost::archive::text_iarchive(buffer);
+    buffer << data;
+    package = new boost::archive::text_iarchive(buffer);
 }
 
 sim_mob::UnPackageUtils::~UnPackageUtils()
 {
-	buffer.clear();
-	safe_delete_item(package);
+    buffer.clear();
+    safe_delete_item(package);
 }
 
 #endif

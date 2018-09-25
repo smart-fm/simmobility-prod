@@ -29,18 +29,18 @@ public:
      * @param travMode - Travel mode
      */
     Booking(int bookingId = 0, int vehicleId = 0, int customerId = 0,
-	    Position srcPos = Position(),
-	    Position destPos = Position(),
-	    double bkngTime = 0.0,
-	    amod::Booking::Mode travMode = amod::Booking::Mode::AMODTRAVEL):
-		id(bookingId),
-		vehId(vehicleId),
-		custId(customerId),
-		source(srcPos),
-		destination(destPos),
-		bookingTime(bkngTime),
-		travelMode(travMode),
-		pickupTime(0), dispatchTime(0), dropoffTime(0) {}
+        Position srcPos = Position(),
+        Position destPos = Position(),
+        double bkngTime = 0.0,
+        amod::Booking::Mode travMode = amod::Booking::Mode::AMODTRAVEL):
+        id(bookingId),
+        vehId(vehicleId),
+        custId(customerId),
+        source(srcPos),
+        destination(destPos),
+        bookingTime(bkngTime),
+        travelMode(travMode),
+        pickupTime(0), dispatchTime(0), dropoffTime(0) {}
 
     /**
      * Destructor
@@ -85,7 +85,7 @@ public:
      * @return - true if rhs booking time is greater than this
      */
     bool operator<(const Booking &rhs) const {
-	    return bookingTime < rhs.bookingTime;
+        return bookingTime < rhs.bookingTime;
     }
 
 };
@@ -94,7 +94,7 @@ public:
 inline std::istream & operator>>(std::istream & str, Booking::Mode & v) {
     unsigned int mode = 0;
     if (str >> mode)
-	    v = static_cast<Booking::Mode>(mode);
+        v = static_cast<Booking::Mode>(mode);
     return str;
 }
 }

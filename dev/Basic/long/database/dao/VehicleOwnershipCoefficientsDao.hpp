@@ -21,7 +21,7 @@ namespace sim_mob
         class VehicleOwnershipCoefficientsDao : public db::SqlAbstractDao<VehicleOwnershipCoefficients>
         {
         public:
-        	VehicleOwnershipCoefficientsDao(db::DB_Connection& connection);
+            VehicleOwnershipCoefficientsDao(db::DB_Connection& connection);
             virtual ~VehicleOwnershipCoefficientsDao();
 
         private:

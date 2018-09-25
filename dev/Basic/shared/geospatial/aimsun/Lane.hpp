@@ -32,20 +32,20 @@ class Section;
 /// \author LIM Fung Chai
 class Lane : public Base {
 public:
-	int laneID;
-	int rowNo;
-	std::string laneType;
-	Section* atSection;
+    int laneID;
+    int rowNo;
+    std::string laneType;
+    Section* atSection;
 
-	double xPos;
-	double yPos;
+    double xPos;
+    double yPos;
 
-	Lane() : Base(), atSection(nullptr) {}
+    Lane() : Base(), atSection(nullptr) {}
 
-	//Placeholders
-	int TMP_AtSectionID;
+    //Placeholders
+    int TMP_AtSectionID;
 
-	//Decorated data
+    //Decorated data
 
 };
 

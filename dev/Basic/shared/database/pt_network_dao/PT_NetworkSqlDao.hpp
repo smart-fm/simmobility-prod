@@ -19,26 +19,26 @@ namespace sim_mob
 class PT_VerticesSqlDao: public db::SqlAbstractDao<PT_NetworkVertex>
 {
 public:
-	PT_VerticesSqlDao(db::DB_Connection& connection, std::string query);
-	virtual ~PT_VerticesSqlDao();
+    PT_VerticesSqlDao(db::DB_Connection& connection, std::string query);
+    virtual ~PT_VerticesSqlDao();
 
 private:
-	/**
-	 * Virtual override.
-	 * Fills the given outObj with all values contained on Row.
-	 * @param result row with data to fill the out object.
-	 * @param outObj to fill.
-	 */
-	void fromRow(db::Row& result, PT_NetworkVertex& outObj);
+    /**
+     * Virtual override.
+     * Fills the given outObj with all values contained on Row.
+     * @param result row with data to fill the out object.
+     * @param outObj to fill.
+     */
+    void fromRow(db::Row& result, PT_NetworkVertex& outObj);
 
-	/**
-	 * Virtual override.
-	 * Fills the outParam with all values to insert or update on datasource.
-	 * @param data to get values.
-	 * @param outParams to put the data parameters.
-	 * @param update tells if operation is an Update or Insert.
-	 */
-	void toRow(PT_NetworkVertex& data, db::Parameters& outParams, bool update);
+    /**
+     * Virtual override.
+     * Fills the outParam with all values to insert or update on datasource.
+     * @param data to get values.
+     * @param outParams to put the data parameters.
+     * @param update tells if operation is an Update or Insert.
+     */
+    void toRow(PT_NetworkVertex& data, db::Parameters& outParams, bool update);
 };
 
 /**
@@ -49,25 +49,25 @@ private:
 class Pt_EdgesSqlDao: public db::SqlAbstractDao<PT_NetworkEdge>
 {
 public:
-	Pt_EdgesSqlDao(db::DB_Connection& connection, std::string query);
-	virtual ~Pt_EdgesSqlDao();
+    Pt_EdgesSqlDao(db::DB_Connection& connection, std::string query);
+    virtual ~Pt_EdgesSqlDao();
 
 private:
-	/**
-	 * Virtual override.
-	 * Fills the given outObj with all values contained on Row.
-	 * @param result row with data to fill the out object.
-	 * @param outObj to fill.
-	 */
-	void fromRow(db::Row& result, PT_NetworkEdge& outObj);
+    /**
+     * Virtual override.
+     * Fills the given outObj with all values contained on Row.
+     * @param result row with data to fill the out object.
+     * @param outObj to fill.
+     */
+    void fromRow(db::Row& result, PT_NetworkEdge& outObj);
 
-	/**
-	 * Virtual override.
-	 * Fills the outParam with all values to insert or update on datasource.
-	 * @param data to get values.
-	 * @param outParams to put the data parameters.
-	 * @param update tells if operation is an Update or Insert.
-	 */
-	void toRow(PT_NetworkEdge& data, db::Parameters& outParams, bool update);
+    /**
+     * Virtual override.
+     * Fills the outParam with all values to insert or update on datasource.
+     * @param data to get values.
+     * @param outParams to put the data parameters.
+     * @param update tells if operation is an Update or Insert.
+     */
+    void toRow(PT_NetworkEdge& data, db::Parameters& outParams, bool update);
 };
 } // End sim::mob namespace

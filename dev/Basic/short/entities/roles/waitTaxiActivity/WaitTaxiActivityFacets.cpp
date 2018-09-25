@@ -24,46 +24,46 @@ WaitTaxiActivityMovement::~WaitTaxiActivityMovement()
 
 void WaitTaxiActivityMovement::setWaitTaxiActivity(WaitTaxiActivity* activity)
 {
-	waitTaxiActivity = activity;
+    waitTaxiActivity = activity;
 }
 
 void WaitTaxiActivityBehavior::setWaitTaxiActivity(WaitTaxiActivity* activity)
 {
-	waitTaxiActivity = activity;
+    waitTaxiActivity = activity;
 }
 
 void WaitTaxiActivityMovement::frame_init()
 {
-	if(waitTaxiActivity)
-	{
-		UpdateParams& params = waitTaxiActivity->getParams();
-		Person* person = waitTaxiActivity->parent;
-		person->setStartTime(params.now.ms());
-	}
+    if(waitTaxiActivity)
+    {
+        UpdateParams& params = waitTaxiActivity->getParams();
+        Person* person = waitTaxiActivity->parent;
+        person->setStartTime(params.now.ms());
+    }
 }
 
 void WaitTaxiActivityMovement::frame_tick()
 {
-	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
-	if(waitTaxiActivity)
-	{
-		waitTaxiActivity->increaseWaitingTime(tickMS);
-		waitTaxiActivity->setTravelTime(waitTaxiActivity->getWaitingTime());
-	}
+    unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
+    if(waitTaxiActivity)
+    {
+        waitTaxiActivity->increaseWaitingTime(tickMS);
+        waitTaxiActivity->setTravelTime(waitTaxiActivity->getWaitingTime());
+    }
 }
 
 std::string WaitTaxiActivityMovement::frame_tick_output()
 {
-	return std::string();
+    return std::string();
 }
 
 TravelMetric& WaitTaxiActivityMovement::startTravelTimeMetric()
 {
-	return travelMetric;
+    return travelMetric;
 }
 
 TravelMetric& WaitTaxiActivityMovement::finalizeTravelTimeMetric()
 {
-	return travelMetric;
+    return travelMetric;
 }
 }

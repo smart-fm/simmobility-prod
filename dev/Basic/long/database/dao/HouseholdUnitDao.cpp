@@ -25,16 +25,16 @@ void HouseholdUnitDao::fromRow(Row& result, HouseholdUnit& outObj)
 
 void HouseholdUnitDao::toRow(HouseholdUnit& data, Parameters& outParams, bool update)
 {
-	outParams.push_back(data.getHouseHoldId());
-	outParams.push_back(data.getUnitId());
-	outParams.push_back(data.getMoveInDate());
+    outParams.push_back(data.getHouseHoldId());
+    outParams.push_back(data.getUnitId());
+    outParams.push_back(data.getMoveInDate());
 }
 
 void HouseholdUnitDao::insertHouseholdUnit(HouseholdUnit& houseHold,std::string schema)
 {
-	const std::string DB_INSERT_HOUSEHOLD_UNIT = "INSERT INTO " + schema + ".household_unit"
-		+ " (" + "household_id" + ", "+ "unit_id" + ", "+ "move_in_date" + ") VALUES (:v1, :v2, :v3)";
-	insertViaQuery(houseHold,DB_INSERT_HOUSEHOLD_UNIT);
+    const std::string DB_INSERT_HOUSEHOLD_UNIT = "INSERT INTO " + schema + ".household_unit"
+        + " (" + "household_id" + ", "+ "unit_id" + ", "+ "move_in_date" + ") VALUES (:v1, :v2, :v3)";
+    insertViaQuery(houseHold,DB_INSERT_HOUSEHOLD_UNIT);
 }
 
 

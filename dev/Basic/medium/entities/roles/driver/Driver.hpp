@@ -49,43 +49,43 @@ class DriverMovement;
 class Driver : public sim_mob::Role<Person_MT>, public UpdateWrapper<DriverUpdateParams>
 {
 public:
-	Driver(Person_MT* parent, 
-		sim_mob::medium::DriverBehavior* behavior = nullptr,
-		sim_mob::medium::DriverMovement* movement = nullptr,
-		std::string roleName = std::string(),
-		Role<Person_MT>::Type roleType = Role<Person_MT>::RL_DRIVER);
-	virtual ~Driver();
+    Driver(Person_MT* parent, 
+        sim_mob::medium::DriverBehavior* behavior = nullptr,
+        sim_mob::medium::DriverMovement* movement = nullptr,
+        std::string roleName = std::string(),
+        Role<Person_MT>::Type roleType = Role<Person_MT>::RL_DRIVER);
+    virtual ~Driver();
 
-	virtual Role<Person_MT>* clone(Person_MT *parent) const;
+    virtual Role<Person_MT>* clone(Person_MT *parent) const;
 
-	//Virtual overrides
-	virtual void make_frame_tick_params(timeslice now);
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
+    //Virtual overrides
+    virtual void make_frame_tick_params(timeslice now);
+    virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+    virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
-	/**
-	 * True if there are no reasons that prevent the driver from moving. By default, this function returns true.
-	 * You may need to override this function if you need to force a driver not to move, i.e. to force her in some
-	 * waiting status
-	 */
-	virtual bool canSheMove() const;
+    /**
+     * True if there are no reasons that prevent the driver from moving. By default, this function returns true.
+     * You may need to override this function if you need to force a driver not to move, i.e. to force her in some
+     * waiting status
+     */
+    virtual bool canSheMove() const;
 
-	//to be moved to a DriverUpdateParam later
-	const Lane* currLane;
+    //to be moved to a DriverUpdateParam later
+    const Lane* currLane;
 
-	/**
-	 * collect travel time for current role
-	 */
-	virtual void collectTravelTime();
+    /**
+     * collect travel time for current role
+     */
+    virtual void collectTravelTime();
 
 protected:
-	WayPoint origin;
-	WayPoint goal;
+    WayPoint origin;
+    WayPoint goal;
 
-	friend class DriverBehavior;
-	friend class DriverMovement;
-	//remove this immediately after debug
-	friend Conflux;
+    friend class DriverBehavior;
+    friend class DriverMovement;
+    //remove this immediately after debug
+    friend Conflux;
 };
 
 

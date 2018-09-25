@@ -88,10 +88,10 @@ namespace sim_mob {
         public:
 
             LT_AgentRole(T* parent) : parent(parent)
-        	{
-            	//Ensure that parent is a subclass of type Agent. (Won't compile otherwise).
-            	//TODO: This is only for the sake of the Log() function.
-            	Agent_LT* parentAg = parent;
+            {
+                //Ensure that parent is a subclass of type Agent. (Won't compile otherwise).
+                //TODO: This is only for the sake of the Log() function.
+                Agent_LT* parentAg = parent;
             }
 
             virtual ~LT_AgentRole()
@@ -115,7 +115,7 @@ namespace sim_mob {
             //      Templates make this more difficult than it should be.
             NullableOutputStream Log()
             {
-            	return NullableOutputStream( dynamic_cast<Agent_LT*>(parent)->currWorkerProvider->getLogFile() );
+                return NullableOutputStream( dynamic_cast<Agent_LT*>(parent)->currWorkerProvider->getLogFile() );
             }
 
         private:

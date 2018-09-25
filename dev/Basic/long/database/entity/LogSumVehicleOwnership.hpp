@@ -15,33 +15,33 @@ namespace sim_mob
 
     namespace long_term
     {
-    	class LogSumVehicleOwnership
-		{
-		public:
-    		LogSumVehicleOwnership(BigSerial householdId = INVALID_ID, double logsum = 0);
-			virtual ~LogSumVehicleOwnership();
+        class LogSumVehicleOwnership
+        {
+        public:
+            LogSumVehicleOwnership(BigSerial householdId = INVALID_ID, double logsum = 0);
+            virtual ~LogSumVehicleOwnership();
 
-			 BigSerial getHouseholdId() const;
-			 double getLogsum() const;
+             BigSerial getHouseholdId() const;
+             double getLogsum() const;
 
-			/**
-			* Assign operator.
-			* @param source to assign.
-			* @return LogSumVehicleOwnership instance reference.
-			*/
-			LogSumVehicleOwnership& operator=(const LogSumVehicleOwnership& source);
+            /**
+            * Assign operator.
+            * @param source to assign.
+            * @return LogSumVehicleOwnership instance reference.
+            */
+            LogSumVehicleOwnership& operator=(const LogSumVehicleOwnership& source);
 
-			/**
-			* Operator to print the TaxiAccessCoefficients data.
-			*/
-			friend std::ostream& operator<<(std::ostream& strm, const LogSumVehicleOwnership& data);
+            /**
+            * Operator to print the TaxiAccessCoefficients data.
+            */
+            friend std::ostream& operator<<(std::ostream& strm, const LogSumVehicleOwnership& data);
 
-		private:
-			friend class LogSumVehicleOwnershipDao;
+        private:
+            friend class LogSumVehicleOwnershipDao;
 
-			BigSerial householdId;
-			double logsum;
-		};
+            BigSerial householdId;
+            double logsum;
+        };
 
     }
     }

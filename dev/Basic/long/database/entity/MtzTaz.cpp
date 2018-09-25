@@ -13,46 +13,46 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		MtzTaz::MtzTaz(BigSerial mtzId, BigSerial tazId): mtzId(mtzId), tazId(tazId)
-		{}
+    namespace long_term
+    {
+        MtzTaz::MtzTaz(BigSerial mtzId, BigSerial tazId): mtzId(mtzId), tazId(tazId)
+        {}
 
-		MtzTaz::~MtzTaz(){}
+        MtzTaz::~MtzTaz(){}
 
-		MtzTaz::MtzTaz(const MtzTaz& source )
-		{
-			this->mtzId = source.mtzId;
-			this->tazId = source.tazId;
-		}
+        MtzTaz::MtzTaz(const MtzTaz& source )
+        {
+            this->mtzId = source.mtzId;
+            this->tazId = source.tazId;
+        }
 
-		MtzTaz& MtzTaz::operator=(const MtzTaz &source)
-		{
-			this->mtzId = source.mtzId;
-			this->tazId = source.tazId;
+        MtzTaz& MtzTaz::operator=(const MtzTaz &source)
+        {
+            this->mtzId = source.mtzId;
+            this->tazId = source.tazId;
 
-			return *this;
-		}
+            return *this;
+        }
 
-		BigSerial MtzTaz::getMtzId() const
-		{
-			return mtzId;
-		}
+        BigSerial MtzTaz::getMtzId() const
+        {
+            return mtzId;
+        }
 
-		BigSerial MtzTaz::getTazId() const
-		{
-			return tazId;
-		}
+        BigSerial MtzTaz::getTazId() const
+        {
+            return tazId;
+        }
 
 
-		std::ostream& operator<<(std::ostream& strm, const MtzTaz& data)
-		{
-			return strm << "{"
-					<< "\"id\":\"" << data.tazId << "\","
-					<< "\"lifestyleId\":\"" << data.mtzId << "\""
+        std::ostream& operator<<(std::ostream& strm, const MtzTaz& data)
+        {
+            return strm << "{"
+                    << "\"id\":\"" << data.tazId << "\","
+                    << "\"lifestyleId\":\"" << data.mtzId << "\""
                     << "}";
-		}
+        }
 
-	}
+    }
 
 } /* namespace sim_mob */

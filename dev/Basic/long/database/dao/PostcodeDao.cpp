@@ -15,27 +15,27 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-PostcodeDao::PostcodeDao(DB_Connection& connection): SqlAbstractDao<Postcode>(connection, 	"",	"",	"",	"",	"SELECT * FROM " + connection.getSchema() + "sla_addresses", "" )
+PostcodeDao::PostcodeDao(DB_Connection& connection): SqlAbstractDao<Postcode>(connection,   "", "", "", "", "SELECT * FROM " + connection.getSchema() + "sla_addresses", "" )
 {}
 
 PostcodeDao::~PostcodeDao() {}
 
 void PostcodeDao::fromRow(Row& result, Postcode& outObj)
 {
-    outObj.address_id 		= result.get<BigSerial>(	"address_id", 		INVALID_ID);
-    outObj.sla_postcode 	= result.get<std::string>(	"sla_postcode", 	EMPTY_STR);
-    outObj.taz_id 			= result.get<BigSerial>(	"taz_id", 			INVALID_ID);
-    outObj.longitude 		= result.get<double>(		"y_coord", 		.0);
-    outObj.latitude 		= result.get<double>(		"x_coord", 		.0);
-    outObj.primary_postcode = result.get<int>(			"primary_postcode",  0);
+    outObj.address_id       = result.get<BigSerial>(    "address_id",       INVALID_ID);
+    outObj.sla_postcode     = result.get<std::string>(  "sla_postcode",     EMPTY_STR);
+    outObj.taz_id           = result.get<BigSerial>(    "taz_id",           INVALID_ID);
+    outObj.longitude        = result.get<double>(       "y_coord",      .0);
+    outObj.latitude         = result.get<double>(       "x_coord",      .0);
+    outObj.primary_postcode = result.get<int>(          "primary_postcode",  0);
 }
 
 void PostcodeDao::toRow(Postcode& data, Parameters& outParams, bool update) {}
 
 std::vector<Postcode*> PostcodeDao::getPostcodeByTaz()
 {
-	const std::string queryStr = "SELECT distinct on(taz_id)* FROM " + connection.getSchema() + "sla_addresses where address_id != 999999";
-	std::vector<Postcode*> postcodeByTaz;
-	getByQuery(queryStr,postcodeByTaz);
-	return postcodeByTaz;
+    const std::string queryStr = "SELECT distinct on(taz_id)* FROM " + connection.getSchema() + "sla_addresses where address_id != 999999";
+    std::vector<Postcode*> postcodeByTaz;
+    getByQuery(queryStr,postcodeByTaz);
+    return postcodeByTaz;
 }

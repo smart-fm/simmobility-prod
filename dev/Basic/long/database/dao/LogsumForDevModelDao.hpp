@@ -19,7 +19,7 @@ namespace sim_mob {
          */
         class LogsumForDevModelDao : public db::SqlAbstractDao<LogsumForDevModel> {
         public:
-        	LogsumForDevModelDao(db::DB_Connection& connection);
+            LogsumForDevModelDao(db::DB_Connection& connection);
             virtual ~LogsumForDevModelDao();
 
         private:

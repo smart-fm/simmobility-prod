@@ -16,23 +16,23 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 ZonalLanduseVariableValuesDao::ZonalLanduseVariableValuesDao(DB_Connection& connection): SqlAbstractDao<ZonalLanduseVariableValues>
-																						 (connection, "", "", "", "",
-																						  "SELECT * FROM " + connection.getSchema()+"zonal_landuse_variable_values",
-																						  "") {}
+                                                                                         (connection, "", "", "", "",
+                                                                                          "SELECT * FROM " + connection.getSchema()+"zonal_landuse_variable_values",
+                                                                                          "") {}
 
 ZonalLanduseVariableValuesDao::~ZonalLanduseVariableValuesDao() {}
 
 void ZonalLanduseVariableValuesDao::fromRow(Row& result, ZonalLanduseVariableValues& outObj)
 {
-    outObj.alt_id  		= result.get<int>("alt_id", INVALID_ID);
-    outObj.dgpid 		= result.get<int>("dgpid", INVALID_ID);
-    outObj.dwl 			= result.get<int>("dwl", INVALID_ID);
-    outObj.f_loc_com	= result.get<double>("f_loc_com", 0.0);
-    outObj.f_loc_res	= result.get<double>("f_loc_res", 0.0);
-    outObj.f_loc_open	= result.get<double>("f_loc_open", 0.0);
-    outObj.odi10_loc	= result.get<double>("odi10_loc", 0.0);
-    outObj.dis2mrt		= result.get<double>("dis2mrt", 0.0);
-    outObj.dis2exp		= result.get<double>("dis2exp", 0.0);
+    outObj.alt_id       = result.get<int>("alt_id", INVALID_ID);
+    outObj.dgpid        = result.get<int>("dgpid", INVALID_ID);
+    outObj.dwl          = result.get<int>("dwl", INVALID_ID);
+    outObj.f_loc_com    = result.get<double>("f_loc_com", 0.0);
+    outObj.f_loc_res    = result.get<double>("f_loc_res", 0.0);
+    outObj.f_loc_open   = result.get<double>("f_loc_open", 0.0);
+    outObj.odi10_loc    = result.get<double>("odi10_loc", 0.0);
+    outObj.dis2mrt      = result.get<double>("dis2mrt", 0.0);
+    outObj.dis2exp      = result.get<double>("dis2exp", 0.0);
 
 }
 

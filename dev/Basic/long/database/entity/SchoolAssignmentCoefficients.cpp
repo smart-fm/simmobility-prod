@@ -9,35 +9,35 @@
 using namespace sim_mob::long_term;
 
 SchoolAssignmentCoefficients::SchoolAssignmentCoefficients(BigSerial parameterId,double coefficientEstimate):
-								parameterId(parameterId),coefficientEstimate(coefficientEstimate) {}
+                                parameterId(parameterId),coefficientEstimate(coefficientEstimate) {}
 
 SchoolAssignmentCoefficients::~SchoolAssignmentCoefficients() {}
 
 SchoolAssignmentCoefficients& SchoolAssignmentCoefficients::operator=(const SchoolAssignmentCoefficients& source)
 {
-	this->parameterId 			= source.parameterId;
-	this->coefficientEstimate	= source.coefficientEstimate;
+    this->parameterId           = source.parameterId;
+    this->coefficientEstimate   = source.coefficientEstimate;
     return *this;
 }
 
 double SchoolAssignmentCoefficients::getCoefficientEstimate() const
 {
-		return coefficientEstimate;
+        return coefficientEstimate;
 }
 
 void SchoolAssignmentCoefficients::setCoefficientEstimate(double coefficientEstimate)
 {
-		this->coefficientEstimate = coefficientEstimate;
+        this->coefficientEstimate = coefficientEstimate;
 }
 
 BigSerial SchoolAssignmentCoefficients::getParameterId() const
 {
-		return parameterId;
+        return parameterId;
 }
 
 void SchoolAssignmentCoefficients::setParameterId(BigSerial parameterId)
 {
-		this->parameterId = parameterId;
+        this->parameterId = parameterId;
 }
 
 

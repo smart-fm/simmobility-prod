@@ -10,35 +10,35 @@
 using namespace sim_mob::long_term;
 
 TaxiAccessCoefficients::TaxiAccessCoefficients(BigSerial parameterId,double coefficientEstimate):
-								parameterId(parameterId),coefficientEstimate(coefficientEstimate) {}
+                                parameterId(parameterId),coefficientEstimate(coefficientEstimate) {}
 
 TaxiAccessCoefficients::~TaxiAccessCoefficients() {}
 
 TaxiAccessCoefficients& TaxiAccessCoefficients::operator=(const TaxiAccessCoefficients& source)
 {
-	this->parameterId 			= source.parameterId;
-	this->coefficientEstimate	= source.coefficientEstimate;
+    this->parameterId           = source.parameterId;
+    this->coefficientEstimate   = source.coefficientEstimate;
     return *this;
 }
 
 double TaxiAccessCoefficients::getCoefficientEstimate() const
 {
-		return coefficientEstimate;
+        return coefficientEstimate;
 }
 
 void TaxiAccessCoefficients::setCoefficientEstimate(double coefficientEstimate)
 {
-		this->coefficientEstimate = coefficientEstimate;
+        this->coefficientEstimate = coefficientEstimate;
 }
 
 BigSerial TaxiAccessCoefficients::getParameterId() const
 {
-		return parameterId;
+        return parameterId;
 }
 
 void TaxiAccessCoefficients::setParameterId(BigSerial parameterId)
 {
-		this->parameterId = parameterId;
+        this->parameterId = parameterId;
 }
 
 namespace sim_mob
@@ -48,9 +48,9 @@ namespace sim_mob
         std::ostream& operator<<(std::ostream& strm, const TaxiAccessCoefficients& data)
         {
             return strm << "{"
-						<< "\"parameterId \":\"" << data.parameterId 	<< "\","
-						<< "\"coefficientEstimate \":\"" 	<< data.coefficientEstimate 	<< "\","
-						<< "}";
+                        << "\"parameterId \":\"" << data.parameterId    << "\","
+                        << "\"coefficientEstimate \":\""    << data.coefficientEstimate     << "\","
+                        << "}";
         }
     }
 }

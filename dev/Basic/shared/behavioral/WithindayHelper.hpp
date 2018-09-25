@@ -21,31 +21,31 @@ class DailyTime;
 class WithindayModelsHelper
 {
 private:
-	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
+    typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 
-	/** map of zone code => zone params */
-	static ZoneMap zoneMap;
+    /** map of zone code => zone params */
+    static ZoneMap zoneMap;
 
-	static bool initialized;
+    static bool initialized;
 
-	const ZoneParams* findZone(int zoneCode) const;
+    const ZoneParams* findZone(int zoneCode) const;
 
 public:
-	WithindayModelsHelper();
-	virtual ~WithindayModelsHelper();
+    WithindayModelsHelper();
+    virtual ~WithindayModelsHelper();
 
-	/**
-	 * loads TAZ information from db and constructs zoneMap lookup
-	 */
-	static void loadZones();
+    /**
+     * loads TAZ information from db and constructs zoneMap lookup
+     */
+    static void loadZones();
 
-	/**
-	 * helper function to build parameters to pass to mode choice model
-	 * @param curTrip current trip
-	 * @param orgNd origin node for mode choice; (destination is taken from the trip)
-	 * @param curTime time at which the withinday mode choice is to be called
-	 * @return constructed withinday mode choice model params object
-	 */
-	WithindayModeParams buildModeChoiceParams(const Trip& curTrip, unsigned int orgNd, const DailyTime& curTime,const std::string& ptPathsetStoredProcName) const;
+    /**
+     * helper function to build parameters to pass to mode choice model
+     * @param curTrip current trip
+     * @param orgNd origin node for mode choice; (destination is taken from the trip)
+     * @param curTime time at which the withinday mode choice is to be called
+     * @return constructed withinday mode choice model params object
+     */
+    WithindayModeParams buildModeChoiceParams(const Trip& curTrip, unsigned int orgNd, const DailyTime& curTime,const std::string& ptPathsetStoredProcName) const;
 };
 } //end namespace sim_mob

@@ -17,8 +17,8 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 TemplateUnitTypeDao::TemplateUnitTypeDao(DB_Connection& connection): SqlAbstractDao<TemplateUnitType>(connection, "", "", "", "",
-																									  "SELECT * FROM " + connection.getSchema()+"template_unit_type",
-																									  ""){}
+                                                                                                      "SELECT * FROM " + connection.getSchema()+"template_unit_type",
+                                                                                                      ""){}
 
 TemplateUnitTypeDao::~TemplateUnitTypeDao() {}
 

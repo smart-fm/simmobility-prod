@@ -21,7 +21,7 @@ namespace sim_mob
         class DevelopmentPlanDao : public db::SqlAbstractDao<DevelopmentPlan>
         {
         public:
-        	DevelopmentPlanDao(db::DB_Connection& connection);
+            DevelopmentPlanDao(db::DB_Connection& connection);
             virtual ~DevelopmentPlanDao();
 
         private:

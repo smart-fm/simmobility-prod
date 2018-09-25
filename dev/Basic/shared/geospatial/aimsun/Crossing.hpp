@@ -33,22 +33,22 @@ class Section;
 /// \author Seth N. Hetu
 class Crossing : public Base {
 public:
-	int laneID;
-	std::string laneType;
-	Section* atSection;
+    int laneID;
+    std::string laneType;
+    Section* atSection;
 
-	double xPos;
-	double yPos;
+    double xPos;
+    double yPos;
 
-	Crossing() : Base(), atSection(nullptr) {}
+    Crossing() : Base(), atSection(nullptr) {}
 
-	//Placeholders
-	int TMP_AtSectionID;
+    //Placeholders
+    int TMP_AtSectionID;
 
-	//Decorated data
-	Node* atNode; //Which Node this crossing is relevant for.
-	//book-keeping
-	sim_mob::Crossing * generatedCrossing; //typically, every 2 aimsun crossing create a sim_mob crossing
+    //Decorated data
+    Node* atNode; //Which Node this crossing is relevant for.
+    //book-keeping
+    sim_mob::Crossing * generatedCrossing; //typically, every 2 aimsun crossing create a sim_mob crossing
 };
 
 

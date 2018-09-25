@@ -29,12 +29,12 @@ class Signal;
 class BoundaryProcessingPackage {
 
 public:
-	int from_id;
-	int to_id;
+    int from_id;
+    int to_id;
 
-	std::vector<const Person*> cross_persons;
-	std::vector<const Person*> feedback_persons;
-	std::vector<const Signal*> boundary_signals;
+    std::vector<const Person*> cross_persons;
+    std::vector<const Person*> feedback_persons;
+    std::vector<const Signal*> boundary_signals;
 };
 
 }

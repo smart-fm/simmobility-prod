@@ -19,8 +19,8 @@ namespace sim_mob
         class Taz
         {
         public:
-        	Taz( BigSerial id = INVALID_ID,  const std::string& name = EMPTY_STR, float area = -1.0, int surcharge = -1, int status_0812 = 0, std::string mtzName = "",
-        		 std::string subzoneName = "", std::string planningAreaName = "", std::string hdbTownType = "");
+            Taz( BigSerial id = INVALID_ID,  const std::string& name = EMPTY_STR, float area = -1.0, int surcharge = -1, int status_0812 = 0, std::string mtzName = "",
+                 std::string subzoneName = "", std::string planningAreaName = "", std::string hdbTownType = "");
 
             virtual ~Taz();
 
@@ -56,9 +56,9 @@ namespace sim_mob
             int surcharge;
             int status_0812;
             std::string mtzName;
-			std::string subzoneName;
-			std::string planningAreaName;
-			std::string hdbTownType;
+            std::string subzoneName;
+            std::string planningAreaName;
+            std::string hdbTownType;
         };
     }
 }

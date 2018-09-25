@@ -32,7 +32,7 @@ namespace sim_mob {
 
         std::ostream& operator<<(std::ostream& strm, const HouseHoldHitsSample& data) {
             return strm << "{"
-            		<< "\"houseHoldHitsId\":\"" << data.houseHoldHitsId << "\","
+                    << "\"houseHoldHitsId\":\"" << data.houseHoldHitsId << "\","
                     << "\"houseHoldId\":\"" << data.houseHoldId << "\","
                     << "\"groupId\":\"" << data.groupId << "\","
                     << "}";

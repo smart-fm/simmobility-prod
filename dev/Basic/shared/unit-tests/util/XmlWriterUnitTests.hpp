@@ -17,17 +17,17 @@ namespace unit_tests
 class XmlWriterUnitTests : public CppUnit::TestFixture
 {
 public:
-	///Very basic test.
-	void test_SimpleXML();
+    ///Very basic test.
+    void test_SimpleXML();
 
-	///Multiple, nested structures.
-	void test_NestedXML();
+    ///Multiple, nested structures.
+    void test_NestedXML();
 
-	///Test attributes at different nesting levels.
-	void test_AttributesXML();
+    ///Test attributes at different nesting levels.
+    void test_AttributesXML();
 
-	///Test default and custom namers for various combinations.
-	void test_NamersXML();
+    ///Test default and custom namers for various combinations.
+    void test_NamersXML();
 
 
 private:

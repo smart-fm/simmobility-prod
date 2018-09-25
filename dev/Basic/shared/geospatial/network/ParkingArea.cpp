@@ -14,32 +14,32 @@ ParkingArea::ParkingArea(int id) : areaId(id)
 
 ParkingArea::~ParkingArea()
 {
-	//The objects will be deleted by the destructor to the road segment, as the parking slots are stored 
-	//as obstacles
-	parkingSlots.clear();
+    //The objects will be deleted by the destructor to the road segment, as the parking slots are stored 
+    //as obstacles
+    parkingSlots.clear();
 }
 
 const unsigned int ParkingArea::getParkingAreaId() const
 {
-	return areaId;
+    return areaId;
 }
 
 void ParkingArea::setParkingAreaId(unsigned int areaId)
 {
-	this->areaId = areaId;
+    this->areaId = areaId;
 }
 
 const std::vector<const ParkingSlot *>& ParkingArea::getParkingSlots() const
 {
-	return parkingSlots;
+    return parkingSlots;
 }
 
 const ParkingSlot* ParkingArea::getParkingSlot(unsigned int index) const
 {
-	return parkingSlots.at(index);
+    return parkingSlots.at(index);
 }
 
 void ParkingArea::addParkingSlot(const ParkingSlot *pkSlot)
 {
-	parkingSlots.push_back(pkSlot);
+    parkingSlots.push_back(pkSlot);
 }

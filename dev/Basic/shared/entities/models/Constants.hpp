@@ -17,28 +17,28 @@ namespace sim_mob
 /**Indicates the lane changing move the driver is going to make*/
 enum LaneChangeTo
 {
-	LANE_CHANGE_TO_LEFT = -1,
-	LANE_CHANGE_TO_NONE = 0,
-	LANE_CHANGE_TO_RIGHT = 1
+    LANE_CHANGE_TO_LEFT = -1,
+    LANE_CHANGE_TO_NONE = 0,
+    LANE_CHANGE_TO_RIGHT = 1
 };
 
 enum LANE_CHANGE_MODE
 { //as a mask
-	DLC = 0,
-	MLC = 2,
-	MLC_C = 4,
-	MLC_F = 6
+    DLC = 0,
+    MLC = 2,
+    MLC_C = 4,
+    MLC_F = 6
 };
 
 enum TARGET_GAP
 {
-	TG_Same = 0,
-	TG_Left_Fwd = -3,
-	TG_Left_Back = -1,
-	TG_Left_Adj = -2,
-	TG_Right_Fwd = 3,
-	TG_Right_Back = 1,
-	TG_Right_Adj = 2
+    TG_Same = 0,
+    TG_Left_Fwd = -3,
+    TG_Left_Back = -1,
+    TG_Left_Adj = -2,
+    TG_Right_Fwd = 3,
+    TG_Right_Back = 1,
+    TG_Right_Adj = 2
 };
 
 // left side of current lane
@@ -108,8 +108,8 @@ const unsigned YIELD_TYPE_CONNECTION = 0x10000000;
 const unsigned YIELD_TYPE_ESCAPE = 0x20000000;
 const unsigned YIELD_COUNTER = 0x0000000F;
 const unsigned YIELD_REASON = 0xF0000000;
-#define YieldSignatureToLaneIndex(c)	(((c) & 0x0FFFFFF0) >> 4)
-#define LaneIndexToYieldSignature(c)	(((c) & 0x0FFFFFF0) << 4)
+#define YieldSignatureToLaneIndex(c)    (((c) & 0x0FFFFFF0) >> 4)
+#define LaneIndexToYieldSignature(c)    (((c) & 0x0FFFFFF0) << 4)
 /*------------------------------------------------------------------------
  * When a variable has a value less than this value, it is treated
  * as zero.
@@ -210,8 +210,8 @@ const UINT SIGN_TYPE = 0xF0000000;
 const UINT SIGN_PREFIX = 0xFFFF0000;
 const UINT SIGN_SUFFIX = 0x0000FFFF;
 
-#define SignPrefix(s)		((s) & 0xFFFF0000)
-#define SignSuffix(s)		((s) & 0x0000FFFF)
+#define SignPrefix(s)       ((s) & 0xFFFF0000)
+#define SignSuffix(s)       ((s) & 0x0000FFFF)
 
 // Actions: apply to the lane changes related both rule and path
 
@@ -248,7 +248,7 @@ const UINT SIGN_LANE_USE_GROUP = 0x0000FFF0; // vehicle group (sum)
 const UINT SIGN_LANE_USE_PATH = 0x20000000;
 const UINT SIGN_LANE_USE_DEPTH = 0x000F0000; // max links to search
 
-#define SignLaneUseNumLinks(s)	(((s) & 0x000F0000) >> 16)
+#define SignLaneUseNumLinks(s)  (((s) & 0x000F0000) >> 16)
 
 // Route guidance
 
@@ -257,9 +257,9 @@ const UINT SIGN_PATH_DN_INDEX = 0x0F000000; // which dn link
 const UINT SIGN_PATH_COMPLY = 0x00F00000; // compliance rate
 const UINT SIGN_PATH_DEPTH = 0x000F0000; // max links to search
 
-#define SignPathDnIndex(s)	(((s) & 0x0F000000) >> 24)
-#define SignPATHComply(s)	(((s) & 0x00F00000) >> 20)
-#define SignPathNumLinks(s)	(((s) & 0x000F0000) >> 16)
+#define SignPathDnIndex(s)  (((s) & 0x0F000000) >> 24)
+#define SignPATHComply(s)   (((s) & 0x00F00000) >> 20)
+#define SignPathNumLinks(s) (((s) & 0x000F0000) >> 16)
 
 // Message for calling route switch model
 
@@ -268,9 +268,9 @@ const UINT SIGN_ENROUTE_CLASS = 0x0F000000;
 const UINT SIGN_ENROUTE_COMPLY = 0x00F00000;
 const UINT SIGN_ENROUTE_TIMETAG = 0x000FFFFF;
 
-#define SignEnrouteClass(s)	    (((s) & 0x0F000000) >> 24)
-#define SignEnrouteComply(s)	(((s) & 0x00F00000) >> 20)
-#define SignEnrouteTimeTag(s)	((s) & 0x000FFFFF)
+#define SignEnrouteClass(s)     (((s) & 0x0F000000) >> 24)
+#define SignEnrouteComply(s)    (((s) & 0x00F00000) >> 20)
+#define SignEnrouteTimeTag(s)   ((s) & 0x000FFFFF)
 
 
 /*--------------------------------------------------------------------
@@ -379,9 +379,9 @@ const UINT VEHICLE_CELLULAR = 0x00004000; // 16384
  * the vehicle status.
  */
 
-//const UINT STATUS_RIGHT_OK		= 0x00000001;
-//const UINT STATUS_CURRENT_OK		= 0x00000002;
-//const UINT STATUS_LEFT_OK		= 0x00000004;
+//const UINT STATUS_RIGHT_OK        = 0x00000001;
+//const UINT STATUS_CURRENT_OK      = 0x00000002;
+//const UINT STATUS_LEFT_OK     = 0x00000004;
 
 // choose target lane
 const UINT STATUS_CHANGING = 0x00000018; // 24 sum

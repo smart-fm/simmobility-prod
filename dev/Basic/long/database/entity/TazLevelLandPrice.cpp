@@ -15,22 +15,22 @@ TazLevelLandPrice::~TazLevelLandPrice() {}
 
 float TazLevelLandPrice::getLandValue() const
 {
-		return landValue;
+        return landValue;
 }
 
 void TazLevelLandPrice::setLandValue(float landVal)
 {
-		this->landValue = landVal;
+        this->landValue = landVal;
 }
 
 BigSerial TazLevelLandPrice::getTazId() const
 {
-		return tazId;
+        return tazId;
 }
 
 void TazLevelLandPrice::setTazId(BigSerial tazId)
 {
-		this->tazId = tazId;
+        this->tazId = tazId;
 }
 
 namespace sim_mob

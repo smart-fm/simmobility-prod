@@ -19,7 +19,7 @@ namespace sim_mob {
          */
         class BidDao : public db::SqlAbstractDao<Bid> {
         public:
-        	BidDao(db::DB_Connection& connection);
+            BidDao(db::DB_Connection& connection);
             virtual ~BidDao();
 
         private:

@@ -16,22 +16,22 @@ IndvidualEmpSec::~IndvidualEmpSec() {
 
 int IndvidualEmpSec::getEmpSecId() const
 {
-	return empSecId;
+    return empSecId;
 }
 
 void IndvidualEmpSec::setEmpSecId(int empSecId)
 {
-	this->empSecId = empSecId;
+    this->empSecId = empSecId;
 }
 
 BigSerial IndvidualEmpSec::getIndvidualId() const
 {
-	return indvidualId;
+    return indvidualId;
 }
 
 void IndvidualEmpSec::setIndividualId(BigSerial id)
 {
-	this->indvidualId = id;
+    this->indvidualId = id;
 }
 
 

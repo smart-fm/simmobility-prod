@@ -18,16 +18,16 @@ namespace sim_mob
         class CreateOutputSchema
         {
         public:
-        	CreateOutputSchema(BigSerial id = INVALID_ID, const std::string& tableName = EMPTY_STR, const std::string& query = EMPTY_STR);
+            CreateOutputSchema(BigSerial id = INVALID_ID, const std::string& tableName = EMPTY_STR, const std::string& query = EMPTY_STR);
 
             virtual ~CreateOutputSchema();
 
             struct OrderById
             {
-            	bool operator ()( const CreateOutputSchema *a, const CreateOutputSchema *b ) const
-            	{
-            		return a->id< b->id;
-            	}
+                bool operator ()( const CreateOutputSchema *a, const CreateOutputSchema *b ) const
+                {
+                    return a->id< b->id;
+                }
             };
 
             /**

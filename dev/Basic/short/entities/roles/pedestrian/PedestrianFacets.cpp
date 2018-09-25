@@ -27,52 +27,52 @@ PedestrianMovement::~PedestrianMovement()
 }
 void PedestrianMovement::frame_init()
 {
-	//Extract the origin and destination from the sub-trip
-	
-	SubTrip &subTrip = *(parentPedestrian->parent->currSubTrip);
-	
-	const Node *originNode = nullptr;
-	const Point *origin = nullptr;
-	const Point *destination = nullptr;
+    //Extract the origin and destination from the sub-trip
+    
+    SubTrip &subTrip = *(parentPedestrian->parent->currSubTrip);
+    
+    const Node *originNode = nullptr;
+    const Point *origin = nullptr;
+    const Point *destination = nullptr;
     const Node *destinationNode = nullptr;
 
-	switch(subTrip.origin.type)
-	{
-	case WayPoint::NODE: 
-		originNode = subTrip.origin.node;
-		origin = &(originNode->getLocation());
-		break;
-		
-	case WayPoint::BUS_STOP:
-		originNode = subTrip.origin.busStop->getParentSegment()->getParentLink()->getFromNode();
-		origin = &(subTrip.origin.busStop->getStopLocation());
-		break;
-		
-	case WayPoint::TRAIN_STOP:
-		originNode = subTrip.origin.trainStop->getRandomStationSegment()->getParentLink()->getFromNode();
-		origin = &(originNode->getLocation());
-		break;
-		
-	default:
-		stringstream msg;
-		msg << __func__ << ": Origin type for pedestrian is invalid!\n";
-		msg << "Type: " << subTrip.origin.type << " Person id: " << parentPedestrian->parent->getDatabaseId();
-		throw runtime_error(msg.str());
-	}
-	
-	switch(subTrip.destination.type)
-	{
-	case WayPoint::NODE: 
-		destination = &(subTrip.destination.node->getLocation());
-		break;
-		
-	case WayPoint::BUS_STOP:
-		destination = &(subTrip.destination.busStop->getStopLocation());
-		break;
-		
-	case WayPoint::TRAIN_STOP:
-		destination = &(subTrip.destination.trainStop->getStationSegmentForNode(originNode)->getParentLink()->getToNode()->getLocation());
-		break;
+    switch(subTrip.origin.type)
+    {
+    case WayPoint::NODE: 
+        originNode = subTrip.origin.node;
+        origin = &(originNode->getLocation());
+        break;
+        
+    case WayPoint::BUS_STOP:
+        originNode = subTrip.origin.busStop->getParentSegment()->getParentLink()->getFromNode();
+        origin = &(subTrip.origin.busStop->getStopLocation());
+        break;
+        
+    case WayPoint::TRAIN_STOP:
+        originNode = subTrip.origin.trainStop->getRandomStationSegment()->getParentLink()->getFromNode();
+        origin = &(originNode->getLocation());
+        break;
+        
+    default:
+        stringstream msg;
+        msg << __func__ << ": Origin type for pedestrian is invalid!\n";
+        msg << "Type: " << subTrip.origin.type << " Person id: " << parentPedestrian->parent->getDatabaseId();
+        throw runtime_error(msg.str());
+    }
+    
+    switch(subTrip.destination.type)
+    {
+    case WayPoint::NODE: 
+        destination = &(subTrip.destination.node->getLocation());
+        break;
+        
+    case WayPoint::BUS_STOP:
+        destination = &(subTrip.destination.busStop->getStopLocation());
+        break;
+        
+    case WayPoint::TRAIN_STOP:
+        destination = &(subTrip.destination.trainStop->getStationSegmentForNode(originNode)->getParentLink()->getToNode()->getLocation());
+        break;
 
     case WayPoint::TAXI_STAND:
     {
@@ -80,17 +80,17 @@ void PedestrianMovement::frame_init()
         break;
     }
     default:
-		stringstream msg;
-		msg << __func__ << ": Destination type for pedestrian is invalid!\n";
-		msg << "Type: " << subTrip.destination.type << " Person id: " << parentPedestrian->parent->getDatabaseId();
-		throw runtime_error(msg.str());
-	}
-	//Get the distance between the origin and destination	
-	DynamicVector distVector(*origin, *destination);
-	distanceToBeCovered = distVector.getMagnitude();
-	
-	//Set the travel time in milli-seconds
-	parentPedestrian->setTravelTime((distanceToBeCovered / parentPedestrian->parent->getWalkingSpeed()) * 1000);
+        stringstream msg;
+        msg << __func__ << ": Destination type for pedestrian is invalid!\n";
+        msg << "Type: " << subTrip.destination.type << " Person id: " << parentPedestrian->parent->getDatabaseId();
+        throw runtime_error(msg.str());
+    }
+    //Get the distance between the origin and destination   
+    DynamicVector distVector(*origin, *destination);
+    distanceToBeCovered = distVector.getMagnitude();
+    
+    //Set the travel time in milli-seconds
+    parentPedestrian->setTravelTime((distanceToBeCovered / parentPedestrian->parent->getWalkingSpeed()) * 1000);
 
     // Send trip request message to the controller
     Person_ST *person = parentPedestrian->getParent();
@@ -117,12 +117,12 @@ void PedestrianMovement::frame_init()
                 std::map<unsigned int, MobilityServiceControllerConfig>:: iterator itr ;
                 for (itr = enabledCtrlrs.begin(); itr != enabledCtrlrs.end(); itr++)
                 {
-                	std::string currentTripChainMode = boost::to_upper_copy(tcItem->getMode());
+                    std::string currentTripChainMode = boost::to_upper_copy(tcItem->getMode());
                     if (boost::to_upper_copy(itr->second.tripSupportMode).find(currentTripChainMode.insert(0,"|").append("|"))!= std::string::npos)
                     {
-                    	auto itCtrlr = controllers.get<ctrlTripSupportMode>().find(itr->second.tripSupportMode);
-                    	controller = *itCtrlr;
-                    	break;
+                        auto itCtrlr = controllers.get<ctrlTripSupportMode>().find(itr->second.tripSupportMode);
+                        controller = *itCtrlr;
+                        break;
                     }
                 }
                 if (!controller)
@@ -162,19 +162,19 @@ void PedestrianMovement::frame_init()
 
 void PedestrianMovement::frame_tick()
 {
-	double elapsedTime = ConfigManager::GetInstance().FullConfig().baseGranSecond();
-	double distanceCovered = parentPedestrian->parent->getWalkingSpeed() * elapsedTime;
-	distanceToBeCovered -= distanceCovered;
-	
-	if(distanceToBeCovered <= 0)
-	{
-		parentPedestrian->getParent()->setToBeRemoved();
-	}
+    double elapsedTime = ConfigManager::GetInstance().FullConfig().baseGranSecond();
+    double distanceCovered = parentPedestrian->parent->getWalkingSpeed() * elapsedTime;
+    distanceToBeCovered -= distanceCovered;
+    
+    if(distanceToBeCovered <= 0)
+    {
+        parentPedestrian->getParent()->setToBeRemoved();
+    }
 }
 
 std::string PedestrianMovement::frame_tick_output()
 {
-	return std::string();
+    return std::string();
 }
 
 

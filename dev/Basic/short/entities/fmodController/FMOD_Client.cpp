@@ -18,161 +18,161 @@ namespace sim_mob {
 
 
 FMOD_Client::FMOD_Client(boost::asio::io_service& ioService):socket_(ioService) {
-	// TODO Auto-generated constructor stub
+    // TODO Auto-generated constructor stub
 
 }
 
 FMOD_Client::~FMOD_Client() {
-	// TODO Auto-generated destructor stub
+    // TODO Auto-generated destructor stub
 }
 
 boost::shared_ptr<FMOD_Client> FMOD_Client::create(boost::asio::io_service& ioService)
 {
-	return boost::shared_ptr<FMOD_Client>(new FMOD_Client(ioService));
+    return boost::shared_ptr<FMOD_Client>(new FMOD_Client(ioService));
 }
 
 boost::asio::ip::tcp::socket& FMOD_Client::socket()
 {
-	return socket_;
+    return socket_;
 }
 
 void FMOD_Client::flush()
 {
-	sendData();
+    sendData();
 }
 
 
 void FMOD_Client::sendMessage(std::string& data)
 {
-	msgSendQueue.pushMessage(data);
+    msgSendQueue.pushMessage(data);
 }
 
 void FMOD_Client::sendMessage(MessageList& data)
 {
-	while(data.size()>0)
-	{
-		std::string str = data.front();
-		data.pop();
-		msgSendQueue.pushMessage(str);
-	}
+    while(data.size()>0)
+    {
+        std::string str = data.front();
+        data.pop();
+        msgSendQueue.pushMessage(str);
+    }
 }
 
 MessageList FMOD_Client::getMessage()
 {
-	MessageList res;
-	std::string msg;
-	if( bool ret = msgReceiveQueue.popMessage(msg) ){
-		res.push(msg);
-	}
+    MessageList res;
+    std::string msg;
+    if( bool ret = msgReceiveQueue.popMessage(msg) ){
+        res.push(msg);
+    }
 
-	return res;
+    return res;
 }
 
 bool FMOD_Client::waitMessageInBlocking(std::string& msg, int seconds)
 {
-	return msgReceiveQueue.waitPopMessage(msg, seconds);
+    return msgReceiveQueue.waitPopMessage(msg, seconds);
 }
 
 void FMOD_Client::handleWrite(const boost::system::error_code& error, size_t bytesTransferred)
 {
-	if( error == 0 ){
-		std::cout << "sent data : "<<messageSnd<<std::endl;
-		sendData();
-	}
-	else{
-		 std::cerr<<"end: send error "<<error.message()<<std::endl;
-	}
+    if( error == 0 ){
+        std::cout << "sent data : "<<messageSnd<<std::endl;
+        sendData();
+    }
+    else{
+         std::cerr<<"end: send error "<<error.message()<<std::endl;
+    }
 }
 void FMOD_Client::handleRead(const boost::system::error_code& error, size_t bytesTransferred)
 {
-	if( error == 0 ){
-		std::cout << "receive data : "<<ReceivedBuf.data()<<std::endl;
-		msgReceiveQueue.pushMessage(ReceivedBuf.data(), true);
-		ReceivedBuf.assign(0);
-		receiveData();
-	}
-	else{
-		 std::cerr<<"end: receive error "<<error.message()<<std::endl;
-	}
+    if( error == 0 ){
+        std::cout << "receive data : "<<ReceivedBuf.data()<<std::endl;
+        msgReceiveQueue.pushMessage(ReceivedBuf.data(), true);
+        ReceivedBuf.assign(0);
+        receiveData();
+    }
+    else{
+         std::cerr<<"end: receive error "<<error.message()<<std::endl;
+    }
 }
 
 bool FMOD_Client::connectToServer(std::string& ip, int port)
 {
-	bool ret = true;
-	boost::asio::ip::tcp::endpoint endpoint( boost::asio::ip::address::from_string(ip.c_str()), port);
-	boost::system::error_code ec;
-	socket_.connect(endpoint, ec);
-	if(ec) {
-		std::cerr<<"start: connect error "<<ec.message()<<std::endl;
-		ret = false;
-	}
-	else
-	{
-		receiveData();
-	}
-	return ret;
+    bool ret = true;
+    boost::asio::ip::tcp::endpoint endpoint( boost::asio::ip::address::from_string(ip.c_str()), port);
+    boost::system::error_code ec;
+    socket_.connect(endpoint, ec);
+    if(ec) {
+        std::cerr<<"start: connect error "<<ec.message()<<std::endl;
+        ret = false;
+    }
+    else
+    {
+        receiveData();
+    }
+    return ret;
 }
 
 void FMOD_Client::stop()
 {
-	socket_.close();
+    socket_.close();
 }
 
 bool FMOD_Client::sendData()
 {
-	bool ret = msgSendQueue.popMessage(messageSnd);
+    bool ret = msgSendQueue.popMessage(messageSnd);
 
-	if(!ret){
-		return ret;
-	}
+    if(!ret){
+        return ret;
+    }
 
-	boost::system::error_code err;
-	try
-	{
-		boost::asio::async_write(socket_, boost::asio::buffer(messageSnd),
-							  boost::bind(&FMOD_Client::handleWrite,shared_from_this(),
-							  boost::asio::placeholders::error,
-							  boost::asio::placeholders::bytes_transferred));
-		 if(err) {
-			 std::cerr<<"start: send error "<<err.message()<<std::endl;
-			 return false;
-		 }
-	}
-	catch (std::exception& e)
-	{
-		std::cerr <<"start: "<< e.what() << std::endl;
-		return false;
-	}
+    boost::system::error_code err;
+    try
+    {
+        boost::asio::async_write(socket_, boost::asio::buffer(messageSnd),
+                              boost::bind(&FMOD_Client::handleWrite,shared_from_this(),
+                              boost::asio::placeholders::error,
+                              boost::asio::placeholders::bytes_transferred));
+         if(err) {
+             std::cerr<<"start: send error "<<err.message()<<std::endl;
+             return false;
+         }
+    }
+    catch (std::exception& e)
+    {
+        std::cerr <<"start: "<< e.what() << std::endl;
+        return false;
+    }
 
-	return true;
+    return true;
 }
 bool FMOD_Client::receiveData()
 {
-	boost::system::error_code err;
-	try
-	{
-		/*boost::asio::async_read(socket_, boost::asio::buffer(ReceivedBuf),
-							  boost::bind(&FMOD_Client::handleRead,shared_from_this(),
-							  boost::asio::placeholders::error,
-							  boost::asio::placeholders::bytes_transferred));*/
+    boost::system::error_code err;
+    try
+    {
+        /*boost::asio::async_read(socket_, boost::asio::buffer(ReceivedBuf),
+                              boost::bind(&FMOD_Client::handleRead,shared_from_this(),
+                              boost::asio::placeholders::error,
+                              boost::asio::placeholders::bytes_transferred));*/
 
-		socket_.async_read_some(boost::asio::buffer(ReceivedBuf),
-								boost::bind(&FMOD_Client::handleRead,shared_from_this(),
-								boost::asio::placeholders::error,
-								boost::asio::placeholders::bytes_transferred)) ;
+        socket_.async_read_some(boost::asio::buffer(ReceivedBuf),
+                                boost::bind(&FMOD_Client::handleRead,shared_from_this(),
+                                boost::asio::placeholders::error,
+                                boost::asio::placeholders::bytes_transferred)) ;
 
-		 if(err) {
-			 std::cerr<<"start: receive error "<<err.message()<<std::endl;
-			 return false;
-		 }
-	}
-	catch (std::exception& e)
-	{
-		std::cerr <<"start: "<< e.what() << std::endl;
-		return false;
-	}
+         if(err) {
+             std::cerr<<"start: receive error "<<err.message()<<std::endl;
+             return false;
+         }
+    }
+    catch (std::exception& e)
+    {
+        std::cerr <<"start: "<< e.what() << std::endl;
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 

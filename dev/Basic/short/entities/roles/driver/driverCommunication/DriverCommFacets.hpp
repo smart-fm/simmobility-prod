@@ -14,10 +14,10 @@ namespace sim_mob
 class DriverCommMovement : public DriverMovement
 {
 public:
-	explicit DriverCommMovement();
-	virtual ~DriverCommMovement();
+    explicit DriverCommMovement();
+    virtual ~DriverCommMovement();
 
-	//Virtual overrides
-	virtual void frame_init();
+    //Virtual overrides
+    virtual void frame_init();
 };
 }

@@ -27,35 +27,35 @@ namespace sim_mob
 template <typename T>
 class OpaqueProperty {
 private:
-	std::string repr_;
-	T lastVal;
+    std::string repr_;
+    T lastVal;
 
 public:
-	void setProps(const std::string& key, const T& value) {
-		std::stringstream builder;
-		builder <<"\"" <<key <<"\"" <<":"
-				<<"\"" <<value <<"\"" <<",";
-		builder >>repr_;
-		lastVal = value;
-	}
+    void setProps(const std::string& key, const T& value) {
+        std::stringstream builder;
+        builder <<"\"" <<key <<"\"" <<":"
+                <<"\"" <<value <<"\"" <<",";
+        builder >>repr_;
+        lastVal = value;
+    }
 
-	bool isSet() const {
-		return !repr_.empty();
-	}
+    bool isSet() const {
+        return !repr_.empty();
+    }
 
-	std::string getLogItem() const {
-		return repr_;
-	}
+    std::string getLogItem() const {
+        return repr_;
+    }
 
-	unsigned int getLastVal() {
-		return lastVal;
-	}
+    unsigned int getLastVal() {
+        return lastVal;
+    }
 
-	//Allow assigning from a string
-	sim_mob::OpaqueProperty<T>& operator=(const std::string& srcStr) {
-		this->repr_ = srcStr;
-		return *this;
-	}
+    //Allow assigning from a string
+    sim_mob::OpaqueProperty<T>& operator=(const std::string& srcStr) {
+        this->repr_ = srcStr;
+        return *this;
+    }
 };
 
 

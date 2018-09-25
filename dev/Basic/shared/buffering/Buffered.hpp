@@ -50,42 +50,42 @@ template <typename T>
 class Buffered : public BufferedBase
 {
 public:
-	/**
-	 * Create a new Buffered data type.
-	 *
-	 * \param value The initial value. You can also set an initial value using "force".
-	 */
-	explicit Buffered (const T& value = T()) : BufferedBase(), current_ (value), next_ (value) {}
-	virtual ~Buffered() {}
+    /**
+     * Create a new Buffered data type.
+     *
+     * \param value The initial value. You can also set an initial value using "force".
+     */
+    explicit Buffered (const T& value = T()) : BufferedBase(), current_ (value), next_ (value) {}
+    virtual ~Buffered() {}
 
 
-	/**
-	 * Retrieve the current value. Get the current value of the data type. This can
-	 * also be thought of as being one flip "behind" the actual value.
-	 */
+    /**
+     * Retrieve the current value. Get the current value of the data type. This can
+     * also be thought of as being one flip "behind" the actual value.
+     */
     const T& get() const {
-    	return current_;
+        return current_;
     }
 
-	/**
-	 * Set the next value. Set the next value of the data type. This value will
-	 * only take effect when "flip" is called.
-	 */
+    /**
+     * Set the next value. Set the next value of the data type. This value will
+     * only take effect when "flip" is called.
+     */
     void set (const T& value) {
-    	next_ = value;
+        next_ = value;
     }
 
 
-	/**
-	 * Skips processing for this time tick. If an agent won't be updating a particular
-	 * Buffered type during its time tick, it should call skip() on that type.
-	 *
-	 * \note
-	 * This is intended for later, when we have pointers to arrays of data to update.
-	 * But modelers should definitely respect the limitations of Buffere<> types now.
-	 */
+    /**
+     * Skips processing for this time tick. If an agent won't be updating a particular
+     * Buffered type during its time tick, it should call skip() on that type.
+     *
+     * \note
+     * This is intended for later, when we have pointers to arrays of data to update.
+     * But modelers should definitely respect the limitations of Buffere<> types now.
+     */
     void skip() {
-    	this->set(this->get());
+        this->set(this->get());
     }
 
 
@@ -120,18 +120,18 @@ public:
         return current_;
     }
 
-	/**
-	 * Force a new value into effect. Set the current and next value without a call to flip().
-	 * This is usually only needed when loading values from a config file.
-	 */
+    /**
+     * Force a new value into effect. Set the current and next value without a call to flip().
+     * This is usually only needed when loading values from a config file.
+     */
     void force(const T& value) {
-    	next_ = current_ = value;
+        next_ = current_ = value;
     }
 
 
 protected:
     void flip() {
-    	current_ = next_;
+        current_ = next_;
     }
 
     T current_;

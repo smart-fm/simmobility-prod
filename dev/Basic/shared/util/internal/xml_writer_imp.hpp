@@ -25,48 +25,48 @@ namespace xml {
 template <> inline
 void XmlWriter::prop(const std::string& key, const std::string& val)
 {
-	write_simple_prop(key, EscapeXML(val));
+    write_simple_prop(key, EscapeXML(val));
 }
 
 template <> inline
 void XmlWriter::prop(const std::string& key, const int& val)
 {
-	write_simple_prop(key, val);
+    write_simple_prop(key, val);
 }
 
 template <> inline
 void XmlWriter::prop(const std::string& key, const unsigned int& val)
 {
-	write_simple_prop(key, val);
+    write_simple_prop(key, val);
 }
 
 template <> inline
 void XmlWriter::prop(const std::string& key, const long& val)
 {
-	write_simple_prop(key, val);
+    write_simple_prop(key, val);
 }
 
 template <> inline
 void XmlWriter::prop(const std::string& key, const unsigned long& val)
 {
-	write_simple_prop(key, val);
+    write_simple_prop(key, val);
 }
 
 template <> inline
 void XmlWriter::prop(const std::string& key, const double& val)
 {
-	std::streamsize prec = outFile->precision();
-	outFile->precision(4);
-	outFile->setf(std::ios::fixed);
-	write_simple_prop(key, val);
-	outFile->precision(prec);
-	outFile->unsetf(std::ios::fixed);
+    std::streamsize prec = outFile->precision();
+    outFile->precision(4);
+    outFile->setf(std::ios::fixed);
+    write_simple_prop(key, val);
+    outFile->precision(prec);
+    outFile->unsetf(std::ios::fixed);
 }
 
 template <> inline
 void XmlWriter::prop(const std::string& key, const bool& val)
 {
-	write_simple_prop(key, val?"true":"false");
+    write_simple_prop(key, val?"true":"false");
 }
 
 }}

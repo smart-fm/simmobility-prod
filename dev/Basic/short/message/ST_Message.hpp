@@ -33,16 +33,16 @@ const messaging::Message::MessageType MSG_ATTEMPT_BOARD_Taxi = 1000010;
 class PersonMessage: public messaging::Message
 {
 public:
-	Person_ST* person;
+    Person_ST* person;
 
-	PersonMessage(Person_ST *inPerson) :
-	person(inPerson)
-	{
-	}
+    PersonMessage(Person_ST *inPerson) :
+    person(inPerson)
+    {
+    }
 
-	virtual ~PersonMessage()
-	{
-	}
+    virtual ~PersonMessage()
+    {
+    }
 } ;
 
 /**
@@ -52,16 +52,16 @@ public:
 class ArrivalAtStopMessage: public messaging::Message
 {
 public:
-	Person_ST *waitingPerson;
+    Person_ST *waitingPerson;
 
-	ArrivalAtStopMessage(Person_ST *person) :
-	waitingPerson(person)
-	{
-	}
+    ArrivalAtStopMessage(Person_ST *person) :
+    waitingPerson(person)
+    {
+    }
 
-	virtual ~ArrivalAtStopMessage()
-	{
-	}
+    virtual ~ArrivalAtStopMessage()
+    {
+    }
 };
 
 /**
@@ -70,17 +70,17 @@ public:
 class BusStopMessage: public messaging::Message
 {
 public:
-	const BusStop *nextStop;
-	BusDriver *busDriver;
-	
-	BusStopMessage(const BusStop *stop, BusDriver *busDriver) :
-	nextStop(stop), busDriver(busDriver)
-	{
-	}
+    const BusStop *nextStop;
+    BusDriver *busDriver;
+    
+    BusStopMessage(const BusStop *stop, BusDriver *busDriver) :
+    nextStop(stop), busDriver(busDriver)
+    {
+    }
 
-	virtual ~BusStopMessage()
-	{
-	}
+    virtual ~BusStopMessage()
+    {
+    }
 } ;
 
 /**
@@ -89,16 +89,16 @@ public:
 class BusDriverMessage: public messaging::Message
 {
 public:
-	const BusDriver *busDriver;
-	
-	BusDriverMessage(const BusDriver *busDriver) :
-	busDriver(busDriver)
-	{
-	}
+    const BusDriver *busDriver;
+    
+    BusDriverMessage(const BusDriver *busDriver) :
+    busDriver(busDriver)
+    {
+    }
 
-	virtual ~BusDriverMessage()
-	{
-	}
+    virtual ~BusDriverMessage()
+    {
+    }
 } ;
 /**
  * Message holding a pointer to OnCallDriver

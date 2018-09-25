@@ -10,7 +10,7 @@
 using namespace sim_mob::long_term;
 
 VehicleOwnershipChanges::VehicleOwnershipChanges(BigSerial householdId, int oldVehicleOwnershipOptionId, int newVehicleOwnershipOptionId,std::tm startDate,bool liveInTp, bool workInTp, double randomNum) :
-		householdId(householdId), oldVehicleOwnershipOptionId(oldVehicleOwnershipOptionId), newVehicleOwnershipOptionId(newVehicleOwnershipOptionId), startDate(startDate),liveInTp(liveInTp),workInTp(workInTp),randomNum(randomNum){
+        householdId(householdId), oldVehicleOwnershipOptionId(oldVehicleOwnershipOptionId), newVehicleOwnershipOptionId(newVehicleOwnershipOptionId), startDate(startDate),liveInTp(liveInTp),workInTp(workInTp),randomNum(randomNum){
 }
 
 VehicleOwnershipChanges::~VehicleOwnershipChanges() {
@@ -18,95 +18,95 @@ VehicleOwnershipChanges::~VehicleOwnershipChanges() {
 
 VehicleOwnershipChanges::VehicleOwnershipChanges( const VehicleOwnershipChanges &source)
 {
-	this->householdId = source.householdId;
-	this->oldVehicleOwnershipOptionId = source.oldVehicleOwnershipOptionId;
-	this->newVehicleOwnershipOptionId = source.newVehicleOwnershipOptionId;
-	this->startDate = source.startDate;
-	this->liveInTp = source.liveInTp;
-	this->workInTp = source.workInTp;
-	this->randomNum = source.randomNum;
+    this->householdId = source.householdId;
+    this->oldVehicleOwnershipOptionId = source.oldVehicleOwnershipOptionId;
+    this->newVehicleOwnershipOptionId = source.newVehicleOwnershipOptionId;
+    this->startDate = source.startDate;
+    this->liveInTp = source.liveInTp;
+    this->workInTp = source.workInTp;
+    this->randomNum = source.randomNum;
 }
 
 VehicleOwnershipChanges& VehicleOwnershipChanges::operator=(const VehicleOwnershipChanges& source)
 {
-	this->householdId = source.householdId;
-	this->oldVehicleOwnershipOptionId = source.oldVehicleOwnershipOptionId;
-	this->newVehicleOwnershipOptionId = source.newVehicleOwnershipOptionId;
-	this->startDate = source.startDate;
-	this->liveInTp = source.liveInTp;
-	this->workInTp = source.workInTp;
-	this->randomNum = source.randomNum;
+    this->householdId = source.householdId;
+    this->oldVehicleOwnershipOptionId = source.oldVehicleOwnershipOptionId;
+    this->newVehicleOwnershipOptionId = source.newVehicleOwnershipOptionId;
+    this->startDate = source.startDate;
+    this->liveInTp = source.liveInTp;
+    this->workInTp = source.workInTp;
+    this->randomNum = source.randomNum;
 
     return *this;
 }
 
 BigSerial VehicleOwnershipChanges::getHouseholdId() const
 {
-	return householdId;
+    return householdId;
 }
 
 void VehicleOwnershipChanges::setHouseholdId(BigSerial householdId)
 {
-	this->householdId = householdId;
+    this->householdId = householdId;
 }
 
 const std::tm& VehicleOwnershipChanges::getStartDate() const
 {
-	return startDate;
+    return startDate;
 }
 
 void VehicleOwnershipChanges::setStartDate(const std::tm& startDate)
 {
-	this->startDate = startDate;
+    this->startDate = startDate;
 }
 
 int VehicleOwnershipChanges::getOldVehicleOwnershipOptionId() const
 {
-	return oldVehicleOwnershipOptionId;
+    return oldVehicleOwnershipOptionId;
 }
 
 void VehicleOwnershipChanges::setOldVehicleOwnershipOptionId(int vehicleOwnershipOptionId)
 {
-	this->oldVehicleOwnershipOptionId = vehicleOwnershipOptionId;
+    this->oldVehicleOwnershipOptionId = vehicleOwnershipOptionId;
 }
 
 int VehicleOwnershipChanges::getNewVehicleOwnershipOptionId() const
 {
-	return newVehicleOwnershipOptionId;
+    return newVehicleOwnershipOptionId;
 }
 
 void VehicleOwnershipChanges::setNewVehicleOwnershipOptionId(int vehicleOwnershipOptionId)
 {
-	this->newVehicleOwnershipOptionId = vehicleOwnershipOptionId;
+    this->newVehicleOwnershipOptionId = vehicleOwnershipOptionId;
 }
 
 bool VehicleOwnershipChanges::isLiveInTp() const
 {
-	return liveInTp;
+    return liveInTp;
 }
 
 void VehicleOwnershipChanges::setLiveInTp(bool liveInTp)
 {
-	this->liveInTp = liveInTp;
+    this->liveInTp = liveInTp;
 }
 
 bool VehicleOwnershipChanges::isWorkInTp() const
 {
-	return workInTp;
+    return workInTp;
 }
 
 void VehicleOwnershipChanges::setWorkInTp(bool workInTp)
 {
-	this->workInTp = workInTp;
+    this->workInTp = workInTp;
 }
 
 
 double VehicleOwnershipChanges::getRandomNum() const
 {
-	return randomNum;
+    return randomNum;
 }
 
 void VehicleOwnershipChanges::setRandomNum(double randomNum)
 {
-	this->randomNum = randomNum;
+    this->randomNum = randomNum;
 }

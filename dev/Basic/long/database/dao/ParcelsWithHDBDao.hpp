@@ -19,7 +19,7 @@ namespace sim_mob {
          */
         class ParcelsWithHDBDao : public db::SqlAbstractDao<ParcelsWithHDB> {
         public:
-        	ParcelsWithHDBDao(db::DB_Connection& connection);
+            ParcelsWithHDBDao(db::DB_Connection& connection);
             virtual ~ParcelsWithHDBDao();
 
         private:

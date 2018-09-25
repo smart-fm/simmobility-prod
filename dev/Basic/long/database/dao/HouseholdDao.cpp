@@ -52,124 +52,124 @@ void HouseholdDao::fromRow(Row& result, Household& outObj)
 
 void HouseholdDao::toRow(Household& data, Parameters& outParams, bool update)
 {
-	outParams.push_back(data.getId());
-	outParams.push_back(data.getLifestyleId());
-	outParams.push_back(data.getUnitId());
-	outParams.push_back(data.getEthnicityId());
-	outParams.push_back(data.getVehicleCategoryId());
-	outParams.push_back(data.getSize());
-	outParams.push_back(data.getChildUnder4());
-	outParams.push_back(data.getChildUnder15());
-	outParams.push_back(data.getAdult());
-	outParams.push_back(data.getIncome());
-	outParams.push_back(data.getHousingDuration());
-	outParams.push_back(data.getWorkers());
-	outParams.push_back(data.getAgeOfHead());
-	outParams.push_back(data.getPendingStatusId());
-	std::tm pendingFromDate = data.getPendingFromDate();
-	if(pendingFromDate.tm_year == 9999)
-	{
-		pendingFromDate.tm_year = (pendingFromDate.tm_year - 1900);
-	}
-	outParams.push_back(pendingFromDate);
-	outParams.push_back(data.getUnitPending());
-	outParams.push_back(data.getTaxiAvailability());
-	outParams.push_back(data.getVehicleOwnershipOptionId());
-	outParams.push_back(data.getTimeOnMarket());
-	outParams.push_back(data.getTimeOffMarket());
-	outParams.push_back(data.getIsBidder());
-	outParams.push_back(data.getIsSeller());
-	outParams.push_back(data.getBuySellInterval());
-	outParams.push_back(data.getTenureStatus());
-	outParams.push_back(data.getAwaknedDay());
-	outParams.push_back(data.getLastBidStatus());
+    outParams.push_back(data.getId());
+    outParams.push_back(data.getLifestyleId());
+    outParams.push_back(data.getUnitId());
+    outParams.push_back(data.getEthnicityId());
+    outParams.push_back(data.getVehicleCategoryId());
+    outParams.push_back(data.getSize());
+    outParams.push_back(data.getChildUnder4());
+    outParams.push_back(data.getChildUnder15());
+    outParams.push_back(data.getAdult());
+    outParams.push_back(data.getIncome());
+    outParams.push_back(data.getHousingDuration());
+    outParams.push_back(data.getWorkers());
+    outParams.push_back(data.getAgeOfHead());
+    outParams.push_back(data.getPendingStatusId());
+    std::tm pendingFromDate = data.getPendingFromDate();
+    if(pendingFromDate.tm_year == 9999)
+    {
+        pendingFromDate.tm_year = (pendingFromDate.tm_year - 1900);
+    }
+    outParams.push_back(pendingFromDate);
+    outParams.push_back(data.getUnitPending());
+    outParams.push_back(data.getTaxiAvailability());
+    outParams.push_back(data.getVehicleOwnershipOptionId());
+    outParams.push_back(data.getTimeOnMarket());
+    outParams.push_back(data.getTimeOffMarket());
+    outParams.push_back(data.getIsBidder());
+    outParams.push_back(data.getIsSeller());
+    outParams.push_back(data.getBuySellInterval());
+    outParams.push_back(data.getTenureStatus());
+    outParams.push_back(data.getAwaknedDay());
+    outParams.push_back(data.getLastBidStatus());
 }
 
 void HouseholdDao::insertHousehold(Household& houseHold,std::string schema)
 {
 
-	if(houseHold.getExistInDB())
-	{
+    if(houseHold.getExistInDB())
+    {
 
-		db::Parameters params;
-		params.push_back(houseHold.getLifestyleId());
-		params.push_back(houseHold.getUnitId());
-		params.push_back(houseHold.getEthnicityId());
-		params.push_back(houseHold.getVehicleCategoryId());
-		params.push_back(houseHold.getSize());
-		params.push_back(houseHold.getChildUnder4());
-		params.push_back(houseHold.getChildUnder15());
-		params.push_back(houseHold.getAdult());
-		params.push_back(houseHold.getIncome());
-		params.push_back(houseHold.getHousingDuration());
-		params.push_back(houseHold.getWorkers());
-		params.push_back(houseHold.getAgeOfHead());
-		params.push_back(houseHold.getPendingStatusId());
-		params.push_back(houseHold.getPendingFromDate());
-		params.push_back(houseHold.getUnitPending());
-		params.push_back(houseHold.getTaxiAvailability());
-		params.push_back(houseHold.getVehicleOwnershipOptionId());
-		params.push_back(houseHold.getTimeOnMarket());
-		params.push_back(houseHold.getTimeOffMarket());
-		params.push_back(houseHold.getIsBidder());
-		params.push_back(houseHold.getIsSeller());
-		params.push_back(houseHold.getBuySellInterval());
-		params.push_back(houseHold.getTenureStatus());
-		params.push_back(houseHold.getAwaknedDay());
-		params.push_back(houseHold.getLastBidStatus());
-		params.push_back(houseHold.getId());
+        db::Parameters params;
+        params.push_back(houseHold.getLifestyleId());
+        params.push_back(houseHold.getUnitId());
+        params.push_back(houseHold.getEthnicityId());
+        params.push_back(houseHold.getVehicleCategoryId());
+        params.push_back(houseHold.getSize());
+        params.push_back(houseHold.getChildUnder4());
+        params.push_back(houseHold.getChildUnder15());
+        params.push_back(houseHold.getAdult());
+        params.push_back(houseHold.getIncome());
+        params.push_back(houseHold.getHousingDuration());
+        params.push_back(houseHold.getWorkers());
+        params.push_back(houseHold.getAgeOfHead());
+        params.push_back(houseHold.getPendingStatusId());
+        params.push_back(houseHold.getPendingFromDate());
+        params.push_back(houseHold.getUnitPending());
+        params.push_back(houseHold.getTaxiAvailability());
+        params.push_back(houseHold.getVehicleOwnershipOptionId());
+        params.push_back(houseHold.getTimeOnMarket());
+        params.push_back(houseHold.getTimeOffMarket());
+        params.push_back(houseHold.getIsBidder());
+        params.push_back(houseHold.getIsSeller());
+        params.push_back(houseHold.getBuySellInterval());
+        params.push_back(houseHold.getTenureStatus());
+        params.push_back(houseHold.getAwaknedDay());
+        params.push_back(houseHold.getLastBidStatus());
+        params.push_back(houseHold.getId());
 
-		const std::string DB_UPDATE_HOUSEHOLD = "UPDATE "	+ schema + ".household" + " SET "
-				+ DB_FIELD_LIFESTYLE_ID+ "= :v1, "
-				+ DB_FIELD_UNIT_ID + "= :v2, "
-				+ DB_FIELD_ETHNICITY_ID + "= :v3, "
-				+ DB_FIELD_VEHICLE_CATEGORY_ID + "= :v4, "
-				+ DB_FIELD_SIZE + "= :v5, "
-				+ DB_FIELD_CHILDUNDER4 + "= :v6, "
-				+ DB_FIELD_CHILDUNDER15 + "= :v7, "
-				+ "num_adults" + "= :v8, "
-				+ DB_FIELD_INCOME + "= :v9, "
-				+ DB_FIELD_HOUSING_DURATION + "= :v10, "
-				+ DB_FIELD_WORKERS + "= :v11, "
-				+ DB_FIELD_AGE_OF_HEAD + "= :v12, "
-				+ "pending_status_id" + "= :v13, "
-				+ "pending_from_date" + "= :v14, "
-				+ "unit_pending" + "= :v15, "
-				+ DB_FIELD_TAXI_AVAILABILITY + "= :v16, "
-				+ "vehicle_ownership_option_id" + "= :v17, "
-				+ "time_on_market" + "= :v18, "
-				+ "time_off_market"+ "= :v19, "
-				+ "is_bidder" + "= :v20, "
-				+ "is_seller" + "= :v21, "
-				+ "buy_sell_interval" + "= :v22, "
-				+ "tenure_status" + "= :v23, "
-				+ "awakened_day" + "= :v24, "
-				+ "last_bid_status"
-				+ "= :v25 WHERE "
-				+ "hh_id" + "=:v26";
-		executeQueryWithParams(houseHold,DB_UPDATE_HOUSEHOLD,params);
-	}
+        const std::string DB_UPDATE_HOUSEHOLD = "UPDATE "   + schema + ".household" + " SET "
+                + DB_FIELD_LIFESTYLE_ID+ "= :v1, "
+                + DB_FIELD_UNIT_ID + "= :v2, "
+                + DB_FIELD_ETHNICITY_ID + "= :v3, "
+                + DB_FIELD_VEHICLE_CATEGORY_ID + "= :v4, "
+                + DB_FIELD_SIZE + "= :v5, "
+                + DB_FIELD_CHILDUNDER4 + "= :v6, "
+                + DB_FIELD_CHILDUNDER15 + "= :v7, "
+                + "num_adults" + "= :v8, "
+                + DB_FIELD_INCOME + "= :v9, "
+                + DB_FIELD_HOUSING_DURATION + "= :v10, "
+                + DB_FIELD_WORKERS + "= :v11, "
+                + DB_FIELD_AGE_OF_HEAD + "= :v12, "
+                + "pending_status_id" + "= :v13, "
+                + "pending_from_date" + "= :v14, "
+                + "unit_pending" + "= :v15, "
+                + DB_FIELD_TAXI_AVAILABILITY + "= :v16, "
+                + "vehicle_ownership_option_id" + "= :v17, "
+                + "time_on_market" + "= :v18, "
+                + "time_off_market"+ "= :v19, "
+                + "is_bidder" + "= :v20, "
+                + "is_seller" + "= :v21, "
+                + "buy_sell_interval" + "= :v22, "
+                + "tenure_status" + "= :v23, "
+                + "awakened_day" + "= :v24, "
+                + "last_bid_status"
+                + "= :v25 WHERE "
+                + "hh_id" + "=:v26";
+        executeQueryWithParams(houseHold,DB_UPDATE_HOUSEHOLD,params);
+    }
 
-	else
-	{
-		const std::string DB_INSERT_HOUSEHOLD_OP = "INSERT INTO " + schema + ".household"
-							+ " (" + "hh_id" + ", "+ "lifestyle_id" + ", "+ DB_FIELD_UNIT_ID + ", "+ DB_FIELD_ETHNICITY_ID + ", "+ DB_FIELD_VEHICLE_CATEGORY_ID + ", "+ DB_FIELD_SIZE + ", "+
-							DB_FIELD_CHILDUNDER4 + ", "+ DB_FIELD_CHILDUNDER15 + ", " + "num_adults" + ", "+ DB_FIELD_INCOME + ", "+ DB_FIELD_HOUSING_DURATION + ", " + "workers"+ ", "+
-							"age_of_head" + ", "+ "pending_status_id" + ", " + "pending_from_date" + ", "+ "unit_pending" + ", "+ "taxi_availability" + ", " + "vehicle_ownership_option_id"+ ", "+
-							+ "time_on_market" + ", " + "time_off_market"+ ", "+ "is_bidder" + ", " + "is_seller"+ ", "+ "buy_sell_interval" + ", "+
-							+ "tenure_status"  + ", " + "awakened_day" + ", " +"last_bid_status"") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7 ,:v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :V25, :v26)";
-		insertViaQuery(houseHold,DB_INSERT_HOUSEHOLD_OP);
-	}
+    else
+    {
+        const std::string DB_INSERT_HOUSEHOLD_OP = "INSERT INTO " + schema + ".household"
+                            + " (" + "hh_id" + ", "+ "lifestyle_id" + ", "+ DB_FIELD_UNIT_ID + ", "+ DB_FIELD_ETHNICITY_ID + ", "+ DB_FIELD_VEHICLE_CATEGORY_ID + ", "+ DB_FIELD_SIZE + ", "+
+                            DB_FIELD_CHILDUNDER4 + ", "+ DB_FIELD_CHILDUNDER15 + ", " + "num_adults" + ", "+ DB_FIELD_INCOME + ", "+ DB_FIELD_HOUSING_DURATION + ", " + "workers"+ ", "+
+                            "age_of_head" + ", "+ "pending_status_id" + ", " + "pending_from_date" + ", "+ "unit_pending" + ", "+ "taxi_availability" + ", " + "vehicle_ownership_option_id"+ ", "+
+                            + "time_on_market" + ", " + "time_off_market"+ ", "+ "is_bidder" + ", " + "is_seller"+ ", "+ "buy_sell_interval" + ", "+
+                            + "tenure_status"  + ", " + "awakened_day" + ", " +"last_bid_status"") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7 ,:v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :V25, :v26)";
+        insertViaQuery(houseHold,DB_INSERT_HOUSEHOLD_OP);
+    }
 
 }
 
 std::vector<Household*> HouseholdDao::getPendingHouseholds(std::tm currentSimYear,std::tm lastDayOfCurrentSimYear)
 {
-	const std::string DB_GETALL_PENDING_HH = "SELECT * FROM " + connection.getSchema() + "household" + " WHERE  pending_status_id = 1 and  pending_from_date >= :v1 and pending_from_date  < :v2 and tenure_status <> 3";
-	db::Parameters params;
-	params.push_back(currentSimYear);
-	params.push_back(lastDayOfCurrentSimYear );
-	std::vector<Household*> pendingHouseholdList;
-	getByQueryId(DB_GETALL_PENDING_HH,params,pendingHouseholdList);
-	return pendingHouseholdList;
+    const std::string DB_GETALL_PENDING_HH = "SELECT * FROM " + connection.getSchema() + "household" + " WHERE  pending_status_id = 1 and  pending_from_date >= :v1 and pending_from_date  < :v2 and tenure_status <> 3";
+    db::Parameters params;
+    params.push_back(currentSimYear);
+    params.push_back(lastDayOfCurrentSimYear );
+    std::vector<Household*> pendingHouseholdList;
+    getByQueryId(DB_GETALL_PENDING_HH,params,pendingHouseholdList);
+    return pendingHouseholdList;
 }

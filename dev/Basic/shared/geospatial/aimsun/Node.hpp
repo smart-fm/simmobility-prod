@@ -20,8 +20,8 @@ class Node;
 
 /*struct NodeType
 {
-	std::string id;
-	int type;
+    std::string id;
+    int type;
 };*/
 
 namespace aimsun
@@ -35,23 +35,23 @@ class Section;
 class Node : public Base
 {
 public:
-	double xPos;
-	double yPos;
-	//std::string nodeName;
-	bool isIntersection;
-	bool hasTrafficSignal;
+    double xPos;
+    double yPos;
+    //std::string nodeName;
+    bool isIntersection;
+    bool hasTrafficSignal;
 
-	//Decorated data
-	std::vector<Section*> sectionsAtNode;
-	std::map<Node*, std::vector<int> > crossingLaneIdsByOutgoingNode;
-	bool candidateForSegmentNode;
+    //Decorated data
+    std::vector<Section*> sectionsAtNode;
+    std::map<Node*, std::vector<int> > crossingLaneIdsByOutgoingNode;
+    bool candidateForSegmentNode;
 
-	//Reference to saved object (Maybe be UniNode or MultiNode, of course)
-	sim_mob::Node* generatedNode;
+    //Reference to saved object (Maybe be UniNode or MultiNode, of course)
+    sim_mob::Node* generatedNode;
 
-	Node() : Base(), xPos(0), yPos(0), /*nodeName(""),*/ isIntersection(false), candidateForSegmentNode(false), generatedNode(nullptr), hasTrafficSignal(false) {}
-	int getXPosAsInt() { return round(xPos); }
-	int getYPosAsInt() { return round(yPos); }
+    Node() : Base(), xPos(0), yPos(0), /*nodeName(""),*/ isIntersection(false), candidateForSegmentNode(false), generatedNode(nullptr), hasTrafficSignal(false) {}
+    int getXPosAsInt() { return round(xPos); }
+    int getYPosAsInt() { return round(yPos); }
 };
 }
 }

@@ -14,52 +14,52 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
+    namespace long_term
+    {
 
-		PlanningSubzone::PlanningSubzone(BigSerial id, BigSerial planningAreaId, std::string name):id(id), planningAreaId(planningAreaId), name(name){}
+        PlanningSubzone::PlanningSubzone(BigSerial id, BigSerial planningAreaId, std::string name):id(id), planningAreaId(planningAreaId), name(name){}
 
-		PlanningSubzone::~PlanningSubzone(){}
+        PlanningSubzone::~PlanningSubzone(){}
 
-		PlanningSubzone::PlanningSubzone(const PlanningSubzone &source)
-		{
-			this->id = source.id;
-			this->planningAreaId = source.planningAreaId;
-			this->name = source.name;
-		}
+        PlanningSubzone::PlanningSubzone(const PlanningSubzone &source)
+        {
+            this->id = source.id;
+            this->planningAreaId = source.planningAreaId;
+            this->name = source.name;
+        }
 
-		PlanningSubzone & PlanningSubzone::operator=( const PlanningSubzone & source)
-		{
-			this->id = source.id;
-			this->planningAreaId = source.planningAreaId;
-			this->name = source.name;
+        PlanningSubzone & PlanningSubzone::operator=( const PlanningSubzone & source)
+        {
+            this->id = source.id;
+            this->planningAreaId = source.planningAreaId;
+            this->name = source.name;
 
-			return *this;
-		}
+            return *this;
+        }
 
-		BigSerial PlanningSubzone::getId() const
-		{
-			return id;
-		}
+        BigSerial PlanningSubzone::getId() const
+        {
+            return id;
+        }
 
-		BigSerial PlanningSubzone::getPlanningAreaId() const
-		{
-			return planningAreaId;
-		}
+        BigSerial PlanningSubzone::getPlanningAreaId() const
+        {
+            return planningAreaId;
+        }
 
-		std::string PlanningSubzone::getName() const
-		{
-			return name;
-		}
+        std::string PlanningSubzone::getName() const
+        {
+            return name;
+        }
 
-		std::ostream& operator<<(std::ostream& strm, const PlanningSubzone& data)
-		{
-			return strm << "{"
-						<< "\"id\":\"" << data.id << "\","
-						<< "\"planningAreaId\":\"" << data.planningAreaId << "\","
-						<< "\"name\":\"" << data.name << "\""
-						<< "}";
-		}
+        std::ostream& operator<<(std::ostream& strm, const PlanningSubzone& data)
+        {
+            return strm << "{"
+                        << "\"id\":\"" << data.id << "\","
+                        << "\"planningAreaId\":\"" << data.planningAreaId << "\","
+                        << "\"name\":\"" << data.name << "\""
+                        << "}";
+        }
 
-	}
+    }
 } /* namespace sim_mob */

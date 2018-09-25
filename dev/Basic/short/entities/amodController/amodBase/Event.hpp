@@ -41,7 +41,7 @@ struct Event {
      * @param entIds - Entity ids
      */
     Event(EventType evntType, long long evntId, const std::string& evntName, double evntTime, std::vector<int> entIds) :
-	    type(evntType), id(evntId), name(evntName), t(evntTime), entityIds(entIds) {}
+        type(evntType), id(evntId), name(evntName), t(evntTime), entityIds(entIds) {}
 
     /**
      * Constructor

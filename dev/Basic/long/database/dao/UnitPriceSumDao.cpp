@@ -17,7 +17,7 @@ UnitPriceSumDao::~UnitPriceSumDao() {}
 
 void UnitPriceSumDao::fromRow(Row& result, UnitPriceSum& outObj)
 {
-	outObj.fmParcelId = result.get<BigSerial>("fm_parcel_id", INVALID_ID);
+    outObj.fmParcelId = result.get<BigSerial>("fm_parcel_id", INVALID_ID);
     outObj.unitPriceSum = result.get<double>("unit_price_sum", 0.0);
 }
 

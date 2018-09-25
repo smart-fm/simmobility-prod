@@ -25,7 +25,7 @@ public:
      *
      * @param configFileName configuration file name to be parsed
      */
-	ParseConfigXmlBase(const std::string& configFileName);
+    ParseConfigXmlBase(const std::string& configFileName);
 
     /**
      * Destructor
@@ -33,37 +33,37 @@ public:
     virtual ~ParseConfigXmlBase();
 
 protected:
-	/**
-	 * Does all the work. Parse xml configuration and process each node.
-	 * Normally meant to be called from within the constructor of derived classes.
-	 */
-	void parseXmlAndProcess();
+    /**
+     * Does all the work. Parse xml configuration and process each node.
+     * Normally meant to be called from within the constructor of derived classes.
+     */
+    void parseXmlAndProcess();
 
-	/**
-	 * Perform per-process parser initialization
-	 */
-	void initialiseXerces();
+    /**
+     * Perform per-process parser initialization
+     */
+    void initialiseXerces();
 
-	/**
-	 * parse xml file
+    /**
+     * parse xml file
      *
      * @param parser the parser to parse the xml
-	 * @param errorHandler error handler in case of errors
+     * @param errorHandler error handler in case of errors
      *
      * @return empty string in case of no errors; the error message other wise
-	 */
-	std::string parseXmlFile(xercesc::XercesDOMParser& parser, xercesc::ErrorHandler& errorHandler);
+     */
+    std::string parseXmlFile(xercesc::XercesDOMParser& parser, xercesc::ErrorHandler& errorHandler);
 
-	/**
-	 * pure virtual function to override in derived classes.
-	 * code for processing the respective xml must be written in this function in the derived classes
+    /**
+     * pure virtual function to override in derived classes.
+     * code for processing the respective xml must be written in this function in the derived classes
      *
      * @param parser reference to parser after parsing the xml
-	 */
-	virtual void processXmlFile(xercesc::XercesDOMParser& parser) = 0;
+     */
+    virtual void processXmlFile(xercesc::XercesDOMParser& parser) = 0;
 
     /**The path of the file we are loading our configuration from*/
-	std::string inFilePath;
+    std::string inFilePath;
 };
 }
 

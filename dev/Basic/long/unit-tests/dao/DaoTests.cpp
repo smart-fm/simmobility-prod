@@ -76,7 +76,7 @@ void TestGetById(unsigned int ids = 1)
         CPPUNIT_ASSERT_MESSAGE("No values loaded", loadVals);
         if(loadVals)
         {
-        	PrintOutV("Get by id: " << valueById << endl);
+            PrintOutV("Get by id: " << valueById << endl);
         }
 
     }
@@ -86,32 +86,32 @@ void TestGetById(unsigned int ids = 1)
 
 void DaoTests::testGetAll()
 {
-	TestDaoGetAll<HouseholdDao, Household>();
-	TestDaoGetAll<BuildingDao, Building>();
-	TestDaoGetAll<UnitDao, Unit>();
-	TestDaoGetAll<PostcodeDao, Postcode>();
-	TestDaoGetAll<PostcodeAmenitiesDao, PostcodeAmenities>();
-	TestDaoGetAll<DeveloperDao, Developer>();
-	TestDaoGetAll<ParcelDao, Parcel>();
-	TestDaoGetAll<TemplateDao, Template>();
-	TestDaoGetAll<LandUseZoneDao, LandUseZone>();
-	TestDaoGetAll<DevelopmentTypeTemplateDao, DevelopmentTypeTemplate>(2);
-	TestDaoGetAll<TemplateUnitTypeDao, TemplateUnitType>(2);
-	TestDaoGetAll<ProjectDao, Project>();
-	TestDaoGetAll<ParcelMatchDao, ParcelMatch>();
+    TestDaoGetAll<HouseholdDao, Household>();
+    TestDaoGetAll<BuildingDao, Building>();
+    TestDaoGetAll<UnitDao, Unit>();
+    TestDaoGetAll<PostcodeDao, Postcode>();
+    TestDaoGetAll<PostcodeAmenitiesDao, PostcodeAmenities>();
+    TestDaoGetAll<DeveloperDao, Developer>();
+    TestDaoGetAll<ParcelDao, Parcel>();
+    TestDaoGetAll<TemplateDao, Template>();
+    TestDaoGetAll<LandUseZoneDao, LandUseZone>();
+    TestDaoGetAll<DevelopmentTypeTemplateDao, DevelopmentTypeTemplate>(2);
+    TestDaoGetAll<TemplateUnitTypeDao, TemplateUnitType>(2);
+    TestDaoGetAll<ProjectDao, Project>();
+    TestDaoGetAll<ParcelMatchDao, ParcelMatch>();
 }
 
 void DaoTests::testGetById()
 {
-	TestGetById<HouseholdDao, Household>();
-	TestDaoGetAll<BuildingDao, Building>();
-	TestDaoGetAll<UnitDao, Unit>();
-	TestDaoGetAll<PostcodeDao, Postcode>();
-	TestDaoGetAll<PostcodeAmenitiesDao, PostcodeAmenities>();
-	TestDaoGetAll<DeveloperDao, Developer>();
-	TestDaoGetAll<ParcelDao, Parcel>();
-	TestDaoGetAll<TemplateDao, Template>();
-	TestDaoGetAll<LandUseZoneDao, LandUseZone>();
-	TestDaoGetAll<DevelopmentTypeTemplateDao, DevelopmentTypeTemplate>(2);
-	TestDaoGetAll<TemplateUnitTypeDao, TemplateUnitType>(2);
+    TestGetById<HouseholdDao, Household>();
+    TestDaoGetAll<BuildingDao, Building>();
+    TestDaoGetAll<UnitDao, Unit>();
+    TestDaoGetAll<PostcodeDao, Postcode>();
+    TestDaoGetAll<PostcodeAmenitiesDao, PostcodeAmenities>();
+    TestDaoGetAll<DeveloperDao, Developer>();
+    TestDaoGetAll<ParcelDao, Parcel>();
+    TestDaoGetAll<TemplateDao, Template>();
+    TestDaoGetAll<LandUseZoneDao, LandUseZone>();
+    TestDaoGetAll<DevelopmentTypeTemplateDao, DevelopmentTypeTemplate>(2);
+    TestDaoGetAll<TemplateUnitTypeDao, TemplateUnitType>(2);
 }

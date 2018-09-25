@@ -20,25 +20,25 @@ ResidentialStatus::~ResidentialStatus(){}
 
 BigSerial ResidentialStatus::getId() const
 {
-	return id;
+    return id;
 }
 
 std::string ResidentialStatus::getName() const
 {
-	return name;
+    return name;
 }
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		std::ostream& operator<<(std::ostream& strm, const ResidentialStatus& data)
-		{
-			return strm << "{"
-						<< "\"id \":\"" << data.id  << "\","
-						<< "\"name \":\"" << data.name.c_str()  << "\""
-						<< "}";
-		}
-	}
+    namespace long_term
+    {
+        std::ostream& operator<<(std::ostream& strm, const ResidentialStatus& data)
+        {
+            return strm << "{"
+                        << "\"id \":\"" << data.id  << "\","
+                        << "\"name \":\"" << data.name.c_str()  << "\""
+                        << "}";
+        }
+    }
 }
 

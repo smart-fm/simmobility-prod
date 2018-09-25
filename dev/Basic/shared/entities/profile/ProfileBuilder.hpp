@@ -28,7 +28,7 @@
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
   #define PROFILE_LOG_AGENT_UPDATE_BEGIN(wrkprov, agent, now) \
-		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logAgentUpdateBegin(agent, now); }
+          if (wrkprov) { (wrkprov)->getProfileBuilder()->logAgentUpdateBegin(agent, now); }
 #else
   #define PROFILE_LOG_AGENT_UPDATE_BEGIN(wrkprov, agent, now) DO_NOTHING
 #endif
@@ -46,7 +46,7 @@
 ///Performs no processing if SIMMOB_PROFILE_COMMSIM or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM)
   #define PROFILE_LOG_COMMSIM_UPDATE_BEGIN(wrkprov, agent, now) \
-		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimUpdateBegin(agent, now); }
+          if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimUpdateBegin(agent, now); }
 #else
   #define PROFILE_LOG_COMMSIM_UPDATE_BEGIN(wrkprov, agent, now) DO_NOTHING
 #endif
@@ -64,7 +64,7 @@
 ///Performs no processing if SIMMOB_PROFILE_COMMSIM or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM)
   #define PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_BEGIN(wrkprov, agent, now, numAgents) \
-		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimLocalComputeBegin(agent, now, numAgents); }
+          if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimLocalComputeBegin(agent, now, numAgents); }
 #else
   #define PROFILE_LOG_COMMSIM_LOCAL_COMPUTE_BEGIN(wrkprov, agent, now, numAgents) DO_NOTHING
 #endif
@@ -82,7 +82,7 @@
 ///Performs no processing if SIMMOB_PROFILE_COMMSIM or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM)
   #define PROFILE_LOG_COMMSIM_MIXED_COMPUTE_BEGIN(wrkprov, agent, now, numAgents) \
-		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimMixedComputeBegin(agent, now, numAgents); }
+          if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimMixedComputeBegin(agent, now, numAgents); }
 #else
   #define PROFILE_LOG_COMMSIM_MIXED_COMPUTE_BEGIN(wrkprov, agent, now, numAgents) DO_NOTHING
 #endif
@@ -100,7 +100,7 @@
 ///Performs no processing if SIMMOB_PROFILE_COMMSIM or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_COMMSIM)
   #define PROFILE_LOG_COMMSIM_ANDROID_COMPUTE_BEGIN(wrkprov, agent, now) \
-		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimAndroidComputeBegin(agent, now); }
+          if (wrkprov) { (wrkprov)->getProfileBuilder()->logCommsimAndroidComputeBegin(agent, now); }
 #else
   #define PROFILE_LOG_COMMSIM_ANDROID_COMPUTE_BEGIN(wrkprov, agent, now) DO_NOTHING
 #endif
@@ -118,7 +118,7 @@
 ///Performs no processing if SIMMOB_PROFILE_AGENT_UPDATES or SIMMOB_PROFILE_ON is undefined.
 /*#if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AGENT_UPDATES)
   #define PROFILE_LOG_AGENT_EXCEPTION(wrkprov, agent, now, ex) \
-		  (profile)->logAgentException(agent, now, ex)
+          (profile)->logAgentException(agent, now, ex)
 #else
   #define PROFILE_LOG_AGENT_EXCEPTION(wrkprov, agent, now, ex) DO_NOTHING
 #endif*/
@@ -127,7 +127,7 @@
 ///Performs no processing if SIMMOB_PROFILE_WORKER_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_WORKER_UPDATES)
   #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame, numAgents) \
-		  (profile)->logWorkerUpdateBegin(wrk, currFrame, numAgents)
+          (profile)->logWorkerUpdateBegin(wrk, currFrame, numAgents)
 #else
   #define PROFILE_LOG_WORKER_UPDATE_BEGIN(profile, wrk, currFrame, numAgents) DO_NOTHING
 #endif
@@ -137,7 +137,7 @@
 ///Performs no processing if SIMMOB_PROFILE_WORKER_UPDATES or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_WORKER_UPDATES)
   #define PROFILE_LOG_WORKER_UPDATE_END(profile, wrk, currFrame) \
-		  (profile)->logWorkerUpdateEnd(wrk, currFrame)
+          (profile)->logWorkerUpdateEnd(wrk, currFrame)
 #else
   #define PROFILE_LOG_WORKER_UPDATE_END(profile, wrk, currFrame) DO_NOTHING
 #endif
@@ -147,7 +147,7 @@
 ///Performs no processing if SIMMOB_PROFILE_AURAMGR or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AURAMGR)
   #define PROFILE_LOG_AURAMANAGER_UPDATE_BEGIN(profile, auraMgr, currFrame) \
-		  (profile)->logAuraManagerUpdateBegin(auraMgr, currFrame)
+          (profile)->logAuraManagerUpdateBegin(auraMgr, currFrame)
 #else
   #define PROFILE_LOG_AURAMANAGER_UPDATE_BEGIN(profile, auraMgr, currFrame) DO_NOTHING
 #endif
@@ -157,7 +157,7 @@
 ///Performs no processing if SIMMOB_PROFILE_AURAMGR or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AURAMGR)
   #define PROFILE_LOG_AURAMANAGER_UPDATE_END(profile, auraMgr, currFrame) \
-		  (profile)->logAuraManagerUpdateEnd(auraMgr, currFrame)
+          (profile)->logAuraManagerUpdateEnd(auraMgr, currFrame)
 #else
   #define PROFILE_LOG_AURAMANAGER_UPDATE_END(profile, auraMgr, currFrame) DO_NOTHING
 #endif
@@ -175,7 +175,7 @@
 ///Performs no processing if SIMMOB_PROFILE_AURAMGR or SIMMOB_PROFILE_ON is undefined.
 #if defined (SIMMOB_PROFILE_ON) && defined (SIMMOB_PROFILE_AURAMGR)
   #define PROFILE_LOG_QUERY_END(wrkprov, ag, now) \
-		  if (wrkprov) { (wrkprov)->getProfileBuilder()->logQueryEnd(ag, now); }
+          if (wrkprov) { (wrkprov)->getProfileBuilder()->logQueryEnd(ag, now); }
 #else
   #define PROFILE_LOG_QUERY_END(wrkprov, ag, now) DO_NOTHING
 #endif
@@ -229,119 +229,119 @@ class AuraManager;
  */
 class ProfileBuilder {
 public:
-	ProfileBuilder();
-	~ProfileBuilder();
+    ProfileBuilder();
+    ~ProfileBuilder();
 
-	/**
-	 * A simple struct to hold properties for ProfileBuilder's logs.
-	 * NOTE: If you add new fields to this class, make sure they are initialized so that
-	 *       they are OFF by default, since all log lines share these items.
-	 */
-	struct LogItem {
-		std::string action; //Always show, even if empty.
-		std::pair<const void*, std::string> identity;        //Null means don't show
-		std::pair<const void*, std::string> secondIdentity;  //Null means don't show.
-		int32_t currFrame; //-1 means don't show.
-		int32_t numAgents; //-1 means don't show.
+    /**
+     * A simple struct to hold properties for ProfileBuilder's logs.
+     * NOTE: If you add new fields to this class, make sure they are initialized so that
+     *       they are OFF by default, since all log lines share these items.
+     */
+    struct LogItem {
+        std::string action; //Always show, even if empty.
+        std::pair<const void*, std::string> identity;        //Null means don't show
+        std::pair<const void*, std::string> secondIdentity;  //Null means don't show.
+        int32_t currFrame; //-1 means don't show.
+        int32_t numAgents; //-1 means don't show.
 
-		//Default most to off
-		LogItem(const std::string& action, const std::string& identityLbl="", const std::string& secIdentLbl="") :
-			action(action), identity(nullptr, identityLbl), secondIdentity(nullptr,secIdentLbl),  currFrame(-1), numAgents(-1)
-		{}
-	};
+        //Default most to off
+        LogItem(const std::string& action, const std::string& identityLbl="", const std::string& secIdentLbl="") :
+            action(action), identity(nullptr, identityLbl), secondIdentity(nullptr,secIdentLbl),  currFrame(-1), numAgents(-1)
+        {}
+    };
 
-	/**
-	 * NOTE: This is not accurate! If you want accurate timing, use the ProfileBuilder directly (which is nanoscale on Linux).
-	 * TODO: Provide a millisecond-level alternative to StopWatch.
-	 */
-	static double diff_ms(timeval t1, timeval t2);
-
-
-	///Initialize the shared log file. Must be called once before any output is
-	///  written.
-	static void InitLogFile(const std::string& path);
-
-	void logGeneric(const LogItem& item);
-
-	void logAuraManagerUpdateBegin(const AuraManager* auraMgr, uint32_t currFrame);
-	void logAuraManagerUpdateEnd(const AuraManager* auraMgr, uint32_t currFrame);
-
-	void logWorkerUpdateBegin(const Worker* wrk, uint32_t currFrame, size_t numAgents);
-	void logWorkerUpdateEnd(const Worker* wrk, uint32_t currFrame);
-
-	void logAgentUpdateBegin(const Agent* ag, timeslice now);
-	void logAgentUpdateEnd(const Agent* ag, timeslice now);
-//	void logAgentCreated(const Agent* ag);
-//	void logAgentDeleted(const Agent* ag);
-//	void logAgentException(const Agent* ag, timeslice now, const std::exception& ex);
-
-	//Commsim-related log items.
-	//"Local" computations are on the Sim Mobility server, while "Android" are on the clients.
-	//"Mixed" computations cover packet buffering (the first of which triggers an Android client to continue),
-	//        so they should be considered mostly "Android"-level.
-	//numAgents should remain constant through all of these, but we re-calculate it for Mixed compute in
-	//        case it is incorrect for Local (so use Mixed if the values differ).
-	void logCommsimUpdateBegin(const Agent* ag, timeslice now);
-	void logCommsimUpdateEnd(const Agent* ag, timeslice now);
-	void logCommsimLocalComputeBegin(const Agent* ag, timeslice now, size_t numAgents);
-	void logCommsimLocalComputeEnd(const Agent* ag, timeslice now, size_t numAgents);
-	void logCommsimMixedComputeBegin(const Agent* ag, timeslice now, size_t numAgents);
-	void logCommsimMixedComputeEnd(const Agent* ag, timeslice now, size_t numAgents);
-	void logCommsimAndroidComputeBegin(const Agent* ag, timeslice now);
-	void logCommsimAndroidComputeEnd(const Agent* ag, timeslice now);
-
-	void logQueryStart(const Agent* ag, timeslice now);
-	void logQueryEnd(const Agent* ag, timeslice now);
+    /**
+     * NOTE: This is not accurate! If you want accurate timing, use the ProfileBuilder directly (which is nanoscale on Linux).
+     * TODO: Provide a millisecond-level alternative to StopWatch.
+     */
+    static double diff_ms(timeval t1, timeval t2);
 
 
-	///NOTE: Start your messages here with "custom-" please. Will clean up later. ~Seth
-	void logAgentCustomMessage(const Agent& ag, timeslice now, const std::string& custom, const std::string& msg);
+    ///Initialize the shared log file. Must be called once before any output is
+    ///  written.
+    static void InitLogFile(const std::string& path);
 
-	///Used to log generic (non-agent) behavior.
-	//TEMP: Do we need these? ~Seth
-	//void logGenericStart(const std::string& caption, const std::string& group);
-	//void logGenericEnd(const std::string& caption, const std::string& group);
+    void logGeneric(const LogItem& item);
+
+    void logAuraManagerUpdateBegin(const AuraManager* auraMgr, uint32_t currFrame);
+    void logAuraManagerUpdateEnd(const AuraManager* auraMgr, uint32_t currFrame);
+
+    void logWorkerUpdateBegin(const Worker* wrk, uint32_t currFrame, size_t numAgents);
+    void logWorkerUpdateEnd(const Worker* wrk, uint32_t currFrame);
+
+    void logAgentUpdateBegin(const Agent* ag, timeslice now);
+    void logAgentUpdateEnd(const Agent* ag, timeslice now);
+//  void logAgentCreated(const Agent* ag);
+//  void logAgentDeleted(const Agent* ag);
+//  void logAgentException(const Agent* ag, timeslice now, const std::exception& ex);
+
+    //Commsim-related log items.
+    //"Local" computations are on the Sim Mobility server, while "Android" are on the clients.
+    //"Mixed" computations cover packet buffering (the first of which triggers an Android client to continue),
+    //        so they should be considered mostly "Android"-level.
+    //numAgents should remain constant through all of these, but we re-calculate it for Mixed compute in
+    //        case it is incorrect for Local (so use Mixed if the values differ).
+    void logCommsimUpdateBegin(const Agent* ag, timeslice now);
+    void logCommsimUpdateEnd(const Agent* ag, timeslice now);
+    void logCommsimLocalComputeBegin(const Agent* ag, timeslice now, size_t numAgents);
+    void logCommsimLocalComputeEnd(const Agent* ag, timeslice now, size_t numAgents);
+    void logCommsimMixedComputeBegin(const Agent* ag, timeslice now, size_t numAgents);
+    void logCommsimMixedComputeEnd(const Agent* ag, timeslice now, size_t numAgents);
+    void logCommsimAndroidComputeBegin(const Agent* ag, timeslice now);
+    void logCommsimAndroidComputeEnd(const Agent* ag, timeslice now);
+
+    void logQueryStart(const Agent* ag, timeslice now);
+    void logQueryEnd(const Agent* ag, timeslice now);
+
+
+    ///NOTE: Start your messages here with "custom-" please. Will clean up later. ~Seth
+    void logAgentCustomMessage(const Agent& ag, timeslice now, const std::string& custom, const std::string& msg);
+
+    ///Used to log generic (non-agent) behavior.
+    //TEMP: Do we need these? ~Seth
+    //void logGenericStart(const std::string& caption, const std::string& group);
+    //void logGenericEnd(const std::string& caption, const std::string& group);
 
 private:
-	//Increase or decrease the shared reference count. Returns the total reference count after
-	// accounting for the new amount to be added. Thread-safe.
-	static int RefCountUpdate(int amount);
+    //Increase or decrease the shared reference count. Returns the total reference count after
+    // accounting for the new amount to be added. Thread-safe.
+    static int RefCountUpdate(int amount);
 
-	static std::string GetCurrentTime();
+    static std::string GetCurrentTime();
 
 public:
-	void flushLogFile();
-	//void logAuraMgrUpdateGeneric(const AuraManager& auraMgr, const std::string& action, uint32_t currFrame, const std::string& message="");
-	//void logWorkerUpdateGeneric(const Worker& wrk, const std::string& action, uint32_t currFrame, const std::string& message="", size_t numAgents=0);
-	//void logAgentUpdateGeneric(const Agent& ag, const std::string& action, const timeslice* const now=nullptr, const std::string& message="");
-	//void logGeneric(const std::string& action, const std::string& group, const std::string& caption="");
+    void flushLogFile();
+    //void logAuraMgrUpdateGeneric(const AuraManager& auraMgr, const std::string& action, uint32_t currFrame, const std::string& message="");
+    //void logWorkerUpdateGeneric(const Worker& wrk, const std::string& action, uint32_t currFrame, const std::string& message="", size_t numAgents=0);
+    //void logAgentUpdateGeneric(const Agent& ag, const std::string& action, const timeslice* const now=nullptr, const std::string& message="");
+    //void logGeneric(const std::string& action, const std::string& group, const std::string& caption="");
 
 private:
-	//Used for maintaining the shared log file.
-	static boost::mutex profile_mutex;
-	static std::ofstream LogFile;
-	static int ref_count;
+    //Used for maintaining the shared log file.
+    static boost::mutex profile_mutex;
+    static std::ofstream LogFile;
+    static int ref_count;
 
-	//Local buffer
-	std::stringstream currLog;
+    //Local buffer
+    std::stringstream currLog;
 
-	//Local string copies for better performance (NOTE: These *cannot* be static.)
-	LogItem AuraManagerStartLogItem;
-	LogItem AuraManagerEndLogItem;
-	LogItem WorkerStartLogItem;
-	LogItem WorkerEndLogItem;
-	LogItem AgentStartLogItem;
-	LogItem AgentEndLogItem;
-	LogItem CommsimStartLogItem;
-	LogItem CommsimEndLogItem;
-	LogItem CommsimLocalComputeStartLogItem;
-	LogItem CommsimLocalComputeEndLogItem;
-	LogItem CommsimMixedComputeStartLogItem;
-	LogItem CommsimMixedComputeEndLogItem;
-	LogItem CommsimAndroidComputeStartLogItem;
-	LogItem CommsimAndroidComputeEndLogItem;
-	LogItem QueryStartLogItem;
-	LogItem QueryEndLogItem;
+    //Local string copies for better performance (NOTE: These *cannot* be static.)
+    LogItem AuraManagerStartLogItem;
+    LogItem AuraManagerEndLogItem;
+    LogItem WorkerStartLogItem;
+    LogItem WorkerEndLogItem;
+    LogItem AgentStartLogItem;
+    LogItem AgentEndLogItem;
+    LogItem CommsimStartLogItem;
+    LogItem CommsimEndLogItem;
+    LogItem CommsimLocalComputeStartLogItem;
+    LogItem CommsimLocalComputeEndLogItem;
+    LogItem CommsimMixedComputeStartLogItem;
+    LogItem CommsimMixedComputeEndLogItem;
+    LogItem CommsimAndroidComputeStartLogItem;
+    LogItem CommsimAndroidComputeEndLogItem;
+    LogItem QueryStartLogItem;
+    LogItem QueryEndLogItem;
 };
 
 

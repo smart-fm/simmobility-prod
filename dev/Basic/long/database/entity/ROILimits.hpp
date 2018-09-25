@@ -16,32 +16,32 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class ROILimits
-		{
-		public:
-			ROILimits(BigSerial developmentTypeId = 0, double roiLimit = .0 );
-			virtual ~ROILimits();
+    namespace long_term
+    {
+        class ROILimits
+        {
+        public:
+            ROILimits(BigSerial developmentTypeId = 0, double roiLimit = .0 );
+            virtual ~ROILimits();
 
-			ROILimits(const ROILimits& source);
-			ROILimits& operator=(const ROILimits& source);
+            ROILimits(const ROILimits& source);
+            ROILimits& operator=(const ROILimits& source);
 
-			friend std::ostream& operator<<(std::ostream& strm, const ROILimits& data);
+            friend std::ostream& operator<<(std::ostream& strm, const ROILimits& data);
 
-			BigSerial getDevelopmentTypeId() const;
-			double getRoiLimit() const;
+            BigSerial getDevelopmentTypeId() const;
+            double getRoiLimit() const;
 
-			void setDevelopmentTypeId(BigSerial developmentTypeId);
-			void setRoiLimit(double roiLimit);
+            void setDevelopmentTypeId(BigSerial developmentTypeId);
+            void setRoiLimit(double roiLimit);
 
-		private:
-			friend class ROILimitsDao;
+        private:
+            friend class ROILimitsDao;
 
-			BigSerial developmentTypeId;
-			double roiLimit;
-		};
-	}
+            BigSerial developmentTypeId;
+            double roiLimit;
+        };
+    }
 
 }
 

@@ -17,23 +17,23 @@ namespace sim_mob
  */
 class LinearScale : public CoordinateTransform {
 public:
-	///Helper class: represent a range from min to max inclusive
-	struct Range {
-		Range() : min(0), max(0) {}
-		double min;
-		double max;
-		double size() { return max-min; }
-	};
+    ///Helper class: represent a range from min to max inclusive
+    struct Range {
+        Range() : min(0), max(0) {}
+        double min;
+        double max;
+        double size() { return max-min; }
+    };
 
-	LinearScale()
-	{}
+    LinearScale()
+    {}
 
-	virtual LatLngLocation transform(Point source);
+    virtual LatLngLocation transform(Point source);
 
-	Range sourceX;
-	Range sourceY;
-	Range destLatitude;
-	Range destLongitude;
+    Range sourceX;
+    Range sourceY;
+    Range destLatitude;
+    Range destLongitude;
 };
 
 

@@ -16,15 +16,15 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class IndividualDao : public db::SqlAbstractDao<Individual>
-		{
-		public:
-			IndividualDao( db::DB_Connection& connection );
-			virtual ~IndividualDao();
+    namespace long_term
+    {
+        class IndividualDao : public db::SqlAbstractDao<Individual>
+        {
+        public:
+            IndividualDao( db::DB_Connection& connection );
+            virtual ~IndividualDao();
 
-		private:
+        private:
             /**
              * Fills the given outObj with all values contained on Row.
              * @param result row with data to fill the out object.
@@ -40,10 +40,10 @@ namespace sim_mob
              */
             void toRow(Individual& data, db::Parameters& outParams, bool update);
 
-		public:
+        public:
             std::vector<Individual*> getPrimarySchoolIndividual(std::tm currentSimYear);
             std::vector<Individual*> getPreSchoolIndividual(std::tm currentSimYear);
-		};
-	}
+        };
+    }
 }
 

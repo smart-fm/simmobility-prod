@@ -50,8 +50,8 @@ void Statistics::decrement(Statistics::StatsParameter param, long value) {
 }
 
 void Statistics::increment(Statistics::StatsParameter param, long value) {
-	boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
-	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
+    boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     StatsMap::iterator mapItr = statistics.find(param);
     if (mapItr != statistics.end()) {
         (mapItr->second) += value;
@@ -62,19 +62,19 @@ void Statistics::increment(Statistics::StatsParameter param, long value) {
 
 void Statistics::reset(StatsParameter param)
 {
-	boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
-		boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
-	    StatsMap::iterator mapItr = statistics.find(param);
-	    if (mapItr != statistics.end()) {
-	        (mapItr->second) = 0;
-	    } else {
-	        statistics.insert(StatsMapEntry(param, 0));
-	    }
+    boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
+        boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
+        StatsMap::iterator mapItr = statistics.find(param);
+        if (mapItr != statistics.end()) {
+            (mapItr->second) = 0;
+        } else {
+            statistics.insert(StatsMapEntry(param, 0));
+        }
 }
 
 void Statistics::print() {
-	boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
-	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
+    boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
     for (StatsMap::iterator itr = statistics.begin(); itr != statistics.end(); itr++) {
         string paramName = toString((Statistics::StatsParameter)(itr->first));
         long value = itr->second;
@@ -83,13 +83,13 @@ void Statistics::print() {
 }
 
 long Statistics::getValue(Statistics::StatsParameter param) {
-	boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
-	boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
-	long value = 0;
+    boost::upgrade_lock<boost::shared_mutex> up_lock(statisticsMutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex> lock(up_lock);
+    long value = 0;
     for (StatsMap::iterator itr = statistics.begin(); itr != statistics.end(); itr++) {
         if(itr->first == param)
         {
-        	return itr->second;
+            return itr->second;
         }
     }
 

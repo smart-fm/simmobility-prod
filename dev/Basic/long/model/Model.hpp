@@ -33,11 +33,11 @@ namespace sim_mob
             public:
                 std::string getKey() const
                 {
-                	return key;
+                    return key;
                 }
                 std::string getValue() const
                 {
-                	return value;
+                    return value;
                 }
                 
             private:
@@ -108,18 +108,18 @@ namespace sim_mob
             template<typename T,typename K>
             void insertToDB(K &object)
             {
-            	{
-            		DB_Config dbConfig(LT_DB_CONFIG_FILE);
-            		dbConfig.load();
+                {
+                    DB_Config dbConfig(LT_DB_CONFIG_FILE);
+                    dbConfig.load();
 
-            		// Connect to database.
-            		DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-            		conn.connect();
-            		if (conn.isConnected()) {
-            			T dao(conn);
-            			dao.insert(object);
-            		}
-            	}
+                    // Connect to database.
+                    DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+                    conn.connect();
+                    if (conn.isConnected()) {
+                        T dao(conn);
+                        dao.insert(object);
+                    }
+                }
             }
 
 

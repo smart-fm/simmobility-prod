@@ -20,13 +20,13 @@ sim_mob::WaitForAndroidConnection::~WaitForAndroidConnection()
 
 void sim_mob::WaitForAndroidConnection::reset(unsigned int numClients)
 {
-	this->numClients = numClients;
-	passed = false;
+    this->numClients = numClients;
+    passed = false;
 }
 
 bool sim_mob::WaitForAndroidConnection::calculateWaitStatus(BrokerBase& broker) const
 {
-	std::cout <<"Clients connected: " <<broker.getAndroidClientList().size() <<" of " <<numClients <<"\n";
-	return broker.getAndroidClientList().size()>=numClients;
+    std::cout <<"Clients connected: " <<broker.getAndroidClientList().size() <<" of " <<numClients <<"\n";
+    return broker.getAndroidClientList().size()>=numClients;
 }
 

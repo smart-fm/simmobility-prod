@@ -12,16 +12,16 @@ namespace sim_mob{
 namespace amod {
 
 Location::Location() : capacity(0) {
-	// nothing to do
+    // nothing to do
 }
 
 Location::Location(int id, std::string name, Position pos, int capacity_):
     Entity(id, name, pos), capacity(capacity_) {
-	// nothing to do here
+    // nothing to do here
 }
 
 Location::~Location() {
-	// nothing to do here
+    // nothing to do here
 }
 
 void Location::addVehicleId(int vehId_) {
@@ -37,21 +37,21 @@ void Location::getVehicleIds(std::unordered_set<int> *vehIds_) {
 }
 
 void Location::getVehicleIds(std::unordered_set<int>::const_iterator *bitr, std::unordered_set<int>::const_iterator *eitr) {
-	*bitr = vehIds.begin();
-	*eitr = vehIds.end();
+    *bitr = vehIds.begin();
+    *eitr = vehIds.end();
 }
 
 void Location::clearVehicleIds() {
-	vehIds.clear();
+    vehIds.clear();
 }
 
 int Location::getNumVehicles() const {
-	return (int) vehIds.size();
+    return (int) vehIds.size();
 }
 
 
 int Location::getNumCustomers() const {
-	return (int) custIds.size();
+    return (int) custIds.size();
 }
 
 void Location::getCustomerIds(std::unordered_set<int> *custIds_) {
@@ -59,8 +59,8 @@ void Location::getCustomerIds(std::unordered_set<int> *custIds_) {
 }
 
 void Location::getCustomerIds(std::unordered_set<int>::const_iterator *bitr, std::unordered_set<int>::const_iterator *eitr) {
-	*bitr = custIds.begin();
-	*eitr = custIds.end();
+    *bitr = custIds.begin();
+    *eitr = custIds.end();
 }
 
 
@@ -73,7 +73,7 @@ void Location::removeCustomerId(int custId_) {
 }
 
 void Location::clearCustomerIds() {
-	custIds.clear();
+    custIds.clear();
 }
 
 void Location::setCapacity(int capacity_) {
@@ -81,7 +81,7 @@ void Location::setCapacity(int capacity_) {
 }
 
 int Location::getCapacity() const {
-	return capacity;
+    return capacity;
 }
 
 }

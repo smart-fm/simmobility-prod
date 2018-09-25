@@ -13,12 +13,12 @@ namespace aimsun
 /// \author Seth N. Hetu
 class Base {
 public:
-	int id;
+    int id;
 
-	Base() : id(0), hasBeenSaved(false) {}
+    Base() : id(0), hasBeenSaved(false) {}
 
-	//Write flag
-	bool hasBeenSaved;
+    //Write flag
+    bool hasBeenSaved;
 };
 
 

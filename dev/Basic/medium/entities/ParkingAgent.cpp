@@ -11,9 +11,9 @@ using namespace medium;
 std::unordered_map<const SMSVehicleParking *, ParkingAgent *> ParkingAgent::mapOfParkingAgents;
 
 ParkingAgent::ParkingAgent(const MutexStrategy &mtxStrat, int id, const SMSVehicleParking *parking) :
-		Agent(mtxStrat, id), smsVehicleParking(parking)
+        Agent(mtxStrat, id), smsVehicleParking(parking)
 {
-	setParentConflux();
+    setParentConflux();
 }
 
 ParkingAgent::~ParkingAgent()
@@ -22,62 +22,62 @@ ParkingAgent::~ParkingAgent()
 
 void ParkingAgent::setParentConflux()
 {
-	parentConflux = Conflux::getConfluxFromNode(smsVehicleParking->getAccessNode());
-	parentConflux->addParkingAgent(this);
+    parentConflux = Conflux::getConfluxFromNode(smsVehicleParking->getAccessNode());
+    parentConflux->addParkingAgent(this);
 }
 
 void ParkingAgent::registerParkingAgent(ParkingAgent *pkAgent)
 {
-	const SMSVehicleParking *smsParking = pkAgent->getSMSParking();
+    const SMSVehicleParking *smsParking = pkAgent->getSMSParking();
 
-	if(pkAgent && smsParking)
-	{
-		mapOfParkingAgents[smsParking] = pkAgent;
-	}
+    if(pkAgent && smsParking)
+    {
+        mapOfParkingAgents[smsParking] = pkAgent;
+    }
 }
 
 ParkingAgent* ParkingAgent::getParkingAgent(const SMSVehicleParking *parking)
 {
-	auto it = mapOfParkingAgents.find(parking);
+    auto it = mapOfParkingAgents.find(parking);
 
-	if(it != mapOfParkingAgents.end())
-	{
-		return it->second;
-	}
+    if(it != mapOfParkingAgents.end())
+    {
+        return it->second;
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
 void ParkingAgent::addParkedPerson(Person_MT *person)
 {
-	parkedPersons.push_back(person);
+    parkedPersons.push_back(person);
 }
 
 Entity::UpdateStatus ParkingAgent::frame_init(timeslice now)
 {
-	if(!GetContext())
-	{
-		messaging::MessageBus::RegisterHandler(this);
-	}
-	return Entity::UpdateStatus::Continue;
+    if(!GetContext())
+    {
+        messaging::MessageBus::RegisterHandler(this);
+    }
+    return Entity::UpdateStatus::Continue;
 }
 
 Entity::UpdateStatus ParkingAgent::frame_tick(timeslice now)
 {
-	auto it = parkedPersons.begin();
-	while(it != parkedPersons.end())
-	{
-		parentConflux->updateParkedServiceDriver(*it, now);
+    auto it = parkedPersons.begin();
+    while(it != parkedPersons.end())
+    {
+        parentConflux->updateParkedServiceDriver(*it, now);
 
-		OnCallDriver *onCallDriver = dynamic_cast<OnCallDriver *>((*it)->getRole());
-		if(!onCallDriver || onCallDriver->isToBeRemovedFromParking())
-		{
-			it = parkedPersons.erase(it);
-			continue;
-		}
+        OnCallDriver *onCallDriver = dynamic_cast<OnCallDriver *>((*it)->getRole());
+        if(!onCallDriver || onCallDriver->isToBeRemovedFromParking())
+        {
+            it = parkedPersons.erase(it);
+            continue;
+        }
 
-		++it;
-	}
+        ++it;
+    }
 
-	return UpdateStatus::Continue;
+    return UpdateStatus::Continue;
 }

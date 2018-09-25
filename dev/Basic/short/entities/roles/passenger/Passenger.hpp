@@ -22,14 +22,14 @@ class Driver;
 class Passenger : public Role<Person_ST>
 {
 private:
-	/**Indicates whether the passenger has decided to alight*/
-	bool alightVehicle;
+    /**Indicates whether the passenger has decided to alight*/
+    bool alightVehicle;
 
-	/** starting point of passenger - for travel time storage */
-	WayPoint startPoint;
+    /** starting point of passenger - for travel time storage */
+    WayPoint startPoint;
 
-	/** ending node of passenger - for travel time storage */
-	WayPoint endPoint;
+    /** ending node of passenger - for travel time storage */
+    WayPoint endPoint;
 
 
     /** Driver who is driving the vehicle of this passenger*/
@@ -44,72 +44,72 @@ private:
     double finalPointDriverDistance=0.0;
 
 public:
-	explicit Passenger(Person_ST *parent, PassengerBehavior *behavior = nullptr, PassengerMovement *movement = nullptr,
-					std::string roleName = std::string("Passenger_"), Role<Person_ST>::Type roleType = Role<Person_ST>::RL_PASSENGER);
+    explicit Passenger(Person_ST *parent, PassengerBehavior *behavior = nullptr, PassengerMovement *movement = nullptr,
+                    std::string roleName = std::string("Passenger_"), Role<Person_ST>::Type roleType = Role<Person_ST>::RL_PASSENGER);
 
-	virtual ~Passenger()
-	{
-	}
+    virtual ~Passenger()
+    {
+    }
 
-	//Virtual overrides
-	virtual Role<Person_ST>* clone(Person_ST *parent) const;
-	
-	virtual std::vector<BufferedBase*> getSubscriptionParams();
-	
-	/**
-	 * Make alighting decision
-	 * 
-	 * @param nextStop is the stop at which the bus will arrive at next
-	 * @param driver is the driver of the bus
-	 */
-	void makeAlightingDecision(const BusStop *nextStop, BusDriver *driver);
+    //Virtual overrides
+    virtual Role<Person_ST>* clone(Person_ST *parent) const;
+    
+    virtual std::vector<BufferedBase*> getSubscriptionParams();
+    
+    /**
+     * Make alighting decision
+     * 
+     * @param nextStop is the stop at which the bus will arrive at next
+     * @param driver is the driver of the bus
+     */
+    void makeAlightingDecision(const BusStop *nextStop, BusDriver *driver);
 
-	/**
-	 * Collect travel time for current role
-	 */
-	virtual void collectTravelTime();
-	
-	/**
-	 * Message handler which provides a chance to handle message transfered from parent agent.
-	 * 
-	 * @param type of the message.
-	 * @param message data received.
-	 */
-	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
-	
-	virtual void make_frame_tick_params(timeslice now)
-	{
-	}
+    /**
+     * Collect travel time for current role
+     */
+    virtual void collectTravelTime();
+    
+    /**
+     * Message handler which provides a chance to handle message transfered from parent agent.
+     * 
+     * @param type of the message.
+     * @param message data received.
+     */
+    virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
+    
+    virtual void make_frame_tick_params(timeslice now)
+    {
+    }
 
-	bool canAlightVehicle() const
-	{
-		return alightVehicle;
-	}
+    bool canAlightVehicle() const
+    {
+        return alightVehicle;
+    }
 
-	void setAlightVehicle(bool alight)
-	{
-		this->alightVehicle = alight;
-	}
+    void setAlightVehicle(bool alight)
+    {
+        this->alightVehicle = alight;
+    }
 
-	const WayPoint& getEndPoint() const
-	{
-		return endPoint;
-	}
+    const WayPoint& getEndPoint() const
+    {
+        return endPoint;
+    }
 
-	void setEndPoint(const WayPoint& endPoint)
-	{
-		this->endPoint = endPoint;
-	}
+    void setEndPoint(const WayPoint& endPoint)
+    {
+        this->endPoint = endPoint;
+    }
 
-	const WayPoint& getStartPoint() const
-	{
-		return startPoint;
-	}
+    const WayPoint& getStartPoint() const
+    {
+        return startPoint;
+    }
 
-	void setStartPoint(const WayPoint& startPoint)
-	{
-		this->startPoint = startPoint;
-	}
+    void setStartPoint(const WayPoint& startPoint)
+    {
+        this->startPoint = startPoint;
+    }
     void setDriver(const Driver* driver)
     {
         this->driver = driver;
@@ -134,7 +134,7 @@ public:
     }
 
     friend class PassengerBehavior;
-	friend class PassengerMovement;
+    friend class PassengerMovement;
 };
 
 }

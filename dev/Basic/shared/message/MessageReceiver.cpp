@@ -31,8 +31,8 @@ MessageReceiver::~MessageReceiver() {
 bool MessageReceiver::ReadMessage() {
     MessageEntry* entry = NULL;
     {
-    	upgrade_lock<shared_mutex> upgradeLock(queueMutex);
-    	upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
+        upgrade_lock<shared_mutex> upgradeLock(queueMutex);
+        upgrade_to_unique_lock<shared_mutex> lock(upgradeLock);
         if (ContainsMessages()) {
             entry = messages.front();
             messages.pop();

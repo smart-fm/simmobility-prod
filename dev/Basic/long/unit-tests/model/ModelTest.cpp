@@ -29,18 +29,18 @@ CPPUNIT_TEST_SUITE_REGISTRATION(unit_tests::ModelTest);
 
 void ModelTest::setUp()
 {
-	WorkGroupManager wgMgr;
-	    wgMgr.setSingleThreadMode(true);
+    WorkGroupManager wgMgr;
+        wgMgr.setSingleThreadMode(true);
 
-	    const unsigned int tickStep = 1;
-	    const unsigned int days = 365;
-	    const unsigned int timeIntervalDevModel = 30;
-		WorkGroup* devWorkers = wgMgr.newWorkGroup(2, days, tickStep);
-		developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel );
-		DB_Config config(LT_DB_CONFIG_FILE);
-		config.load();
-		DB_Connection conn(sim_mob::db::POSTGRES, config);
-		conn.connect();
+        const unsigned int tickStep = 1;
+        const unsigned int days = 365;
+        const unsigned int timeIntervalDevModel = 30;
+        WorkGroup* devWorkers = wgMgr.newWorkGroup(2, days, tickStep);
+        developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel );
+        DB_Config config(LT_DB_CONFIG_FILE);
+        config.load();
+        DB_Connection conn(sim_mob::db::POSTGRES, config);
+        conn.connect();
 
 }
 

@@ -24,19 +24,19 @@ class ConnectionHandler;
 
 ///Simple struct to hold a registration request for a client (Android/ns-3).
 struct ClientRegistrationRequest {
-	std::string clientID;
-	std::string client_type; ///<ns-3 or android.
-	std::set<sim_mob::Services::SIM_MOB_SERVICE> requiredServices;
+    std::string clientID;
+    std::string client_type; ///<ns-3 or android.
+    std::set<sim_mob::Services::SIM_MOB_SERVICE> requiredServices;
 };
 
 
 ///Simple EventArgs wrapper containing the ClientHandler for a given agent registration.
 class ClientRegistrationEventArgs: public sim_mob::event::EventArgs {
 public:
-	ClientRegistrationEventArgs(boost::shared_ptr<ClientHandler>& client) : client(client) {}
-	virtual ~ClientRegistrationEventArgs() {}
+    ClientRegistrationEventArgs(boost::shared_ptr<ClientHandler>& client) : client(client) {}
+    virtual ~ClientRegistrationEventArgs() {}
 
-	boost::shared_ptr<ClientHandler> client;
+    boost::shared_ptr<ClientHandler> client;
 };
 
 
@@ -52,27 +52,27 @@ public:
  */
 class ClientRegistrationHandler {
 public:
-	bool handle(BrokerBase&, sim_mob::ClientRegistrationRequest&, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn, bool isNs3Client);
+    bool handle(BrokerBase&, sim_mob::ClientRegistrationRequest&, boost::shared_ptr<sim_mob::ConnectionHandler> existingConn, bool isNs3Client);
 
 private:
-	///Helper function: Find an agent from the list of registeredAgents that is not in our set of usedAgents.
-	///Returns null if no such agent exists.
-	const Agent* findAFreeAgent(const std::map<const Agent*, AgentInfo>& registeredAgents);
+    ///Helper function: Find an agent from the list of registeredAgents that is not in our set of usedAgents.
+    ///Returns null if no such agent exists.
+    const Agent* findAFreeAgent(const std::map<const Agent*, AgentInfo>& registeredAgents);
 
-	/**
-	 * helper function used in handle() method to prepare and return a sim_mob::ClientHandler
-	 * If connHandle is null, create a new connection handler. Otherwise, just re-use it.
-	 */
-	boost::shared_ptr<ClientHandler> makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, BrokerBase&, sim_mob::ClientRegistrationRequest &, const sim_mob::Agent* freeAgent, bool isNs3Client);
+    /**
+     * helper function used in handle() method to prepare and return a sim_mob::ClientHandler
+     * If connHandle is null, create a new connection handler. Otherwise, just re-use it.
+     */
+    boost::shared_ptr<ClientHandler> makeClientHandler(boost::shared_ptr<sim_mob::ConnectionHandler> connHandle, BrokerBase&, sim_mob::ClientRegistrationRequest &, const sim_mob::Agent* freeAgent, bool isNs3Client);
 
-	/**
-	 * Helper function used to send simmobility agents information to ns3 in json format
-	 */
-	void sendAgentsInfo(const std::map<const Agent*, AgentInfo>& agents, boost::shared_ptr<ClientHandler> clientEntry);
+    /**
+     * Helper function used to send simmobility agents information to ns3 in json format
+     */
+    void sendAgentsInfo(const std::map<const Agent*, AgentInfo>& agents, boost::shared_ptr<ClientHandler> clientEntry);
 
 
 private:
-	std::set<const Agent*> usedAgents;
+    std::set<const Agent*> usedAgents;
 
 };
 

@@ -16,19 +16,19 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 OwnerTenantMovingRateDao::OwnerTenantMovingRateDao(DB_Connection& connection): SqlAbstractDao<OwnerTenantMovingRate>( connection, "", "", "", "",
-																													  "SELECT * FROM " + connection.getSchema()+"owner_tenant_moving_rate", ""){}
+                                                                                                                      "SELECT * FROM " + connection.getSchema()+"owner_tenant_moving_rate", ""){}
 
 OwnerTenantMovingRateDao::~OwnerTenantMovingRateDao(){}
 
 void OwnerTenantMovingRateDao::fromRow(Row& result, OwnerTenantMovingRate& outObj)
 {
-    outObj.id				= result.get<BigSerial>( "id", INVALID_ID);
-    outObj.ageCategory 		= result.get<int>( "age_category_id", 0);
-    outObj.ownerPopulation		= result.get<double>( "owner_population", 0);
-    outObj.tenantPopulation	= result.get<double>( "tenant_population", 0);
-    outObj.ownerMovingPercentage	= result.get<double>( "owner_moving_percentage", 0);
-    outObj.tenantMovingPercentage	= result.get<double>( "tenant_moving_percentage", 0);
-    outObj.day_zero	= result.get<int>( "day_zero", false);
+    outObj.id               = result.get<BigSerial>( "id", INVALID_ID);
+    outObj.ageCategory      = result.get<int>( "age_category_id", 0);
+    outObj.ownerPopulation      = result.get<double>( "owner_population", 0);
+    outObj.tenantPopulation = result.get<double>( "tenant_population", 0);
+    outObj.ownerMovingPercentage    = result.get<double>( "owner_moving_percentage", 0);
+    outObj.tenantMovingPercentage   = result.get<double>( "tenant_moving_percentage", 0);
+    outObj.day_zero = result.get<int>( "day_zero", false);
 }
 
 void OwnerTenantMovingRateDao::toRow(OwnerTenantMovingRate& data, Parameters& outParams, bool update) {}

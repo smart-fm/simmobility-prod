@@ -24,19 +24,19 @@ namespace sim_mob {
 //
 //class GridStreetDirectoryImpl : public StreetDirectory::Impl {
 //public:
-//	GridStreetDirectoryImpl(const RoadNetwork& network, centimeter_t gridWidth, centimeter_t gridHeight);
-//	virtual ~GridStreetDirectoryImpl() {}
+//  GridStreetDirectoryImpl(const RoadNetwork& network, centimeter_t gridWidth, centimeter_t gridHeight);
+//  virtual ~GridStreetDirectoryImpl() {}
 //
 //protected:
-//	//virtual std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg);
+//  //virtual std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg);
 //
-//	//virtual std::vector<const sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region);
+//  //virtual std::vector<const sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region);
 //
-//	virtual const BusStop* getBusStop(const Point& position) const;
+//  virtual const BusStop* getBusStop(const Point& position) const;
 //
-//	virtual const Node* getNode(const int id) const;
+//  virtual const Node* getNode(const int id) const;
 //
-//	virtual StreetDirectory::LaneAndIndexPair getLane(const Point& position) const;
+//  virtual StreetDirectory::LaneAndIndexPair getLane(const Point& position) const;
 //
 //    //virtual const MultiNode* GetCrossingNode(const Crossing* cross) const;
 //

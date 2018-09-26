@@ -131,9 +131,15 @@ bool ScheduleItem::operator==(const ScheduleItem &rhs) const
 
 const Node *ScheduleItem::getNode() const
 {
-    return scheduleItemType == ScheduleItemType::PICKUP
-            ? tripRequest.startNode
-            : tripRequest.destinationNode;
+    switch (scheduleItemType)
+    {
+    case ScheduleItemType::PICKUP:
+        return tripRequest.startNode;
+    case ScheduleItemType::DROPOFF:
+        return tripRequest.destinationNode;
+    default:
+        return nullptr;
+    }    
 }
 
 //{ SCHEDULE FUNCTIONS

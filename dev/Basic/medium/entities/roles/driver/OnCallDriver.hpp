@@ -217,12 +217,12 @@ public:
      * This method populates the multimap setSameNodeItems as well.
      * @param updatedSchedule schedule provided by the controller which needs to be checked
      * @param controller sender of the new schedule
-     * @param isExistingSchedule true if called due to MSG_SCHEDULE_UPDATE message, false if called
+     * @param hasExistingSchedule true if called due to MSG_SCHEDULE_UPDATE message, false if called
      * due to MSG_SCHEDULE_PROPOSITION
      * @return true if the current item needs to be preempted
      */
     void setSharedSchedule(Schedule &updatedSchedule, messaging::MessageHandler *controller = nullptr,
-            const bool isExistingSchedule = false);
+            const bool hasExistingSchedule = false);
 
     /**
      * Scans the driver's current passengers and checks if the new schedule contains a pickup that

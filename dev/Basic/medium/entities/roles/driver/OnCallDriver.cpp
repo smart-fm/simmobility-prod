@@ -147,16 +147,19 @@ void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, con
     }
 }
 
-void OnCallDriver::setSharedSchedule(Schedule &schedule, MessageHandler *controller, const bool isExistingSchedule)
+void OnCallDriver::setSharedSchedule(Schedule &schedule, MessageHandler *controller, const bool hasExistingSchedule)
 {
     bool preemptCurrentItem = false;
     auto currItem = driverSchedule.getCurrScheduleItem();
-    auto currNode = currItem->getNode();
+    const Node *currNode = nullptr;
 
-    if (isExistingSchedule && currentItemRescheduled(schedule))
+    if (hasExistingSchedule)
     {
-        preemptCurrentItem = true;
-        currItem = schedule.begin();
+        if (currentItemRescheduled(schedule))
+        {
+            preemptCurrentItem = true;
+            currItem = schedule.begin();
+        }
         currNode = currItem->getNode();
     }
 
@@ -164,7 +167,7 @@ void OnCallDriver::setSharedSchedule(Schedule &schedule, MessageHandler *control
     for (auto itemIterator = schedule.begin(); itemIterator != schedule.end();)
     {
         auto node  = itemIterator->getNode();
-        if (currItem->tripRequest != itemIterator->tripRequest && currNode == node)
+        if (hasExistingSchedule && currItem->tripRequest != itemIterator->tripRequest && currNode == node)
         {
             sameNodeItems.insert(make_pair(*currItem, *itemIterator));
 #ifndef NDEBUG
@@ -202,7 +205,7 @@ void OnCallDriver::setSharedSchedule(Schedule &schedule, MessageHandler *control
         }
     }
 
-    if (!isExistingSchedule)
+    if (!hasExistingSchedule)
     {
         driverSchedule.setSchedule(schedule);
     }

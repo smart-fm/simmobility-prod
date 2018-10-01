@@ -66,6 +66,12 @@ public:
 	{
 		return startTime.getValue();
 	}
+	//jo Apr12
+	std::string getStartTimeString() const
+	{
+		return startTime.getStrRepr();
+	}
+	//jo
 	void setTrainId(int id)
 	{
 		trainId = id;

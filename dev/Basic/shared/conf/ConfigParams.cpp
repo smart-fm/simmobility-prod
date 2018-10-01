@@ -141,6 +141,24 @@ const double& sim_mob::ConfigParams::baseGranSecond() const
     return simulation.baseGranSecond;
 }
 
+
+//jo
+const double& sim_mob::ConfigParams::operationalCostICE() const
+{
+	return simulation.operationalCostICE;
+}
+
+const double& sim_mob::ConfigParams::operationalCostHEV() const
+{
+	return simulation.operationalCostHEV;
+}
+
+const double& sim_mob::ConfigParams::operationalCostBEV() const
+{
+	return simulation.operationalCostBEV;
+}
+//jo
+
 bool& sim_mob::ConfigParams::isMergeLogFiles()
 {
     return mergeLogFiles;

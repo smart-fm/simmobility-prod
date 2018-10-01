@@ -28,7 +28,7 @@
             <mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
             <mapping name="pt_edges" procedure="get_pt_tr_edges()"/>
             <mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
-            <mapping name="pt_pathset" procedure="get_pt_pathset_full"/>
+            <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
 	    <!-- Bus supply Related stored procedures-->
             <mapping name="bus_stops" procedure="get_bus_stops()"/>
             <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
@@ -58,17 +58,17 @@
             <mapping name="restricted_reg_nodes" procedure="get_mp_nodes()"/>
             <mapping name="restricted_reg_links" procedure="get_mp_links()"/>
 	    <!-- Demand Related stored procedures-->
-            <mapping name="day_activity_schedule" procedure="get_persons_between_das_2030_partial_restriction"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between_veh_energy_aditi"/>
             <!-- <mapping name="freight_trips" procedure="get_freight_between"/> -->
 
 
             <!-- Smart Mobility Controller related stored procedures -->
             <mapping name="taxi_fleet" procedure="get_taxi_fleet_2030_partial_restriction"/>
-            <mapping name="sms_parking" procedure="get_parking()"/>
-            <mapping name="taxi_stands" procedure="get_taxi_stands_2030()"/>
-            <mapping name="rail_sms_pathset" procedure="get_pt_pathset_railsms_entiresg"/>
-            <mapping name="rail_sms_edges" procedure="get_pt_tr_edges_railsms_entiresg()"/>
-            <mapping name="rail_sms_vertices" procedure="get_pt_tr_vertices_railsms_entiresg()"/>
+            <mapping name="sms_parking" procedure="get_parking_infra_aditi"/>
+            <mapping name="taxi_stands" procedure="get_taxi_stands()"/>
+            <mapping name="rail_sms_pathset" procedure="get_pt_pathset_railsms"/>
+            <mapping name="rail_sms_edges" procedure="get_pt_tr_edges_railsms()"/>
+            <mapping name="rail_sms_vertices" procedure="get_pt_tr_vertices_railsms()"/>
             <mapping name="loop_nodes" procedure="get_loop_nodes()" />
             <!--- If the "study_area enabled" is true  then the following stored proc are required -->
             <mapping name="studyArea_nodes" procedure="get_extmp_nodes()"/>
@@ -78,9 +78,8 @@
 	        <mapping name="studyArea_rail_pathset" procedure="get_pt_pathset_railsms_extmp"/>
 	        <mapping name="studyArea_rail_edges" procedure="get_pt_tr_edges_railsms_extmp()"/>
             <mapping name="studyArea_rail_vertices" procedure="get_pt_tr_vertices_railsms_extmp()"/>
-    </proc_map>
 
-        
+        </proc_map>
     </db_proc_groups>
 
 <!-- config used for enabling/Disableing OnCallTaxiTrajectory and OnHailTaxiTrajectory -->
@@ -219,8 +218,12 @@
         <script name="wdmso" file="wdmso.lua"/> <!--within-day mode choice for work shopping and other trips-->
         <script name="rsc" file="rsc.lua"/><!-- rail service controller -->
     </model_scripts>
-</supply>
 
+    	  <!-- flag to control if Energy Model should be run: tripenergy, simple or tripenergySO  -->
+    	  <!-- NOTE: tripenergy methods rely on static library Basic/medium/models/tripEnergySO/libTripEnergySO.a, for use in Tripod project only. -->
+        <energy_model enabled="true" type="simple" params="data/energy_model_params.xml" outputtrips="true" outputtripfile="energy_output.csv" outputlinks="false"/>
+    </supply>                                      
+            
     <!-- ======================= PRE-DAY ======================== -->
     <!-- config specific to PRE-DAY simulator -->
 <preday>
@@ -234,7 +237,7 @@
     <!-- table containing logsums for each individual in the population. NOTE:  -->
         <logsum_table name="demand.preday_logsum"/>
         <!-- table containing activity schedule of each individual in the population. -->
-        <activity_schedule_table schema="demand" table="das_calib" procedure="update_das_table" fileName="activity_schedule"/>
+        <activity_schedule_table schema="demand" table="das_calib" procedure="update_das_table" fileName="activity_schedule" vehicleTable="synpop12.vehicle"/>
 
         <!-- model scripts for PRE-DAY -->
         <model_scripts path="scripts/lua/mid/behavior_vc" format="lua">

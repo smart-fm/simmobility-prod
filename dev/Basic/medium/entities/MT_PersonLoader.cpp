@@ -295,6 +295,30 @@ public:
 						long long personId = std::stol(person->getDatabaseId(), &sz); //gets the numerical part before '-' from the person id
 						PersonParams personInfo;
 						populationDao.getOneById(personId, personInfo);
+						if (MT_Config::getInstance().isEnergyModelEnabled())
+						{
+							if (MT_Config::getInstance().getEnergyModel()->getModelType() == "tripenergy")
+							{
+								struct0_T vehicleStruct = MT_Config::getInstance().getEnergyModel()->initVehicleStruct(personInfo.getVehicleParams().getModel());
+								personInfo.getVehicleParams().setVehicleStruct(vehicleStruct);
+							}
+							else if (MT_Config::getInstance().getEnergyModel()->getModelType() == "simple")
+							{
+								std::string vehicleDriveTrainString ;
+								VehicleParams vp = personInfo.getVehicleParams();
+								switch (vp.getDrivetrain())
+								{
+								case VehicleParams::ICE : vehicleDriveTrainString = "ICE"; break;
+								case VehicleParams::HEV : vehicleDriveTrainString = "HEV"; break;
+								case VehicleParams::PHEV : vehicleDriveTrainString = "PHEV"; break;
+								case VehicleParams::BEV : vehicleDriveTrainString = "BEV"; break;
+								case VehicleParams::FCV : vehicleDriveTrainString = "FCV"; break;
+								default : vehicleDriveTrainString = "ICE"; break;
+								}
+								struct0_T vehicleStruct = MT_Config::getInstance().getEnergyModel()->initVehicleStruct(vehicleDriveTrainString);
+								personInfo.getVehicleParams().setVehicleStruct(vehicleStruct);
+							}
+						}
 						person->setPersonInfo(personInfo);
 					}
 				}
@@ -415,6 +439,22 @@ Trip* MT_PersonLoader::makeTrip(const soci::row& r, unsigned int seqNo)
 	trip->destinationZoneCode = r.get<int>(13);
 	trip->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(11), false));
 	trip->travelMode = r.get<string>(6);
+
+	// SC: if energy model is enabled, pull drivetrain type from database
+	// default to ICE if drivetrain type can't be pulled
+	trip->vehicleTypeDriven = "ICE";
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		try
+		{
+			trip->vehicleTypeDriven = r.get<string>(14);
+		}
+		catch (...)
+		{
+			Warn() << "Vehicle drivetrain type cannot be accessed from database. Defaulting to ICE." << std::endl;
+		}
+	}
+
 	//just a sanity check
 	if(trip->origin == trip->destination)
 	{

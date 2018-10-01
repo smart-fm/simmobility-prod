@@ -39,6 +39,10 @@ const std::string DB_FIELD_HH_CHILDREN_UNDER_4 = "child_under4";
 const std::string DB_FIELD_HH_CHILDREN_UNDER_15 = "child_under15";
 const std::string DB_FIELD_HH_ADULTS = "adult";
 const std::string DB_FIELD_HH_WORKERS = "workers";
+const std::string DB_FIELD_V_ID = "vehicle_id";
+const std::string DB_FIELD_V_DRIVETRAIN = "vehicle_drivetrain";
+const std::string DB_FIELD_V_MAKE = "vehicle_make";
+const std::string DB_FIELD_V_MODEL = "vehicle_model";
 
 /**
  * Logsum fields
@@ -49,6 +53,7 @@ const std::string DB_FIELD_SHOP_LOGSUM = "shop";
 const std::string DB_FIELD_OTHER_LOGSUM = "other";
 const std::string DB_FIELD_DPT_LOGSUM = "dp_tour";
 const std::string DB_FIELD_DPS_LOGSUM = "dp_stop";
+const std::string DB_FIELD_DPB_LOGSUM = "dp_binary";
 
 const std::string DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT = "low_limit";
 const std::string DB_FIELD_VEHICLE_CATEGORY_NAME = "name";

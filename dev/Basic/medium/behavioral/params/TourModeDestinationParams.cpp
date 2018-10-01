@@ -5,6 +5,7 @@
 #include <database/predaydao/ZoneCostSqlDao.hpp>
 #include "TourModeDestinationParams.hpp"
 #include "logging/Log.hpp"
+#include "conf/ConfigManager.hpp" //jo
 
 using namespace std;
 using namespace sim_mob;
@@ -152,10 +153,9 @@ void setModeAvailability(bool stop, const PersonParams& personParams, int numMod
 } // end anonymous namespace
 
 TourModeDestinationParams::TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-        const PersonParams& personParams, StopType tourType, int numModes,
-        const std::vector<OD_Pair>& unavailableODs) :
-        ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), numModes, unavailableODs),
-            modeForParentWorkTour(0), costIncrease(0)
+	const PersonParams& personParams, StopType tourType, const VehicleParams::VehicleDriveTrain& powerTrain, int numModes, const std::vector<OD_Pair>& unavailableODs) :
+		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), powerTrain, numModes, unavailableODs),
+		modeForParentWorkTour(0), costIncrease(0)
 {
     //setCarAndMotorAvailability(false, personParams, drive1Available, motorAvailable);
     setModeAvailability(false, personParams, numModes, modeAvailability, ConfigManager::GetInstance().FullConfig());
@@ -212,7 +212,22 @@ double TourModeDestinationParams::getCostCarOPFirst(int zoneId) const
 	{
 		return 0;
 	}
-	return (amCostsMap.at(origin).at(destination)->getDistance() * OPERATIONAL_COST);
+	else
+	{
+		const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+		if (powertrain == VehicleParams::BEV or powertrain == VehicleParams::FCV)
+		{
+			return (amCostsMap.at(origin).at(destination)->getDistance() * cfg.operationalCostBEV());
+		}
+		else if (powertrain == VehicleParams::HEV or powertrain == VehicleParams::PHEV)
+		{
+			return (amCostsMap.at(origin).at(destination)->getDistance() * cfg.operationalCostHEV());
+		}
+		else // resorting to ICE
+		{
+			return (amCostsMap.at(origin).at(destination)->getDistance() * cfg.operationalCostICE());
+		}
+	}
 }
 
 double TourModeDestinationParams::getCostCarOPSecond(int zoneId) const
@@ -222,7 +237,22 @@ double TourModeDestinationParams::getCostCarOPSecond(int zoneId) const
 	{
 		return 0;
 	}
-	return (pmCostsMap.at(destination).at(origin)->getDistance() * OPERATIONAL_COST);
+	else
+	{
+		const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+		if (powertrain == VehicleParams::BEV or powertrain == VehicleParams::FCV)
+		{
+			return (amCostsMap.at(origin).at(destination)->getDistance() * cfg.operationalCostBEV());
+		}
+		else if (powertrain == VehicleParams::HEV or powertrain == VehicleParams::PHEV)
+		{
+			return (amCostsMap.at(origin).at(destination)->getDistance() * cfg.operationalCostHEV());
+		}
+		else // resorting to ICE
+		{
+			return (amCostsMap.at(origin).at(destination)->getDistance() * cfg.operationalCostICE());
+		}
+	}
 }
 
 double TourModeDestinationParams::getCostCarParking(int zoneId) const
@@ -471,11 +501,11 @@ int sim_mob::medium::TourModeDestinationParams::isCbdOrgZone() const
 }
 
 StopModeDestinationParams::StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-        const PersonParams& personParams, const Stop* stop, int originCode, int numModes,
-		const std::vector<OD_Pair>& unavailableODs) :
-        ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stop->getStopType(), originCode, numModes, unavailableODs), homeZone(personParams.getHomeLocation()),
-            tourMode(stop->getParentTour().getTourMode()),
-			firstBound(stop->isInFirstHalfTour())
+	const PersonParams& personParams, const Stop* stop, int originCode, const VehicleParams::VehicleDriveTrain& powerTrain, int numModes, const std::vector<OD_Pair>& unavailableODs) :
+		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, stop->getStopType(), originCode, powerTrain, numModes, unavailableODs), 
+		homeZone(personParams.getHomeLocation()), tourMode(stop->getParentTour().getTourMode()),
+		//firstBound(stop->isInFirstHalfTour()) //jo May12 reg restriction
+ 		firstBound(stop->isInFirstHalfTour()), personParams(personParams), parentTour(stop->getParentTour()) 
 {
     //setCarAndMotorAvailability(true, personParams, driveAvailable, motorAvailable);
     setModeAvailability(true, personParams, numModes, modeAvailability, ConfigManager::GetInstance().FullConfig());
@@ -493,11 +523,33 @@ double StopModeDestinationParams::getCostCarParking(int zone) const
 double StopModeDestinationParams::getCostCarOP(int zone) const
 {
 	int destination = zoneMap.at(zone)->getZoneCode();
-	if(origin == destination || destination == homeZone || origin == homeZone)
-	{ return 0; }
-	return ((amCostsMap.at(origin).at(destination)->getDistance() * OPERATIONAL_COST + pmCostsMap.at(origin).at(destination)->getDistance() * OPERATIONAL_COST)/2
-				+(amCostsMap.at(destination).at(homeZone)->getDistance() * OPERATIONAL_COST + pmCostsMap.at(destination).at(homeZone)->getDistance() * OPERATIONAL_COST )/2
-				-(amCostsMap.at(origin).at(homeZone)->getDistance() * OPERATIONAL_COST + pmCostsMap.at(origin).at(homeZone)->getDistance() * OPERATIONAL_COST)/2);
+	if(origin == destination or destination == homeZone or origin == homeZone)
+	{
+		return 0;
+	}
+	else
+	{
+		const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+		double operational_cost = cfg.operationalCostICE();
+		if (powertrain == VehicleParams::BEV or powertrain == VehicleParams::FCV)
+		{
+			operational_cost = cfg.operationalCostBEV();
+		}
+		else if (powertrain == VehicleParams::HEV or powertrain == VehicleParams::PHEV)
+		{
+			operational_cost = cfg.operationalCostHEV();
+		}
+		else // resorting to ICE
+		{
+			operational_cost = cfg.operationalCostICE();
+		}
+		return ((amCostsMap.at(origin).at(destination)->getDistance() * operational_cost 
+			+ pmCostsMap.at(origin).at(destination)->getDistance() * operational_cost)/2
+			+(amCostsMap.at(destination).at(homeZone)->getDistance() * operational_cost 
+			+ pmCostsMap.at(destination).at(homeZone)->getDistance() * operational_cost)/2
+			-(amCostsMap.at(origin).at(homeZone)->getDistance() * operational_cost 
+			+ pmCostsMap.at(origin).at(homeZone)->getDistance() * operational_cost)/2);
+	}
 }
 
 double StopModeDestinationParams::getCarCostERP(int zone) const

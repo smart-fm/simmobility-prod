@@ -5,6 +5,15 @@
 #include "ParseMidTermConfigFile.hpp"
 
 #include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+#include <string>
+
+#include "behavioral/CalibrationStatistics.hpp"
+#include "models/EnergyModelBase.hpp"
+#include "models/SimpleEnergyModel.hpp"
+#include "models/TripEnergyModel.hpp"
+#include "models/ParseEnergyModelXmlConfig.hpp" //jo - Mar13, needs this to parse params XML
+
 #include "path/ParsePathXmlConfig.hpp"
 #include "util/XmlParseHelper.hpp"
 
@@ -142,6 +151,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
 	cfg.luaScriptsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
+	processEnergyModelNode(GetSingleElementByName(node, "energy_model", true));
 }
 
 
@@ -178,6 +188,9 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 	mtCfg.dasConfig.table = ParseString(GetNamedAttributeValue(childNode, "table", true));
 	mtCfg.dasConfig.updateProc = ParseString(GetNamedAttributeValue(childNode, "procedure", true));
 	mtCfg.dasConfig.fileName = ParseString(GetNamedAttributeValue(childNode, "fileName", true));
+	//jo {Apr12 for vehicle table
+	mtCfg.dasConfig.vehicleTable = ParseString(GetNamedAttributeValue(childNode, "vehicleTable", true));
+	//}jo
 
 	ModelScriptsMap luaModelsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 	cfg.predayLuaScriptsMap = luaModelsMap;
@@ -316,6 +329,83 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 		cfg.setAlphaValueForLinkTTFeedback(ParseFloat(GetNamedAttributeValue(child, "alpha")));
 	}
 
+}
+
+void ParseMidTermConfigFile::processEnergyModelNode(xercesc::DOMElement* node)
+{
+	std::cout << "Running ParseMidTermConfigFile::processEnergyModelNode" << std::endl;
+	if (node)
+	{
+		bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled", true));
+		if (enabled)
+		{
+			mtCfg.setEnergyModelEnabled(enabled);
+
+			// Set energy model type (currently only Simple and TripEnergy supported)
+			std::string modelType = ParseString(GetNamedAttributeValue(node, "type"), "simple");
+			EnergyModelBase* energyModel;
+			if (modelType == "tripenergy")
+			{
+				energyModel = new TripEnergyModel();
+				std::cout << "TripEnergy Model Loaded" << std::endl;
+			}
+			else
+			{
+				if (modelType != "simple")
+				{
+					Warn() << "Invalid Model Type selected. Using default 'Simple' model \n";
+					modelType = "simple";
+				}
+				energyModel = new SimpleEnergyModel();
+			}
+			energyModel->setModelType(modelType);
+
+			// Params only used for Simple model at the moment.
+			std::string energyParamsFile = ParseString(GetNamedAttributeValue(node, "params"), "");
+			if (energyParamsFile.empty())
+			{
+				if (modelType == "simple")
+				{
+					std::stringstream msg;
+					msg << "Empty value for <energy_model params=\"\">. Expected: \"file name\"";
+					throw std::runtime_error(msg.str());
+				}
+				else
+				{
+					Warn() << "No energy parameters specified in XML file; may be read in from other database \n";
+				}
+
+			}
+			else
+			{
+				if (modelType == "simple")
+				{
+					ParseEnergyModelXmlConfig(energyParamsFile, energyModel); //TripEnergy does not currently read from params file
+				}
+			}
+
+			// Energy output for trips
+			bool output_trips = ParseBoolean(GetNamedAttributeValue(node, "outputtrips"), true);
+			if (output_trips)
+			{
+				std::string energyOutputFile = ParseString(GetNamedAttributeValue(node, "outputtripfile"), "");
+				if (energyOutputFile.empty())
+				{
+					std::stringstream msg;
+					msg << "Empty value for <energy_model output=\"\">. Expected: \"file name\"";
+					throw std::runtime_error(msg.str());
+				}
+				else
+				{
+					energyModel->setEnergyOutputFile(energyOutputFile);
+				}
+			}
+			energyModel->setTripOutput(true); // jo - Mar13 - this should make use of boolean in XML
+			energyModel->setSegmentOutput(false); // jo - Mar13 - this should make use of boolean in XML
+			mtCfg.setEnergyModel(energyModel);
+
+		}
+	}
 }
 
 void ParseMidTermConfigFile::processSpeedDensityParamsNode(xercesc::DOMElement* node)

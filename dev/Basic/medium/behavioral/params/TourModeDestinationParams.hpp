@@ -11,6 +11,8 @@
 #include "behavioral/StopType.hpp"
 #include "behavioral/PredayClasses.hpp"
 #include "behavioral/PredayUtils.hpp"
+#include "database/predaydao/DatabaseHelper.hpp"
+
 
 namespace sim_mob
 {
@@ -26,8 +28,8 @@ namespace medium
 class TourModeDestinationParams: public ModeDestinationParams
 {
 public:
-    TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType, int numModes,
-			const std::vector<OD_Pair>& unavailableODs);
+	TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, 
+		const PersonParams& personParams, StopType tourType, const VehicleParams::VehicleDriveTrain& powerTrain, int numModes, const std::vector<OD_Pair>& unavailableODs);
 	virtual ~TourModeDestinationParams();
 
 	double getCostPublicFirst(int zoneId) const;
@@ -73,8 +75,9 @@ private:
 class StopModeDestinationParams: public ModeDestinationParams
 {
 public:
-	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, const Stop* stop,
-            int originCode, int numModes, const std::vector<OD_Pair>& unavailableODs);
+	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, 
+		const CostMap& pmCostsMap, const PersonParams& personParams, const Stop* stop, 
+		int originCode, const VehicleParams::VehicleDriveTrain& powerTrain, int numModes, const std::vector<OD_Pair>& unavailableODs);
 	virtual ~StopModeDestinationParams();
 	double getCostCarParking(int zone) const;
 	double getCostCarOP(int zone) const;
@@ -102,8 +105,9 @@ private:
     /*bool driveAvailable;
     bool motorAvailable;*/
 
-    std::unordered_map<int, bool> modeAvailability;
-
+	std::unordered_map<int, bool> modeAvailability;
+	const PersonParams& personParams; //jo changes for region restrc May12
+	const Tour& parentTour; //jo changes for region restriction May12
 	int tourMode;
 	bool firstBound;
 };

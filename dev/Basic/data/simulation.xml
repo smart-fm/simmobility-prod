@@ -110,8 +110,8 @@
 
 
         <!--Operational cost per km for car. Default value = 0.147-->
-        <operational_cost value="0.147"/>
-
+        <!--operational_cost value="0.147"/-->
+        <vehicle_operational_cost gasolineCostPerLiter=".66" electricityCostPerKWh="0.11" gasolineICEVeconomyLitersPerKm="0.098" gasolineHEVeconomyLitersPerKm="0.005" BEVeconomyKWhPerKm="0.212"  />
 
         <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->
         <in_simulation_travel_time_usage value="100"/>
@@ -214,7 +214,8 @@ Note: Controller id indicates the subscribed_controller field specified in the t
 
 
     <stored_proc_names>
-            <stored_proc name="get_individual_id_list" value="getindividualids_nishant_100()" />
+            <stored_proc name="get_individual_id_list" value="getindividualids()" />
+            <!-- The individual_by_id stored proc should be changed to getindividual_vehicle_by_id for the Energy consumption model -->
             <stored_proc name="individual_by_id" value="getindividualbyidforpreday(:_id)" />
             <stored_proc name="addresses" value="getaddresses()" />
             <stored_proc name="postcode_node_map" value="get_postcode_node_map()" />

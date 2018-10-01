@@ -14,6 +14,25 @@
 #include "ZoneCostParams.hpp"
 #include <algorithm>
 
+// Type Definitions for vehicle energy struct (needs to be global)
+typedef struct {
+  double a = 0.0;
+  double b= 0.0;
+  double c = 0.0;
+  double m = 0.0;
+  double etaMax = 0.0;
+  double etaBrake = 0.0;
+  double P_idle = 0.0;
+  double powertrain = 0.0;
+  double batteryCapacity = 0.0;
+  double batterySOC = 0.0;
+  double tripTotalEnergy = 0.0;
+  double internalTemp = 0.0;
+  double tripGasolineGallonEquivalent = 0.0;
+  int occup = 0; //jo occupancy
+  int powertrainSimple = 0;
+} struct0_T;
+
 namespace sim_mob
 {
 
@@ -172,6 +191,142 @@ private:
 	int tazCode;
 	double distanceBus; //km
 	double distanceMRT; //km
+};
+
+/**
+ * Simple class to store vehicle-specific information from population database.
+ * \note This class is used by the mid-term behavior models.
+ *
+ *
+ * \author Michael Choi
+ */
+class VehicleParams
+{
+public:
+  enum VehicleDriveTrain
+  {
+    NONE, ICE, HEV, PHEV, BEV, FCV, CDBUS, HEBUS, TRAIN
+  };
+
+  struct0_T vehicleStruct;
+  double previousEnergy = 0;
+  double totalEnergy = 0; //jo
+
+  VehicleParams() : vehicleId(0), drivetrain(VehicleDriveTrain::NONE), make("NONE"), model("NONE")
+  {
+  }
+  virtual ~VehicleParams()
+  {
+  }
+	unsigned long getVehicleId() const
+	{
+		return vehicleId;
+	}
+
+	void setVehicleId(const unsigned long vehicleId)
+	{
+		this->vehicleId = vehicleId;
+	}
+
+	const VehicleDriveTrain getDrivetrain() const
+	{
+		return drivetrain;
+	}
+
+	//TODO: Make this correct
+	void setDrivetrain(const std::string& drivetrain)
+	{
+		if (drivetrain == "ICE")
+			this->drivetrain = ICE;
+		else if (drivetrain == "HEV")
+			this->drivetrain = HEV;
+		else if (drivetrain == "PHEV")
+			this->drivetrain = PHEV;
+		else if (drivetrain == "BEV")
+			this->drivetrain = BEV;
+		else if (drivetrain == "FCV")
+			this->drivetrain = FCV;
+		else if (drivetrain == "CDBUS")
+			this->drivetrain = CDBUS;
+		else if (drivetrain == "HEBUS")
+			this->drivetrain = HEBUS;
+		else if (drivetrain == "TRAIN")
+			this->drivetrain = TRAIN;
+		else // default to ICE for now
+			this->drivetrain = NONE;
+		this->vehicleIdString = drivetrain;
+	}
+
+
+	const std::string& getMake() const
+	{
+		return make;
+	}
+
+	void setMake(const std::string& make)
+	{
+		this->make = make;
+	}
+
+	const std::string& getModel() const
+	{
+		return model;
+	}
+
+	void setModel(const std::string& mode)
+	{
+		this->model = model;
+	}
+
+	struct0_T& getVehicleStruct()
+	{
+		return vehicleStruct;
+	}
+
+	void setVehicleStruct(struct0_T VS)
+	{
+		this->vehicleStruct = VS;
+	}
+
+	double getTimestepEnergy() const
+	{
+		return vehicleStruct.tripTotalEnergy - previousEnergy;
+	}
+
+	//jo May 7
+	double getFrameEnergy() const
+	{
+		return totalEnergy - previousEnergy;
+	}
+
+	double getTotalEnergyConsumed() const
+	{
+		return totalEnergy;
+	}
+
+	void updateEnergy()
+	{
+		this->previousEnergy = totalEnergy;
+	}
+	//jo
+
+	double getTotalEnergy() const
+	{
+		return vehicleStruct.tripTotalEnergy;
+	}
+
+	void updatePreviousEnergy()
+	{
+		this->previousEnergy = vehicleStruct.tripTotalEnergy;
+	}
+
+
+private:
+	unsigned long vehicleId;
+	std::string vehicleIdString;
+	VehicleDriveTrain drivetrain;
+	std::string make;
+	std::string model;
 };
 
 /**
@@ -637,6 +792,21 @@ public:
 		return vehicleOwnershipCategory;
 	}
 
+	const VehicleParams getConstVehicleParams() const
+	{
+		return vehicleParams;
+	}
+
+	VehicleParams& getVehicleParams()
+	{
+		return vehicleParams;
+	}
+
+	void setVehicleParams(VehicleParams& vehicleParams) 
+	{
+		this->vehicleParams = vehicleParams;
+	}
+
 	void setVehicleOwnershipCategory(int vehicleOwnershipCategory);
 
 	static double* getIncomeCategoryLowerLimits()
@@ -767,6 +937,7 @@ private:
 	int missingIncome;
 	int worksAtHome;
 	VehicleOwnershipOption vehicleOwnershipCategory;
+	VehicleParams vehicleParams;
 	int hasFixedWorkTiming;
 	int homeLocation;
 	long homeAddressId;

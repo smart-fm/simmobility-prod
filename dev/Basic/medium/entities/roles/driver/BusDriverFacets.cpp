@@ -8,6 +8,7 @@
 #include <sstream>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/MT_Config.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/conflux/LinkStats.hpp"
 #include "entities/Person.hpp"
@@ -80,6 +81,17 @@ void BusDriverMovement::frame_init()
 		{
 			busTripId = busTrip->tripID;
 		}
+		if (MT_Config::getInstance().isEnergyModelEnabled())
+		{
+			speedCollector.clear();
+			speedCollector.push_back(0.0);
+			speedCollector.push_back(0.0);
+			speedCollector.push_back(0.0);
+			trajectoryInfo.totalDistanceDriven = 0.0;
+			trajectoryInfo.totalTimeDriven = 0.0;
+			trajectoryInfo.totalTimeFast = 0.0;
+			trajectoryInfo.totalTimeSlow = 0.0;
+		}
 	}
 	else
 	{
@@ -87,9 +99,62 @@ void BusDriverMovement::frame_init()
 	}
 }
 
+
+void BusDriverMovement::onNewBusVelocitySample(double busVelocitySample)
+{	
+	if (busVelocitySample < 0) {
+		busVelocitySample = 0;
+		Warn() << "Negative speed recorded on segment ";	
+	}
+
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		parentBusDriver->parent->getPersonInfoNotConst().getVehicleParams().updatePreviousEnergy();
+		if (speedCollector.size() == 3)
+		{
+            speedCollector.pop_front();
+            speedCollector.push_back(busVelocitySample);
+            MT_Config::getInstance().getEnergyModel()->computeEnergyWithSpeedHolder(speedCollector, parentBusDriver->parent->getPersonInfoNotConst().getVehicleParams().getVehicleStruct(), timeStep, parentBusDriver->getPassengerCount());
+            double timeStepEnergy = parentBusDriver->parent->getPersonInfoNotConst().getVehicleParams().getTimestepEnergy();
+            if (prevSegStats != nullptr)
+            {
+                prevSegStats->onNewEnergySample(timeStepEnergy, speedCollector[1] * timeStep);
+            }
+		}
+		trajectoryInfo.totalDistanceDriven += busVelocitySample*timeStep;
+		trajectoryInfo.totalTimeDriven += timeStep;
+		if (busVelocitySample >= 25)
+		{
+			trajectoryInfo.totalTimeFast += timeStep;
+		}
+		else if (busVelocitySample <= 10)
+		{
+			trajectoryInfo.totalTimeSlow += timeStep;
+		}
+        double timeStepEnergy = parentBusDriver->parent->getPersonInfoNotConst().getVehicleParams().getTimestepEnergy();
+		if (prevSegStats != nullptr)
+		{
+			prevSegStats->onNewEnergySample(timeStepEnergy, speedCollector[1]*timeStep);
+		}
+		prevSegStats = const_cast<SegmentStats*>(pathMover.getCurrSegStats() );
+	}
+}
+
+void BusDriverMovement::onBusTripCompletion()
+{	
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		MT_Config::getInstance().getEnergyModel()->onBusTripCompletion(this,parentBusDriver->parent, driverVelocity, timeStep);
+	}
+}
+
 void BusDriverMovement::frame_tick()
 {
 	DriverUpdateParams& params = parentBusDriver->getParams();
+	if (params.elapsedSeconds == 0)
+	{
+		pathMover.initDriverPathTracking();
+	}
 	if (parentBusDriver->parent->canMoveToNextSegment == Person_MT::GRANTED)
 	{
 		flowIntoNextLinkIfPossible(params);
@@ -176,11 +241,20 @@ void BusDriverMovement::frame_tick()
 		// If canMoveToNextSegment is not NONE at this point, the bus driver must have remained in VQ
 		// Set parent data must not be called if the driver remained in VQ.
 		setParentData(params);
+		pathMover.finalizeDriverPathTracking();
+		onNewBusVelocitySample(pathMover.getDistanceCovered() / (double)timeStep);
 	}
-
+	else
+	{
+		pathMover.finalizeDriverPathTracking();
+		onNewBusVelocitySample(pathMover.getDistanceCovered() / (double)timeStep);
+	}
+	
 	if (params.elapsedSeconds >= params.secondsInTick)
 	{
+		pathMover.finalizeDriverPathTracking();
 		parentBusDriver->updatePassengers();
+		onNewBusVelocitySample(pathMover.getDistanceCovered() / (double)timeStep);
 	}
 
 
@@ -670,7 +744,14 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
 				currLane = nullptr;
 				parentBusDriver->parent->setToBeRemoved();
-				// linkExitTime and segmentExitTime are equal for the last segment in the path.
+
+				if (MT_Config::getInstance().isEnergyModelEnabled())
+				{
+					// ZN: Compute energy for final timestep in trajectory (if enabled)
+					onNewBusVelocitySample(0.0);
+					// Record Energy consumption
+					onBusTripCompletion();
+				}
 				updateScreenlineCounts(lastSeg, linkExitTime);
 			}
 			params.elapsedSeconds = params.secondsInTick;

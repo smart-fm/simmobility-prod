@@ -3,6 +3,7 @@
 #include <mutex>
 #include <set>
 #include <string>
+#include "SegmentStats.hpp"
 
 namespace sim_mob
 {
@@ -64,6 +65,13 @@ private:
 	 */
 	void resetStats();
 
+	//aa{
+	/**
+	 * The statistics of the segments belonging to this link
+	 */
+	std::vector<SegmentStats*> segmentsStats;
+	//aa}
+
 public:
 	LinkStats(const Link* link);
 
@@ -99,6 +107,17 @@ public:
 	 * @param total length of all vehicles on the link
 	 */
 	void computeLinkDensity(double vehicleLength);
+
+	//aa{
+
+	const Link* getLink();
+
+	/*
+	 * Returns the energy associated to the link computed as
+	 * the average of the energy across all the component segments
+	 */
+	double getEnergy();
+	//aa}
 };
 } // end medium
 } // end sim_mob

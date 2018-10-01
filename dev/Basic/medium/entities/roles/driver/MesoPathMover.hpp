@@ -32,8 +32,53 @@ protected:
 public:
 	MesoPathMover() :
 			distToSegmentEnd(0)
+//aa{
+	, currSegStatIt(NULL)
+//aa}
 	{
 	}
+
+
+	struct DriverPathTracker
+	{
+	private:
+		   Path::iterator startSegment;
+		   Path::iterator endSegment;
+#ifndef NDEBUG
+		   double dummyVariable;
+#endif
+
+
+	public:
+		   double startDistToEndSegment;
+		   double endDistToEndSegment;
+		   Path::iterator getStartSegmentIterator() const {return  startSegment;};
+		   Path::iterator getEndSegmentIterator() const {return  endSegment;};
+
+		   void setStartSegmentIterator( Path::iterator  it)
+		   {
+#ifndef NDEBUG
+			   dummyVariable = (*it)->getLength();
+#endif
+			   startSegment=it;
+		   };
+
+		   void setEndSegmentIterator( Path::iterator  it )
+		   {
+//#ifndef NDEBUG //jo
+//			  // dummyVariable = (*it)->getLength();
+//#endif
+			   endSegment=it;
+		   }
+
+	};
+
+	DriverPathTracker driverPathTracker;
+
+	void initDriverPathTracking();
+	void finalizeDriverPathTracking();
+
+	double getDistanceCovered() const;
 
 	double getPositionInSegment() const
 	{
@@ -158,6 +203,21 @@ public:
 	//debug
 	///return string of path by aimsun section id
 	static std::string getPathString(const MesoPathMover::Path &path, const Node *node = 0);
+
+
+#ifndef NDEBUG
+	void consistencyChecks() const
+	{
+		if (*currSegStatIt != NULL && ( (currSegStatIt+1) != path.end() || currSegStatIt != path.end() ) )
+		{
+			std::cout<< (*currSegStatIt)->getLength();
+		}
+		//std::cout << "Consistency check for getLength called here; uncomment in MesoPathMover.cpp @ consistencyChecks()" << std::endl;
+	}
+#endif
+
+
+
 };
 }
 }

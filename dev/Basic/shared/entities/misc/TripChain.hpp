@@ -153,6 +153,7 @@ public:
 	std::string endLocationId;
 	std::string startLocationType;
 	std::string endLocationType;
+	std::string vehicleTypeDriven;
 	unsigned int edgeId;
 	std::string serviceLine;
 
@@ -161,6 +162,7 @@ public:
 
 	//Get/set personID. Please make sure not to set the personID to an Integer!
 	std::string getPersonID() const;
+	std::string getVehicleType() const;
 	void setPersonID(const std::string& val);
 	void setPersonID(int val);
 
@@ -171,6 +173,7 @@ public:
 			unsigned int seqNumber=0,
 			int requestTime=-1,
 			std::string mode=std::string(),
+			std::string vehicleType = std::string(),
 			unsigned edgeId=0);
 	virtual ~TripChainItem();
 
@@ -231,6 +234,7 @@ public:
 		const Node* to = nullptr,
 		std::string toLocType = "node",
 		std::string mode = std::string(),
+		std::string vehicleType = std::string(),
 		std::string purpose = std::string());
 
 	virtual ~Trip();
@@ -258,7 +262,7 @@ public:
 	SubTrip(std::string entId = "", std::string type = "Trip", unsigned int seqNumber = 0, int requestTime = -1,
 			DailyTime start = DailyTime(), DailyTime end = DailyTime(), const Node* from = nullptr,
 			std::string fromLocType = "node", const Node* to = nullptr, std::string toLocType = "node",
-			std::string mode = "", bool isPrimary = true, std::string ptLineId = "");
+			std::string mode = "", std::string vehicleType = "Unassigned", bool isPrimary = true, std::string ptLineId = "");
 	virtual ~SubTrip();
 
 	std::string ptLineId; //Public transit (bus or train) line identifier.

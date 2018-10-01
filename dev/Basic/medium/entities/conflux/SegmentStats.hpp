@@ -506,6 +506,14 @@ protected:
 	 */
 	boost::recursive_mutex mutexPersonManagement;
 
+
+	//aa{ For energy per-segment computation
+	// modified ZN -- 2/21/2018
+	double totalEnergy;
+	double totalDistance;
+	unsigned energySamples;
+	//aa}
+
 public:
 	SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, double length);
 	~SegmentStats();
@@ -953,6 +961,25 @@ public:
 	 * @return true if short; false otherwise
 	 */
 	bool isShortSegment() const;
+
+	//aa{
+	/*
+	 * Get the average energy
+	 */
+	double getEnergy() const;
+
+	double getDistanceTraveled() const;
+
+	double getMPG() const;
+
+	void resetEnergyStats();
+
+	int getEnergyCounts() const;
+	/*
+	 * Accomplishes the operations to compute the per-segment energy output
+	*/
+	void onNewEnergySample(double energySample, double distance);
+	//aa}
 
 	/**
 	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects for now.

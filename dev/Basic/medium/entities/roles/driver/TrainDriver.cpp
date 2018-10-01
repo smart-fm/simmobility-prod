@@ -16,6 +16,8 @@
 #include "entities/incident/IncidentManager.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
 #include "entities/TrainController.hpp"
+#include "config/MT_Config.hpp" //jo Jun1
+
 namespace sim_mob
 {
 
@@ -98,6 +100,21 @@ Role<Person_MT>* TrainDriver::clone(Person_MT *parent) const
 
 		TrainMovement* movement = new TrainMovement(lineId);
 		TrainDriver* driver = new TrainDriver(parent, behavior, movement, "TrainDriver_");
+		//jo Jun 1 Energy
+		if (MT_Config::getInstance().isEnergyModelEnabled())
+		{
+			PersonParams personInfo;
+//			if (MT_Config::getInstance().getEnergyModel()->getModelType() == "tripenergy")
+//			{
+//				personInfo.getVehicleParams().setVehicleStruct(MT_Config::getInstance().getEnergyModel()->initVehicleStruct("Bus"));
+//			}
+			if (MT_Config::getInstance().getEnergyModel()->getModelType() == "simple") //jo
+			{
+				personInfo.getVehicleParams().setDrivetrain("TRAIN"); //jo
+				personInfo.getVehicleParams().setVehicleStruct(MT_Config::getInstance().getEnergyModel()->initVehicleStruct("TRAIN"));
+			}
+			driver->parent->setPersonInfo(personInfo);
+		}
 		behavior->setParentDriver(driver);
 		movement->setParentDriver(driver);
 		return driver;

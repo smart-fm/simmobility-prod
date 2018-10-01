@@ -73,7 +73,20 @@ private:
 	 * @param node node corresponding to the procedure mappings for supply in xml file
 	 */
 	void processProcMapNode(xercesc::DOMElement* node);
+	 /**
+	 * processes the energy model node
+     *
+	 * @param node node specifying the usage flag and output file of energy model
+	 */
+	void processEnergyModelNode(xercesc::DOMElement* node);
 
+	/**
+	 * processes the activity load interval node
+     *
+	 * @param node node specifying the value and unit for activity load interval
+	 */
+   
+	void processActivityLoadIntervalElement(xercesc::DOMElement* node);
 	/**
 	 * processes update interval node
      *

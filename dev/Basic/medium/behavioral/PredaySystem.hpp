@@ -15,6 +15,7 @@
 #include "PredayClasses.hpp"
 #include "database/predaydao/PopulationSqlDao.hpp"
 #include "database/predaydao/ZoneCostSqlDao.hpp"
+#include "database/predaydao/DatabaseHelper.hpp"
 
 namespace sim_mob
 {

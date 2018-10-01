@@ -10,6 +10,7 @@
 #include <conf/ConfigParams.hpp>
 #include "DatabaseHelper.hpp"
 #include "logging/Log.hpp"
+//#include "medium/config/MT_Config.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::db;
@@ -58,6 +59,13 @@ void PopulationSqlDao::fromRow(Row& result, PersonParams& outObj)
 	outObj.setHH_NumAdults(result.get<int>(DB_FIELD_HH_ADULTS));
 	outObj.setHH_NumWorkers(result.get<int>(DB_FIELD_HH_WORKERS));
 
+	VehicleParams vp;
+	//vehicle related
+		vp.setVehicleId(result.get<int>(DB_FIELD_V_ID));
+		vp.setDrivetrain(result.get<std::string>(DB_FIELD_V_DRIVETRAIN));
+		vp.setMake(result.get<std::string>(DB_FIELD_V_MAKE));
+		vp.setModel(result.get<std::string>(DB_FIELD_V_MODEL));
+	outObj.setVehicleParams(vp);
 	//infer params
 	outObj.fixUpParamsForLtPerson();
 }
@@ -209,7 +217,7 @@ std::string var_value()
     {
         column_name += ":v" + std::to_string(i+1) + ", ";
     }
-    column_name += ":v" + std::to_string( num_activity + 2 ) + ", :v" + std::to_string( num_activity + 3 ) + ") ";
+    column_name += ":v" + std::to_string( num_activity + 2 ) + ", :v" + std::to_string( num_activity + 3 ) + ", :v" + std::to_string( num_activity + 4 ) + ") ";
 
     return column_name;
 }
@@ -242,6 +250,7 @@ void SimmobSqlDao::fromRow(db::Row& result, PersonParams& outObj)
     }
     outObj.setDptLogsum(result.get<double>(DB_FIELD_DPT_LOGSUM));
 	outObj.setDpsLogsum(result.get<double>(DB_FIELD_DPS_LOGSUM));
+	outObj.setDpbLogsum(result.get<double>(DB_FIELD_DPB_LOGSUM));
 }
 
 void SimmobSqlDao::toRow(PersonParams& data, db::Parameters& outParams, bool update)
@@ -253,6 +262,7 @@ void SimmobSqlDao::toRow(PersonParams& data, db::Parameters& outParams, bool upd
     }
 	outParams.push_back(data.getDptLogsum());
     outParams.push_back(data.getDpsLogsum());
+    outParams.push_back(data.getDpbLogsum());
 }
 
 std::string SimmobSqlDao::getLogsumColumnsStr(const std::vector<std::string>& actvtylogsumClmns)
@@ -262,7 +272,7 @@ std::string SimmobSqlDao::getLogsumColumnsStr(const std::vector<std::string>& ac
     {
         columnStr += (column + ",");
     }
-    columnStr += DB_FIELD_DPT_LOGSUM + "," + DB_FIELD_DPS_LOGSUM;
+    columnStr += DB_FIELD_DPT_LOGSUM + "," + DB_FIELD_DPS_LOGSUM +  "," + DB_FIELD_DPB_LOGSUM;
 
     return columnStr;
 }

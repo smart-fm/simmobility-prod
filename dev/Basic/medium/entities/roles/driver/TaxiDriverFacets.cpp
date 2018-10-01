@@ -61,6 +61,18 @@ void TaxiDriverMovement::frame_init()
 		subscribeToOrIgnoreController(controllers, controllerId);
 	}
 	*/
+
+	//jo{ Apr 11
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		// INITIALIZE TRAJECTORY INFO AS EMPTY
+		trajectoryInfo.totalDistanceDriven = 0.0;
+		trajectoryInfo.totalTimeDriven = 0.0;
+		trajectoryInfo.totalTimeFast = 0.0;
+		trajectoryInfo.totalTimeSlow = 0.0;
+	}
+	// } jo
+
 	(isSubscribedToOnHail() && cruiseOrDriveToTaxiStand())?driveToTaxiStand():selectNextLinkWhileCruising();  // for 1 : drive_to_taxiStand or cruise
 }
 
@@ -251,6 +263,7 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		}
 		if (pathMover.isEndOfPath())
 		{
+			onTripCompletion(); //jo Apr11 get Taxi Energy Computed from EnergyModelBase::onTaxiTripCompletion()
 			parentTaxiDriver->pickUpPassngerAtNode();
 			// I cruise if there are no passengers
 			if (parentTaxiDriver->getPassenger() == nullptr)
@@ -263,19 +276,23 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 	{
 		if (pathMover.isEndOfPath())
 		{
+			onTripCompletion(); //jo Apr11 get Taxi Energy Computed from EnergyModelBase::onTaxiTripCompletion()
 			selectNextLinkWhileCruising();
 		}
 	}
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_WITH_PASSENGER && pathMover.isEndOfPath())
 	{
+		onTripCompletion(); //jo Apr11 get Taxi Energy Computed from EnergyModelBase::onTaxiTripCompletion()
 		parentTaxiDriver->alightPassenger();
 	}
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_FOR_DRIVER_CHANGE_SHIFT && pathMover.isEndOfPath())
 	{
+		onTripCompletion(); //jo Apr11 get Taxi Energy Computed from EnergyModelBase::onTaxiTripCompletion()
 		setCruisingMode();
 	}
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_FOR_BREAK && pathMover.isEndOfPath())
 	{
+		onTripCompletion(); //jo Apr11 get Taxi Energy Computed from EnergyModelBase::onTaxiTripCompletion()
 		if (setBreakMode())
 		{
 			return res;
@@ -283,11 +300,13 @@ bool TaxiDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 	}
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_ON_CALL && pathMover.isEndOfPath())
 	{
+		onTripCompletion(); //jo Apr11 get Taxi Energy Computed from EnergyModelBase::onTaxiTripCompletion()
 		//Pick-up new passenger
 		parentTaxiDriver->pickUpPassngerAtNode(personIdPickedUp);
 	}
 	else if (parentTaxiDriver->getDriverStatus() == DRIVE_TO_PARKING && pathMover.isEndOfPath())
     {
+		onTripCompletion(); //jo Apr11 get Taxi Energy Computed from EnergyModelBase::onTaxiTripCompletion()
         parentTaxiDriver->setDriverStatus(PARKED);
 
         ControllerLog() << "Taxi driver " << parentTaxiDriver->getParent()->getDatabaseId() << " parked Taxi at time "

@@ -16,6 +16,7 @@
 #include "database/DB_Connection.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/conflux/SegmentStats.hpp"
+#include "models/EnergyModelBase.hpp"
 #include "util/ProtectedCopyable.hpp"
 
 namespace sim_mob
@@ -303,13 +304,14 @@ struct TripChainOutputConfig
  */
 struct DAS_Config
 {
-	DAS_Config() : schema(""), table(""), updateProc(""), fileName("")
+	DAS_Config() : schema(""), table(""), updateProc(""), fileName(""), vehicleTable("")
 	{}
 
 	std::string schema;
 	std::string table;
 	std::string updateProc;
 	std::string fileName;
+	std::string vehicleTable; // Eytan Gross
 };
 
 
@@ -658,6 +660,38 @@ public:
 	std::set<SegmentStats*>& getSegmentStatsWithBusStops();
 
 	/**
+	 * returns the energy model used for simulation
+	 * @return energyModel, the selected energy model for simulation
+	 */
+	EnergyModelBase* getEnergyModel();
+
+	/**
+	 * sets the energy model used
+	 * @param energyModel, the selected energy model for simulation
+	 */
+	void setEnergyModel(EnergyModelBase* energyModel);
+
+	/**
+	 * Retrieves energy model usage flag
+	 *
+	 * @return energy model usage flag
+	 */
+	bool isEnergyModelEnabled() const;
+
+	/**
+	 * Sets energy model usage flag
+	 *
+	 * @param energyModelEnabled flag to be set
+	 */
+
+	void setEnergyModelEnabled(bool energyModelEnabled);
+
+	/**
+	 * Checks whether mid term supply is running
+	 *
+	 * @return true if mid term supply is running, else false
+	 */
+	/**
 	 * Checks whether mid term supply is running
 	 *
 	 * @return true if mid term supply is running, else false
@@ -900,6 +934,12 @@ private:
 
 	/**set of segment stats with taxi-stands*/
 	std::set<SegmentStats*> segmentStatsWithTaxiStands;
+
+	/** flag to indicate whether to run energy model */
+	bool energyModelEnabled;
+
+	/** energy model used for the simulation*/
+	EnergyModelBase* energyModel;
 };
 }
 }

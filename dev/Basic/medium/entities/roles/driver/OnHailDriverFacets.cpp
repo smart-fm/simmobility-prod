@@ -59,6 +59,22 @@ void OnHailDriverMovement::frame_init()
 
 	onHailDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
 	serviceVehicle = onHailDriver->getParent()->getServiceVehicle();
+
+	//jo{ Apr 11
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		speedCollector.clear();
+		speedCollector.push_back(0.0);
+		speedCollector.push_back(0.0);
+		speedCollector.push_back(0.0);
+
+		// INITIALIZE TRAJECTORY INFO AS EMPTY
+		trajectoryInfo.totalDistanceDriven = 0.0;
+		trajectoryInfo.totalTimeDriven = 0.0;
+		trajectoryInfo.totalTimeFast = 0.0;
+		trajectoryInfo.totalTimeSlow = 0.0;
+	}
+	// } jo
 }
 
 void OnHailDriverMovement::frame_tick()
@@ -268,6 +284,8 @@ bool OnHailDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 		bool enteredTaxiStand = onHailDriver->tryEnterTaxiStand(currSegStats, chosenTaxiStand);
 		if(enteredTaxiStand)
 		{
+			onTripCompletion(); //jo Apr12 Compute energy in onOnHailTripCompletion
+
 			//Driver entered the taxi stand
 			beginQueuingAtTaxiStand(params);
 			return false;
@@ -288,6 +306,8 @@ bool OnHailDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 
 	if(pathMover.isEndOfPath() && onHailDriver->getDriverStatus() != QUEUING_AT_TAXISTAND)
 	{
+		onTripCompletion(); //jo Apr12 Compute energy in onOnHailTripCompletion
+
 		//Update the value of current node
 		currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getFromNode();
 

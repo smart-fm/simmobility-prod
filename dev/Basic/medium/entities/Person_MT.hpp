@@ -268,6 +268,11 @@ public:
 		return personInfo;
 	}
 
+	PersonParams& getPersonInfoNotConst()
+	{
+		return personInfo;
+	}
+
 	void setPersonInfo(const PersonParams& personInfo)
 	{
 		this->personInfo = personInfo;

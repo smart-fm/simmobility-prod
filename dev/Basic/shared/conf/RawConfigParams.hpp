@@ -338,8 +338,10 @@ public:
     /// Seed value for RNG's
     unsigned int seedValue ;
 
-    /// Operational cost in Dollars/km
-    float operationalCost;
+    /// Operational cost in Dollars/km //joApr30
+    double operationalCostICE; //jo Apr13
+    double operationalCostHEV; //jo Apr13
+    double operationalCostBEV; //jo Apr13
 
     /// When the simulation begins(based on configuration)
     DailyTime simStartTime;

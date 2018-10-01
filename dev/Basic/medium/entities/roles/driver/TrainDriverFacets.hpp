@@ -7,10 +7,13 @@
 #pragma once
 
 #include <atomic>
+#include "DriverFacets.hpp" //jo Mar27 - need this for trajectory_info, if not, fall back to defining in source file here
 #include "conf/settings/DisableMPI.h"
 #include "entities/roles/RoleFacets.hpp"
 #include "TrainPathMover.hpp"
 #include "TrainDriver.hpp"
+#include "../../../models/tripEnergySO/tripEnergySO.h"
+//#include "entities/misc/TrainTrip.hpp" //jo Mar27
 
 namespace sim_mob
 {
@@ -66,7 +69,9 @@ public:
 
 	static bool areColumnNamesAdded;
 
-	void setParentDriver(TrainDriver *parentDriver);
+	void setParentDriver(TrainDriver* parentDriver);
+	void calcEnergyFromMovement(double distanceMoved);
+	void outputEnergyAfterTrip() const; 
 
 	/**
 	 * get the object of path mover
@@ -113,6 +118,22 @@ public:
 	 */
 	void arrivalAtEndPlatform() const;
 
+	//jo
+	double getTotalDistance() const
+	{
+		return trajectoryInfo.totalDistanceDriven;
+	}
+
+	double getTotalTime() const
+	{
+		return trajectoryInfo.totalTimeDriven;
+	}
+
+	trajectory_info_t getTrajectoryInfo() const
+	{
+		return trajectoryInfo;
+	}
+	//
 	/**
 	 * This function prepares for U turn in case of disruption or other scenarios
 	 * Firstly it checks if any trains are approaching the platform where it has to be
@@ -393,10 +414,51 @@ public:
 	 */
 	TrainPlatformMover &getTrainPlatformMover_AccPos();
 
+	double getTotalEnergyUsed() const
+	{
+		return vehicleStruct.tripTotalEnergy;
+	}
+	void setTotalEnergyUsed(double energyUsed)
+	{
+		this->vehicleStruct.tripTotalEnergy = energyUsed;
+	}
+
 protected:
 	virtual TravelMetric &startTravelTimeMetric();
 
 	virtual TravelMetric &finalizeTravelTimeMetric();
+
+	//jo - Mar27 - unfortunately need this here as TrainMovement is not child of DriverMovement
+	std::deque<double> speedCollector;
+
+	double totalDistanceDriven;
+	double totalTimeDriven;
+	double timeStep;
+	double totalTimeSlow;
+	double totalTimeFast;
+	trajectory_info_t trajectoryInfo;
+
+	/** store total energy use */
+	//double totalEnergyUsed;
+	struct0_T vehicleStruct;
+
+	// jo { Mar27; delcaring these here for TrainDriver
+	struct DriverVelocityCollector
+	{
+		   DriverVelocityCollector() : currTimeTaken(0.0)
+		   {}
+
+		   std::vector<double> driverVelocity;
+		   double currTimeTaken;
+	};
+
+	DriverVelocityCollector driverVelocityCollector;
+
+	std::vector<double> driverVelocity;
+	// } jo --
+
+	void onNewTrainVelocitySample(double trainVelocitySample); //jo Mar27
+	void onTrainTripCompletion(); //jo Mar27
 
 private:
 	/**Pointer to the parent Driver role.*/
@@ -433,6 +495,7 @@ private:
 
 	boost::mutex safeDistanceLock;
 	boost::mutex safeHeadwayLock;
+	boost::mutex totalEnergyUsedLock;
 
 	/**bool to indicate whether the route is set or not */
 	bool routeSet = false;

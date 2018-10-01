@@ -4,6 +4,7 @@
 
 #include "OnCallDriver.hpp"
 #include "conf/ConfigManager.hpp"
+#include "config/MT_Config.hpp" //jo
 
 using namespace sim_mob;
 using namespace medium;
@@ -66,6 +67,22 @@ Role<Person_MT>* OnCallDriver::clone(Person_MT *person) const
 	OnCallDriverMovement *driverMvt = new OnCallDriverMovement();
 	OnCallDriverBehaviour *driverBhvr = new OnCallDriverBehaviour();
 	OnCallDriver *driver = new OnCallDriver(person, person->getMutexStrategy(), driverBhvr, driverMvt, "OnCallDriver");
+
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		PersonParams personInfo;
+//		if (MT_Config::getInstance().getEnergyModel()->getModelType() == "tripenergy")
+//		{
+//			personInfo.getVehicleParams().setVehicleStruct(MT_Config::getInstance().getEnergyModel()->initVehicleStruct("Bus"));
+//		}
+//		else
+		if (MT_Config::getInstance().getEnergyModel()->getModelType() == "simple") //jo
+		{
+			personInfo.getVehicleParams().setDrivetrain("BEV"); //jo
+			personInfo.getVehicleParams().setVehicleStruct(MT_Config::getInstance().getEnergyModel()->initVehicleStruct("BEV"));
+		}
+		driver->parent->setPersonInfo(personInfo);
+	}
 
 	driverBhvr->setParentDriver(driver);
 	driverBhvr->setOnCallDriver(driver);

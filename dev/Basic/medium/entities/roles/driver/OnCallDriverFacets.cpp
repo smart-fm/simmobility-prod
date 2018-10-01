@@ -12,6 +12,7 @@
 #include "OnCallDriver.hpp"
 #include "path/PathSetManager.hpp"
 #include "util/Utils.hpp"
+#include "config/MT_Config.hpp" //jo Apr4 for MT_Config::getInstance().isEnergyModelEnabled()
 
 using namespace sim_mob;
 using namespace medium;
@@ -76,12 +77,25 @@ void OnCallDriverMovement::frame_init()
             //So cruise to a random node, by creating a default schedule
             continueCruising(currNode);
         }
+	//jo{ Apr 3
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		speedCollector.clear();
+		speedCollector.push_back(0.0);
+		speedCollector.push_back(0.0);
+		speedCollector.push_back(0.0);
 
-        //Begin performing schedule.
-        performScheduleItem();
+		// INITIALIZE TRAJECTORY INFO AS EMPTY
+		trajectoryInfo.totalDistanceDriven = 0.0;
+		trajectoryInfo.totalTimeDriven = 0.0;
+		trajectoryInfo.totalTimeFast = 0.0;
+		trajectoryInfo.totalTimeSlow = 0.0;
+	}
+
+	//Begin performing schedule.performScheduleItem();
         onCallDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
-        controllerIt++;
-    }
+	controllerIt++;
+}
 }
 
 void OnCallDriverMovement::frame_tick()
@@ -234,6 +248,7 @@ bool OnCallDriverMovement::moveToNextSegment(DriverUpdateParams &params)
 
 	if(pathMover.isEndOfPath())
 	{
+		onTripCompletion();
 		switch (onCallDriver->getDriverStatus())
 		{
 		case CRUISING:

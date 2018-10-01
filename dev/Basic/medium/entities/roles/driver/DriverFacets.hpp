@@ -3,6 +3,8 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
+#include "../../../../shared/behavioral/params/PersonParams.hpp"
+#include "../../../models/tripEnergySO/tripEnergySO.h"
 #include "conf/settings/DisableMPI.h"
 #include "entities/conflux/Conflux.hpp"
 #include "DriverUpdateParams.hpp"
@@ -66,6 +68,14 @@ protected:
  * \author Melani Jayasuriya
  * \author Harish Loganathan
  */
+
+struct trajectory_info_t {
+	double totalDistanceDriven;
+	double totalTimeDriven;
+	double totalTimeFast;
+	double totalTimeSlow;
+};
+
 class DriverMovement : public MovementFacet
 {
 public:
@@ -117,6 +127,20 @@ public:
 		this->laneConnectorOverride = laneConnectorOverride;
 	}
 
+	double getTotalDistance() const
+	{
+		return trajectoryInfo.totalDistanceDriven;
+	}
+
+	double getTotalTime() const
+	{
+		return trajectoryInfo.totalTimeDriven;
+	}
+
+	trajectory_info_t getTrajectoryInfo() const
+	{
+		return trajectoryInfo;
+	}
 	/**
  	* This method to check if the node is a looped node mean node's link's to node and from node is same
     * @return
@@ -124,6 +148,31 @@ public:
 	bool ifLoopedNode(unsigned int thisNodeId);
 
 protected:
+	std::deque<double> speedCollector;
+	SegmentStats* prevSegStats = nullptr;
+//	double totalEnergyUsed;
+	double totalDistanceDriven;
+	double totalTimeDriven;
+	double timeStep;
+	double totalTimeSlow;
+	double totalTimeFast;
+	trajectory_info_t trajectoryInfo;
+
+	// jo { Mar13; necessary for Simple energy model to store entire velocity vector
+	struct DriverVelocityCollector
+	{
+		   DriverVelocityCollector() : currTimeTaken(0.0)
+		   {}
+
+		   std::vector<double> driverVelocity;
+		   double currTimeTaken;
+	};
+
+	DriverVelocityCollector driverVelocityCollector;
+
+	std::vector<double> driverVelocity;
+	// } jo --
+
 	/// mark startTimeand origin. Called at every frame_init
 	virtual TravelMetric& startTravelTimeMetric();
 	/**
@@ -427,6 +476,16 @@ protected:
 	 * @return next link for driver
 	 */
 	const Link* getNextLinkForLaneChoice(const SegmentStats* nextSegStats) const;
+
+	//aa{
+	/**
+	 * Update the velocity vector and accomplished the operations required to compute
+	 * the segment energy
+	 */
+	void onNewDriverVelocitySample(double driverVelocitySample);
+	//aa}
+	void onTripCompletion();
+
 	void setPath(std::vector<const SegmentStats*> &path,Node *toNode,std::vector<RoadSegment*>);
 	friend class MesoReroute;
 

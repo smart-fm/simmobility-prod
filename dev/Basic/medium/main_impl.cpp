@@ -321,7 +321,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const MT_Config& mtConfig = MT_Config::getInstance();
 
-	PeriodicPersonLoader* periodicPersonLoader = new MT_PersonLoader(Agent::all_agents, Agent::pending_agents);
+	if (mtConfig.isEnergyModelEnabled())
+	{
+		Print() << "Energy Model Enabled" << std::endl;
+	}
+
+	PeriodicPersonLoader *periodicPersonLoader = new MT_PersonLoader(Agent::all_agents, Agent::pending_agents);
 
 	//ScreenLineCounter initialization before Worker creation
 	ScreenLineCounter* screenLnCtr = nullptr;
@@ -356,7 +361,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	assignConfluxToWorkers(personWorkers);
 
 	//distribute station agents among confluxes
-	assignStationAgentToConfluxes();
+	
+	if(config.isPublicTransitEnabled())
+	{
+		assignStationAgentToConfluxes();
+	}
 
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)

@@ -9,6 +9,7 @@
 #include "behavioral/params/ZoneCostParams.hpp"
 #include "behavioral/PredayUtils.hpp"
 #include "behavioral/StopType.hpp"
+#include "behavioral/params/PersonParams.hpp"
 
 namespace sim_mob
 {
@@ -26,18 +27,19 @@ protected:
 
 	StopType purpose;
 	int origin;
-	const double OPERATIONAL_COST;
 	const double MAX_WALKING_DISTANCE;
 	const ZoneMap& zoneMap;
 	const CostMap& amCostsMap;
 	const CostMap& pmCostsMap;
 	int cbdOrgZone;
 	const std::vector<OD_Pair>& unavailableODs;
-    int numModes;
+	int numModes;
+	const VehicleParams::VehicleDriveTrain& powertrain;
 
 public:
-    ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, StopType purpose, int originCode, int numModes,
-            const std::vector<OD_Pair>& unavailableODs);
+	ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, 
+		StopType purpose, int originCode, const VehicleParams::VehicleDriveTrain& powerTrain, // Eytan 28-May 2018
+		int numModes, const std::vector<OD_Pair>& unavailableODs);
 	virtual ~ModeDestinationParams();
 
 	/**

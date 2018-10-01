@@ -214,8 +214,23 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 		tmParams.setCostCarErpFirst(amObj->getCarCostErp());
 		tmParams.setCostCarErpSecond(pmObj->getCarCostErp());
 
-		tmParams.setCostCarOpFirst(amObj->getDistance() * OPERATIONAL_COST);
-		tmParams.setCostCarOpSecond(pmObj->getDistance() * OPERATIONAL_COST);
+		VehicleParams::VehicleDriveTrain powertrain = personParams.getConstVehicleParams().getDrivetrain(); // Eytan 05-27-2018
+		double operationalCost;
+		if (powertrain == VehicleParams::BEV or powertrain == VehicleParams::FCV)
+		{
+			operationalCost = cfg.operationalCostBEV();
+		}
+		else if (powertrain == VehicleParams::HEV or powertrain == VehicleParams::PHEV)
+		{
+			operationalCost = cfg.operationalCostHEV();
+		}
+		else // resorting to ICE
+		{
+			operationalCost = cfg.operationalCostICE();
+		}
+		tmParams.setCostCarOpFirst(amObj->getDistance() * operationalCost);
+		tmParams.setCostCarOpSecond(pmObj->getDistance() * operationalCost);
+
 		tmParams.setWalkDistance1(amObj->getDistance());
 		tmParams.setWalkDistance2(pmObj->getDistance());
 		tmParams.setTtPublicIvtFirst(amObj->getPubIvt());
@@ -433,7 +448,8 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 
 void PredaySystem::predictSubTourModeDestination(Tour& subTour, const Tour& parentTour)
 {
-    TourModeDestinationParams stmdParams(zoneMap, amCostMap, pmCostMap, personParams, subTour.getTourType(), numModes, unavailableODs);
+	VehicleParams::VehicleDriveTrain powertrain = personParams.getConstVehicleParams().getDrivetrain();
+	TourModeDestinationParams stmdParams(zoneMap, amCostMap, pmCostMap, personParams, subTour.getTourType(), powertrain, numModes, unavailableODs);
 	stmdParams.setOrigin(parentTour.getTourDestination()); //origin is primary activity location of parentTour (not home location)
 	stmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(parentTour.getTourDestination()))->getCbdDummy());
 	stmdParams.setModeForParentWorkTour(parentTour.getTourMode());
@@ -452,7 +468,8 @@ void PredaySystem::predictSubTourModeDestination(Tour& subTour, const Tour& pare
 
 void PredaySystem::predictTourModeDestination(Tour& tour)
 {
-    TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, tour.getTourType(), numModes, unavailableODs);
+	VehicleParams::VehicleDriveTrain powertrain = personParams.getConstVehicleParams().getDrivetrain();
+	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, tour.getTourType(), powertrain, numModes, unavailableODs);
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
     int modeDest = PredayLuaProvider::getPredayModel().predictTourModeDestination(personParams, activityTypeConfigMap, tmdParams);
 	int mode = tmdParams.getMode(modeDest);
@@ -988,7 +1005,8 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 
 bool PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 {
-    StopModeDestinationParams imdParams(zoneMap, amCostMap, pmCostMap, personParams, stop, origin, numModes, unavailableODs);
+	VehicleParams::VehicleDriveTrain powertrain = personParams.getConstVehicleParams().getDrivetrain();
+	StopModeDestinationParams imdParams(zoneMap, amCostMap, pmCostMap, personParams, stop, origin, powertrain, numModes, unavailableODs);
 	imdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin))->getCbdDummy());
 	int modeDest = PredayLuaProvider::getPredayModel().predictStopModeDestination(personParams, imdParams);
 	if(modeDest == -1)
@@ -1115,6 +1133,27 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 	if(stodParams.getTodHigh() < stodParams.getTodLow()) { return false; } //Invalid low and high TODs for stop
 
 	ZoneParams* zoneDoc = zoneMap.at(zoneIdLookup.at(origin));
+
+	//jo Apr13
+	double operationalCost; //jo set default operational cost to ICE
+	VehicleParams::VehicleDriveTrain powertrain = personParams.getConstVehicleParams().getDrivetrain(); // Eytan 28-May-2018
+	if(powertrain == VehicleParams::HEV or powertrain == VehicleParams::PHEV)
+	{
+		operationalCost = cfg.operationalCostHEV();
+	}
+	else if(powertrain == VehicleParams::BEV or powertrain == VehicleParams::FCV)
+	{
+		operationalCost = cfg.operationalCostBEV();
+	}
+	else
+	{
+		operationalCost = cfg.operationalCostICE(); //set default operational cost to ICE
+	}
+	if (operationalCost == 0)
+	{
+		throw std::runtime_error("\noperational cost is 0"); // Eytan 28-May 2018
+	}
+
 	if(origin != destination)
 	{
 		// calculate costs
@@ -1495,9 +1534,6 @@ void PredaySystem::constructTours() {
 
 void PredaySystem::planDay()
 {
-	// set the Operational Cost before it is used anywhere
-	OPERATIONAL_COST = ConfigManager::GetInstance().FullConfig().simulation.operationalCost;
-
 	personParams.setAllTimeWindowsAvailable();
 
 	//Predict day pattern
@@ -1664,7 +1700,8 @@ void sim_mob::medium::PredaySystem::computeLogsums()
 {
     const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
 
-    TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, numModes, unavailableODs);
+	VehicleParams::VehicleDriveTrain powertrain = personParams.getConstVehicleParams().getDrivetrain();
+	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP, powertrain, numModes, unavailableODs);
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
     PredayLuaProvider::getPredayModel().initializeLogsums(personParams, activityTypeConfigMap);
     PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, activityTypeConfigMap, tmdParams, zoneMap.size());
@@ -1684,6 +1721,7 @@ void sim_mob::medium::PredaySystem::computeLogsums()
 	}
 
 	PredayLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);
+	PredayLuaProvider::getPredayModel().computeDayPatternBinaryLogsums(personParams);
 
     logStream << "Person: " << personParams.getPersonId() << "|updated logsums- ";
 
@@ -1692,21 +1730,17 @@ void sim_mob::medium::PredaySystem::computeLogsums()
         logStream << activityTypeConfigMap.at(i).name << ": " << personParams.getActivityLogsum(i) << ", ";
     }
 
-    logStream << "dpt: " << personParams.getDptLogsum()
-			<< ", dps: " << personParams.getDpsLogsum()
-			<<std::endl;
+	logStream << "dpt: " << personParams.getDptLogsum() << ", dps: " << personParams.getDpsLogsum() 
+		<< ", dpb: " << personParams.getDpbLogsum() <<std::endl; //jo
 }
 
 void sim_mob::medium::PredaySystem::computeLogsumsForLT(std::stringstream& outStream)
 {
 	computeLogsums();
 	PredayLuaProvider::getPredayModel().computeDayPatternBinaryLogsums(personParams);
-	outStream << personParams.getPersonId()
-			<< "," << personParams.getHomeLocation()
-			<< "," << personParams.getFixedWorkLocation()
-			<< "," << personParams.getHhId()
-			<< "," << personParams.getDpbLogsum()
-			<< "\n";
+	outStream << personParams.getPersonId() << "," << personParams.getHomeLocation()
+		<< "," << personParams.getFixedWorkLocation() << "," << personParams.getHhId()
+		<< "," << personParams.getDpbLogsum() << std::endl;
 }
 
 //function to calculate current stop zone and node

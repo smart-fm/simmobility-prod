@@ -9,6 +9,9 @@
 #include "entities/BusStopAgent.hpp"
 #include "entities/roles/driver/OnHailDriverFacets.hpp"
 #include "entities/TaxiStandAgent.hpp"
+//aa{
+#include "models/TripEnergyModel.hpp"
+//aa}
 
 
 using std::string;
@@ -81,7 +84,8 @@ SupplyParams::SupplyParams(const RoadSegment* rdSeg, double statsLength) :
 
 SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, double statslengthInM) :
 		roadSegment(rdSeg), length(statslengthInM), segDensity(0.0), segFlow(0), numPersons(0), statsNumberInSegment(1), supplyParams(rdSeg, statslengthInM), orderBySetting(
-				SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION), parentConflux(parentConflux)
+				SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION), parentConflux(parentConflux),
+				totalEnergy(0), totalDistance(0),  energySamples(0)//aa: I added this line
 {
 	segVehicleSpeed = roadSegment->getMaxSpeed();
 	numVehicleLanes = 0;
@@ -622,6 +626,50 @@ std::vector<const TaxiStand*>& SegmentStats::getTaxiStand()
 	return taxiStands;
 }
 
+//aa{
+void SegmentStats::onNewEnergySample(double sample, double distance)
+{
+	totalEnergy += sample;
+	totalDistance += distance;
+	energySamples++;
+}
+
+void SegmentStats::resetEnergyStats()
+{
+	totalEnergy = 0.0;
+	totalDistance = 0.0;
+	energySamples = 0;
+}
+
+int SegmentStats::getEnergyCounts() const
+{
+	return energySamples;
+}
+
+double SegmentStats::getMPG() const
+{
+	double metersToMiles = 1/1609.34;
+	double joulesToGallons = 8.2427e-09;
+	if (energySamples>0)
+		return totalDistance*metersToMiles/(totalEnergy*joulesToGallons);
+	else return 0;
+}
+
+double SegmentStats::getDistanceTraveled() const
+{
+	if (energySamples>0)
+		return totalDistance;
+	else return 0;
+}
+
+double SegmentStats::getEnergy() const
+{
+	if (energySamples>0)
+		return totalEnergy;
+	else return 0;
+}
+//aa}
+
 unsigned int LaneStats::getQueuingAgentsCount() const
 {
 	return queueCount;
@@ -928,7 +976,31 @@ std::string SegmentStats::reportSegmentStats(uint32_t frameNumber)
 				numQueuingInSegment(true),
 				getQueueLength(),
 				numVehicleLanes,
-				length);
+				length,
+				getEnergy(),
+				getDistanceTraveled(),
+				getEnergyCounts()
+				);
+		resetEnergyStats(); //jo Apr9
+
+		//aa{
+//		if (MT_Config::getInstance().isEnergyModelEnabled() )
+//		{
+//			TripEnergyModel* energyModel = dynamic_cast<TripEnergyModel*> ( MT_Config::getInstance().getEnergyModel() );
+//			TripEnergySO_Model* energyModel = dynamic_cast<TripEnergySO_Model*> ( MT_Config::getInstance().getEnergyModel() );
+//			if (energyModel != nullptr)
+//			{
+				// The energy model in use is TripEnergySO_Model. For that, we print additional output
+//				sprintf(segStatBuf, "%ssegEnergy,%u,%u,%u,%.2f\n",
+//								segStatBuf,
+//								frameNumber,
+//								roadSegment->getRoadSegmentId(),
+//								statsNumberInSegment,
+//								getEnergy() );
+//
+//			}
+//		}
+		//aa}
 		if(getTotalDensity(true)>0)
 		{
 			int debug =1 ;

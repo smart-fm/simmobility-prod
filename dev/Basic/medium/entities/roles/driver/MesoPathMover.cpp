@@ -356,3 +356,118 @@ std::string MesoPathMover::getPathString(const Path &path, const Node *node)
 	}
 	return out.str();
 }
+
+void MesoPathMover::initDriverPathTracking()
+{
+       driverPathTracker.setStartSegmentIterator(currSegStatIt);
+       driverPathTracker.startDistToEndSegment = distToSegmentEnd;
+
+
+//#ifndef NDEBUG
+//		consistencyChecks();
+//#endif
+
+
+//#ifndef NDEBUG
+//       //aa: just to see if he pointer we set is wrong
+//       std::cout<<(*currSegStatIt)->getLength();
+//#endif
+}
+
+void MesoPathMover::finalizeDriverPathTracking()
+{
+       driverPathTracker.setEndSegmentIterator(currSegStatIt);
+       driverPathTracker.endDistToEndSegment = distToSegmentEnd;
+
+//#ifndef NDEBUG
+//		consistencyChecks();
+//#endif
+
+
+
+}
+
+//double MesoPathMover::getDistanceCovered() const
+//{
+//       double distance = 0.0;
+//
+//       if (driverPathTracker.getStartSegmentIterator() == driverPathTracker.getEndSegmentIterator())
+//       {
+//               distance = std::max(driverPathTracker.startDistToEndSegment - driverPathTracker.endDistToEndSegment,0.0);
+//       }
+//       else
+//       {
+//               for (Path::iterator iter = driverPathTracker.getStartSegmentIterator(); (iter != path.end() && iter != driverPathTracker.getEndSegmentIterator()+1 ); ++iter)
+//               {
+//                       if (iter == driverPathTracker.getStartSegmentIterator())
+//                       {
+//                               distance += driverPathTracker.startDistToEndSegment;
+//                       }
+//                       else if (iter == driverPathTracker.getEndSegmentIterator())
+//                       {
+//                               distance += std::max(std::abs( (*iter)->getLength()) - driverPathTracker.endDistToEndSegment,0.0);
+//                       }
+//                       else
+//                       {
+//                    	   if (*(iter) == NULL )
+//                    	   {
+//                    		   std::stringstream ss;
+//                    		   ss << "*iter is null"; throw std::runtime_error(ss.str() );
+//                    	   }
+//                    	   else
+//                    	   {
+//                               distance += std::abs((*iter)->getLength());
+//                    	   }
+//                       }
+//               }
+//       }
+//#ifndef NDEBUG
+//		consistencyChecks();
+//#endif
+//
+//
+//
+//       return distance;
+//}
+
+
+double MesoPathMover::getDistanceCovered() const
+{
+	double distance = 0.0;
+
+	if (driverPathTracker.getStartSegmentIterator() == driverPathTracker.getEndSegmentIterator())
+	{
+		distance = std::max(driverPathTracker.startDistToEndSegment - driverPathTracker.endDistToEndSegment,0.0);
+	}
+	else
+	{
+		for (Path::iterator iter = driverPathTracker.getStartSegmentIterator(); iter != driverPathTracker.getEndSegmentIterator(); ++iter)
+		{
+			if((iter+1 != path.end())|| iter!=path.end())
+			{
+				distance += 0.0;
+				break;
+			}
+			else
+			{
+
+				if (iter == driverPathTracker.getStartSegmentIterator())
+				{
+					distance += driverPathTracker.startDistToEndSegment;
+				}
+				else if (iter == driverPathTracker.getEndSegmentIterator())
+				{
+					distance += std::max(std::abs( (*iter)->getLength()) - driverPathTracker.endDistToEndSegment,0.0);
+				}
+				else
+				{
+					distance += std::abs((*iter)->getLength());
+				}
+			}
+
+		}
+
+		distance += driverPathTracker.endDistToEndSegment;
+	}
+	return distance;
+}

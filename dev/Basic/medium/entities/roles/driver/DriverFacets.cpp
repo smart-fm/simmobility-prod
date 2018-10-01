@@ -40,6 +40,8 @@
 #include "path/PathSetManager.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/Utils.hpp"
+#include <random>
+#include <array>
 #include "geospatial/network/RoadNetwork.hpp"
 
 using namespace sim_mob;
@@ -100,10 +102,17 @@ Driver* DriverBehavior::getParentDriver()
 }
 
 DriverMovement::DriverMovement() :
-MovementFacet(), parentDriver(nullptr), currLane(nullptr), isQueuing(false), laneConnectorOverride(false),
+MovementFacet(), parentDriver(nullptr), currLane(nullptr), isQueuing(false), laneConnectorOverride(false), timeStep(ConfigManager::GetInstance().FullConfig().baseGranSecond()),
 isRouteChangedInVQ(false)
 {
 	rerouter.reset(new MesoReroute(*this));
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		speedCollector.clear();
+		speedCollector.push_back(0.0);
+		speedCollector.push_back(0.0);
+		speedCollector.push_back(0.0);
+	}
 }
 
 DriverMovement::~DriverMovement()
@@ -140,12 +149,104 @@ void DriverMovement::frame_init()
 		VehicleBase* oldVehicle = parentDriver->getResource();
 		safe_delete_item(oldVehicle);
 		parentDriver->setResource(newVehicle);
+		TripChainItem* currentSubTrip = (*parentDriver->parent->currTripChainItem);
+
+		if (MT_Config::getInstance().isEnergyModelEnabled())
+		{
+            speedCollector.clear();
+            speedCollector.push_back(0.0);
+            speedCollector.push_back(0.0);
+            speedCollector.push_back(0.0);
+
+			// INITIALIZE TRAJECTORY INFO AS EMPTY
+			trajectoryInfo.totalDistanceDriven = 0.0;
+			trajectoryInfo.totalTimeDriven = 0.0;
+			trajectoryInfo.totalTimeFast = 0.0;
+			trajectoryInfo.totalTimeSlow = 0.0;
+		}
 	}
 	else
 	{
 		parentDriver->parent->setToBeRemoved();
 	}
 }
+
+
+void DriverMovement::onNewDriverVelocitySample(double driverVelocitySample)
+{	
+	if (driverVelocitySample < 0)
+	{
+		driverVelocitySample = 0;
+		Warn() << "Negative speed recorded on segment " << (parentDriver->parent->getCurrSegStats()->getRoadSegment()->getRoadSegmentId()) << std::endl;
+	}
+
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+			parentDriver->parent->getPersonInfoNotConst().getVehicleParams().updatePreviousEnergy();
+			if (speedCollector.size() == 3)
+			{
+                speedCollector.pop_front();
+                speedCollector.push_back(driverVelocitySample);
+                MT_Config::getInstance().getEnergyModel()->computeEnergyWithSpeedHolder(speedCollector, parentDriver->parent->getPersonInfoNotConst().getVehicleParams().getVehicleStruct(), timeStep, 0);
+                double timeStepEnergy = parentDriver->parent->getPersonInfoNotConst().getVehicleParams().getTimestepEnergy();
+                //double timeStepEnergy = parentDriver->parent->getPersonInfoNotConst().getVehicleParams().getFrameEnergy(); //jo
+                if (prevSegStats != nullptr)
+                {
+                    prevSegStats->onNewEnergySample(timeStepEnergy, speedCollector[1] * timeStep);
+                }
+            }
+//			} else {
+//				std::cout << "OH NO: bad speed collector " << speedCollector.size() << std::endl;
+//			}
+			trajectoryInfo.totalDistanceDriven += driverVelocitySample*timeStep;
+			trajectoryInfo.totalTimeDriven += timeStep;
+			if (driverVelocitySample >= 25)
+			{
+				trajectoryInfo.totalTimeFast += timeStep;
+			}
+			else if (driverVelocitySample <= 10)
+			{
+				trajectoryInfo.totalTimeSlow += timeStep;
+			}
+			double timeStepEnergy = parentDriver->parent->getPersonInfoNotConst().getVehicleParams().getTimestepEnergy();
+			if (prevSegStats != nullptr)
+			{
+				prevSegStats->onNewEnergySample(timeStepEnergy, speedCollector[1]*timeStep);
+			}
+			prevSegStats = const_cast<SegmentStats*>(pathMover.getCurrSegStats() );
+//			driverVelocity.push_back(driverVelocitySample); //aa: this was already done by Jimi and Micheal
+	}
+}
+
+void DriverMovement::onTripCompletion()
+{	
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		if (parentDriver->roleType == Role<Person_MT>::RL_ON_CALL_DRIVER) //(parentDriver->parent->getRole()->getRoleName() == "OnCallDriver")
+		{
+			MT_Config::getInstance().getEnergyModel()->onOnCallTripCompletion(this,parentDriver->parent, driverVelocity, timeStep);
+			this->trajectoryInfo.totalDistanceDriven = 0.0;
+			this->trajectoryInfo.totalTimeDriven = 0.0;
+			this->trajectoryInfo.totalTimeFast = 0.0;
+			this->trajectoryInfo.totalTimeSlow = 0.0;
+			parentDriver->parent->getPersonInfoNotConst().getVehicleParams().getVehicleStruct().tripTotalEnergy = 0.0;
+		}
+		else if (parentDriver->roleType == Role<Person_MT>::RL_ON_HAIL_DRIVER)
+		{
+			MT_Config::getInstance().getEnergyModel()->onOnHailTripCompletion(this,parentDriver->parent, driverVelocity, timeStep);
+			this->trajectoryInfo.totalDistanceDriven = 0.0;
+			this->trajectoryInfo.totalTimeDriven = 0.0;
+			this->trajectoryInfo.totalTimeFast = 0.0;
+			this->trajectoryInfo.totalTimeSlow = 0.0;
+			parentDriver->parent->getPersonInfoNotConst().getVehicleParams().getVehicleStruct().tripTotalEnergy = 0.0;
+		}
+		else
+		{
+			MT_Config::getInstance().getEnergyModel()->onTripCompletion(this,parentDriver->parent, driverVelocity, timeStep);
+		}
+	}
+}
+
 
 void DriverMovement::frame_tick()
 {
@@ -157,6 +258,18 @@ void DriverMovement::frame_tick()
 		//if currSegstats is NULL, either the driver did not find a path to his
 		//destination or his path is completed. Either way, we remove this
 		//person from the simulation.
+
+		// if energy model is running, compute energy consumed during this frametick
+		if (MT_Config::getInstance().isEnergyModelEnabled())
+		{
+//			if (MT_Config::getInstance().getEnergyModel()->getModelType() == "tripenergy")
+//			{
+				// ZN: Compute energy for final timestep in trajectory (if enabled)
+			onNewDriverVelocitySample(0.0);
+			//}
+			// Record (or Compute --- in the case of the SimpleEnergy Model ---) Energy consumption
+			onTripCompletion();
+		}
 		parentDriver->parent->setToBeRemoved();
 		return;
 	}
@@ -169,6 +282,12 @@ void DriverMovement::frame_tick()
 			setOrigin(params);
 		}
 	}
+
+	if (MT_Config::getInstance().isEnergyModelEnabled()) //jo Apr5 only need for Energy computation (I think)
+	{
+		pathMover.initDriverPathTracking();
+	}
+
 	//canMoveToNextSegment is GRANTED/DENIED only when this driver had previously
 	//requested permission to move to the next segment. This request is made
 	//only when the driver has reached the end of the current link
@@ -194,6 +313,11 @@ void DriverMovement::frame_tick()
 			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 			setParentData(params);
 
+			if (MT_Config::getInstance().isEnergyModelEnabled()) //jo Apr5 only need for Energy computation (I think)
+			{
+				pathMover.finalizeDriverPathTracking();
+                onNewDriverVelocitySample(pathMover.getDistanceCovered() / (double)timeStep);
+			}
 /*			if(parentDriver && parentDriver->roleType != Role<Person_MT>::RL_BUSDRIVER)
 			{
 				Person_MT* person = parentDriver->parent;
@@ -412,6 +536,14 @@ bool DriverMovement::advance(DriverUpdateParams& params)
 {
 	if (pathMover.isPathCompleted())
 	{
+		
+		// if energy model is running, compute energy consumed during this frametick
+		if (MT_Config::getInstance().isEnergyModelEnabled()) {
+			// ZN: Compute energy for final timestep in trajectory (if enabled)
+			onNewDriverVelocitySample(0.0);
+			onTripCompletion();	
+		}
+		// ZN: Need to add another call to onNewDriverVelocitySample here to catch final timestep energy
 		parentDriver->parent->setToBeRemoved();
 		return false;
 	}
@@ -464,6 +596,19 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		const SegmentStats* lastSeg = currSegStat ;
 		//vehicle is done
 		pathMover.advanceInPath();
+		
+		// if energy model is running, compute energy consumed during this frametick
+		if (MT_Config::getInstance().isEnergyModelEnabled())
+		{ //jo Apr3 - only call these if mobilityServiceController NOT enabled to avoid issues
+			//if(!ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabled) //ConfigParams.mobilityServiceController.enabled)
+			//{
+			// ZN: Compute energy for final timestep in trajectory (if enabled)
+			onNewDriverVelocitySample(0.0);
+			onTripCompletion();
+			//}
+			// ZN: Add call to onNewDriverVelocitySample
+		}
+
 		if (pathMover.isPathCompleted())
 		{
 			const Link* currLink = currSegStat->getRoadSegment()->getParentLink();

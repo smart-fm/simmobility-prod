@@ -6,6 +6,7 @@
 #include "entities/controllers/MobilityServiceController.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/TaxiStandAgent.hpp"
+#include "config/MT_Config.hpp" //jo Jun1
 
 using namespace sim_mob;
 using namespace medium;
@@ -44,7 +45,22 @@ Role<Person_MT>* OnHailDriver::clone(Person_MT *person) const
 	OnHailDriverMovement *driverMvt = new OnHailDriverMovement();
 	OnHailDriverBehaviour *driverBhvr = new OnHailDriverBehaviour();
 	OnHailDriver *driver = new OnHailDriver(person, person->getMutexStrategy(), driverBhvr, driverMvt, "OnHailDriver");
-
+	//jo Jun1
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		PersonParams personInfo;
+//		if (MT_Config::getInstance().getEnergyModel()->getModelType() == "tripenergy")
+//		{
+//			personInfo.getVehicleParams().setVehicleStruct(MT_Config::getInstance().getEnergyModel()->initVehicleStruct("Bus"));
+//		}
+//		else
+		if (MT_Config::getInstance().getEnergyModel()->getModelType() == "simple") //jo
+		{
+			personInfo.getVehicleParams().setDrivetrain("ICE"); //jo
+			personInfo.getVehicleParams().setVehicleStruct(MT_Config::getInstance().getEnergyModel()->initVehicleStruct("ICE"));
+		}
+		driver->parent->setPersonInfo(personInfo);
+	}
 	driverBhvr->setParentDriver(driver);
 	driverBhvr->setOnHailDriver(driver);
 	driverMvt->setParentDriver(driver);

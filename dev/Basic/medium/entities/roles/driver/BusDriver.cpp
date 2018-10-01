@@ -49,6 +49,20 @@ Role<Person_MT>* BusDriver::clone(Person_MT* parent) const {
 	BusDriverBehavior* behavior = new BusDriverBehavior();
 	BusDriverMovement* movement = new BusDriverMovement();
 	BusDriver* busdriver = new BusDriver(parent, parent->getMutexStrategy(), behavior, movement, "BusDriver_");
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		PersonParams personInfo;
+		if (MT_Config::getInstance().getEnergyModel()->getModelType() == "tripenergy")
+		{
+			personInfo.getVehicleParams().setVehicleStruct(MT_Config::getInstance().getEnergyModel()->initVehicleStruct("Bus"));
+		}
+		else if (MT_Config::getInstance().getEnergyModel()->getModelType() == "simple") //jo
+		{
+			personInfo.getVehicleParams().setDrivetrain("CDBUS"); //jo
+			personInfo.getVehicleParams().setVehicleStruct(MT_Config::getInstance().getEnergyModel()->initVehicleStruct("CDBUS"));
+		}
+		busdriver->parent->setPersonInfo(personInfo);
+	}
 	behavior->setParentBusDriver(busdriver);
 	movement->setParentBusDriver(busdriver);
 	movement->setParentDriver(busdriver);

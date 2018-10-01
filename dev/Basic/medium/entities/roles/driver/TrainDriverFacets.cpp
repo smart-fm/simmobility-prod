@@ -23,6 +23,7 @@
 #include "entities/TrainStationAgent.hpp"
 #include "behavioral/ServiceController.hpp"
 #include "entities/TrainRemoval.hpp"
+#include "config/MT_Config.hpp"
 
 using namespace std;
 
@@ -94,6 +95,36 @@ TrainMovement::TrainMovement(std::string lineId)
 	safeDistance = trainProperties.safeDistance;
 	safeDistanceLock.unlock();
 	safeHeadway = trainProperties.safeHeadway;
+
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		speedCollector.clear();
+		speedCollector.push_back(0.0);
+		speedCollector.push_back(0.0);
+		speedCollector.push_back(0.0);
+	}
+}
+
+void TrainMovement::calcEnergyFromMovement(double trainMovement) //jo - Mar30 - tripod function... needs review.
+{
+	if (trainMovement < 0) {
+		trainMovement = -trainMovement;
+	}
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		double timeStep = ConfigManager::GetInstance().FullConfig().baseGranSecond(); //can use from DriverFacets no? jo Mar27
+		std::string trainLine = getParentDriver()->getTrainLine();
+		int occupancy = getParentDriver()->getPassengers().size();
+		//double trainEnergy = MT_Config::getInstance().getEnergyModel()->computeTrainEnergyWithSpeed(trainMovement,trainLine, occupancy,timeStep);
+	//totalEnergyUsed += trainEnergy;
+	}
+}
+
+void TrainMovement::outputEnergyAfterTrip() const //jo - Mar30 - tripod function... needs review.
+{
+	std::cout << "Trip Completed, Energy: " << getTotalEnergyUsed() << std::endl;
+	//totalEnergyUsedLock.lock();
+	//totalEnergyUsedLock.unlock();
 }
 
 void TrainMovement::resetSafeHeadWay(double safeHeadWay)
@@ -161,7 +192,79 @@ void TrainMovement::frame_init()
 		facetMutex.lock();
 		nextPlatform = next;
 		facetMutex.unlock();
+		if (MT_Config::getInstance().isEnergyModelEnabled()) //jo Mar30
+		{
+			if (MT_Config::getInstance().getEnergyModel()->getModelType() == "tripenergy")
+			{
+				vehicleStruct = MT_Config::getInstance().getEnergyModel()->initVehicleStruct(std::string("Train"));
+			}
+//			else if (MT_Config::getInstance().getEnergyModel()->getModelType() == "simple")
+//			{
+//				vehicleStruct = MT_Config::getInstance().getEnergyModel()->initVehicleStruct(std::string("TRAIN"));
+//			}
+			speedCollector.clear();
+			speedCollector.push_back(0.0);
+			speedCollector.push_back(0.0);
+			speedCollector.push_back(0.0);
+			trajectoryInfo.totalDistanceDriven = 0.0;
+			trajectoryInfo.totalTimeDriven = 0.0;
+			trajectoryInfo.totalTimeFast = 0.0;
+			trajectoryInfo.totalTimeSlow = 0.0;
+		//jo Mar27
+		}
+	}
+}
 
+void TrainMovement::onNewTrainVelocitySample(double trainVelocitySample) //jo Mar27
+{
+	if (trainVelocitySample < 0) {
+		trainVelocitySample = 0;
+		Warn() << "Negative speed recorded on train line trip ";
+	}
+	TrainUpdateParams& params = parentDriver->getParams(); //jo Mar27
+
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+			parentDriver->parent->getPersonInfoNotConst().getVehicleParams().updatePreviousEnergy();
+			if (speedCollector.size() == 3)
+			{
+                speedCollector.pop_front();
+                speedCollector.push_back(trainVelocitySample);
+                MT_Config::getInstance().getEnergyModel()->computeEnergyWithSpeedHolder(speedCollector, parentDriver->parent->getPersonInfoNotConst().getVehicleParams().getVehicleStruct(), params.secondsInTick, parentDriver->getPassengers().size());
+//                double timeStepEnergy = parentDriver->parent->getPersonInfoNotConst().getVehicleParams().getTimestepEnergy();
+//                if (prevSegStats != nullptr)
+//                {
+//                    prevSegStats->onNewEnergySample(timeStepEnergy, speedCollector[1] * timeStep);
+//                }
+            }
+			trajectoryInfo.totalDistanceDriven += trainVelocitySample* params.secondsInTick;
+			trajectoryInfo.totalTimeDriven +=  params.secondsInTick;
+			if (trainVelocitySample >= 25)
+			{
+				trajectoryInfo.totalTimeFast += params.secondsInTick;
+			}
+			else if (trainVelocitySample <= 10)
+			{
+				trajectoryInfo.totalTimeSlow += params.secondsInTick;
+			}
+//			double timeStepEnergy = parentDriver->parent->getPersonInfoNotConst().getVehicleParams().getTimestepEnergy();
+//			if (prevSegStats != nullptr)
+//			{
+//				prevSegStats->onNewEnergySample(timeStepEnergy, speedCollector[1]*timeStep);
+//			}
+			//prevSegStats = const_cast<SegmentStats*>(pathMover.getCurrSegStats() );
+//			driverVelocity.push_back(driverVelocitySample); //aa: this was already done by Jimi and Micheal
+	}
+}
+
+void TrainMovement::onTrainTripCompletion() //jo Mar27
+{
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		TrainUpdateParams& params = parentDriver->getParams(); //jo Mar27
+		//double timeStep = ConfigManager::GetInstance().FullConfig().baseGranSecond(); //can use from DriverFacets no? jo Mar27
+		int occupancy = getParentDriver()->getPassengers().size(); // jo - Mar27
+		MT_Config::getInstance().getEnergyModel()->onTrainTripCompletion(this->getTrajectoryInfo(),parentDriver->parent, driverVelocity, params.secondsInTick, occupancy);
 	}
 }
 
@@ -857,6 +960,7 @@ void TrainMovement::frame_tick()
 							{
 								parentDriver->setNextRequested(TrainDriver::REQUESTED_LEAVING_PLATFORM);
 								parentDriver->getParent()->setToBeRemoved();
+								onTrainTripCompletion(); //jo Mar 30
 								arrivalAtEndPlatform();
 								isDisruptedPlatform = true;
 								double dwellTimeInSecs = parentDriver->initialDwellTime;
@@ -943,6 +1047,7 @@ void TrainMovement::frame_tick()
 								{
 									parentDriver->setNextRequested(TrainDriver::REQUESTED_LEAVING_PLATFORM);
 									parentDriver->getParent()->setToBeRemoved();
+									onTrainTripCompletion(); //jo Mar 30
 									arrivalAtEndPlatform();
 								}
 							}
@@ -970,6 +1075,19 @@ void TrainMovement::frame_tick()
 										//for uturn
 										if (takeUturn)
 										{
+											if (MT_Config::getInstance().isEnergyModelEnabled())
+											{
+												//jo
+												if (MT_Config::getInstance().getEnergyModel()->getModelType() == "tripenergy")
+												{
+													outputEnergyAfterTrip(); //jo MAR 27.. - TODO - we should make it consistent with Bus/Car
+													//totalEnergyUsed = 0.0;
+												}
+//												else if (MT_Config::getInstance().getEnergyModel()->getModelType() == "simple")
+//												{
+//													;//onTrainTripCompletion(); //jo Mar 27
+//												}
+											}
 											isDisruptedState = false;
 											Platform *platform = getNextPlatform();
 											std::string stationNo = platform->getStationNo();
@@ -989,6 +1107,7 @@ void TrainMovement::frame_tick()
 											if (!leaveFromPlaform())
 											{
 												parentDriver->getParent()->setToBeRemoved();
+												onTrainTripCompletion(); //jo Mar 28
 												arrivalAtEndPlatform();
 											}
 										}
@@ -1000,6 +1119,7 @@ void TrainMovement::frame_tick()
 									if (!parentDriver->isStoppedAtPoint())
 									{
 										parentDriver->getParent()->setToBeRemoved();
+										onTrainTripCompletion(); //jo Mar 28
 										arrivalAtEndPlatform();
 									}
 								}
@@ -1859,44 +1979,76 @@ bool TrainMovement::moveForward()
 		double distanceToNextPlat = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 
 		params.movingDistance = movingDistance;
-		if (movingDistance > distanceToNextPlat && movingDistance > params.distanceToNextStopPoint && params.distanceToNextStopPoint != 0)
+		double advanceDistance = 0;
+		// logic is to set advanceDistance for each case, code looks redundant however ...
+		// not sure what the effect of setting disToNextPlatform BEFORE advancing train... so until then, we allow redundancy - jo Mar30
+
+		if(movingDistance>distanceToNextPlat&&movingDistance>params.distanceToNextStopPoint&&params.distanceToNextStopPoint!=0)
 		{
 			//in case if the train has overshoot the distance to next platform and distance to next stop point
 			if (distanceToNextPlat == -1)
 			{
 				//if the train has to skip all the platforms the distance to next platform will be -1 then advance till the distance to stop point
-				trainPathMover.advance(params.distanceToNextStopPoint);
+				advanceDistance = params.distanceToNextStopPoint;
+				trainPathMover.advance(advanceDistance);
 			}
 			else
 			{
 				//check the nearest entity ,stop point or platform and advance according to the minimum distance
-				trainPathMover.advance(std::min(distanceToNextPlat, params.distanceToNextStopPoint));
-				params.disToNextPlatform = trainPathMover.getDistanceToNextPlatform(
-						trainPlatformMover.getNextPlatform());
+				advanceDistance = std::min(distanceToNextPlat,params.distanceToNextStopPoint);
+				trainPathMover.advance(advanceDistance);
+				params.disToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 			}
 		}
 
 		else if (movingDistance > distanceToNextPlat && distanceToNextPlat != -1)
 		{
 			//just check if the train overshot the distance to next platform
-			trainPathMover.advance(distanceToNextPlat);
+			advanceDistance = distanceToNextPlat;
+			trainPathMover.advance(advanceDistance);
 			params.disToNextPlatform = 0.0;
 		}
 
 		else if (movingDistance > params.distanceToNextStopPoint && params.distanceToNextStopPoint != 0)
 		{
 			//just check if the train overshot the distance to next stop point
-			trainPathMover.advance(params.distanceToNextStopPoint);
+			advanceDistance = params.distanceToNextStopPoint;
+			trainPathMover.advance(advanceDistance);
 			params.disToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 		}
 
 		else
 		{
 			//just move according to the moving distance calculated
-			trainPathMover.advance(movingDistance);
+			advanceDistance = movingDistance;
+			trainPathMover.advance(advanceDistance);
 			params.disToNextPlatform = trainPathMover.getDistanceToNextPlatform(trainPlatformMover.getNextPlatform());
 		}
+
+		if (MT_Config::getInstance().isEnergyModelEnabled()) //jo condition on EnergyModel being enabled
+		{
+			if (MT_Config::getInstance().getEnergyModel()->getModelType() == "tripenergy")
+			{
+				calcEnergyFromMovement(advanceDistance);
+			}
+			//jo Mar27
+			else if (MT_Config::getInstance().getEnergyModel()->getModelType() == "simple")
+			{
+				onNewTrainVelocitySample(params.currentSpeed); //jo - we have speed here already - Mar27
+			} // jo
+		}
 		return true;
+	}
+	if (MT_Config::getInstance().isEnergyModelEnabled()) //jo condition on EnergyModel being enabled
+	{
+		if (MT_Config::getInstance().getEnergyModel()->getModelType() == "tripenergy")
+		{
+			calcEnergyFromMovement(0);
+		}			//jo Mar27
+		if (MT_Config::getInstance().getEnergyModel()->getModelType() == "simple")
+		{
+			onNewTrainVelocitySample(0); ///jo Mar27 - check if params.currentSpeed gives same as 0 at stop platform
+		}
 	}
 	return false;
 }
@@ -2109,6 +2261,20 @@ void TrainMovement::arrivalAtStartPlaform() const
 
 void TrainMovement::arrivalAtEndPlatform() const
 {
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		//jo
+		if (MT_Config::getInstance().getEnergyModel()->getModelType() == "tripenergy")
+		{
+			outputEnergyAfterTrip(); //jo MAR 27.. - TODO - we should make it consistent with Bus/Car
+			//totalEnergyUsed = 0.0;
+		}
+		// TODO - jo Mar27 - fix!!!
+//		else if (MT_Config::getInstance().getEnergyModel()->getModelType() == "simple")
+//		{
+//			onTrainTripCompletion(); //jo Mar 27
+//		}
+	}
 	TrainRemoval *trainRemovalInstance = TrainRemoval::getInstance();
 	trainRemovalInstance->addToTrainRemovalList(parentDriver);
 }

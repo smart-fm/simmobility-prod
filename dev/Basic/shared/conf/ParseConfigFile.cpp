@@ -821,18 +821,22 @@ void ParseConfigFile::processWorkgroupAssignmentNode(xercesc::DOMElement *node)
 void ParseConfigFile::processOperationalCostNode(xercesc::DOMElement *node)
 {
 	// default value for operational cost: 0.147 dollars/km taken from Siyu's thesis
-	float operational_cost = ParseFloat(GetNamedAttributeValue(node, "value", true), (float) 0.147);
+	float gasoline_cost_per_liter = ParseFloat(GetNamedAttributeValue(node, "gasolineCostPerLiter", true), (float) 0.66);
+	float electricity_cost_per_kwh = ParseFloat(GetNamedAttributeValue(node, "electricityCostPerKWh", true), (float) 0.11 );
+	float gasoline_icev_economy_liters_per_km = ParseFloat(GetNamedAttributeValue(node, "gasolineICEVeconomyLitersPerKm", true), (float) .098 );
+	float gasoline_hev_economy_liters_per_km = ParseFloat(GetNamedAttributeValue(node, "gasolineHEVeconomyLitersPerKm", true), (float) .05 );
+	float bev_economy_kwh_per_km = ParseFloat(GetNamedAttributeValue(node, "BEVeconomyKWhPerKm", true), (float) 0.212 );
 
-	if (operational_cost < 0)
+	if (gasoline_cost_per_liter < 0 || electricity_cost_per_kwh < 0 || gasoline_icev_economy_liters_per_km < 0 || bev_economy_kwh_per_km < 0 )
 	{
 		stringstream msg;
-		msg << "Invalid value for Operational Cost. Fuel cost cannot be negative";
+		msg << "Invalid value for Vehicle Operational Cost parameter(s). Fuel cost/economy cannot be negative";
 		throw runtime_error(msg.str());
 	}
 
-	cfg.simulation.operationalCost = operational_cost;
-
-
+	cfg.simulation.operationalCostICE = gasoline_cost_per_liter * gasoline_icev_economy_liters_per_km ;
+	cfg.simulation.operationalCostHEV = gasoline_cost_per_liter * gasoline_hev_economy_liters_per_km ;
+	cfg.simulation.operationalCostBEV = electricity_cost_per_kwh * bev_economy_kwh_per_km ;
 }
 
 

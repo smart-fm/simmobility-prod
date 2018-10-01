@@ -6,8 +6,8 @@
 #include "LogsumTourModeDestinationParams.hpp"
 #include "behavioral/PredayUtils.hpp"
 #include "conf/ConfigManager.hpp"
-#include "conf/ParseConfigFile.hpp"
-
+#include "conf/ConfigParams.hpp" //jo Apr30
+#include "../../conf/ConfigManager.hpp"
 #include <algorithm>
 #include <stdio.h>
 #include <iostream>
@@ -18,8 +18,9 @@ using namespace sim_mob;
 namespace
 {
 const double WALKABLE_DISTANCE = 3.0; //km
-const double OPERATIONAL_COST = 0.147;
+//const double OPERATIONAL_COST = 0.147;
 
+	const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig(); //jo
 const std::vector<OD_Pair> unavailableODsDummy;
 const std::string configFileName = "data/simulation.xml";
 /**
@@ -154,10 +155,11 @@ void setTourModeAvailability(const PersonParams& personParams, int numModes, std
 
 }
 
-ModeDestinationParams::ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-        StopType purpose, int originCode, int numModes, const std::vector<OD_Pair>& unavailableODs) :
-		zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode), OPERATIONAL_COST(0.147),
-            MAX_WALKING_DISTANCE(3), cbdOrgZone(false), unavailableODs(unavailableODs), numModes(numModes)
+ModeDestinationParams::ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, 
+	const CostMap& pmCostsMap, StopType purpose, int originCode, const VehicleParams::VehicleDriveTrain& powerTrain, 
+	int numModes, const std::vector<OD_Pair>& unavailableODs):
+		zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode), 
+		powertrain(powerTrain), MAX_WALKING_DISTANCE(3), cbdOrgZone(false), unavailableODs(unavailableODs), numModes(numModes)
 {
 }
 
@@ -196,10 +198,11 @@ bool sim_mob::ModeDestinationParams::isUnavailable(int origin, int destination) 
 	return binary_search(unavailableODs.begin(), unavailableODs.end(), orgDest);
 }
 
-LogsumTourModeDestinationParams::LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-        const PersonParams& personParams, StopType tourType, int numModes) :
-        ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(), numModes, unavailableODsDummy),
-            modeForParentWorkTour(0), costIncrease(1)
+LogsumTourModeDestinationParams::LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, 
+	const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType, int numModes):
+		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation(),
+		personParams.getConstVehicleParams().getDrivetrain(), // Eytan 28-May-2018
+		numModes, unavailableODsDummy), modeForParentWorkTour(0), costIncrease(1)
 {
     //setTourCarAndMotorAvailability(personParams, drive1Available, motorAvailable);
     setTourModeAvailability(personParams, numModes, modeAvailability, ConfigManager::GetInstance().FullConfig());
@@ -307,10 +310,23 @@ double LogsumTourModeDestinationParams::getCostCarOPFirst(int zoneId) const
 	}
 
 	double result = 0;
-
+	const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+	double operationalCost;
+	if (powertrain == VehicleParams::BEV or powertrain == VehicleParams::FCV)
+	{
+		operationalCost = cfg.operationalCostBEV();
+	}
+	else if (powertrain == VehicleParams::HEV or powertrain == VehicleParams::PHEV)
+	{
+		operationalCost = cfg.operationalCostHEV();
+	}
+	else // resorting to ICE
+	{
+		operationalCost = cfg.operationalCostICE();
+	}
 	try
 	{
-		result = (amCostsMap.at(origin).at(destination)->getDistance() * OPERATIONAL_COST);
+		result = (amCostsMap.at(origin).at(destination)->getDistance() * operationalCost); //jo
 	}
 	catch(...)
 	{
@@ -329,10 +345,23 @@ double LogsumTourModeDestinationParams::getCostCarOPSecond(int zoneId) const
 	}
 
 	double result = 0;
-
+	const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+	double operationalCost;
+	if (powertrain == VehicleParams::BEV or powertrain == VehicleParams::FCV)
+	{
+		operationalCost = cfg.operationalCostBEV();
+	}
+	else if (powertrain == VehicleParams::HEV or powertrain == VehicleParams::PHEV)
+	{
+		operationalCost = cfg.operationalCostHEV();
+	}
+	else // resorting to ICE
+	{
+		operationalCost = cfg.operationalCostICE();
+	}
 	try
 	{
-		result = (pmCostsMap.at(destination).at(origin)->getDistance() * OPERATIONAL_COST);
+		result = (pmCostsMap.at(destination).at(origin)->getDistance() * operationalCost); //jo
 	}
 	catch(...)
 	{
@@ -781,17 +810,30 @@ sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, 
 			workOP(znDesObj->getEmployment()), educationOP(znDesObj->getTotalEnrollment()), originArea(znOrgObj->getArea()),
 			destinationArea(znDesObj->getArea())
 {
-	const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
-    int numModes = cfg.getNumTravelModes();
-
+	const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig(); //jo Apr13
+	int numModes = ConfigManager::GetInstance().FullConfig().getNumTravelModes();
+	VehicleParams::VehicleDriveTrain individual_vehicle = personParams.getConstVehicleParams().getDrivetrain();
+	double operationalCost;
+	if (individual_vehicle == VehicleParams::BEV or individual_vehicle == VehicleParams::FCV)
+	{
+		operationalCost = cfg.operationalCostBEV();
+	}
+	else if (individual_vehicle == VehicleParams::HEV or individual_vehicle == VehicleParams::PHEV)
+	{
+		operationalCost = cfg.operationalCostHEV();
+	}
+	else
+	{
+		operationalCost = cfg.operationalCostICE(); // jo Apr13
+	}
 	if (amObj && pmObj)
 	{
 		costPublicFirst = amObj->getPubCost();
 		costPublicSecond = pmObj->getPubCost();
 		costCarERP_First = amObj->getCarCostErp();
 		costCarERP_Second = pmObj->getCarCostErp();
-		costCarOP_First = amObj->getDistance() * OPERATIONAL_COST;
-		costCarOP_Second = pmObj->getDistance() * OPERATIONAL_COST;
+		costCarOP_First = amObj->getDistance() * operationalCost ; //jo Apr13
+		costCarOP_Second = pmObj->getDistance() * operationalCost ; //jo Apr13
 		walkDistance1 = amObj->getDistance();
 		walkDistance2 = pmObj->getDistance();
 		ttPublicIvtFirst = amObj->getPubIvt();

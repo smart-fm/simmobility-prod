@@ -47,9 +47,10 @@ sim_mob::TripChainItem::TripChainItem(
 		unsigned int seqNumber,
 		int requestTm,
 		std::string mode,
+		std::string vehicleType,
 		unsigned int edge) :
 		personID(entId), itemType(getItemType(type)), purpose(getItemPurpose(purpose)), startTime(start), endTime(end),
-		sequenceNumber(seqNumber), requestTime(requestTm), travelMode(mode),edgeId(edge)
+		sequenceNumber(seqNumber), requestTime(requestTm), travelMode(mode),vehicleTypeDriven(vehicleType),edgeId(edge)
 {
 }
 
@@ -85,8 +86,9 @@ sim_mob::Trip::Trip(std::string entId,
 		const Node* to,
 		std::string toLocType,
 		std::string mode,
+		std::string vehicleType,
 		std::string purpose) :
-				TripChainItem(purpose, entId, type, start, end, seqNumber, requestTime, mode), tripID(tripId)
+				TripChainItem(purpose, entId, type, start, end, seqNumber, requestTime, mode, vehicleType), tripID(tripId)
 {
 	origin = WayPoint(from);
 	destination = WayPoint(to);
@@ -142,9 +144,10 @@ sim_mob::SubTrip::SubTrip(std::string entId,
 		const Node* to,
 		std::string toLocType,
 		std::string mode,
+		std::string vehicleType,
 		bool isPrimary,
 		std::string ptLineId) :
-				Trip(entId, type, seqNumber, requestTime, start, end, "", from, fromLocType, to, toLocType, mode),
+				Trip(entId, type, seqNumber, requestTime, start, end, "", from, fromLocType, to, toLocType, mode, vehicleType),
 				isPT_Walk(false),walkTime(0.0), ptLineId(ptLineId), cbdTraverseType(sim_mob::TravelMetric::CBD_NONE),
 				isTT_Walk(false)
 {
@@ -157,6 +160,11 @@ sim_mob::SubTrip::~SubTrip()
 std::string sim_mob::TripChainItem::getPersonID() const
 {
 	return personID;
+}
+
+std::string sim_mob::TripChainItem::getVehicleType() const
+{
+	return vehicleTypeDriven;
 }
 
 void sim_mob::TripChainItem::setPersonID(const std::string& val)

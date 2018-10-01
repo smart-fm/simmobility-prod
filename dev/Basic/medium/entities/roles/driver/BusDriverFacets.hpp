@@ -178,6 +178,9 @@ protected:
 
 	/** bus trip id corresponding to this bus driver role */
 	std::string busTripId;
+	
+	void onNewBusVelocitySample(double busVelocitySample);
+	void onBusTripCompletion();
 };
 
 }

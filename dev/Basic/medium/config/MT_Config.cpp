@@ -25,7 +25,8 @@ MT_Config::MT_Config() :
        regionRestrictionEnabled(false), midTermRunMode(MT_Config::MT_NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
 			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::PREDAY_NONE),
 			calibrationMethodology(MT_Config::WSPSA), logsumComputationFrequency(0), supplyUpdateInterval(0),
-			activityScheduleLoadInterval(0), busCapacity(0), populationSource(db::POSTGRES), granPersonTicks(0),threadsNumInPersonLoader(0)
+			activityScheduleLoadInterval(0), busCapacity(0), populationSource(db::POSTGRES), granPersonTicks(0),threadsNumInPersonLoader(0),
+			energyModelEnabled(false)
 {
 }
 
@@ -451,6 +452,32 @@ void sim_mob::medium::MT_Config::setSpeedDensityParam(int linkCategory, SpeedDen
 			throw std::runtime_error("invalid link category passed to set speed density parameters");
 		}
 		speedDensityParams[linkCategory-1] = sdParams;
+	}
+}
+
+bool MT_Config::isEnergyModelEnabled() const
+{
+	return energyModelEnabled;
+}
+
+void MT_Config::setEnergyModelEnabled(bool energyModelEnabled)
+{
+	if (!configSealed)
+	{
+		this->energyModelEnabled = energyModelEnabled;
+	}
+}
+
+EnergyModelBase *MT_Config::getEnergyModel()
+{
+	return energyModel;
+}
+
+void MT_Config::setEnergyModel(EnergyModelBase *energyModel)
+{
+	if (!configSealed)
+	{
+		this->energyModel = energyModel;
 	}
 }
 

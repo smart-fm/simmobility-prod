@@ -206,7 +206,10 @@ std::string OnCallDriverMovement::frame_tick_output()
         {
             //Update the value of current node as we return after this method
             const SMSVehicleParking *parking = onCallDriver->driverSchedule.getCurrScheduleItem()->parking;
-            roadSegmentId = parking->getSegmentId();
+            if(parking)
+            {
+                roadSegmentId = parking->getSegmentId();
+            }
         }
         const std::string driverStatusStr = onCallDriver->getDriverStatusStr();
         const string timeStr = (DailyTime(params.now.ms()) + DailyTime(

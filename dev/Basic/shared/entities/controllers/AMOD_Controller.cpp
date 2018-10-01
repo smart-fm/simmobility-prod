@@ -249,7 +249,7 @@ void AMOD_Controller::matchSingleRiderReq()
         else
         {
             //no available drivers
-            ControllerLog() << "Requests to be scheduled " << singleRideRequests.size() << ", available drivers "
+            ControllerLog() << "No feasible driver found for person " << request->userId << ". Requests to be scheduled " << singleRideRequests.size() << ", available drivers "
                             << availableDrivers.size() << endl;
 
             //Move to next request. Leave the unassigned request in the queue, we will process again this next time

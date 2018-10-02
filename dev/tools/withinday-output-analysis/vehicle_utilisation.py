@@ -90,6 +90,7 @@ plt.title('Vehicle Utilisation')
 plt.xlabel('Time')
 plt.xticks(xbreaks, [i.strftime('%H:%M') for i in xbreaks])
 plt.ylabel('Number of Drivers')
+plt.legend(fancybox=True, loc=1, fontsize='xx-small')
 plt.savefig("vehicle_utilisation.png")
 
 res.index  = [ pd.to_datetime(i).strftime('%H:%M') for i in res.index.values ]

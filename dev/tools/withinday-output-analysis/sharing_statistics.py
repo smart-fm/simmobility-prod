@@ -20,6 +20,7 @@ Output:
   2) sharing_statistics.csv: The underlying data
 """
 
+import sys
 import pandas as pd
 import csv
 import matplotlib

@@ -248,12 +248,25 @@ void AMOD_Controller::matchSingleRiderReq()
         }
         else
         {
-            //no available drivers
-            ControllerLog() << "No feasible driver found for person " << request->userId << ". Requests to be scheduled " << singleRideRequests.size() << ", available drivers "
-                            << availableDrivers.size() << endl;
-
-            //Move to next request. Leave the unassigned request in the queue, we will process again this next time
-            ++request;
+            if (currTick.getSeconds() > request->timeOfRequest.getSeconds() + maxWaitingTime)
+            {
+                // No driver could be matched and the person has already been waiting for too long.
+                // For now, we remove the person from the queue.
+                // TODO: Decide what needs to be done - either kill the person (adversely affecting
+                //       controller statistiacs) or send a message to the person asking him/her to
+                //       submit a new request or try a different mode of transport
+                Warn() << "Can't assign driver to " << request->userId << ". Removing the person from the single ride request queue";
+                request = singleRideRequests.erase(request);
+            }
+            else
+            {
+                //no available drivers
+                ControllerLog() << "No feasible driver found for person " << request->userId
+                                << ". Requests to be scheduled " << singleRideRequests.size()
+                                << ", available drivers " << availableDrivers.size() << endl;
+                //Move to next request. Leave the unassigned request in the queue, we will process again this next time
+                ++request;
+            }
         }
     }
 }

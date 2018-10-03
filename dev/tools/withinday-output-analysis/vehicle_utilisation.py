@@ -18,6 +18,7 @@ Output:
   2) vehicle_utilisation.csv: The underlying data
 """
 
+import sys
 import pandas as pd
 import csv
 import matplotlib

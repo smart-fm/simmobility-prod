@@ -726,14 +726,14 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
             const TripRequestMessage &request = scheduleItem.tripRequest;
             // I verify if the waiting time is ok
             scheduleTimeStamp += getTT(latestNode, scheduleItem.tripRequest.startNode, ttEstimateType);
-            if (scheduleTimeStamp - request.timeOfRequest.ms() / 1000.0 > waitingTimeThreshold)
+            if (scheduleTimeStamp - request.timeOfRequest.getSeconds() > waitingTimeThreshold)
             {
                 return -1;
             }
             else
             {
                 numberOfPassengers++;
-                latestNode = scheduleItem.tripRequest.startNode;
+                latestNode = request.startNode;
             }
             break;
         }
@@ -741,20 +741,19 @@ double OnCallController::evaluateSchedule(const Node *initialPosition, const Sch
         {
             // Find the time that this traveller would need, if he were alone
             const TripRequestMessage &request = scheduleItem.tripRequest;
-            const Node *startNode = scheduleItem.tripRequest.startNode;
-            const Node *nextNode = scheduleItem.tripRequest.destinationNode;
-            scheduleTimeStamp += getTT(latestNode, nextNode, ttEstimateType);
-            double avgWaitingTime = 900 ; //seconds, this time should be made configurable later, if the test results look good.
-            double timeIfHeWereAlone = avgWaitingTime + getTT(startNode, nextNode, ttEstimateType);
-            const double sharedTravelDelay = 600; //seconds
-            double rideTimeThreshold = schedule.size() > 2 ? timeIfHeWereAlone + sharedTravelDelay : timeIfHeWereAlone;
+            scheduleTimeStamp += getTT(latestNode, request.destinationNode, ttEstimateType);
+            // avgWaitingTime is our estimate of the delay experienced by a user between time of submission of a single rider request
+            // and start of the trip (i.e. time of pickup). This should be moved to the configuration file later.
+            double avgWaitingTime = 900 ;
+            double timeIfHeWereAlone = avgWaitingTime + getTT(request.startNode, request.destinationNode, ttEstimateType);
+            double rideTimeThreshold = schedule.size() > 2 ? timeIfHeWereAlone + additionalDelayThreshold : timeIfHeWereAlone;
             if (scheduleTimeStamp - request.timeOfRequest.getSeconds() > rideTimeThreshold)
             {
                 return -1;
             }
             else
             {
-                latestNode = nextNode;
+                latestNode = request.destinationNode;
             }
             break;
         }

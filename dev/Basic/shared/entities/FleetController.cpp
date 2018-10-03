@@ -114,16 +114,25 @@ void FleetController::LoadTaxiFleetFromDB()
             fleetItem.av = r.get<int>(COLUMN_AV);
             std::map<unsigned int, MobilityServiceControllerConfig>::const_iterator controllerIdIt = ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.find(
                     fleetItem.controllerSubscription);
-            if (controllerIdIt ==
-                ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.end()) {
-                throw std::runtime_error("Invalid Controller Subscription Id.");
+            try {
+                if (controllerIdIt ==
+                    ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.end())
+                {
+                    throw std::runtime_error("Invalid Controller Subscription Id.");
+                }
+
+            }
+            catch (std::runtime_error& e)
+            {
+                std::cerr<<e.what()<<endl;
+                throw;
             }
             taxiFleet.insert(std::pair<unsigned int, FleetItem>(fleetItem.controllerSubscription, fleetItem));
         }
     }
     catch (std::exception& ex)
     {
-        throw std::runtime_error("Mismatch in the taxi fleet table columns with the one declared in the Taxi Fleet enum table.");
+        throw std::runtime_error("Validate the vehicle fleet.");
     }
 }
 

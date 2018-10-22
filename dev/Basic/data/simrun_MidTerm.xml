@@ -6,7 +6,6 @@
     <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
     <!-- Admissible values are "logsum","activityschedule","predayfull", "withinday", "supply", and "midtermfull". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.-->
     <mid_term_run_mode value="midtermfull"/>
-
     <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
 
     <db_proc_groups>
@@ -63,7 +62,7 @@
 
 
             <!-- Smart Mobility Controller related stored procedures -->
-            <mapping name="taxi_fleet" procedure="get_taxi_fleet_2030_partial_restriction"/>
+            <mapping name="taxi_fleet" procedure="get_vehicle_fleet_aditi"/>
             <mapping name="sms_parking" procedure="get_parking_infra_aditi"/>
             <mapping name="taxi_stands" procedure="get_taxi_stands()"/>
             <mapping name="rail_sms_pathset" procedure="get_pt_pathset_railsms"/>
@@ -71,14 +70,14 @@
             <mapping name="rail_sms_vertices" procedure="get_pt_tr_vertices_railsms()"/>
             <mapping name="loop_nodes" procedure="get_loop_nodes()" />
             <!--- If the "study_area enabled" is true  then the following stored proc are required -->
-            <mapping name="studyArea_nodes" procedure="get_extmp_nodes()"/>
+            <!--mapping name="studyArea_nodes" procedure="get_extmp_nodes()"/>
             <mapping name="studyArea_links" procedure="get_extmp_links()"/>
             <mapping name="studyArea_pvt_pathset" procedure="get_pvt_pathset_extmp"/>
 	        <mapping name="studyArea_blackListNodes" procedure="get_extmp_blackListNodes()"/>
 	        <mapping name="studyArea_rail_pathset" procedure="get_pt_pathset_railsms_extmp"/>
 	        <mapping name="studyArea_rail_edges" procedure="get_pt_tr_edges_railsms_extmp()"/>
             <mapping name="studyArea_rail_vertices" procedure="get_pt_tr_vertices_railsms_extmp()"/>
-
+-->
         </proc_map>
     </db_proc_groups>
 
@@ -92,7 +91,7 @@
 <system>
     <!-- If loading from the database, which database, proc_map, and credentials are used? -->
     <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="singapore_2030"/>
-        <population_database  database="fm_remote" credentials="fm_local" proc_map=""/>
+    <population_database  database="fm_hpchead" credentials="fm_hpchead" proc_map=""/>
 
     <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->
     <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
@@ -229,15 +228,15 @@
 <preday>
     <!-- Number of threads to create for processing the population in-->
     <!-- the preday demand simulator -->
-        <threads value="1"/>
+        <threads value="10"/>
     <!-- outputs the preday predictions as activity schedule in CSV format if enabled with simulation run_mode -->
     <output_activity_schedule enabled="true"/>
     <!-- prints person ids and tour details in console for each person if enabled -->
     <console_output enabled="true"/>
     <!-- table containing logsums for each individual in the population. NOTE:  -->
-        <logsum_table name="demand.preday_logsum"/>
+        <logsum_table name="demand.preday_logsum_energy_testing_nishant"/>
         <!-- table containing activity schedule of each individual in the population. -->
-        <activity_schedule_table schema="demand" table="das_calib" procedure="update_das_table" fileName="activity_schedule" vehicleTable="synpop12.vehicle"/>
+        <activity_schedule_table schema="demand" table="das_calib" procedure="update_das_table" fileName="activity_schedule" vehicleTable="virtual_city.vehicle"/>
 
         <!-- model scripts for PRE-DAY -->
         <model_scripts path="scripts/lua/mid/behavior_vc" format="lua">

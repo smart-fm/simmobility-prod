@@ -7,15 +7,15 @@
         <!-- Note that credentials (login details) are stored in a separate construct. -->
         <databases>
             <database id="fm_remote" dbtype="postgres">
-                <host value="172.25.xxx.xx"/>
+                <host value="172.25.xxx.xxx"/>
                 <port value="5432"/>
-                <dbname value="simmobility_l2nic2b"/>
+                <dbname value="simmobcirt"/>
             </database>
 
             <database id="fm_hpchead" dbtype="postgres">
                 <host value="172.25.xxx.xxx"/>
                 <port value="5432"/>
-                <dbname value="simmobility_l2nic2b"/>
+                <dbname value="simmobility_virtualcity_sms_casestudy2017"/>
             </database>
 
             <database id="fm_hpchead_lt" dbtype="postgres">
@@ -157,7 +157,7 @@ Note: Controller id indicates the subscribed_controller field specified in the t
 
     <!-- Trip Support Modes available
     "Rail_SMS_Pool" "AMOD_Pool" "Rail_SMS" "SMS_Pool" "SMS" "AMOD"-->
-    <controller id="2" type="7" tripSupportMode = "|AMOD|AMOD_Pool|Rail_AMOD_Pool|Rail_AMOD|" scheduleComputationPeriod="1" maxFleetSize="10" maxAggregatedRequests="6" studyAreaEnabledController="true" toleratedExtraTime="1800" maxWaitingTime = "1800" parkingEnabled="false"/>
+    <controller id="2" type="7" tripSupportMode = "|AMOD|AMOD_Pool|Rail_AMOD_Pool|Rail_AMOD|" scheduleComputationPeriod="1" maxFleetSize="10" maxAggregatedRequests="6" studyAreaEnabledController="false" toleratedExtraTime="1800" maxWaitingTime = "1800" parkingEnabled="false"/>
     <controller id="5" type="7" tripSupportMode = "|SMS|SMS_Pool|Rail_SMS|Rail_SMS_Pool|" scheduleComputationPeriod="1" maxFleetSize="10" maxAggregatedRequests="6" studyAreaEnabledController="false" toleratedExtraTime="1800" maxWaitingTime = "1800" parkingEnabled="true"/>
      <controller id="4" type="1" tripSupportMode = "|Taxi|" scheduleComputationPeriod="1" maxFleetSize="0" maxAggregatedRequests="1" studyAreaEnabledController="false" toleratedExtraTime="1800" maxWaitingTime = "1800" parkingEnabled="false"/>
 
@@ -168,7 +168,7 @@ Note: Controller id indicates the subscribed_controller field specified in the t
     <travel_modes>
 	    <mode name="BusTravel" type="1" num_sharing="1"/>
 	    <mode name="MRT" type="1" num_sharing="1"/>
-	    <mode name="Private Bus" type="1" num_sharing="1"/>
+	    <mode name="PrivateBus" type="1" num_sharing="1"/>
 	    <mode name="Car" type="3" num_sharing="1"/>
 	    <mode name="Car Sharing 2" type="4" num_sharing="2"/>
 	    <mode name="Car Sharing 3" type="4" num_sharing="3"/>
@@ -193,7 +193,7 @@ Note: Controller id indicates the subscribed_controller field specified in the t
 
 
     <schemas>
-            <main_schema  value= "synpop12."/>
+            <main_schema  value= "virtual_city."/>
             <calibration_schema value= "calibration2012."/>
             <public_schema value= "public."/>
             <demand_schema value= "demand."/>
@@ -202,9 +202,9 @@ Note: Controller id indicates the subscribed_controller field specified in the t
     <table_names>
             <table name="income_cat" value="income_category" />
             <table name="vehicle_ownership_status" value="vehicle_ownership_status" />
-            <table name="AM_cost_table" value="learned_amcosts_calib" />
-            <table name="PM_cost_table" value="learned_pmcosts_calib" />
-            <table name="OP_cost_table" value="learned_opcosts_calib" />
+            <table name="AM_cost_table" value="learned_amcosts" />
+            <table name="PM_cost_table" value="learned_pmcosts" />
+            <table name="OP_cost_table" value="learned_opcosts" />
             <table name="taz_table" value="taz_2012" />
             <table name="node_taz_map_table" value="node_taz_map" />
             <table name="taz_without_node_table" value="taz_without_node" />
@@ -216,7 +216,7 @@ Note: Controller id indicates the subscribed_controller field specified in the t
     <stored_proc_names>
             <stored_proc name="get_individual_id_list" value="getindividualids()" />
             <!-- The individual_by_id stored proc should be changed to getindividual_vehicle_by_id for the Energy consumption model -->
-            <stored_proc name="individual_by_id" value="getindividualbyidforpreday(:_id)" />
+            <stored_proc name="individual_by_id" value="getindividualbyidwithvehicle(:_id)" />
             <stored_proc name="addresses" value="getaddresses()" />
             <stored_proc name="postcode_node_map" value="get_postcode_node_map()" />
     </stored_proc_names>

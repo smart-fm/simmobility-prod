@@ -1014,24 +1014,50 @@ void PredayManager::updateDayActivityScheduleTable()
 	query.execute();
 
 	/// Create the table
-	query = (sql_.prepare << "CREATE TABLE " << tableName
-							 <<  "(person_id character varying,"
-								 "tour_no integer,"
-								 "tour_type character varying,"
-								 "stop_no integer,"
-								 "stop_type character varying,"
-								 "stop_location integer,"
-								 "stop_zone integer,"
-								 "stop_mode character varying,"
-								 "primary_stop boolean,"
-								 "arrival_time numeric,"
-								 "departure_time numeric,"
-								 "prev_stop_location integer,"
-								 "prev_stop_zone integer,"
-								 "prev_stop_departure_time numeric,"
-								 "pid bigserial NOT NULL"
-								 ") WITH (OIDS=FALSE)");
+	if (!MT_Config::getInstance().isEnergyModelEnabled())
+    {
+		query = (sql_.prepare << "CREATE TABLE " << tableName
+							  << "(person_id character varying,"
+									  "tour_no integer,"
+									  "tour_type character varying,"
+									  "stop_no integer,"
+									  "stop_type character varying,"
+									  "stop_location integer,"
+									  "stop_zone integer,"
+									  "stop_mode character varying,"
+									  "primary_stop boolean,"
+									  "arrival_time numeric,"
+									  "departure_time numeric,"
+									  "prev_stop_location integer,"
+									  "prev_stop_zone integer,"
+									  "prev_stop_departure_time numeric,"
+									  "pid bigserial NOT NULL"
+									  ") WITH (OIDS=FALSE)");
+	}
+	else if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
 
+		query = (sql_.prepare << "CREATE TABLE " << tableName
+							  << "(person_id character varying,"
+									  "tour_no integer,"
+									  "tour_type character varying,"
+									  "stop_no integer,"
+									  "stop_type character varying,"
+									  "stop_location integer,"
+									  "stop_zone integer,"
+									  "stop_mode character varying,"
+									  "primary_stop boolean,"
+									  "arrival_time numeric,"
+									  "departure_time numeric,"
+									  "prev_stop_location integer,"
+									  "prev_stop_zone integer,"
+									  "prev_stop_departure_time numeric,"
+									  "pid bigserial NOT NULL, "
+									  "drivetrain character varying,"
+									  "make character varying,"
+									  "model character varying"
+									  ") WITH (OIDS=FALSE)");
+	}
 	query.execute();
 
 	/// Alter table owner
@@ -1072,26 +1098,54 @@ void PredayManager::updateGetPersonBetweenStoredProc()
 
 
 	/// Create the table
-	query = (sql_.prepare << "CREATE OR REPLACE FUNCTION " << storedProcName<< "("
-								" IN start_time numeric,"
-								" IN end_time numeric)"
-								" RETURNS TABLE(person_id character varying, tour_no integer, "
-								" tour_type character varying, stop_no integer, stop_type character"
-								" varying, stop_location integer, stop_mode character varying, "
-								" primary_stop boolean, arrival_time numeric, departure_time numeric,"
-								" prev_stop_location integer, prev_stop_departure_time numeric, "
-								" prev_stop_taz integer, stop_taz integer) AS"
-								" $BODY$ "
-								" select person_id, tour_no, tour_type, stop_no, stop_type, stop_location, stop_mode, primary_stop, arrival_time, "
-								" departure_time, prev_stop_location, prev_stop_departure_time, prev_stop_zone, stop_zone"
-								" from " << tableName <<
-								" where person_id in (select person_id from " << tableName<<" where prev_stop_departure_time between $1 and $2 and tour_no = 1 and stop_no = 1) "
-                                " order  by person_id, tour_no, stop_no"
-								" $BODY$ "
-								" LANGUAGE sql volatile");
+	if (!MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		query = (sql_.prepare << "CREATE OR REPLACE FUNCTION " << storedProcName << "("
+				" IN start_time numeric,"
+				" IN end_time numeric)"
+				" RETURNS TABLE(person_id character varying, tour_no integer, "
+				" tour_type character varying, stop_no integer, stop_type character"
+				" varying, stop_location integer, stop_mode character varying, "
+				" primary_stop boolean, arrival_time numeric, departure_time numeric,"
+				" prev_stop_location integer, prev_stop_departure_time numeric, "
+				" prev_stop_taz integer, stop_taz integer) AS"
+				" $BODY$ "
+				" select person_id, tour_no, tour_type, stop_no, stop_type, stop_location, stop_mode, primary_stop, arrival_time, "
+				" departure_time, prev_stop_location, prev_stop_departure_time, prev_stop_zone, stop_zone"
+				" from " << tableName <<
+							  " where person_id in (select person_id from " << tableName
+							  << " where prev_stop_departure_time between $1 and $2 and tour_no = 1 and stop_no = 1) "
+									  " order  by person_id, tour_no, stop_no"
+									  " $BODY$ "
+									  " LANGUAGE sql volatile");
 
+	}
+	else if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		query = (sql_.prepare << "CREATE OR REPLACE FUNCTION " << storedProcName << "("
+				" IN start_time numeric,"
+				" IN end_time numeric)"
+				" RETURNS TABLE(person_id character varying, tour_no integer, "
+				" tour_type character varying, stop_no integer, stop_type character"
+				" varying, stop_location integer, stop_mode character varying, "
+				" primary_stop boolean, arrival_time numeric, departure_time numeric,"
+				" prev_stop_location integer, prev_stop_departure_time numeric, "
+				" prev_stop_taz integer, stop_taz integer,drivetrain character varying,"
+				"  make character varying,"
+				"  model character varying ) AS"
+				" $BODY$ "
+				" select person_id, tour_no, tour_type, stop_no, stop_type, stop_location, stop_mode, primary_stop, arrival_time, "
+				" departure_time, prev_stop_location, prev_stop_departure_time, prev_stop_zone, stop_zone, drivetrain, "
+				"  make, model "
+				" from " << tableName <<
+							  " where person_id in (select person_id from " << tableName
+							  << " where prev_stop_departure_time between $1 and $2 and tour_no = 1 and stop_no = 1) "
+									  " order  by person_id, tour_no, stop_no"
+									  " $BODY$ "
+									  " LANGUAGE sql volatile");
+	}
 
-	query.execute();
+		query.execute();
 
 	/// Alter table owner
 	query = (sql_.prepare << "ALTER FUNCTION " << storedProcName << "(numeric, numeric) OWNER TO postgres");

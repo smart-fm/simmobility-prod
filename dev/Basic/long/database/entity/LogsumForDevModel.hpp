@@ -16,7 +16,7 @@ namespace sim_mob {
 
         class LogsumForDevModel {
         public:
-        	LogsumForDevModel( BigSerial taz2012Id = INVALID_ID, BigSerial taz2008Id = INVALID_ID, double accessibility = 0);
+            LogsumForDevModel( BigSerial taz2012Id = INVALID_ID, BigSerial taz2008Id = INVALID_ID, double accessibility = 0);
 
             virtual ~LogsumForDevModel();
 

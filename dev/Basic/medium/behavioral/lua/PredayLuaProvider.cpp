@@ -17,37 +17,37 @@ namespace
 
 struct ModelContext
 {
-	PredayLuaModel predayModel;
+    PredayLuaModel predayModel;
 };
 
 boost::thread_specific_ptr<ModelContext> threadContext;
 
 void ensureContext()
 {
-	if (!threadContext.get())
-	{
-		try
-		{
-			const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().predayLuaScriptsMap;
-			const std::string& scriptsPath = extScripts.getPath();
+    if (!threadContext.get())
+    {
+        try
+        {
+            const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().predayLuaScriptsMap;
+            const std::string& scriptsPath = extScripts.getPath();
             const std::map<std::string, std::string>& predayScriptsName = extScripts.getScriptsFileNameMap();
-			ModelContext* modelCtx = new ModelContext();
+            ModelContext* modelCtx = new ModelContext();
             for (const auto& item : predayScriptsName)
             {
                 modelCtx->predayModel.loadFile(scriptsPath + item.second);
             }
-			modelCtx->predayModel.initialize();
-			threadContext.reset(modelCtx);
-		} catch (const std::out_of_range& oorx)
-		{
-			throw std::runtime_error("missing or invalid generic property 'external_scripts'");
-		}
-	}
+            modelCtx->predayModel.initialize();
+            threadContext.reset(modelCtx);
+        } catch (const std::out_of_range& oorx)
+        {
+            throw std::runtime_error("missing or invalid generic property 'external_scripts'");
+        }
+    }
 }
 }
 
 const PredayLuaModel& PredayLuaProvider::getPredayModel()
 {
-	ensureContext();
-	return threadContext.get()->predayModel;
+    ensureContext();
+    return threadContext.get()->predayModel;
 }

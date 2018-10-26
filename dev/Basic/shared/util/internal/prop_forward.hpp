@@ -26,40 +26,40 @@ namespace xml {
  */
 template <class T>
 void write_xml(XmlWriter& wr, const T& it, const namer& name, const expander& expand) {
-	//This provides a little protection against improperly formatted stings; since we're already using
-	//  extremely loose type checking (via strings), we can only prevent so much.
-	if (!(name.isEmpty() && expand.isEmpty())) {
-		throw std::runtime_error("Can't dispatch write_xml to a non-leaf node; make sure your namers line up!");
-	}
+    //This provides a little protection against improperly formatted stings; since we're already using
+    //  extremely loose type checking (via strings), we can only prevent so much.
+    if (!(name.isEmpty() && expand.isEmpty())) {
+        throw std::runtime_error("Can't dispatch write_xml to a non-leaf node; make sure your namers line up!");
+    }
 
-	//A null namer is essentially *no* namer, so remove it.
-	write_xml(wr, it);
+    //A null namer is essentially *no* namer, so remove it.
+    write_xml(wr, it);
 }
 
 ///Write with a namer, no expander. See also: xml_writer() with name and expander.
 template <class T>
 void write_xml(XmlWriter& wr, const T& it, const namer& name) {
-	//This provides a little protection against improperly formatted stings; since we're already using
-	//  extremely loose type checking (via strings), we can only prevent so much.
-	if (!(name.isEmpty())) {
-		throw std::runtime_error("Can't dispatch write_xml to a non-leaf node; make sure your namers line up!");
-	}
+    //This provides a little protection against improperly formatted stings; since we're already using
+    //  extremely loose type checking (via strings), we can only prevent so much.
+    if (!(name.isEmpty())) {
+        throw std::runtime_error("Can't dispatch write_xml to a non-leaf node; make sure your namers line up!");
+    }
 
-	//A null namer is essentially *no* namer, so remove it.
-	write_xml(wr, it);
+    //A null namer is essentially *no* namer, so remove it.
+    write_xml(wr, it);
 }
 
 ///Write with an expander, no namer. See also: xml_writer() with name and expander.
 template <class T>
 void write_xml(XmlWriter& wr, const T& it, const expander& expand) {
-	//This provides a little protection against improperly formatted stings; since we're already using
-	//  extremely loose type checking (via strings), we can only prevent so much.
-	if (!(expand.isEmpty())) {
-		throw std::runtime_error("Can't dispatch write_xml to a non-leaf node; make sure your namers line up!");
-	}
+    //This provides a little protection against improperly formatted stings; since we're already using
+    //  extremely loose type checking (via strings), we can only prevent so much.
+    if (!(expand.isEmpty())) {
+        throw std::runtime_error("Can't dispatch write_xml to a non-leaf node; make sure your namers line up!");
+    }
 
-	//A null namer is essentially *no* namer, so remove it.
-	write_xml(wr, it);
+    //A null namer is essentially *no* namer, so remove it.
+    write_xml(wr, it);
 }
 
 }}

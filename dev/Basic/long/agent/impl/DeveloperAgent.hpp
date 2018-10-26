@@ -42,7 +42,7 @@ namespace sim_mob {
              * @return true if the agent is active, false otherwise.
              */
             bool isActive() const {
-            	return active;
+                return active;
             }
 
             /**
@@ -50,7 +50,7 @@ namespace sim_mob {
              * @param active
              */
             void setActive(bool active) {
-            	this->active = active;
+                this->active = active;
             }
        
         protected:
@@ -69,14 +69,14 @@ namespace sim_mob {
             virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
         public:
             enum UnitSaleStatus {
-            	UNIT_NOT_LAUNCHED = 1, UNIT_LAUNCHED_BUT_UNSOLD, UNIT_LAUNCHED_AND_SOLD};
+                UNIT_NOT_LAUNCHED = 1, UNIT_LAUNCHED_BUT_UNSOLD, UNIT_LAUNCHED_AND_SOLD};
             enum UnitPhysicalStatus {
                 UNIT_NOT_READY_FOR_OCCUPANCY = 1, UNIT_READY_FOR_OCCUPANCY_AND_VACANT, UNIT_READY_FOR_OCCUPANCY_AND_OCCUPIED};
             enum BuildingStatus{
-            	BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES = 1, BUILDING_UNCOMPLETED_WITH_PREREQUISITES, BUILDING_NOT_LAUNCHED, BUILDING_LAUNCHED_BUT_UNSOLD, BUILDING_LAUNCHED_AND_SOLD, BUILDING_COMPLETED_WITH_PREREQUISITES, BUILDING_DEMOLISHED
+                BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES = 1, BUILDING_UNCOMPLETED_WITH_PREREQUISITES, BUILDING_NOT_LAUNCHED, BUILDING_LAUNCHED_BUT_UNSOLD, BUILDING_LAUNCHED_AND_SOLD, BUILDING_COMPLETED_WITH_PREREQUISITES, BUILDING_DEMOLISHED
             };
             enum UnitStatus{
-            	UNIT_PLANNED, UNIT_UNDER_CONSTRUCTION, UNIT_CONSTRUCTION_COMPLETED, UNIT_DEMOLISHED
+                UNIT_PLANNED, UNIT_UNDER_CONSTRUCTION, UNIT_CONSTRUCTION_COMPLETED, UNIT_DEMOLISHED
             };
             /**
              * Events callbacks.

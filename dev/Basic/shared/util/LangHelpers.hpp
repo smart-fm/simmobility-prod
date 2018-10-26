@@ -74,23 +74,23 @@
  */
 const class {                // nullptr is a const object.
 public:
-	//Convertible to any type of null non-member pointer.
-	template<class T> operator T*() const { return 0; }
+    //Convertible to any type of null non-member pointer.
+    template<class T> operator T*() const { return 0; }
 
-	//Convertible to any type of null member pointer.
-	template<class C, class T> operator T C::*() const { return 0; }
+    //Convertible to any type of null member pointer.
+    template<class C, class T> operator T C::*() const { return 0; }
 
-	//Workaround for GCC 4.5 equality bug.
-	//template<class C, class T> bool operator == (C (T::*p)()) const { return  p == 0; }
-	//template<class C, class T> bool operator != (C (T::*p)()) const { return  p != 0; }
+    //Workaround for GCC 4.5 equality bug.
+    //template<class C, class T> bool operator == (C (T::*p)()) const { return  p == 0; }
+    //template<class C, class T> bool operator != (C (T::*p)()) const { return  p != 0; }
 
 private:
-	//Cannot take the address of nullptr.
-	void operator&() const;
+    //Cannot take the address of nullptr.
+    void operator&() const;
 
-	//Side-effect of equality bug: need to make == private
-	//bool operator == (long) const;
-	//bool operator != (long) const;
+    //Side-effect of equality bug: need to make == private
+    //bool operator == (long) const;
+    //bool operator != (long) const;
 
 } nullptr = {};  //Single instance, named "nullptr"
 #endif
@@ -107,30 +107,30 @@ void safe_delete_item(T& item) {}
 /// a pointer as there may be multiple references to it. Still, it provides a useful fallback.
 template <typename T>
 void safe_delete_item(T*& item) {
-	if (item) {
-		delete item;
-		item = nullptr;
-	}
+    if (item) {
+        delete item;
+        item = nullptr;
+    }
 }
 
 
 //Delete all items in a vector, then clear that vector. Works on value and pointer types.
 template <typename T>
 void clear_delete_vector(typename std::vector<T>& src) {
-	for (typename std::vector<T>::iterator it=src.begin(); it!=src.end(); it++) {
-		safe_delete_item(*it);
-	}
-	src.clear();
+    for (typename std::vector<T>::iterator it=src.begin(); it!=src.end(); it++) {
+        safe_delete_item(*it);
+    }
+    src.clear();
 }
 
 //Delete all items in a set, then clear that set. Works on value and pointer types.
 template <typename T>
 void clear_delete_vector(typename std::set<T>& src) {
-	for (typename std::set<T>::iterator it=src.begin(); it!=src.end(); it++) {
-		//NOTE: We can't use safe_delete_item here, since it will clear the pointer (which might rebalance the set).
-		if ((*it)) { delete *it; }
-	}
-	src.clear();
+    for (typename std::set<T>::iterator it=src.begin(); it!=src.end(); it++) {
+        //NOTE: We can't use safe_delete_item here, since it will clear the pointer (which might rebalance the set).
+        if ((*it)) { delete *it; }
+    }
+    src.clear();
 }
 
 //Deletes value part for all the items in a <key,value> map and then clears the map
@@ -138,14 +138,14 @@ void clear_delete_vector(typename std::set<T>& src) {
 template <typename K, typename V>
 void clear_delete_map(typename std::map<K,V*>& src)
 {
-	for(typename std::map<K,V*>::iterator it = src.begin(); it != src.end(); it++)
-	{
-		if(it->second)
-		{
-			delete it->second;
-		}
-	}
-	src.clear();
+    for(typename std::map<K,V*>::iterator it = src.begin(); it != src.end(); it++)
+    {
+        if(it->second)
+        {
+            delete it->second;
+        }
+    }
+    src.clear();
 }
 
 
@@ -154,11 +154,11 @@ void clear_delete_map(typename std::map<K,V*>& src)
 template <typename K, typename V>
 void clear_delete_map_with_vector(typename std::map<K,V>& src)
 {
-	for(typename std::map<K,V>::iterator it = src.begin(); it != src.end(); it++)
-	{
-		clear_delete_vector(it->second);
-	}
-	src.clear();
+    for(typename std::map<K,V>::iterator it = src.begin(); it != src.end(); it++)
+    {
+        clear_delete_vector(it->second);
+    }
+    src.clear();
 }
 
 

@@ -80,20 +80,20 @@ BigSerial HM_ActionMessage::getBuildingId() const {
 }
 
 std::tm HM_ActionMessage::getFutureDemolitionDate() const {
-	return buildingFutureDemolitionDate;
+    return buildingFutureDemolitionDate;
 }
 
 Unit *HM_ActionMessage::getUnit() const
 {
-	return unit;
+    return unit;
 }
 
 Building  *HM_ActionMessage::getBuilding() const
 {
-	return building;
+    return building;
 }
 
 std::vector<BigSerial> HM_ActionMessage::getBtoUnitIdVec() const
 {
-	return btoUnitIdVec;
+    return btoUnitIdVec;
 }

@@ -25,7 +25,7 @@ namespace sim_mob
         {
         public:
             Postcode( BigSerial address_id = INVALID_ID, std::string sla_postcode = EMPTY_STR, BigSerial taz_id = INVALID_ID, float longitude = .0,
-            		  float latitude = .0, bool primary_postcode = false );
+                      float latitude = .0, bool primary_postcode = false );
 
             Postcode(const Postcode& source);
 

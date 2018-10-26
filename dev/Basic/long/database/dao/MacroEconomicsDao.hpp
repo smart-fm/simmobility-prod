@@ -19,7 +19,7 @@ namespace sim_mob {
          */
         class MacroEconomicsDao : public db::SqlAbstractDao<MacroEconomics> {
         public:
-        	MacroEconomicsDao(db::DB_Connection& connection);
+            MacroEconomicsDao(db::DB_Connection& connection);
             virtual ~MacroEconomicsDao();
 
         private:

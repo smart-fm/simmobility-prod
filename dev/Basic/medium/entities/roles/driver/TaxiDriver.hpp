@@ -24,173 +24,173 @@ namespace medium
 class TaxiDriver : public Driver, public MobilityServiceDriver
 {
 public:
-	TaxiDriver(Person_MT *parent, const MutexStrategy &mtxStrat,
-	           TaxiDriverBehavior *behavior, TaxiDriverMovement *movement,
-	           std::string roleName,
-	           Role<Person_MT>::Type roleType = Role<Person_MT>::RL_TAXIDRIVER);
+    TaxiDriver(Person_MT *parent, const MutexStrategy &mtxStrat,
+               TaxiDriverBehavior *behavior, TaxiDriverMovement *movement,
+               std::string roleName,
+               Role<Person_MT>::Type roleType = Role<Person_MT>::RL_TAXIDRIVER);
 
-	virtual ~TaxiDriver();
+    virtual ~TaxiDriver();
 
-	TaxiDriver(Person_MT *parent, const MutexStrategy &mtx);
+    TaxiDriver(Person_MT *parent, const MutexStrategy &mtx);
 
-	/**
-	 * add a new passenger into taxi
-	 * @param passenger is a pointer to the taxi passenger
-	 * @return true if boarding successfully
-	 */
-	bool addPassenger(Passenger *passenger);
+    /**
+     * add a new passenger into taxi
+     * @param passenger is a pointer to the taxi passenger
+     * @return true if boarding successfully
+     */
+    bool addPassenger(Passenger *passenger);
 
-	/**
-	 * alight a passenger when arriving the destination
-	 */
-	void alightPassenger();
+    /**
+     * alight a passenger when arriving the destination
+     */
+    void alightPassenger();
 
-	/**
-	 * get current Node
-	 * @return current Node
-	 */
-	const Node *getCurrentNode() const;
+    /**
+     * get current Node
+     * @return current Node
+     */
+    const Node *getCurrentNode() const;
 
-	/**
-	 * passenger route choice after boarding into taxi
-	 * @param origin is a pointer to original node
-	 * @param destination is a pointer to destination node
-	 * @param currentRouteChoice hold the route choice result
-	 */
-	void
-	passengerChoiceModel(const Node *origin, const Node *destination, std::vector<WayPoint> &currentRouteChoice);
+    /**
+     * passenger route choice after boarding into taxi
+     * @param origin is a pointer to original node
+     * @param destination is a pointer to destination node
+     * @param currentRouteChoice hold the route choice result
+     */
+    void
+    passengerChoiceModel(const Node *origin, const Node *destination, std::vector<WayPoint> &currentRouteChoice);
 
-	/**
-	 * get parent object
-	 * @return parent object
-	 */
-	Person_MT *getParent();
+    /**
+     * get parent object
+     * @return parent object
+     */
+    Person_MT *getParent();
 
-	/**
-	 * perform pickup at the node
-	 * @param personId is the id of the person to be picked up, if it is an empty string,
-	 * on hail drivers pick up a person from the node (without knowing the id)
-	 */
-	void pickUpPassngerAtNode(const std::string personId = "");
+    /**
+     * perform pickup at the node
+     * @param personId is the id of the person to be picked up, if it is an empty string,
+     * on hail drivers pick up a person from the node (without knowing the id)
+     */
+    void pickUpPassngerAtNode(const std::string personId = "");
 
-	/**
-	 * get movement facet
-	 * @return movement facet which is in charge of movement
-	 */
-	TaxiDriverMovement *getMovementFacet();
+    /**
+     * get movement facet
+     * @return movement facet which is in charge of movement
+     */
+    TaxiDriverMovement *getMovementFacet();
 
-	/**
-	 * clone taxi-driver object
-	 * @return cloned result which hold a taxi-driver role
-	 */
-	virtual Role<Person_MT> *clone(Person_MT *parent) const;
+    /**
+     * clone taxi-driver object
+     * @return cloned result which hold a taxi-driver role
+     */
+    virtual Role<Person_MT> *clone(Person_MT *parent) const;
 
-	/**
-	 * make parameters for current frame-tick update
-	 * @param now is current simulation time
-	 */
-	void make_frame_tick_params(timeslice now);
+    /**
+     * make parameters for current frame-tick update
+     * @param now is current simulation time
+     */
+    void make_frame_tick_params(timeslice now);
 
-	/**
-	 * override from base class
-	 * @return a shared buffer if used
-	 */
-	std::vector<BufferedBase *> getSubscriptionParams();
+    /**
+     * override from base class
+     * @return a shared buffer if used
+     */
+    std::vector<BufferedBase *> getSubscriptionParams();
 
-	/**
-	 * Process the next schedule item and updates the currScheduleItem
-	 * @param isMoveToNextScheduleItem Indicates whether we increment the iterator
-	 * pointing to the schedule item
-	 */
-	void processNextScheduleItem(bool isMoveToNextScheduleItem = true);
+    /**
+     * Process the next schedule item and updates the currScheduleItem
+     * @param isMoveToNextScheduleItem Indicates whether we increment the iterator
+     * pointing to the schedule item
+     */
+    void processNextScheduleItem(bool isMoveToNextScheduleItem = true);
 
-	/**
-	 * get current passenger
-	 * @return a passenger object if have.
-	 */
-	Passenger *getPassenger();
+    /**
+     * get current passenger
+     * @return a passenger object if have.
+     */
+    Passenger *getPassenger();
 
-	/**
-	 * @return the count of passengers on board
-	 */
-	unsigned long getPassengerCount() const;
+    /**
+     * @return the count of passengers on board
+     */
+    unsigned long getPassengerCount() const;
 
-	/**
-	 * message handler which provide a chance to handle message transfered from parent agent.
-	 * @param type of the message.
-	 * @param message data received.
-	 */
-	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message &message);
+    /**
+     * message handler which provide a chance to handle message transfered from parent agent.
+     * @param type of the message.
+     * @param message data received.
+     */
+    virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message &message);
 
-	/**
-	 * export service driver
-	 * @return exporting result
-	 */
-	virtual const MobilityServiceDriver *exportServiceDriver() const;
+    /**
+     * export service driver
+     * @return exporting result
+     */
+    virtual const MobilityServiceDriver *exportServiceDriver() const;
 
-	virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const;
+    virtual const std::vector<MobilityServiceController*>& getSubscribedControllers() const;
 
-	bool hasDriverShiftEnded() const;
+    bool hasDriverShiftEnded() const;
 
-	/*
+    /*
      * Get all Taxi Passengers ID (in one string seprated by '|') for taxi_trajectory.csv
      */
-	std::string  getAllTaxiPassengersId();
+    std::string  getAllTaxiPassengersId();
 
-	/**
-	 * Overrides the parent function
-	 */
-	virtual Schedule getAssignedSchedule() const;
+    /**
+     * Overrides the parent function
+     */
+    virtual Schedule getAssignedSchedule() const;
 
-	/**
-	 * collect travel time for current role
-	 */
-	virtual void collectTravelTime();
+    /**
+     * collect travel time for current role
+     */
+    virtual void collectTravelTime();
 
 private:
-	/**Holds all the passengers on board, the key to the map is the person db id*/
-	std::map<const std::string, Passenger *> taxiPassengers;
+    /**Holds all the passengers on board, the key to the map is the person db id*/
+    std::map<const std::string, Passenger *> taxiPassengers;
 
-	/**The taxiPassenger that will be dropped off next*/
-	Passenger *taxiPassenger = nullptr;
+    /**The taxiPassenger that will be dropped off next*/
+    Passenger *taxiPassenger = nullptr;
 
-	/**hold movement facet object*/
-	TaxiDriverMovement *taxiDriverMovement;
+    /**hold movement facet object*/
+    TaxiDriverMovement *taxiDriverMovement;
 
-	/**hold behavior facet object*/
-	TaxiDriverBehavior *taxiDriverBehaviour;
+    /**hold behavior facet object*/
+    TaxiDriverBehavior *taxiDriverBehaviour;
 
-	/**Holds the schedule assigned by the controller*/
-	//aa!!: We should move it into the MobilityServiceDriver class, as this member is valid for both Mid and Short Term.
-	Schedule assignedSchedule;
+    /**Holds the schedule assigned by the controller*/
+    //aa!!: We should move it into the MobilityServiceDriver class, as this member is valid for both Mid and Short Term.
+    Schedule assignedSchedule;
 
-	/**Points to the current schedule item*/
-	Schedule::const_iterator currScheduleItem;
+    /**Points to the current schedule item*/
+    Schedule::const_iterator currScheduleItem;
 
-	/**The mobility service controller that sent the current schedule*/
-	messaging::MessageHandler *controller = nullptr;
+    /**The mobility service controller that sent the current schedule*/
+    messaging::MessageHandler *controller = nullptr;
 
-	/**The parking location of the vehicle*/
-	const SMSVehicleParking *parkingLocation = nullptr;
+    /**The parking location of the vehicle*/
+    const SMSVehicleParking *parkingLocation = nullptr;
 
-	/**Indicates whether we have sent the reply for the schedule proposition sent by the controller*/
-	bool isScheduleAckSent;
+    /**Indicates whether we have sent the reply for the schedule proposition sent by the controller*/
+    bool isScheduleAckSent;
 
-	/** The barycenter of the dropOff locations of the passenger that still have to be dropped off  **/
-	Point dropOffBarycenter;
+    /** The barycenter of the dropOff locations of the passenger that still have to be dropped off  **/
+    Point dropOffBarycenter;
 
-	/**
-	 * Checks if the item in progress is present in the updated schedule
-	 * @param itemInProgress the item in progress
-	 * @param updatedSchedule the updated schedule
-	 * @return true if the item in progress is present in the schedule
-	 */
-	bool isInProgressItemInSchedule(const ScheduleItem &itemInProgress, const Schedule &updatedSchedule);
+    /**
+     * Checks if the item in progress is present in the updated schedule
+     * @param itemInProgress the item in progress
+     * @param updatedSchedule the updated schedule
+     * @return true if the item in progress is present in the schedule
+     */
+    bool isInProgressItemInSchedule(const ScheduleItem &itemInProgress, const Schedule &updatedSchedule);
 
 public:
-	friend class TaxiDriverBehavior;
+    friend class TaxiDriverBehavior;
 
-	friend class TaxiDriverMovement;
+    friend class TaxiDriverMovement;
 };
 
 }

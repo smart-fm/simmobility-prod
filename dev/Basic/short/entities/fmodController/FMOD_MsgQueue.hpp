@@ -28,13 +28,13 @@ MessageList operator+(MessageList lst1, MessageList lst2);
   */
 class FMOD_MsgQueue {
 public:
-	FMOD_MsgQueue();
-	virtual ~FMOD_MsgQueue();
+    FMOD_MsgQueue();
+    virtual ~FMOD_MsgQueue();
 
 private:
-	boost::mutex mutex;
-	boost::condition_variable condition;
-	MessageList messages;
+    boost::mutex mutex;
+    boost::condition_variable condition;
+    MessageList messages;
 
 public:
 
@@ -43,14 +43,14 @@ public:
       * @param msg is to store message content
       * @return void.
       */
-	void pushMessage(std::string msg, bool notified=false);
+    void pushMessage(std::string msg, bool notified=false);
 
     /**
       * pop up the first message from this storage.
       * @param msg is to store message content
       * @return void.
       */
-	bool popMessage(std::string& msg);
+    bool popMessage(std::string& msg);
 
     /**
       * waiting a message in blocking mode until a message is received.
@@ -58,13 +58,13 @@ public:
       * @timeoutSeconds is to assign timeout for blocking
       * @return true if retrieve a message successfully. otherwise false.
       */
-	bool waitPopMessage(std::string& msg, int timeoutSeconds);
+    bool waitPopMessage(std::string& msg, int timeoutSeconds);
 
     /**
       * read all messages at one time.
       * @return a list of MOD message.
       */
-	MessageList readMessage();
+    MessageList readMessage();
 
 };
 

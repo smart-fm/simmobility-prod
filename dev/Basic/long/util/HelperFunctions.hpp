@@ -18,7 +18,7 @@
 namespace sim_mob 
 {
     namespace long_term 
-	{
+    {
 
         /**
          * Deletes a pointer from a vector of pointers.
@@ -27,14 +27,14 @@ namespace sim_mob
          */
         template <typename T>
         void deleteValue(std::vector<T*>& src, T*& value) 
-		{
+        {
             if (value) 
-			{
+            {
                 typename std::vector<T*>::iterator it;
                 for (it = src.begin(); it != src.end(); it++) 
-				{
+                {
                     if ((*it) && value == (*it)) 
-					{
+                    {
                         delete *it;
                         src.erase(it);
                         value = nullptr;
@@ -50,10 +50,10 @@ namespace sim_mob
          */
         template <typename K, typename T>
         void deleteAll(boost::unordered_map<K, T*>& src) 
-		{
+        {
             typename boost::unordered_map<K, T*>::iterator it;
             for (it = src.begin(); it != src.end(); it++) 
-			{
+            {
                 safe_delete_item(it->second);
             }
             src.clear();
@@ -68,10 +68,10 @@ namespace sim_mob
          */
         template <typename T>
         void copy(std::vector<T*>& src, std::vector<T*>& dst) 
-		{
+        {
             typename std::vector<T*>::iterator it;
             for (it = src.begin(); it != src.end(); it++) 
-			{
+            {
                 dst.push_back((*it));
             }
         }
@@ -85,10 +85,10 @@ namespace sim_mob
          */
         template <typename T>
         void copy(std::vector<T*>& src, std::vector<const T*>& dst) 
-		{
+        {
             typename std::vector<T*>::iterator it;
             for (it = src.begin(); it != src.end(); it++) 
-			{
+            {
                 dst.push_back((*it));
             }
         }
@@ -119,9 +119,9 @@ namespace sim_mob
          */
         template <typename T, typename K>
         inline void loadData(db::DB_Connection& conn, K& list) 
-		{
+        {
             if (conn.isConnected()) 
-			{
+            {
                 T dao(conn);
                 dao.getAll(list);
             }
@@ -134,11 +134,11 @@ namespace sim_mob
         template <typename T, typename K>
         inline void loadData(db::DB_Connection& conn, const std::string &tableName, K& list)
         {
-        	if (conn.isConnected())
-        	{
-        		T dao(conn,tableName);
-        		dao.getAll(list);
-        	}
+            if (conn.isConnected())
+            {
+                T dao(conn,tableName);
+                dao.getAll(list);
+            }
         }
 
         /**
@@ -157,11 +157,11 @@ namespace sim_mob
          */
         template <typename T, typename K, typename M, typename F>
         inline void loadData(db::DB_Connection& conn, K& list, M& map, F getter) 
-		{
+        {
             loadData<T>(conn, list);
             //Index all buildings.
             for (typename K::iterator it = list.begin(); it != list.end(); it++) 
-			{
+            {
                 map.insert(std::make_pair(((*it)->*getter)(), *it));
             }
         }
@@ -172,22 +172,22 @@ namespace sim_mob
         template <typename T, typename K, typename M, typename F>
         inline void loadData(db::DB_Connection& conn, const std::string &tableName,K& list, M& map, F getter)
         {
-        	loadData<T>(conn, tableName, list);
-        	//Index all buildings.
-        	for (typename K::iterator it = list.begin(); it != list.end(); it++)
-        	{
-        		map.insert(std::make_pair(((*it)->*getter)(), *it));
-        	}
+            loadData<T>(conn, tableName, list);
+            //Index all buildings.
+            for (typename K::iterator it = list.begin(); it != list.end(); it++)
+            {
+                map.insert(std::make_pair(((*it)->*getter)(), *it));
+            }
         }
 
         template <typename K, typename M, typename F>
         inline void indexData( K &list, M& map, F getter)
         {
-        	//Index all data.
-        	for (typename K::iterator it = list.begin(); it != list.end(); it++)
-        	{
-        		map.insert(std::make_pair(((*it)->*getter)(), *it));
-        	}
+            //Index all data.
+            for (typename K::iterator it = list.begin(); it != list.end(); it++)
+            {
+                map.insert(std::make_pair(((*it)->*getter)(), *it));
+            }
         }
     }
 }

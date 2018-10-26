@@ -53,69 +53,69 @@ void ParcelDao::fromRow(Row& result, Parcel& outObj)
 
 void ParcelDao::toRow(Parcel& data, Parameters& outParams, bool update)
 {
-	outParams.push_back(data.getId());
-	outParams.push_back(data.getTazId());
-	outParams.push_back(data.getLotSize());
-	outParams.push_back(data.getGpr());
-	outParams.push_back(data.getLandUseTypeId());
-	outParams.push_back(data.getOwnerName());
-	outParams.push_back(data.getOwnerCategory());
-	outParams.push_back(data.getLastTransactionDate());
-	outParams.push_back(data.getLastTransationTypeTotal());
-	outParams.push_back(data.getPsmPerGps());
-	outParams.push_back(data.getLeaseType());
-	outParams.push_back(data.getLeaseStartDate());
-	outParams.push_back(data.getCentroidX());
-	outParams.push_back(data.getCentroidY());
-	outParams.push_back(data.getAwardDate());
-	outParams.push_back(data.getAwardStatus());
-	outParams.push_back(data.getUseRestriction());
-	outParams.push_back(data.getDevelopmentTypeCode());
-	outParams.push_back(data.getSuccessfulTenderId());
-	outParams.push_back(data.getSuccessfulTenderPrice());
-	outParams.push_back(data.getTenderClosingDate());
-	outParams.push_back(data.getLease());
-	outParams.push_back(data.getStatus());
-	outParams.push_back(data.getDevelopmentAllowed());
-	outParams.push_back(data.getNextAvailableDate());
-	outParams.push_back(data.getLastChangedDate());
+    outParams.push_back(data.getId());
+    outParams.push_back(data.getTazId());
+    outParams.push_back(data.getLotSize());
+    outParams.push_back(data.getGpr());
+    outParams.push_back(data.getLandUseTypeId());
+    outParams.push_back(data.getOwnerName());
+    outParams.push_back(data.getOwnerCategory());
+    outParams.push_back(data.getLastTransactionDate());
+    outParams.push_back(data.getLastTransationTypeTotal());
+    outParams.push_back(data.getPsmPerGps());
+    outParams.push_back(data.getLeaseType());
+    outParams.push_back(data.getLeaseStartDate());
+    outParams.push_back(data.getCentroidX());
+    outParams.push_back(data.getCentroidY());
+    outParams.push_back(data.getAwardDate());
+    outParams.push_back(data.getAwardStatus());
+    outParams.push_back(data.getUseRestriction());
+    outParams.push_back(data.getDevelopmentTypeCode());
+    outParams.push_back(data.getSuccessfulTenderId());
+    outParams.push_back(data.getSuccessfulTenderPrice());
+    outParams.push_back(data.getTenderClosingDate());
+    outParams.push_back(data.getLease());
+    outParams.push_back(data.getStatus());
+    outParams.push_back(data.getDevelopmentAllowed());
+    outParams.push_back(data.getNextAvailableDate());
+    outParams.push_back(data.getLastChangedDate());
 }
 
 std::vector<Parcel*>  ParcelDao::getEmptyParcels()
 {
-	const std::string queryStr = "SELECT * FROM " + connection.getSchema() + "getEmptyParcels()";
-	std::vector<Parcel*> emptyParcelList;
-	getByQuery(queryStr,emptyParcelList);
-	return emptyParcelList;
+    const std::string queryStr = "SELECT * FROM " + connection.getSchema() + "getEmptyParcels()";
+    std::vector<Parcel*> emptyParcelList;
+    getByQuery(queryStr,emptyParcelList);
+    return emptyParcelList;
 }
 
 std::vector<Parcel*> ParcelDao::getParcelsWithOngoingProjects(std::string schema)
 {
-	const std::string queryStr = "SELECT * FROM " + schema + "fm_parcel where  development_status = 1 and development_allowed = 3";
-	std::vector<Parcel*> parcelsWithOngoingProjectsList;
-	getByQuery(queryStr,parcelsWithOngoingProjectsList);
-	return parcelsWithOngoingProjectsList;
+    const std::string queryStr = "SELECT * FROM " + schema + "fm_parcel where  development_status = 1 and development_allowed = 3";
+    std::vector<Parcel*> parcelsWithOngoingProjectsList;
+    getByQuery(queryStr,parcelsWithOngoingProjectsList);
+    return parcelsWithOngoingProjectsList;
 }
 
 void ParcelDao::insertParcel(Parcel& parcel,std::string schema)
 {
 
-	const std::string DB_INSERT_PARCEL_OP = "INSERT INTO " + schema + ".fm_parcel"
-										+ " (" + "fm_parcel_id" + ", " + "taz_id" + ", " + "lot_size"
-				                		+ ", " + "gpr" + ", " + "land_use_type_id" + ", "
-				                		+ "owner_name" + ", " + "owner_category"  + ", "+ "last_transaction_date" + ", " + "last_transaction_type_total" + ", "
-				                		+ "psm_per_gps" + ", " + "lease_type" + ", " + "lease_start_date"  + ", " + "centroid_x"
-				                		+ ", "+ "centroid_y"  + ", " + "award_date" + ", " + "award_status" + ", " + "use_restriction" + ", " + "development_type_code"  + ", " + "successful_tender_id"
-				                		+ ", "+ "successful_tender_price"  + ", " + "tender_closing_date" + ", " + "lease" + ", " + "development_status" + ", " + "development_allowed" + ", " + "next_available_date"  + ", " + "last_changed_date"
-				                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :v25, :v26)";
-	insertViaQuery(parcel,DB_INSERT_PARCEL_OP);
+    const std::string DB_INSERT_PARCEL_OP = "INSERT INTO " + schema + ".fm_parcel"
+                                        + " (" + "fm_parcel_id" + ", " + "taz_id" + ", " + "lot_size"
+                                        + ", " + "gpr" + ", " + "land_use_type_id" + ", "
+                                        + "owner_name" + ", " + "owner_category"  + ", "+ "last_transaction_date" + ", " + "last_transaction_type_total" + ", "
+                                        + "psm_per_gps" + ", " + "lease_type" + ", " + "lease_start_date"  + ", " + "centroid_x"
+                                        + ", "+ "centroid_y"  + ", " + "award_date" + ", " + "award_status" + ", " + "use_restriction" + ", " + "development_type_code"  + ", " + "successful_tender_id"
+                                        + ", "+ "successful_tender_price"  + ", " + "tender_closing_date" + ", " + "lease" + ", " + "development_status" + ", " + "development_allowed" + ", " + "next_available_date"  + ", " + "last_changed_date"
+                                        + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :v25, :v26)";
+    insertViaQuery(parcel,DB_INSERT_PARCEL_OP);
 
 }
 
 std::vector<Parcel*> ParcelDao::getFreeholdParcels()
 {
-	const std::string queryStr = "SELECT P.* FROM " + connection.getSchema() + "fm_parcel P," + connection.getSchema() +  "fm_building B" +	" WHERE p.fm_parcel_id = b.fm_parcel_id and freehold = 1";
-	std::vector<Parcel*> freeholdParcelsList;
-	getByQuery(queryStr,freeholdParcelsList);
-	return freeholdParcelsList;
+    const std::string queryStr = "SELECT P.* FROM " + connection.getSchema() + "fm_parcel P," + connection.getSchema() +  "fm_building B" + " WHERE p.fm_parcel_id = b.fm_parcel_id and freehold = 1";
+    std::vector<Parcel*> freeholdParcelsList;
+    getByQuery(queryStr,freeholdParcelsList);
+    return freeholdParcelsList;
 }

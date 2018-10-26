@@ -45,9 +45,9 @@ namespace
             case ExternalEvent::NEW_SCHOOL_LOCATION:
                 return LTEID_EXT_NEW_SCHOOL_LOCATION;
             case ExternalEvent::ZONING_RULE_CHANGE:
-            	return LTEID_EXT_ZONING_RULE_CHANGE;
+                return LTEID_EXT_ZONING_RULE_CHANGE;
             default:
-            	return -1;
+                return -1;
         }
     }
 }
@@ -63,17 +63,17 @@ bool EventsInjector::isNonspatial()
 
 void EventsInjector::setModel(HM_Model *value)
 {
-	model = value;
+    model = value;
 }
 
 HM_Model* EventsInjector::getModel()
 {
-	return model;
+    return model;
 }
 
 std::vector<sim_mob::BufferedBase*> EventsInjector::buildSubscriptionList()
 {
-	return std::vector<sim_mob::BufferedBase*>();
+    return std::vector<sim_mob::BufferedBase*>();
 }
 
 void EventsInjector::onWorkerEnter() {}
@@ -93,28 +93,28 @@ Entity::UpdateStatus EventsInjector::update(timeslice now)
     const RealEstateAgent* realEstateAgent = nullptr;
     for ( vector<ExternalEvent>::iterator it = events.begin(); it != events.end(); ++it)
     {
-    	developerAgent = lookup.getDeveloperAgentById(it->getDeveloperId());
-    	if(developerAgent)
-    	{
-    		MessageBus::PublishEvent(toEventId(it->getType()), const_cast<DeveloperAgent*>(developerAgent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
-    	}
-    	else
-    	{
-			householdAgent = lookup.getHouseholdAgentById(it->getHouseholdId());
-			if (householdAgent)
-			{
-				MessageBus::PublishEvent(toEventId(it->getType()), const_cast<HouseholdAgent*>(householdAgent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
-			}
-			else
-			{
-				realEstateAgent = lookup.getRealEstateAgentById(it->getHouseholdId());
-				if (realEstateAgent)
-				{
-					MessageBus::PublishEvent(toEventId(it->getType()), const_cast<RealEstateAgent*>(realEstateAgent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
-				}
+        developerAgent = lookup.getDeveloperAgentById(it->getDeveloperId());
+        if(developerAgent)
+        {
+            MessageBus::PublishEvent(toEventId(it->getType()), const_cast<DeveloperAgent*>(developerAgent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
+        }
+        else
+        {
+            householdAgent = lookup.getHouseholdAgentById(it->getHouseholdId());
+            if (householdAgent)
+            {
+                MessageBus::PublishEvent(toEventId(it->getType()), const_cast<HouseholdAgent*>(householdAgent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
+            }
+            else
+            {
+                realEstateAgent = lookup.getRealEstateAgentById(it->getHouseholdId());
+                if (realEstateAgent)
+                {
+                    MessageBus::PublishEvent(toEventId(it->getType()), const_cast<RealEstateAgent*>(realEstateAgent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
+                }
 
-			}
-    	}
+            }
+        }
     }
     return Entity::UpdateStatus(Entity::UpdateStatus::RS_CONTINUE);
 }

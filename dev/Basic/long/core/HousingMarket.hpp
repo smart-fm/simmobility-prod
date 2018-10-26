@@ -65,7 +65,7 @@ namespace sim_mob
             {
             public:
                 Entry(Agent_LT* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice, bool bto,
-                	  bool buySellIntervalCompleted, int zoneHousingType);
+                      bool buySellIntervalCompleted, int zoneHousingType);
                 Entry( const Entry& source );
 
                 virtual ~Entry();

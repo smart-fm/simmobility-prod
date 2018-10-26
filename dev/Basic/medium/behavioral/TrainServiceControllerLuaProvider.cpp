@@ -19,7 +19,7 @@ namespace
         ServiceController *traincontrollerModel;
         RailServiceControllerModelContext()
         {
-        	traincontrollerModel=ServiceController::getInstance();
+            traincontrollerModel=ServiceController::getInstance();
         }
     };
 
@@ -29,19 +29,19 @@ namespace
     {
         if (!threadContext.get())
         {
-        	try
-        	{
-        		const ModelScriptsMap& extScripts = MT_Config::getInstance().getModelScriptsMap();
-        		const std::string& scriptsPath = extScripts.getPath();
-        		RailServiceControllerModelContext* modelCtx = new RailServiceControllerModelContext();
-        		modelCtx->traincontrollerModel->loadFile(scriptsPath + extScripts.getScriptFileName("rsc"));
-        		modelCtx->traincontrollerModel->initialize();
-        		threadContext.reset(modelCtx);
-        	}
-	        catch (const std::runtime_error& ex)
-	        {
-		        throw ex;
-	        }
+            try
+            {
+                const ModelScriptsMap& extScripts = MT_Config::getInstance().getModelScriptsMap();
+                const std::string& scriptsPath = extScripts.getPath();
+                RailServiceControllerModelContext* modelCtx = new RailServiceControllerModelContext();
+                modelCtx->traincontrollerModel->loadFile(scriptsPath + extScripts.getScriptFileName("rsc"));
+                modelCtx->traincontrollerModel->initialize();
+                threadContext.reset(modelCtx);
+            }
+            catch (const std::runtime_error& ex)
+            {
+                throw ex;
+            }
         }
     }
 }

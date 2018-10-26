@@ -11,31 +11,31 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class JobsWithIndustryTypeAndTazId
-		{
-		public:
-			JobsWithIndustryTypeAndTazId(BigSerial jobId=INVALID_ID, int industryTypeId = 0, BigSerial tazId = INVALID_ID);
+    namespace long_term
+    {
+        class JobsWithIndustryTypeAndTazId
+        {
+        public:
+            JobsWithIndustryTypeAndTazId(BigSerial jobId=INVALID_ID, int industryTypeId = 0, BigSerial tazId = INVALID_ID);
 
-			virtual ~JobsWithIndustryTypeAndTazId();
+            virtual ~JobsWithIndustryTypeAndTazId();
 
-			JobsWithIndustryTypeAndTazId( const JobsWithIndustryTypeAndTazId &source);
-			JobsWithIndustryTypeAndTazId& operator=(const JobsWithIndustryTypeAndTazId& source);
+            JobsWithIndustryTypeAndTazId( const JobsWithIndustryTypeAndTazId &source);
+            JobsWithIndustryTypeAndTazId& operator=(const JobsWithIndustryTypeAndTazId& source);
 
-			int getIndustryTypeId() const;
-			BigSerial getJobId() const;
-			BigSerial getTazId() const;
+            int getIndustryTypeId() const;
+            BigSerial getJobId() const;
+            BigSerial getTazId() const;
 
-			void setIndustryTypeId(int industryTypeId);
-			void setJobId(BigSerial jobId);
-			void setTazId(BigSerial tazId);
+            void setIndustryTypeId(int industryTypeId);
+            void setJobId(BigSerial jobId);
+            void setTazId(BigSerial tazId);
 
-		private:
+        private:
 
-			BigSerial jobId;
-			int industryTypeId;
-			BigSerial tazId;
-		};
-	}
+            BigSerial jobId;
+            int industryTypeId;
+            BigSerial tazId;
+        };
+    }
 }

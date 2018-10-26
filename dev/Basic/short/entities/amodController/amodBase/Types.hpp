@@ -23,35 +23,35 @@ struct Position {
     Position(double xpos, double ypos) : x(xpos), y(ypos), valid(true) {}
 
     bool operator==(const Position &other) const {
-	return (x == other.x) && (y == other.y) && valid && other.valid;
+    return (x == other.x) && (y == other.y) && valid && other.valid;
     }
 
     bool operator!=(const Position &other) const {
-	return !(*this == other);
+    return !(*this == other);
     }
 
     int size() const {
-	return 2;
+    return 2;
     }
 
     Position &operator=(const Position &rhs) {
-	x = rhs.x;
-	y = rhs.y;
-	return *this;
+    x = rhs.x;
+    y = rhs.y;
+    return *this;
     }
 
     double& operator[](unsigned int i) {
-	if (i>=2) {
-	    throw std::runtime_error("index error");
-	}
-	return (i == 0) ? x : y;
+    if (i>=2) {
+        throw std::runtime_error("index error");
+    }
+    return (i == 0) ? x : y;
     }
 
     double operator[](unsigned int i) const {
-	if (i>=2) {
-	    throw std::runtime_error("index error");
-	}
-	return (i == 0) ? x : y;
+    if (i>=2) {
+        throw std::runtime_error("index error");
+    }
+    return (i == 0) ? x : y;
     }
 };
 
@@ -107,9 +107,9 @@ struct hash<sim_mob::amod::Position>
 {
     std::size_t operator()(const sim_mob::amod::Position& p) const
     {
-	std::hash<int> hashFn;
-	std::size_t hashVal = hashFn(p.x);
-	return ( (hashVal << 4) ^ (hashVal >> 28) ^ hashFn(p.y) );
+    std::hash<int> hashFn;
+    std::size_t hashVal = hashFn(p.x);
+    return ( (hashVal << 4) ^ (hashVal >> 28) ^ hashFn(p.y) );
     }
 };
 
@@ -118,11 +118,11 @@ struct hash<std::pair<int, int>>
 {
     std::size_t operator()(const std::pair<int,int>& k) const
     {
-	using std::size_t;
-	using std::hash;
+    using std::size_t;
+    using std::hash;
 
-	return ((hash<int>()(k.first)
-		 ^ (hash<int>()(k.second) << 1)) >> 1);
+    return ((hash<int>()(k.first)
+         ^ (hash<int>()(k.second) << 1)) >> 1);
     }
 };
 }

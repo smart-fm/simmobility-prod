@@ -28,16 +28,16 @@ namespace sim_mob {
  */
 class OneTimeFlag {
 public:
-	OneTimeFlag() : repr_(true) { }
-	bool check() {
-		bool prev = repr_;
-		repr_ = false;
-		return prev;
-	}
-	void reset() { *this = OneTimeFlag(); }
+    OneTimeFlag() : repr_(true) { }
+    bool check() {
+        bool prev = repr_;
+        repr_ = false;
+        return prev;
+    }
+    void reset() { *this = OneTimeFlag(); }
 
 private:
-	bool repr_; //If "true", check will return "true".
+    bool repr_; //If "true", check will return "true".
 };
 
 }

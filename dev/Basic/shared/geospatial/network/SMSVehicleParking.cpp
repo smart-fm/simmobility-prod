@@ -20,52 +20,52 @@ SMSVehicleParking::~SMSVehicleParking()
 
 const std::string SMSVehicleParking::getParkingId() const
 {
-	return this->parkingId;
+    return this->parkingId;
 }
 
 void SMSVehicleParking::setParkingId(std::string id)
 {
-	this->parkingId = id;
+    this->parkingId = id;
 }
 
 const unsigned int SMSVehicleParking::getSegmentId() const
 {
-	return segmentId;
+    return segmentId;
 }
 
 void SMSVehicleParking::setSegmentId(unsigned int id)
 {
-	segmentId = id;
+    segmentId = id;
 }
 
 const RoadSegment *SMSVehicleParking::getParkingSegment() const
 {
-	return parkingSegment;
+    return parkingSegment;
 }
 
 void SMSVehicleParking::setParkingSegment(const RoadSegment *rdSegment)
 {
-	parkingSegment = rdSegment;
+    parkingSegment = rdSegment;
 }
 
 const Node *SMSVehicleParking::getAccessNode() const
 {
-	return parkingSegment->getParentLink()->getFromNode();
+    return parkingSegment->getParentLink()->getFromNode();
 }
 
 const Node *SMSVehicleParking::getEgressNode() const
 {
-	return parkingSegment->getParentLink()->getToNode();
+    return parkingSegment->getParentLink()->getToNode();
 }
 
 double SMSVehicleParking::getPosX() const
 {
-	return getAccessNode()->getPosX();
+    return getAccessNode()->getPosX();
 }
 
 double SMSVehicleParking::getPosY() const
 {
-	return getAccessNode()->getPosY();
+    return getAccessNode()->getPosY();
 }
 
 const double SMSVehicleParking::getStartTime() const

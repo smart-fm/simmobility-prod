@@ -19,29 +19,29 @@ namespace unit_tests
 class WorkerUnitTests : public CppUnit::TestFixture
 {
 public:
-	///Test basic worker functionality
-	void test_SimpleWorkers();
+    ///Test basic worker functionality
+    void test_SimpleWorkers();
 
-	///Test what happens when workers have different, interacting granularities.
-	void test_MultipleGranularities();
+    ///Test what happens when workers have different, interacting granularities.
+    void test_MultipleGranularities();
 
-	///Test agents scheduled for 3ms ticks where the simulation ends at 5ms (not 6)
-	void test_OddGranularities();
+    ///Test agents scheduled for 3ms ticks where the simulation ends at 5ms (not 6)
+    void test_OddGranularities();
 
-	///Test agents with different start times.
-	void test_AgentStartTimes();
+    ///Test agents with different start times.
+    void test_AgentStartTimes();
 
-	///Tests agent/buffered behavior at sub-micro-tick resolutions, and across multiple ticks.
-	void test_UpdatePhases();
+    ///Tests agent/buffered behavior at sub-micro-tick resolutions, and across multiple ticks.
+    void test_UpdatePhases();
 
-	//Long-running, multiple granularity test with a time-tick dependent value added each time
-	// (to avoid accidentally correct answers).
-	void test_MultiGroupInteraction();
+    //Long-running, multiple granularity test with a time-tick dependent value added each time
+    // (to avoid accidentally correct answers).
+    void test_MultiGroupInteraction();
 
 
 private:
     CPPUNIT_TEST_SUITE(WorkerUnitTests);
-		CPPUNIT_TEST(test_SimpleWorkers);
+        CPPUNIT_TEST(test_SimpleWorkers);
         CPPUNIT_TEST(test_MultipleGranularities);
         CPPUNIT_TEST(test_OddGranularities);
         CPPUNIT_TEST(test_AgentStartTimes);

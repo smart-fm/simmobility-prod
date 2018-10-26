@@ -32,18 +32,18 @@ namespace sim_mob
         class RealEstateAgent : public Agent_LT
         {
         private:
-        	enum BuildingStatus{
-        		BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES = 1, BUILDING_UNCOMPLETED_WITH_PREREQUISITES, BUILDING_NOT_LAUNCHED, BUILDING_LAUNCHED_BUT_UNSOLD, BUILDING_LAUNCHED_AND_SOLD, BUILDING_COMPLETED_WITH_PREREQUISITES, BUILDING_DEMOLISHED
-        	};
-        	enum UnitStatus{
-        	    UNIT_PLANNED = 1, UNIT_UNDER_CONSTRUCTION, UNIT_CONSTRUCTION_COMPLETED, UNIT_DEMOLISHED
-        	};
-        	enum UnitSaleStatus{
-        		UNIT_NOT_LAUNCHED = 1, UNIT_LAUNCHED_BUT_UNSOLD, UNIT_LAUNCHED_AND_SOLD
-        	};
-        	enum UnitPhysicalStatus{
-        		UNIT_NOT_READY_FOR_OCCUPANCY = 1, UNIT_READY_FOR_OCCUPANCY_AND_VACANT, UNIT_READY_FOR_OCCUPANCY_AND_OCCUPIED
-        	};
+            enum BuildingStatus{
+                BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES = 1, BUILDING_UNCOMPLETED_WITH_PREREQUISITES, BUILDING_NOT_LAUNCHED, BUILDING_LAUNCHED_BUT_UNSOLD, BUILDING_LAUNCHED_AND_SOLD, BUILDING_COMPLETED_WITH_PREREQUISITES, BUILDING_DEMOLISHED
+            };
+            enum UnitStatus{
+                UNIT_PLANNED = 1, UNIT_UNDER_CONSTRUCTION, UNIT_CONSTRUCTION_COMPLETED, UNIT_DEMOLISHED
+            };
+            enum UnitSaleStatus{
+                UNIT_NOT_LAUNCHED = 1, UNIT_LAUNCHED_BUT_UNSOLD, UNIT_LAUNCHED_AND_SOLD
+            };
+            enum UnitPhysicalStatus{
+                UNIT_NOT_READY_FOR_OCCUPANCY = 1, UNIT_READY_FOR_OCCUPANCY_AND_VACANT, UNIT_READY_FOR_OCCUPANCY_AND_OCCUPIED
+            };
         public:
             RealEstateAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = true, int day = 0);
             virtual ~RealEstateAgent();

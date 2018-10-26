@@ -21,56 +21,56 @@ namespace medium
 class MT_PersonLoader : public PeriodicPersonLoader
 {
 public:
-	MT_PersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents);
-	virtual ~MT_PersonLoader();
+    MT_PersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents);
+    virtual ~MT_PersonLoader();
 
-	/**
-	 * load activity schedules for next interval
-	 */
-	virtual void loadPersonDemand();
+    /**
+     * load activity schedules for next interval
+     */
+    virtual void loadPersonDemand();
 protected:
-	/**
-	 * load MRT demand
-	 */
-	void loadMRT_Demand();
+    /**
+     * load MRT demand
+     */
+    void loadMRT_Demand();
 private:
-	/**
-	 * makes a single sub trip for trip (for now)
-	 * @param r row from database table
-	 * @param parentTrip parent Trip for the subtrip to be constructed
-	 * @param subTripNo the sub trip number
-	 */
-	static void makeSubTrip(const soci::row& r, Trip* parentTrip, unsigned short subTripNo=1);
+    /**
+     * makes a single sub trip for trip (for now)
+     * @param r row from database table
+     * @param parentTrip parent Trip for the subtrip to be constructed
+     * @param subTripNo the sub trip number
+     */
+    static void makeSubTrip(const soci::row& r, Trip* parentTrip, unsigned short subTripNo=1);
 
-	/**
-	 * makes an activity
-	 * @param r row from database table
-	 * @param seqNo tripchain item sequence number
-	 * @return the activity constructed from the supplied row
-	 */
-	static Activity* makeActivity(const soci::row& r, unsigned int seqNo);
+    /**
+     * makes an activity
+     * @param r row from database table
+     * @param seqNo tripchain item sequence number
+     * @return the activity constructed from the supplied row
+     */
+    static Activity* makeActivity(const soci::row& r, unsigned int seqNo);
 
-	/**
-	 * makes a trip
-	 * @param r row from database table
-	 * @param seqNo tripchain item sequence number
-	 * @return the trip constructed from the supplied row
-	 */
-	static Trip* makeTrip(const soci::row& r, unsigned int seqNo);
+    /**
+     * makes a trip
+     * @param r row from database table
+     * @param seqNo tripchain item sequence number
+     * @return the trip constructed from the supplied row
+     */
+    static Trip* makeTrip(const soci::row& r, unsigned int seqNo);
 
-	/**
-	 * makes a freight trip
-	 * @param r row from database table
-	 * @param seqNo tripchain item sequence number
-	 * @return the trip constructed from the supplied row
-	 */
-	static Trip* makeFreightTrip(const soci::row& r		);
+    /**
+     * makes a freight trip
+     * @param r row from database table
+     * @param seqNo tripchain item sequence number
+     * @return the trip constructed from the supplied row
+     */
+    static Trip* makeFreightTrip(const soci::row& r     );
 
-	/** stored procedure to periodically load freight demand*/
-	std::string freightStoredProcName;
+    /** stored procedure to periodically load freight demand*/
+    std::string freightStoredProcName;
 
-	/**indicate whether load personal info*/
-	bool isLoadPersonInfo;
+    /**indicate whether load personal info*/
+    bool isLoadPersonInfo;
 };
 
 } // namespace medium

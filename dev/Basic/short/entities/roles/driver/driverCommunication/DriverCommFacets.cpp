@@ -26,8 +26,8 @@ DriverCommMovement::~DriverCommMovement()
 
 void DriverCommMovement::frame_init()
 {
-	DriverMovement::frame_init();
+    DriverMovement::frame_init();
 
-	//Register this Agent with the Broker singleton.
-	Broker::GetSingleBroker()->registerEntity(this->getParentDriver()->getParent());
+    //Register this Agent with the Broker singleton.
+    Broker::GetSingleBroker()->registerEntity(this->getParentDriver()->getParent());
 }

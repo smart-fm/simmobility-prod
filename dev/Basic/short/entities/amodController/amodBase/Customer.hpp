@@ -15,14 +15,14 @@ namespace amod {
 
 class Customer: public Entity {
 public:
-	enum Status {
-		FREE,
-		WAITING_FOR_PICKUP,
-		IN_VEHICLE,
-		WAITING_FOR_DROPOFF,
-		WAITING_FOR_ASSIGNMENT,
-		TELEPORTING,
-	};
+    enum Status {
+        FREE,
+        WAITING_FOR_PICKUP,
+        IN_VEHICLE,
+        WAITING_FOR_DROPOFF,
+        WAITING_FOR_ASSIGNMENT,
+        TELEPORTING,
+    };
 
 public:
     /**
@@ -42,7 +42,7 @@ public:
     /**
      * Destructor
      */
-	virtual ~Customer();
+    virtual ~Customer();
 
     /**
      * setAssignedVehicleId
@@ -55,28 +55,28 @@ public:
      * clearAssignedVehicleId
      * clears Assigned vehicle id
      */
-	virtual void clearAssignedVehicleId();
+    virtual void clearAssignedVehicleId();
 
     /**
      * getAssignedVehicleId
      * Retrieves assigned vehicle id
      * @return assigned vehicle id
      */
-	virtual int getAssignedVehicleId();
+    virtual int getAssignedVehicleId();
 
     /**
      * setStatus
      * Sets the customer status
      * @param s customer status to be set
      */
-	virtual void setStatus(Status s);
+    virtual void setStatus(Status s);
 
     /**
      * getStatus
      * Retrieves the current customer status
      * @return customer status
      */
-	virtual Status getStatus() const;
+    virtual Status getStatus() const;
 
     /**
      * getLocationId
@@ -97,14 +97,14 @@ public:
      * setInVehicle
      * sets in vehicle status
      */
-	virtual void setInVehicle();
+    virtual void setInVehicle();
 
     /**
      * isInVehicle
      * Looks for in vehicle status
      * @return true if status is IN_VEHICLE
      */
-	virtual bool isInVehicle();
+    virtual bool isInVehicle();
     
 private:
     /// Customer status

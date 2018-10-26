@@ -14,10 +14,10 @@ namespace db
 
 enum BackendType
 {
-	POSTGRES, MYSQL, //not implemented
-	ORACLE, //not implemented
-	SQL_SERVER //not implemented
-	//MONGODB    ----removed
+    POSTGRES, MYSQL, //not implemented
+    ORACLE, //not implemented
+    SQL_SERVER //not implemented
+    //MONGODB    ----removed
 };
 
 /**
@@ -29,44 +29,44 @@ class DB_Connection
 {
 
 public:
-	DB_Connection(BackendType type, const DB_Config& config);
-	virtual ~DB_Connection();
+    DB_Connection(BackendType type, const DB_Config& config);
+    virtual ~DB_Connection();
 
-	/**
-	 * Connects to the database.
-	 * @return true if the connection was established.
-	 */
-	bool connect();
+    /**
+     * Connects to the database.
+     * @return true if the connection was established.
+     */
+    bool connect();
 
-	/**
-	 * Disconnects from the database.
-	 * @return true if the connection was closed.
-	 */
-	bool disconnect();
+    /**
+     * Disconnects from the database.
+     * @return true if the connection was closed.
+     */
+    bool disconnect();
 
-	/**
-	 * Tells if this instance is connected with database.
-	 * @return true if connection is open, false otherwise.
-	 */
-	bool isConnected() const;
+    /**
+     * Tells if this instance is connected with database.
+     * @return true if connection is open, false otherwise.
+     */
+    bool isConnected() const;
 
-	/**
-	 * Gets the current SOCI session.
-	 * @return session instance reference.
-	 */
-	template<typename T> T& getSession();
+    /**
+     * Gets the current SOCI session.
+     * @return session instance reference.
+     */
+    template<typename T> T& getSession();
 
-	std::string getConnectionStr();
+    std::string getConnectionStr();
 
-	void setSchema(std::string _schema);
-	std::string getSchema();
+    void setSchema(std::string _schema);
+    std::string getSchema();
 
 private:
-	void* currentSession;
-	std::string connectionStr;
-	BackendType type;
-	volatile bool connected;
-	std::string schema;
+    void* currentSession;
+    std::string connectionStr;
+    BackendType type;
+    volatile bool connected;
+    std::string schema;
 };
 }
 }

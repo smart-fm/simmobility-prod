@@ -16,28 +16,28 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class AwakeningSubModel
-		{
-		public:
-			AwakeningSubModel();
-			virtual ~AwakeningSubModel();
+    namespace long_term
+    {
+        class AwakeningSubModel
+        {
+        public:
+            AwakeningSubModel();
+            virtual ~AwakeningSubModel();
 
-			void InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day);
-			std::vector<ExternalEvent> DailyAwakenings(int day, HM_Model *model);
+            void InitialAwakenings(HM_Model *model, Household *household, HouseholdAgent *agent, int day);
+            std::vector<ExternalEvent> DailyAwakenings(int day, HM_Model *model);
 
-			double getFutureTransitionOwn();
+            double getFutureTransitionOwn();
 
-			double movingProbability(Household* household, HM_Model *model, bool day0);
+            double movingProbability(Household* household, HM_Model *model, bool day0);
 
-			bool ComputeFutureTransition(Household *household, HM_Model *model, double &futureTransitionRate, double &futureTransitionRandomDraw);
+            bool ComputeFutureTransition(Household *household, HM_Model *model, double &futureTransitionRate, double &futureTransitionRandomDraw);
 
-		private:
+        private:
 
-			boost::mutex mtx;
+            boost::mutex mtx;
 
-			bool futureTransitionOwn = false;
-		};
-	}
+            bool futureTransitionOwn = false;
+        };
+    }
 }

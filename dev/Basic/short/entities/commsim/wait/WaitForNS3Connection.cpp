@@ -17,13 +17,13 @@ sim_mob::WaitForNS3Connection::~WaitForNS3Connection()
 
 void sim_mob::WaitForNS3Connection::reset(unsigned int numClients)
 {
-	this->numClients = numClients;
-	passed = false;
+    this->numClients = numClients;
+    passed = false;
 }
 
 bool sim_mob::WaitForNS3Connection::calculateWaitStatus(BrokerBase& broker) const
 {
-	unsigned int numNs3 = broker.getNs3ClientHandler() ? 1 : 0;
-	return numNs3>=numClients;
+    unsigned int numNs3 = broker.getNs3ClientHandler() ? 1 : 0;
+    return numNs3>=numClients;
 }
 

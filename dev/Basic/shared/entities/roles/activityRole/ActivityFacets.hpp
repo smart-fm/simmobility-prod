@@ -19,83 +19,83 @@ template<class PERSON>
 class ActivityPerformerBehavior : public sim_mob::BehaviorFacet
 {
 public:
-	explicit ActivityPerformerBehavior() : BehaviorFacet()
-	{
-	}
-	virtual ~ActivityPerformerBehavior()
-	{
-	}
+    explicit ActivityPerformerBehavior() : BehaviorFacet()
+    {
+    }
+    virtual ~ActivityPerformerBehavior()
+    {
+    }
 
-	//Virtual overrides
-	virtual void frame_init()
-	{
-		throw std::runtime_error("ActivityPerformerBehavior::frame_init() is not implemented yet");
-	}
-	virtual void frame_tick()
-	{
-		throw std::runtime_error("ActivityPerformerBehavior::frame_tick() is not implemented yet");
-	}
-	virtual std::string frame_tick_output()
-	{
-		throw std::runtime_error("ActivityPerformerBehavior::frame_tick_output() is not implemented yet");
-	}
+    //Virtual overrides
+    virtual void frame_init()
+    {
+        throw std::runtime_error("ActivityPerformerBehavior::frame_init() is not implemented yet");
+    }
+    virtual void frame_tick()
+    {
+        throw std::runtime_error("ActivityPerformerBehavior::frame_tick() is not implemented yet");
+    }
+    virtual std::string frame_tick_output()
+    {
+        throw std::runtime_error("ActivityPerformerBehavior::frame_tick_output() is not implemented yet");
+    }
 };
 
 template<class PERSON>
 class ActivityPerformerMovement : public sim_mob::MovementFacet
 {
 public:
-	explicit ActivityPerformerMovement() : MovementFacet(), parentActivity(NULL)
-	{
-	}
+    explicit ActivityPerformerMovement() : MovementFacet(), parentActivity(NULL)
+    {
+    }
 
-	virtual ~ActivityPerformerMovement()
-	{
-		/*if(travelMetric.started)
-		{
-			finalizeTravelTimeMetric();
-		}*/
-	}
+    virtual ~ActivityPerformerMovement()
+    {
+        /*if(travelMetric.started)
+        {
+            finalizeTravelTimeMetric();
+        }*/
+    }
 
-	//Virtual overrides
-	virtual void frame_init()
-	{
-		parentActivity->initializeRemainingTime();
-		parentActivity->setTravelTime(parentActivity->getRemainingTimeToComplete());
-		//startTravelTimeMetric();
-	}
+    //Virtual overrides
+    virtual void frame_init()
+    {
+        parentActivity->initializeRemainingTime();
+        parentActivity->setTravelTime(parentActivity->getRemainingTimeToComplete());
+        //startTravelTimeMetric();
+    }
 
-	virtual void frame_tick()
-	{
-		parentActivity->updateRemainingTime();
-		if(parentActivity->getRemainingTimeToComplete() <= 0)
-		{
-			parentActivity->parent->setToBeRemoved();
-		}
-	}
+    virtual void frame_tick()
+    {
+        parentActivity->updateRemainingTime();
+        if(parentActivity->getRemainingTimeToComplete() <= 0)
+        {
+            parentActivity->parent->setToBeRemoved();
+        }
+    }
 
-	virtual std::string frame_tick_output()
-	{
-		return std::string();
-	}
+    virtual std::string frame_tick_output()
+    {
+        return std::string();
+    }
 
-	/// mark startTimeand origin
-	virtual TravelMetric& startTravelTimeMetric()
-	{
-		//travelMetric.started = true;
-		return  travelMetric;
-	}
+    /// mark startTimeand origin
+    virtual TravelMetric& startTravelTimeMetric()
+    {
+        //travelMetric.started = true;
+        return  travelMetric;
+    }
 
-	///	mark the destination and end time and travel time
-	virtual TravelMetric& finalizeTravelTimeMetric()
-	{
-		//parent->serializeCBD_Activity(travelMetric);
-		//travelMetric.finalized = true;
-		return  travelMetric;
-	}
+    /// mark the destination and end time and travel time
+    virtual TravelMetric& finalizeTravelTimeMetric()
+    {
+        //parent->serializeCBD_Activity(travelMetric);
+        //travelMetric.finalized = true;
+        return  travelMetric;
+    }
 
 private:
-	sim_mob::ActivityPerformer<PERSON>* parentActivity;
-	friend class ActivityPerformer<PERSON>;
+    sim_mob::ActivityPerformer<PERSON>* parentActivity;
+    friend class ActivityPerformer<PERSON>;
 };
 }

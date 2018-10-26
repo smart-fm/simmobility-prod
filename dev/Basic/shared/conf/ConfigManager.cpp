@@ -20,87 +20,87 @@ sim_mob::ConfigManager::ConfigManager() : config(nullptr)
 
 sim_mob::ConfigManager::~ConfigManager()
 {
-	safe_delete_item(config);
+    safe_delete_item(config);
 }
 
 const ConfigManager& sim_mob::ConfigManager::GetInstance()
 {
-	return GetInstanceRW();
+    return GetInstanceRW();
 }
 
 ConfigManager& sim_mob::ConfigManager::GetInstanceRW()
 {
-	if (!instance) {
-		instance = new ConfigManager();
-	}
-	return *instance;
+    if (!instance) {
+        instance = new ConfigManager();
+    }
+    return *instance;
 }
 
 void sim_mob::ConfigManager::DeleteConfigMgrInstance()
 {
-	safe_delete_item(instance);
+    safe_delete_item(instance);
 }
 
 ConfigParams& sim_mob::ConfigManager::get_config() const
 {
-	if (!config) {
-		config = new ConfigParams();
-	}
-	return *config;
+    if (!config) {
+        config = new ConfigParams();
+    }
+    return *config;
 }
 
 ConfigParams& sim_mob::ConfigManager::get_config_rw()
 {
-	if (!config) {
-		config = new ConfigParams();
-	}
-	return *config;
+    if (!config) {
+        config = new ConfigParams();
+    }
+    return *config;
 }
 
 ConfigParams& sim_mob::ConfigManager::FullConfig()
 {
-	return get_config_rw();
+    return get_config_rw();
 }
 
 const ConfigParams& sim_mob::ConfigManager::FullConfig() const
 {
-	return get_config();
+    return get_config();
 }
 
 
  PathSetConf& sim_mob::ConfigManager::PathSetConfig()
 {
-	return get_config().pathset;
+    return get_config().pathset;
 }
 
 const PathSetConf& sim_mob::ConfigManager::PathSetConfig()const
 {
-	return get_config().pathset;
+    return get_config().pathset;
 }
 
 RawConfigParams& sim_mob::ConfigManager::XmlConfig()
 {
-	return get_config();
+    return get_config();
 }
 
 const RawConfigParams& sim_mob::ConfigManager::XmlConfig() const
 {
-	return get_config();
+    return get_config();
 }
 
 CMakeConfigParams& sim_mob::ConfigManager::CMakeConfig()
 {
-	return get_config();
+    return get_config();
 }
 
 const CMakeConfigParams& sim_mob::ConfigManager::CMakeConfig() const
 {
-	return get_config();
+    return get_config();
 }
 
 void sim_mob::ConfigManager::reset()
 {
-	//TODO: This *should* work fine, since it will re-generate the instance on re-creation.
-	safe_delete_item(instance);
+    //TODO: This *should* work fine, since it will re-generate the instance on re-creation.
+    safe_delete_item(instance);
 }
 

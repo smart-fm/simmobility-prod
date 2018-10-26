@@ -71,7 +71,7 @@ namespace sim_mob {
 
         class HM_ActionMessage : public sim_mob::messaging::Message {
         public:
-        	HM_ActionMessage(BigSerial buildingId,std::tm buildingFutureDemolitionDate);
+            HM_ActionMessage(BigSerial buildingId,std::tm buildingFutureDemolitionDate);
             HM_ActionMessage(const HM_ActionMessage& orig);
             HM_ActionMessage(Unit &unit);
             HM_ActionMessage(Building &building);

@@ -22,16 +22,16 @@ public:
      */
     enum Status {
         FREE,
-	    BUSY,
-	    HIRED,
-	    MOVING_TO_PICKUP,
-	    MOVING_TO_DROPOFF,
-	    PICKING_UP,
-	    DROPPING_OFF,
-	    PARKED,
-	    MOVING_TO_REBALANCE,
-	    UNKNOWN
-	};
+        BUSY,
+        HIRED,
+        MOVING_TO_PICKUP,
+        MOVING_TO_DROPOFF,
+        PICKING_UP,
+        DROPPING_OFF,
+        PARKED,
+        MOVING_TO_REBALANCE,
+        UNKNOWN
+    };
 
     /**
      * Constructor
@@ -52,31 +52,31 @@ public:
     /**
      * Destructor
      */
-	virtual ~Vehicle();
+    virtual ~Vehicle();
 
     /**
      * retrieves current vehicle status
      * @return vehicle status
      */
-	virtual Vehicle::Status getStatus() const;
+    virtual Vehicle::Status getStatus() const;
 
     /**
      * sets the vehicle status
      * @param s vehicle status
      */
-	virtual void setStatus(Vehicle::Status s);
+    virtual void setStatus(Vehicle::Status s);
 
     /**
      * get the speed of the vehicle
      * @return speed
      */
-	virtual double getSpeed() const;
+    virtual double getSpeed() const;
 
     /**
      * set the speed of the vehicle
      * @param speed
      */
-	virtual void setSpeed(double speed);
+    virtual void setSpeed(double speed);
 
     /**
      * set customer id who is using the vehicle
@@ -93,19 +93,19 @@ public:
     /**
      * clears the customer id
      */
-	virtual void clearCustomerId();
+    virtual void clearCustomerId();
 
     /**
      * sets the capacity of the vehicle
      * @param capacity
      */
-	virtual void setCapacity(int capacity);
+    virtual void setCapacity(int capacity);
 
     /**
      * retrieves the capacity of the vehicle
      * @return capacity of the vehicle
      */
-	virtual int getCapacity() const;
+    virtual int getCapacity() const;
 
     /**
      * setWaypoints

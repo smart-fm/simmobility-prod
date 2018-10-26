@@ -39,26 +39,26 @@ public:
 private:
     struct VehicleCount
     {
-    	unsigned int count;
-    	VehicleCount() : count(0)
-    	{
-    	}
+        unsigned int count;
+        VehicleCount() : count(0)
+        {
+        }
     };
 
-	/** time interval */
-	typedef unsigned int TimeInterval;
+    /** time interval */
+    typedef unsigned int TimeInterval;
 
-	/** the heart of the final container holding accumulated mode-wise vehicle counts */
-	typedef std::map<std::string, VehicleCount> CountMap;
+    /** the heart of the final container holding accumulated mode-wise vehicle counts */
+    typedef std::map<std::string, VehicleCount> CountMap;
 
-	/** map of road segment id --> CountMap */
-	typedef std::map<unsigned int, CountMap> RoadSegmentCountMap;
+    /** map of road segment id --> CountMap */
+    typedef std::map<unsigned int, CountMap> RoadSegmentCountMap;
 
-	/**
-	 * final container for collecting in simulation data:
-	 * map[time interval][road segment id][travel mode]-->[number-of-vehicles]
-	 */
-	typedef std::map<TimeInterval, RoadSegmentCountMap> ScreenLineCountCollector;
+    /**
+     * final container for collecting in simulation data:
+     * map[time interval][road segment id][travel mode]-->[number-of-vehicles]
+     */
+    typedef std::map<TimeInterval, RoadSegmentCountMap> ScreenLineCountCollector;
 
     ScreenLineCounter();
     virtual ~ScreenLineCounter();

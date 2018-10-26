@@ -15,35 +15,35 @@ HouseholdPlanningArea::~HouseholdPlanningArea() {
 }
 
 BigSerial HouseholdPlanningArea::getHouseHoldId() const {
-	return houseHoldId;
+    return houseHoldId;
 }
 
 void HouseholdPlanningArea::setHouseHoldId(BigSerial houseHoldId) {
-	this->houseHoldId = houseHoldId;
+    this->houseHoldId = houseHoldId;
 }
 
 const std::string& HouseholdPlanningArea::getPlanningArea() const {
-	return planningArea;
+    return planningArea;
 }
 
 void HouseholdPlanningArea::setPlanningArea(const std::string& planningArea) {
-	this->planningArea = planningArea;
+    this->planningArea = planningArea;
 }
 
 BigSerial HouseholdPlanningArea::getTazId() const {
-	return tazId;
+    return tazId;
 }
 
 void HouseholdPlanningArea::setTazId(BigSerial tazId) {
-	this->tazId = tazId;
+    this->tazId = tazId;
 }
 
 BigSerial HouseholdPlanningArea::getTazName() const {
-	return tazName;
+    return tazName;
 }
 
 void HouseholdPlanningArea::setTazName(BigSerial tazName) {
-	this->tazName = tazName;
+    this->tazName = tazName;
 }
 
 

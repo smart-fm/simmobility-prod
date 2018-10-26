@@ -47,32 +47,32 @@ template <typename T>
 class Locked : public BufferedBase
 {
 public:
-	/**
-	 * Create a new Locked data type.
-	 *
-	 * @param value The initial value.
-	 */
-	explicit Locked (const T& value = T()) : BufferedBase(), current_ (value) {}
-	virtual ~Locked() {}
+    /**
+     * Create a new Locked data type.
+     *
+     * @param value The initial value.
+     */
+    explicit Locked (const T& value = T()) : BufferedBase(), current_ (value) {}
+    virtual ~Locked() {}
 
 
-	/**
-	 * Retrieve the current value.
-	 */
+    /**
+     * Retrieve the current value.
+     */
     const T& get() const {
-    	boost::shared_lock<boost::shared_mutex> lock_(mutex_);
+        boost::shared_lock<boost::shared_mutex> lock_(mutex_);
 
-    	return current_;
+        return current_;
     }
 
-	/**
-	 * Set the current value.
-	 */
+    /**
+     * Set the current value.
+     */
     void set (const T& value) {
-    	boost::upgrade_lock<boost::shared_mutex> lock_(mutex_);
-    	boost::upgrade_to_unique_lock<boost::shared_mutex> unique_(lock_);
+        boost::upgrade_lock<boost::shared_mutex> lock_(mutex_);
+        boost::upgrade_to_unique_lock<boost::shared_mutex> unique_(lock_);
 
-    	current_ = value;
+        current_ = value;
     }
 
 

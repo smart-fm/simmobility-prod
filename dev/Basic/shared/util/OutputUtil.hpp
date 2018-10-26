@@ -62,32 +62,32 @@ void PrintArray(const std::vector<T>& arr, std::ostream& out=std::cout, const st
 template <typename T>
 void sim_mob::PrintArray(const std::vector<T>& ids, std::ostream& out, const std::string& label, const std::string& brL, const std::string& brR, const std::string& comma, int lineIndent)
 {
-	//Easy
-	if (ids.empty()) {
-		return;
-	}
+    //Easy
+    if (ids.empty()) {
+        return;
+    }
 
-	//Buffer in a stringstream
-	std::stringstream buff;
-	int lastSize = 0;
-	buff <<label <<brL;
-	for (size_t i=0; i<ids.size(); i++) {
-		//Output the number
-		buff <<ids[i];
+    //Buffer in a stringstream
+    std::stringstream buff;
+    int lastSize = 0;
+    buff <<label <<brL;
+    for (size_t i=0; i<ids.size(); i++) {
+        //Output the number
+        buff <<ids[i];
 
-		//Output a comma, or the closing brace.
-		if (i<ids.size()-1) {
-			buff <<comma;
+        //Output a comma, or the closing brace.
+        if (i<ids.size()-1) {
+            buff <<comma;
 
-			//Avoid getting anyway near default terminal limits
-			if (buff.str().size()-lastSize>75) {
-				buff <<"\n" <<std::string(lineIndent, ' ');
-				lastSize += (buff.str().size()-lastSize)-1;
-			}
-		} else {
-			buff <<brR <<"\n";
-		}
-	}
-	out <<buff.str();
+            //Avoid getting anyway near default terminal limits
+            if (buff.str().size()-lastSize>75) {
+                buff <<"\n" <<std::string(lineIndent, ' ');
+                lastSize += (buff.str().size()-lastSize)-1;
+            }
+        } else {
+            buff <<brR <<"\n";
+        }
+    }
+    out <<buff.str();
 }
 

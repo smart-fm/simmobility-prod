@@ -22,23 +22,23 @@ using namespace sim_mob;
 
 
 sim_mob::CommunicationManager::CommunicationManager(int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr) :
-		comDataMgr(&comDataMgr), ctrlMgr(&ctrlMgr)
+        comDataMgr(&comDataMgr), ctrlMgr(&ctrlMgr)
 {
-	listenPort = port;
-	simulationDone = false;
-	CommDone = true;
+    listenPort = port;
+    simulationDone = false;
+    CommDone = true;
 }
 
 void sim_mob::CommunicationManager::start()
 {
-	try
+    try
   {
-	tcp_server server(io_service,listenPort, *comDataMgr, *ctrlMgr);
-	io_service.run();
+    tcp_server server(io_service,listenPort, *comDataMgr, *ctrlMgr);
+    io_service.run();
   }
   catch (std::exception& e)
   {
-	std::cerr <<"CommunicationManager::start: "<< e.what() << std::endl;
+    std::cerr <<"CommunicationManager::start: "<< e.what() << std::endl;
   }
 }
 

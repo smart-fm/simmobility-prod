@@ -16,19 +16,19 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 TenureTransitionRateDao::TenureTransitionRateDao(DB_Connection& connection): SqlAbstractDao<TenureTransitionRate>(  connection, "", "", "", "",
-																													"SELECT * FROM " + connection.getSchema()+"tenure_transition_rate",
-																													""){}
+                                                                                                                    "SELECT * FROM " + connection.getSchema()+"tenure_transition_rate",
+                                                                                                                    ""){}
 
 
 TenureTransitionRateDao::~TenureTransitionRateDao(){}
 
 void TenureTransitionRateDao::fromRow(Row& result, TenureTransitionRate& outObj)
 {
-    outObj.id				= result.get<BigSerial>( "id", INVALID_ID);
-    outObj.ageGroup 		= result.get<std::string>( "age_group", "");
-    outObj.currentStatus	= result.get<std::string>( "current_status", "");
-    outObj.futureStatus		= result.get<std::string>( "future_status", "");
-    outObj.rate				= result.get<double>( "rate", 0);
+    outObj.id               = result.get<BigSerial>( "id", INVALID_ID);
+    outObj.ageGroup         = result.get<std::string>( "age_group", "");
+    outObj.currentStatus    = result.get<std::string>( "current_status", "");
+    outObj.futureStatus     = result.get<std::string>( "future_status", "");
+    outObj.rate             = result.get<double>( "rate", 0);
 }
 
 void TenureTransitionRateDao::toRow(TenureTransitionRate& data, Parameters& outParams, bool update) {}

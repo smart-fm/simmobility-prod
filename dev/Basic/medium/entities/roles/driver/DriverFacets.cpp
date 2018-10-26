@@ -351,6 +351,14 @@ void DriverMovement::frame_tick()
 		setParentData(params);
 	}
 
+	if (MT_Config::getInstance().isEnergyModelEnabled()) //jo Apr5 only need for Energy computation (I think)
+	{
+		pathMover.finalizeDriverPathTracking(); //jo Apr4
+		//aa{
+		onNewDriverVelocitySample(pathMover.getDistanceCovered() / timeStep); //jo Apr 4
+		//aa}
+	}
+
 	//Reset the value, so that we can enter above condition when needed next time.
 	isRouteChangedInVQ = false;
 

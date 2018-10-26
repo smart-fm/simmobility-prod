@@ -231,6 +231,14 @@ void ParseConfigFile::processSchemasParamsNode(xercesc::DOMElement *node)
 		return;
 	}
 
+	//The schemaParams tag has an attribute
+	cfg.schemas.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+
+	if (!cfg.schemas.enabled)
+	{
+		return;
+	}
+
 	cfg.schemas.main_schema =
 			ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "main_schema"), "value"));
 

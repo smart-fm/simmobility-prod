@@ -15,39 +15,39 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class HitsIndividualLogsum
-		{
-		public:
-			HitsIndividualLogsum(int id=0, std::string hitsId="", int paxId=0, int homePostcode=0, int homeTaz=0, int workPostcode=0, int workTaz=0, int cars=0 );
+    namespace long_term
+    {
+        class HitsIndividualLogsum
+        {
+        public:
+            HitsIndividualLogsum(int id=0, std::string hitsId="", int paxId=0, int homePostcode=0, int homeTaz=0, int workPostcode=0, int workTaz=0, int cars=0 );
 
-			HitsIndividualLogsum( const HitsIndividualLogsum& source);
-			HitsIndividualLogsum& operator=( const HitsIndividualLogsum& source);
+            HitsIndividualLogsum( const HitsIndividualLogsum& source);
+            HitsIndividualLogsum& operator=( const HitsIndividualLogsum& source);
 
-			int getId() const;
-			std::string getHitsId() const;
-			int getPaxId() const;
-			int getHomePostcode() const;
-			int getHomeTaz() const;
-			int getWorkPostcode() const;
-			int getWorkTaz() const;
-			int getCars() const;
+            int getId() const;
+            std::string getHitsId() const;
+            int getPaxId() const;
+            int getHomePostcode() const;
+            int getHomeTaz() const;
+            int getWorkPostcode() const;
+            int getWorkTaz() const;
+            int getCars() const;
 
-			virtual ~HitsIndividualLogsum();
+            virtual ~HitsIndividualLogsum();
 
 
-		private:
-			friend class HitsIndividualLogsumDao;
+        private:
+            friend class HitsIndividualLogsumDao;
 
-			int id;
-			std::string hitsId;
-			int paxId;
-			int homePostcode;
-			int homeTaz;
-			int workPostcode;
-			int workTaz;
-			int cars;
-		};
-	}
+            int id;
+            std::string hitsId;
+            int paxId;
+            int homePostcode;
+            int homeTaz;
+            int workPostcode;
+            int workTaz;
+            int cars;
+        };
+    }
 }

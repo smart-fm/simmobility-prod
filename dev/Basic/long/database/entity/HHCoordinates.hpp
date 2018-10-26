@@ -16,7 +16,7 @@ namespace sim_mob {
 
         class HHCoordinates {
         public:
-        	HHCoordinates(BigSerial houseHoldId = INVALID_ID, double centroidX = 0, double centroidY = 0);
+            HHCoordinates(BigSerial houseHoldId = INVALID_ID, double centroidX = 0, double centroidY = 0);
 
             virtual ~HHCoordinates();
             /**

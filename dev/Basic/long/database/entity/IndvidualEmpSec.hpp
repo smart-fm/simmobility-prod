@@ -13,27 +13,27 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class IndvidualEmpSec
-		{
-		public:
-			IndvidualEmpSec (BigSerial indvidualId = INVALID_ID, int empSecId = 0);
-			virtual ~IndvidualEmpSec();
+    namespace long_term
+    {
+        class IndvidualEmpSec
+        {
+        public:
+            IndvidualEmpSec (BigSerial indvidualId = INVALID_ID, int empSecId = 0);
+            virtual ~IndvidualEmpSec();
 
-			BigSerial getIndvidualId() const;
-			int getEmpSecId() const;
+            BigSerial getIndvidualId() const;
+            int getEmpSecId() const;
 
-			void setIndividualId(BigSerial id);
-			void setEmpSecId(int empSecId);
+            void setIndividualId(BigSerial id);
+            void setEmpSecId(int empSecId);
 
         private:
             friend class IndvidualEmpSecDao;
 
-			BigSerial indvidualId;
-			int empSecId;
-		};
-	}
+            BigSerial indvidualId;
+            int empSecId;
+        };
+    }
 }
 
 

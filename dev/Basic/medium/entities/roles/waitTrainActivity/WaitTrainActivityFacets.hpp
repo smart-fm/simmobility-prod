@@ -21,21 +21,21 @@ class WaitTrainActivity;
 class WaitTrainActivityBehavior: public BehaviorFacet
 {
 public:
-	explicit WaitTrainActivityBehavior();
-	virtual ~WaitTrainActivityBehavior();
+    explicit WaitTrainActivityBehavior();
+    virtual ~WaitTrainActivityBehavior();
 
-	//Virtual overrides
-	virtual void frame_init(){}
-	virtual void frame_tick(){}
-	virtual std::string frame_tick_output();
-	/**
-	 * set parent reference to waiting activity role.
-	 * @param parent is pointer to parent waiting activity role
-	 */
-	void setParent(WaitTrainActivity* parent);
+    //Virtual overrides
+    virtual void frame_init(){}
+    virtual void frame_tick(){}
+    virtual std::string frame_tick_output();
+    /**
+     * set parent reference to waiting activity role.
+     * @param parent is pointer to parent waiting activity role
+     */
+    void setParent(WaitTrainActivity* parent);
 
 protected:
-	WaitTrainActivity* parentWaitTrainActivity;
+    WaitTrainActivity* parentWaitTrainActivity;
 };
 
 /**
@@ -45,25 +45,25 @@ protected:
 class WaitTrainActivityMovement: public MovementFacet
 {
 public:
-	explicit WaitTrainActivityMovement();
-	virtual ~WaitTrainActivityMovement();
+    explicit WaitTrainActivityMovement();
+    virtual ~WaitTrainActivityMovement();
 
-	//Virtual overrides
-	virtual void frame_init();
-	virtual void frame_tick();
-	virtual std::string frame_tick_output();
+    //Virtual overrides
+    virtual void frame_init();
+    virtual void frame_tick();
+    virtual std::string frame_tick_output();
 
-	TravelMetric & startTravelTimeMetric();
-	TravelMetric & finalizeTravelTimeMetric();
+    TravelMetric & startTravelTimeMetric();
+    TravelMetric & finalizeTravelTimeMetric();
 
-	/**
-	 * set parent reference to waiting activity role.
-	 * @param parent is pointer to parent waiting activity role
-	 */
-	void setParent(WaitTrainActivity* parent);
+    /**
+     * set parent reference to waiting activity role.
+     * @param parent is pointer to parent waiting activity role
+     */
+    void setParent(WaitTrainActivity* parent);
 
 protected:
-	WaitTrainActivity* parentWaitTrainActivity;
+    WaitTrainActivity* parentWaitTrainActivity;
 };
 
 }

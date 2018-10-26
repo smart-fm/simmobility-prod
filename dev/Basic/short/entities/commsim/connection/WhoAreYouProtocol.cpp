@@ -11,21 +11,21 @@ using namespace sim_mob;
 
 void sim_mob::WhoAreYouProtocol::QueryAgentAsync(boost::shared_ptr<sim_mob::ConnectionHandler> conn)
 {
-	//We'll need to make a new ConnectionHandler if we don't have an existing one.
-	if (!conn) {
-		throw std::runtime_error("Cannot QueryAgentAsync() without an existing connection.");
-	}
+    //We'll need to make a new ConnectionHandler if we don't have an existing one.
+    if (!conn) {
+        throw std::runtime_error("Cannot QueryAgentAsync() without an existing connection.");
+    }
 
-	OngoingSerialization ongoing;
-	CommsimSerializer::serialize_begin(ongoing, "0"); //Destination ID of zero is allowed ONLY for WHOAREYOU (since the client is unknown).
-	CommsimSerializer::addGeneric(ongoing, CommsimSerializer::makeIdRequest(conn->getToken()));
+    OngoingSerialization ongoing;
+    CommsimSerializer::serialize_begin(ongoing, "0"); //Destination ID of zero is allowed ONLY for WHOAREYOU (since the client is unknown).
+    CommsimSerializer::addGeneric(ongoing, CommsimSerializer::makeIdRequest(conn->getToken()));
 
-	BundleHeader hRes;
-	std::string msg;
-	CommsimSerializer::serialize_end(ongoing, hRes, msg);
+    BundleHeader hRes;
+    std::string msg;
+    CommsimSerializer::serialize_end(ongoing, hRes, msg);
 
-	//At this point, we have a ConnectionHandler that can at least receive messages. So send the "WHOAREYOU" request.
-	//This will be received by the Broker, and added to the messageReceived() callback, which should then be filtered as expected.
-	conn->postMessage(hRes, msg);
+    //At this point, we have a ConnectionHandler that can at least receive messages. So send the "WHOAREYOU" request.
+    //This will be received by the Broker, and added to the messageReceived() callback, which should then be filtered as expected.
+    conn->postMessage(hRes, msg);
 }
 

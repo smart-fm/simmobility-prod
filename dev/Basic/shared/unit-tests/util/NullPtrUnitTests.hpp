@@ -17,11 +17,11 @@ namespace unit_tests
 class NullPtrUnitTests : public CppUnit::TestFixture
 {
 public:
-	///Test equality
-	void test_Equality();
+    ///Test equality
+    void test_Equality();
 
-	///Test negative equality
-	void test_NEquality();
+    ///Test negative equality
+    void test_NEquality();
 
 
 private:

@@ -15,7 +15,7 @@
 using namespace sim_mob::long_term;
 
 Taz::Taz(BigSerial id, const std::string& name, float area, int surcharge, int status_0812, std::string mtzName, std::string subzoneName, std::string planningAreaName, std::string hdbTownType):
-		 id(id), name(name), area(area), surcharge(surcharge), status_0812(status_0812), mtzName(mtzName), subzoneName(subzoneName), planningAreaName(planningAreaName),hdbTownType(hdbTownType) {}
+         id(id), name(name), area(area), surcharge(surcharge), status_0812(status_0812), mtzName(mtzName), subzoneName(subzoneName), planningAreaName(planningAreaName),hdbTownType(hdbTownType) {}
 
 Taz::~Taz() {}
 
@@ -36,52 +36,52 @@ void Taz::setName(const std::string& name)
 
 float Taz::getArea() const
 {
-	return area;
+    return area;
 }
 
 void Taz::setArea(float value)
 {
-	area = value;
+    area = value;
 }
 
 int Taz::getSurchage() const
 {
-	return surcharge;
+    return surcharge;
 }
 
 void Taz::setSurchage( int value)
 {
-	surcharge = value;
+    surcharge = value;
 }
 
 int  Taz::getStatus0812() const
 {
-	return status_0812;
+    return status_0812;
 }
 
 std::string Taz::getMtzName() const
 {
-	return mtzName;
+    return mtzName;
 }
 
 std::string Taz::getSubzoneName() const
 {
-	return subzoneName;
+    return subzoneName;
 }
 
 std::string Taz::getPlanningAreaName() const
 {
-	return planningAreaName;
+    return planningAreaName;
 }
 
 std::string Taz::getHdbTownType() const
 {
-	return hdbTownType;
+    return hdbTownType;
 }
 
 void Taz::setHdbTownType(std::string hdbTownType)
 {
-	this->hdbTownType = hdbTownType;
+    this->hdbTownType = hdbTownType;
 }
 
 namespace sim_mob
@@ -95,10 +95,10 @@ namespace sim_mob
                     << "\"name\":\"" << data.name << "\","
                     << "\"area\":\"" << data.area << "\","
                     << "\"surcharge\":\"" << data.surcharge << "\""
-					<< "\"status_0812\":\"" << data.status_0812 << "\""
-					<< "\"mtzName\":\"" << data.mtzName << "\""
-					<< "\"subzoneName\":\"" << data.subzoneName << "\""
-					<< "\"planningAreaName\":\"" << data.planningAreaName << "\""
+                    << "\"status_0812\":\"" << data.status_0812 << "\""
+                    << "\"mtzName\":\"" << data.mtzName << "\""
+                    << "\"subzoneName\":\"" << data.subzoneName << "\""
+                    << "\"planningAreaName\":\"" << data.planningAreaName << "\""
                     << "}";
         }
     }

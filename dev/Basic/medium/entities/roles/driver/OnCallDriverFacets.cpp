@@ -84,18 +84,18 @@ void OnCallDriverMovement::frame_init()
 		speedCollector.push_back(0.0);
 		speedCollector.push_back(0.0);
 		speedCollector.push_back(0.0);
-
-		// INITIALIZE TRAJECTORY INFO AS EMPTY
+// INITIALIZE TRAJECTORY INFO AS EMPTY
 		trajectoryInfo.totalDistanceDriven = 0.0;
 		trajectoryInfo.totalTimeDriven = 0.0;
 		trajectoryInfo.totalTimeFast = 0.0;
 		trajectoryInfo.totalTimeSlow = 0.0;
 	}
-
-	//Begin performing schedule.performScheduleItem();
+       
+ //Begin performing schedule.
+        performScheduleItem();
         onCallDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
-	controllerIt++;
-}
+        controllerIt++;
+    }
 }
 
 void OnCallDriverMovement::frame_tick()

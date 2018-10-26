@@ -14,19 +14,19 @@ namespace sim_mob {
 
 class ProximityBased: public OnCallController
 {
-	public:	ProximityBased(const MutexStrategy &mtxStrat, unsigned int computationPeriod, unsigned id, std::string tripSupportMode_,
+    public: ProximityBased(const MutexStrategy &mtxStrat, unsigned int computationPeriod, unsigned id, std::string tripSupportMode_,
             TT_EstimateType ttEstimateType, unsigned maxAggregatedRequests_, bool studyAreaEnabledController_,unsigned int toleratedExtraTime,unsigned int maxWaitingTime,bool parkingEnabled) : OnCallController(mtxStrat, computationPeriod,
                                                                MobilityServiceControllerType::SERVICE_CONTROLLER_PROXIMITY,
                                                                id,  tripSupportMode_,ttEstimateType,maxAggregatedRequests_,studyAreaEnabledController_,toleratedExtraTime,maxWaitingTime,parkingEnabled)
-	{}
+    {}
 
-		virtual ~ProximityBased(){};
+        virtual ~ProximityBased(){};
 
-	protected:
-		/**
-		 * Performs the controller algorithm to assign vehicles to requests
-		 */
-		virtual void computeSchedules();
+    protected:
+        /**
+         * Performs the controller algorithm to assign vehicles to requests
+         */
+        virtual void computeSchedules();
 };
 
 } /* namespace sim_mob */

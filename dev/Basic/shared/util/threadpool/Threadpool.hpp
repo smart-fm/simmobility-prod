@@ -20,26 +20,26 @@ namespace sim_mob {
  */
 class ThreadPool {
 public:
-	/**
-	 * the constructor just launches some amount of workers
-	 * @param nThreads number of threads running in this thread pool
-	 */
-	ThreadPool(std::size_t);
+    /**
+     * the constructor just launches some amount of workers
+     * @param nThreads number of threads running in this thread pool
+     */
+    ThreadPool(std::size_t);
 
-	/**
-	 * posts a jpb to the tread pool
-	 * @param f if the function bound to its arguments using methods like boost::bind
-	 */
-	template<class F>
-	void enqueue(F f);
+    /**
+     * posts a jpb to the tread pool
+     * @param f if the function bound to its arguments using methods like boost::bind
+     */
+    template<class F>
+    void enqueue(F f);
 
-	/// the destructor joins all threads
-	~ThreadPool();
+    /// the destructor joins all threads
+    ~ThreadPool();
 protected:
-	boost::asio::io_service io_service;
+    boost::asio::io_service io_service;
 private:
-	boost::shared_ptr<boost::asio::io_service::work> work;
-	boost::thread_group threads;
+    boost::shared_ptr<boost::asio::io_service::work> work;
+    boost::thread_group threads;
 };
 
 /**
@@ -48,7 +48,7 @@ private:
  */
 template<class F>
 void ThreadPool::enqueue(F f) {
-	io_service.post(f);
+    io_service.post(f);
 }
 
 /*
@@ -83,51 +83,51 @@ void ThreadPool::enqueue(F f) {
 namespace batched {
 class ThreadPool :public sim_mob::ThreadPool{
 public:
-	/// the constructor just launches some amount of workers
-	ThreadPool(std::size_t);
-	/**
-	 * posts a jpb to the tread pool
-	 * @param f if the function bound to its arguments using methods like boost::bind
-	 */
-	template<class F>
-	void enqueue(F f);
-	/**
-	 * called by user wherever he wants to pause and wait for completion of tasks supplied to the trhead pool so far.
-	 */
-	void wait();
+    /// the constructor just launches some amount of workers
+    ThreadPool(std::size_t);
+    /**
+     * posts a jpb to the tread pool
+     * @param f if the function bound to its arguments using methods like boost::bind
+     */
+    template<class F>
+    void enqueue(F f);
+    /**
+     * called by user wherever he wants to pause and wait for completion of tasks supplied to the trhead pool so far.
+     */
+    void wait();
 private:
-	boost::mutex mutex_;
-	boost::condition_variable cond;
-	///number of taks posted to the thread pool
-	int nTasks;
-	/**
-	 * wrapper class that run the assigned function(through enqueue) and then notifies that the thread has concluded its currently assigned job
-	 * @param f is the assigned tasks inputted to this method using a tuple.
-	 * Note: In the above parameter,number of members in the tuple is always 1. Theoretically, it is not necessary to use a tuple. apparently boost can work this way only.
-	 */
-	template<class F>
-	void wrapper(boost::tuple<F> f);
+    boost::mutex mutex_;
+    boost::condition_variable cond;
+    ///number of taks posted to the thread pool
+    int nTasks;
+    /**
+     * wrapper class that run the assigned function(through enqueue) and then notifies that the thread has concluded its currently assigned job
+     * @param f is the assigned tasks inputted to this method using a tuple.
+     * Note: In the above parameter,number of members in the tuple is always 1. Theoretically, it is not necessary to use a tuple. apparently boost can work this way only.
+     */
+    template<class F>
+    void wrapper(boost::tuple<F> f);
 };
 
 // add new work item to the pool
 template<class F>
 void ThreadPool::enqueue(F f) {
-	{
-		boost::unique_lock<boost::mutex> lock(mutex_);
-		nTasks ++;
-	}
-	void (ThreadPool::*ff)(boost::tuple<F>) = &ThreadPool::wrapper<F>;
-	io_service.post(boost::bind(ff, this, boost::make_tuple(f))); //using a tuple seems to be the only practical way. it is mentioned in boost examples.
+    {
+        boost::unique_lock<boost::mutex> lock(mutex_);
+        nTasks ++;
+    }
+    void (ThreadPool::*ff)(boost::tuple<F>) = &ThreadPool::wrapper<F>;
+    io_service.post(boost::bind(ff, this, boost::make_tuple(f))); //using a tuple seems to be the only practical way. it is mentioned in boost examples.
 }
 
 template<class F>
 void ThreadPool::wrapper(boost::tuple<F> f) {
-	boost::get<0>(f)();//this is the task (function and its argument) that has to be executed by a thread
-	{
-		boost::unique_lock<boost::mutex> lock(mutex_);
-		nTasks --;
-		cond.notify_one();
-	}
+    boost::get<0>(f)();//this is the task (function and its argument) that has to be executed by a thread
+    {
+        boost::unique_lock<boost::mutex> lock(mutex_);
+        nTasks --;
+        cond.notify_one();
+    }
 }
 
 }//namespace batched

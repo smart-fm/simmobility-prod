@@ -18,7 +18,7 @@ namespace sim_mob {
          */
         class HouseHoldHitsSampleDao : public db::SqlAbstractDao<HouseHoldHitsSample> {
         public:
-        	HouseHoldHitsSampleDao(db::DB_Connection& connection);
+            HouseHoldHitsSampleDao(db::DB_Connection& connection);
             virtual ~HouseHoldHitsSampleDao();
 
         private:

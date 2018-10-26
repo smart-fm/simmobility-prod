@@ -31,83 +31,83 @@ class UnPackageUtils;
 class DriverPathMover
 {
 private:
-	/**The current lane of the driver (this will be null while driving in an intersection)*/
-	const Lane *currLane;
+    /**The current lane of the driver (this will be null while driving in an intersection)*/
+    const Lane *currLane;
 
-	/**The current turning path of the driver (this will be non-null while driving in an intersection)*/
-	const TurningPath *currTurning;
-	
-	/**The next lane of the driver.*/
-	const Lane *nextLane;
-	
-	/**The next turning path of the driver.*/
-	const TurningPath *nextTurning;
+    /**The current turning path of the driver (this will be non-null while driving in an intersection)*/
+    const TurningPath *currTurning;
+    
+    /**The next lane of the driver.*/
+    const Lane *nextLane;
+    
+    /**The next turning path of the driver.*/
+    const TurningPath *nextTurning;
 
-	/**The entire driving path consisting of road-segments and turning groups*/
-	std::vector<WayPoint> drivingPath;
+    /**The entire driving path consisting of road-segments and turning groups*/
+    std::vector<WayPoint> drivingPath;
 
-	/**An iterator pointing to the current way-point (road segment/turning group) in the driving path*/
-	std::vector<WayPoint>::const_iterator currWayPointIt;
+    /**An iterator pointing to the current way-point (road segment/turning group) in the driving path*/
+    std::vector<WayPoint>::const_iterator currWayPointIt;
 
-	/**The current poly-line*/
-	const PolyLine *currPolyLine;
+    /**The current poly-line*/
+    const PolyLine *currPolyLine;
 
-	/**An iterator pointing to the current poly-point in the current poly-line*/
-	std::vector<PolyPoint>::const_iterator currPolyPoint;
+    /**An iterator pointing to the current poly-point in the current poly-line*/
+    std::vector<PolyPoint>::const_iterator currPolyPoint;
 
-	/**An iterator pointing to the next poly-point in the current poly-line*/
-	std::vector<PolyPoint>::const_iterator nextPolyPoint;
+    /**An iterator pointing to the next poly-point in the current poly-line*/
+    std::vector<PolyPoint>::const_iterator nextPolyPoint;
 
-	/**Indicates whether the driver is in an intersection*/
-	bool inIntersection;
+    /**Indicates whether the driver is in an intersection*/
+    bool inIntersection;
 
-	/**Stores the distance moved along the partial poly-line (from the current point to the next point)*/
-	double distCoveredFromCurrPtToNextPt;
+    /**Stores the distance moved along the partial poly-line (from the current point to the next point)*/
+    double distCoveredFromCurrPtToNextPt;
 
-	/**Stores the distance covered by the driver on the current way-point*/
-	double distCoveredOnCurrWayPt;
-	/**
-	 * Calculates the distance between the current poly-point and the next poly-point
-	 *
+    /**Stores the distance covered by the driver on the current way-point*/
+    double distCoveredOnCurrWayPt;
+    /**
+     * Calculates the distance between the current poly-point and the next poly-point
+     *
      * @return the calculated distance
      */
-	double calcDistFromCurrToNextPt();
+    double calcDistFromCurrToNextPt();
 
 
-	/**
-	 * Advances the driver's position along the poly-line to the next poly-point
-	 *
+    /**
+     * Advances the driver's position along the poly-line to the next poly-point
+     *
      * @return overflow distance, if we move into an intersection, 0 otherwise
      */
-	double advanceToNextPoint();
+    double advanceToNextPoint();
 
-	/**
-	 * Advances the driver's position to the next poly-line
-	 *
+    /**
+     * Advances the driver's position to the next poly-line
+     *
      * @return overflow distance, if we move into an intersection, 0 otherwise
      */
-	double advanceToNextPolyLine();
-	
-	/**
-	 * NOTE: We are keeping these as constant & static because the simulation runtime keeps re-creating
-	 * them on each call to throwIf().
-	 */
+    double advanceToNextPolyLine();
+    
+    /**
+     * NOTE: We are keeping these as constant & static because the simulation runtime keeps re-creating
+     * them on each call to throwIf().
+     */
 
-	/**Error message to be thrown if the path is not set*/
-	const static std::string ErrorDrivingPathNotSet;
+    /**Error message to be thrown if the path is not set*/
+    const static std::string ErrorDrivingPathNotSet;
 
-	/**Error message to be thrown if the driver is not in an intersection*/
-	const static std::string ErrorNotInIntersection;
+    /**Error message to be thrown if the driver is not in an intersection*/
+    const static std::string ErrorNotInIntersection;
 
-	/**Error message to be thrown if the entire route is done*/
-	const static std::string ErrorEntireRouteDone;
+    /**Error message to be thrown if the entire route is done*/
+    const static std::string ErrorEntireRouteDone;
 
 
 public:
-	DriverPathMover();
-	DriverPathMover(const DriverPathMover &pathMover);
+    DriverPathMover();
+    DriverPathMover(const DriverPathMover &pathMover);
 
-	const Lane* getCurrLane() const;
+    const Lane* getCurrLane() const;
     const TurningPath* getCurrTurning() const;
     
     const std::vector<WayPoint>& getDrivingPath() const;
@@ -115,132 +115,132 @@ public:
     
     bool isInIntersection() const;
 
-	const PolyPoint& getCurrPolyPoint() const;
-	const PolyPoint& getNextPolyPoint() const;
+    const PolyPoint& getCurrPolyPoint() const;
+    const PolyPoint& getNextPolyPoint() const;
 
-	const WayPoint& getCurrWayPoint() const;
-	const WayPoint* getNextWayPoint() const;
+    const WayPoint& getCurrWayPoint() const;
+    const WayPoint* getNextWayPoint() const;
 
-	const RoadSegment* getCurrSegment() const;
-	const Link* getCurrLink() const;
+    const RoadSegment* getCurrSegment() const;
+    const Link* getCurrLink() const;
 
-	/**
-	 * Determines the next segment of the current link in the driving path and returns it
-	 *
+    /**
+     * Determines the next segment of the current link in the driving path and returns it
+     *
      * @return the next segment (in the current link) in the driving path if it exists, else NULL
      */
-	const RoadSegment* getNextSegment() const;
+    const RoadSegment* getNextSegment() const;
 
-	/**
-	 * Determines the next segment of the next link in the driving path and returns it
-	 *
+    /**
+     * Determines the next segment of the next link in the driving path and returns it
+     *
      * @return the next segment (in the next link) in the driving path if it exists, else NULL
      */
-	const RoadSegment* getNextSegInNextLink() const;
+    const RoadSegment* getNextSegInNextLink() const;
 
-	/**
-	 * Determines the next link in the driver path and returns it
-	 *
+    /**
+     * Determines the next link in the driver path and returns it
+     *
      * @return the next link in the driving path if it exists, else NULL
      */
-	const Link* getNextLink() const;
+    const Link* getNextLink() const;
 
-	/**
-	 * Uses the physical lane connections (i.e. connected poly-lines) to determine the next lane.
-	 *
+    /**
+     * Uses the physical lane connections (i.e. connected poly-lines) to determine the next lane.
+     *
      * @return the next lane
      */
-	const Lane* getNextLane();
+    const Lane* getNextLane();
 
-	/**
-	 * Uses the turnings from the current lane to determine the next turning
+    /**
+     * Uses the turnings from the current lane to determine the next turning
      * @return
      */
-	const TurningPath *getNextTurning();
+    const TurningPath *getNextTurning();
 
-	/**
-	 * Sets the driving path and initialises the internal members to point to the elements in the path
-	 *
+    /**
+     * Sets the driving path and initialises the internal members to point to the elements in the path
+     *
      * @param path the path retrieved from the street directory or the path set manager
      * @param startLaneIndex the index of the starting lane (slowest lane by default)
-	 * @param startSegmentId the id of starting segment (first segment in path by default)
+     * @param startSegmentId the id of starting segment (first segment in path by default)
      */
-	void setPath(const std::vector<WayPoint> &path, int startLaneIndex = 0, int startSegmentId = 0);
-	
-	/**
-	 * Sets the driving path that begins with a turning group and initialises the internal members to 
-	 * point to the elements in the path
-	 *
+    void setPath(const std::vector<WayPoint> &path, int startLaneIndex = 0, int startSegmentId = 0);
+    
+    /**
+     * Sets the driving path that begins with a turning group and initialises the internal members to 
+     * point to the elements in the path
+     *
      * @param path the path retrieved from the street directory or the path set manager
-	 * @param fromLane the lane from which the vehicle arrives
+     * @param fromLane the lane from which the vehicle arrives
      */
-	void setPathStartingWithTurningGroup(const std::vector<WayPoint> &path, const Lane *fromLane);
+    void setPathStartingWithTurningGroup(const std::vector<WayPoint> &path, const Lane *fromLane);
 
-	/**
-	 * Checks if the path has been set
-	 *
+    /**
+     * Checks if the path has been set
+     *
      * @return true if the path is set, else false
      */
-	bool isDrivingPathSet() const;
+    bool isDrivingPathSet() const;
 
-	/**
-	 * Checks if the driver has completed driving along the assigned path
-	 *
+    /**
+     * Checks if the driver has completed driving along the assigned path
+     *
      * @return true if the route has been completed, else false
      */
-	bool isDoneWithEntireRoute() const;
+    bool isDoneWithEntireRoute() const;
 
-	/**
-	 * Advances the driver's position along the poly-line by the given amount.
-	 *
+    /**
+     * Advances the driver's position along the poly-line by the given amount.
+     *
      * @param distance the distance (in metre) by which the driver is to be moved forward
-	 *
+     *
      * @return overflow distance, if we move into an intersection, 0 otherwise
      */
-	double advance(double distance);
+    double advance(double distance);
 
-	/**
-	 * Updates the current lane and the current poly-line information after a lane changing move
-	 * has completed
-	 *
+    /**
+     * Updates the current lane and the current poly-line information after a lane changing move
+     * has completed
+     *
      * @param lane the new lane
      */
-	void updateLateralMovement(const Lane *lane);
+    void updateLateralMovement(const Lane *lane);
 
-	/**
-	 * Calculates the distance covered on the current road way-point
-	 *
+    /**
+     * Calculates the distance covered on the current road way-point
+     *
      * @return the distance covered on the current way point (in metre)
      */
-	double getDistCoveredOnCurrWayPt() const;
+    double getDistCoveredOnCurrWayPt() const;
 
-	/**
-	 * Calculates the distance remaining to the end of the current way point
+    /**
+     * Calculates the distance remaining to the end of the current way point
      * 
-	 * @return the distance remaining to the end of the current way point (in metre)
+     * @return the distance remaining to the end of the current way point (in metre)
      */
-	double getDistToEndOfCurrWayPt() const;
+    double getDistToEndOfCurrWayPt() const;
 
-	/**
-	 * Calculates the distance remaining to the end of the current link
-	 *
+    /**
+     * Calculates the distance remaining to the end of the current link
+     *
      * @return  the distance remaining to the end of the current link (in metre)
      */
-	double getDistToEndOfCurrLink() const;
+    double getDistToEndOfCurrLink() const;
 
-	/**
-	 * Computes the current position based on the poly-line and the distance moved
-	 *
+    /**
+     * Computes the current position based on the poly-line and the distance moved
+     *
      * @return the point representing the current position
      */
-	const Point getPosition();
+    const Point getPosition();
     bool isEndOfPath();
 #ifndef SIMMOB_DISABLE_MPI
-	friend class PackageUtils;
-	friend class UnPackageUtils;
+    friend class PackageUtils;
+    friend class UnPackageUtils;
 
-	static void pack(PackageUtils& package, DriverPathMover* one_mover);
-	static void unpack(UnPackageUtils& unpackage, DriverPathMover* one_motor);
+    static void pack(PackageUtils& package, DriverPathMover* one_mover);
+    static void unpack(UnPackageUtils& unpackage, DriverPathMover* one_motor);
 #endif
 } ;
 }

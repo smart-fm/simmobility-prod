@@ -15,23 +15,23 @@ namespace sim_mob
 class PathSetWorkerThread
 {
 public:
-	virtual void run();
-	PathSetWorkerThread();
-	virtual ~PathSetWorkerThread();
+    virtual void run();
+    PathSetWorkerThread();
+    virtual ~PathSetWorkerThread();
 
-	StreetDirectory::Graph* graph;
-	StreetDirectory::Vertex fromVertex;
-	StreetDirectory::Vertex toVertex;
-	const sim_mob::Node *fromNode;
-	const sim_mob::Node *toNode;
-	std::set<const Link*> excludedLinks;
-	std::map<const Link*, std::set<StreetDirectory::Edge> > *linkLookup;
-	SinglePath *path;
-	boost::shared_ptr<sim_mob::PathSet> pathSet;
-	bool hasPath;
-	bool timeBased;
-	///used by local profilers to report to the profiler in higher level.
-	std::string dbgStr;
+    StreetDirectory::Graph* graph;
+    StreetDirectory::Vertex fromVertex;
+    StreetDirectory::Vertex toVertex;
+    const sim_mob::Node *fromNode;
+    const sim_mob::Node *toNode;
+    std::set<const Link*> excludedLinks;
+    std::map<const Link*, std::set<StreetDirectory::Edge> > *linkLookup;
+    SinglePath *path;
+    boost::shared_ptr<sim_mob::PathSet> pathSet;
+    bool hasPath;
+    bool timeBased;
+    ///used by local profilers to report to the profiler in higher level.
+    std::string dbgStr;
 };
 
 }

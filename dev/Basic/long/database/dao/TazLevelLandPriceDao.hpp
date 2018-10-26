@@ -22,7 +22,7 @@ namespace sim_mob {
          */
         class TazLevelLandPriceDao : public db::SqlAbstractDao<TazLevelLandPrice> {
         public:
-        	TazLevelLandPriceDao(db::DB_Connection& connection);
+            TazLevelLandPriceDao(db::DB_Connection& connection);
             virtual ~TazLevelLandPriceDao();
 
         private:

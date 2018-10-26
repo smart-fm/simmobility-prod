@@ -16,10 +16,10 @@ using soci::session;
 namespace
 {
 const std::string PGSQL_CONNSTR_FORMAT = "host=%1% "
-										 "port=%2% "
-										 "user=%3% "
-										 "password=%4% "
-										 "dbname=%5%";
+                                         "port=%2% "
+                                         "user=%3% "
+                                         "password=%4% "
+                                         "dbname=%5%";
 
 /**
  * Class that holds the session object.
@@ -31,19 +31,19 @@ class DB_Session
 {
 public:
 
-	DB_Session()
-	{
-	}
+    DB_Session()
+    {
+    }
 
-	virtual ~DB_Session()
-	{
-	}
+    virtual ~DB_Session()
+    {
+    }
 
-	T& getSession()
-	{
-		return session;
-	}
-	T session;
+    T& getSession()
+    {
+        return session;
+    }
+    T session;
 };
 
 /**
@@ -53,91 +53,91 @@ typedef DB_Session<soci::session> SociSessionImpl;
 }
 
 DB_Connection::DB_Connection(BackendType type, const DB_Config& config) :
-		currentSession(nullptr), type(type), connected(false)
+        currentSession(nullptr), type(type), connected(false)
 {
-	switch (type)
-	{
-	case POSTGRES:
-	{
-		const std::string PGSQL_CONNSTR_FORMAT2 = "host=%1% port=%2% user=%3% password=%4% dbname=%5%";
-		boost::format fmtr = boost::format(PGSQL_CONNSTR_FORMAT2);
-		fmtr % config.getHost() % config.getPort() % config.getUsername() % config.getPassword() % config.getDatabaseName();
-		connectionStr = fmtr.str();
-		break;
-	}
-	default:
-		break;
-	}
+    switch (type)
+    {
+    case POSTGRES:
+    {
+        const std::string PGSQL_CONNSTR_FORMAT2 = "host=%1% port=%2% user=%3% password=%4% dbname=%5%";
+        boost::format fmtr = boost::format(PGSQL_CONNSTR_FORMAT2);
+        fmtr % config.getHost() % config.getPort() % config.getUsername() % config.getPassword() % config.getDatabaseName();
+        connectionStr = fmtr.str();
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 DB_Connection::~DB_Connection()
 {
-	disconnect();
+    disconnect();
 }
 
 bool DB_Connection::connect()
 {
-	if (!connected)
-	{
-		switch (type)
-		{
-		case POSTGRES:
-		{
-			currentSession = new SociSessionImpl();
-			getSession<soci::session>().open(postgresql, connectionStr);
-			connected = true;
-			break;
-		}
-		default:
-			break;
-		}
-	}
-	return connected;
+    if (!connected)
+    {
+        switch (type)
+        {
+        case POSTGRES:
+        {
+            currentSession = new SociSessionImpl();
+            getSession<soci::session>().open(postgresql, connectionStr);
+            connected = true;
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    return connected;
 }
 
 bool DB_Connection::disconnect()
 {
-	if (connected)
-	{
-		switch (type)
-		{
-		case POSTGRES:
-		{
-			getSession<soci::session>().close();
-			delete (SociSessionImpl*) currentSession;
-			break;
-		}
-		default:
-			break;
-		}
-		connected = false;
-	}
-	return !connected;
+    if (connected)
+    {
+        switch (type)
+        {
+        case POSTGRES:
+        {
+            getSession<soci::session>().close();
+            delete (SociSessionImpl*) currentSession;
+            break;
+        }
+        default:
+            break;
+        }
+        connected = false;
+    }
+    return !connected;
 }
 
 bool DB_Connection::isConnected() const
 {
-	return connected;
+    return connected;
 }
 
 template<typename T> T& DB_Connection::getSession()
 {
-	return ((DB_Session<T>*) (currentSession))->getSession();
+    return ((DB_Session<T>*) (currentSession))->getSession();
 }
 
 std::string DB_Connection::getSchema()
 {
-	return schema;
+    return schema;
 }
 
 void DB_Connection::setSchema(std::string _schema)
 {
-	schema = _schema;
+    schema = _schema;
 }
 
 std::string DB_Connection::getConnectionStr()
 {
-	return this->connectionStr;
+    return this->connectionStr;
 }
 
 template soci::session& DB_Connection::getSession<soci::session>();

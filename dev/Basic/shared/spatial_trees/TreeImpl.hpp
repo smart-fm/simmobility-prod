@@ -26,33 +26,33 @@ class TreeImpl
 {
 public:
 
-	virtual ~TreeImpl()
-	{
-	}
+    virtual ~TreeImpl()
+    {
+    }
 
-	///Perform any necessary initialisation required by this Tree. Called once, after construction. Optional.
+    ///Perform any necessary initialisation required by this Tree. Called once, after construction. Optional.
 
-	virtual void init()
-	{
-	}
+    virtual void init()
+    {
+    }
 
-	///Register a new Agent, so that the spatial index is aware of this person. Optional.
+    ///Register a new Agent, so that the spatial index is aware of this person. Optional.
 
-	virtual void registerNewAgent(const Agent *ag)
-	{
-	}
+    virtual void registerNewAgent(const Agent *ag)
+    {
+    }
 
-	///Update the structure.
-	//Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
-	//      save them anywhere.
-	virtual void update(int time_step, const std::set<sim_mob::Entity *> &removedAgentPointers) = 0;
+    ///Update the structure.
+    //Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
+    //      save them anywhere.
+    virtual void update(int time_step, const std::set<sim_mob::Entity *> &removedAgentPointers) = 0;
 
-	///Return the Agents within a given rectangle.
-	virtual std::vector<Agent const *> agentsInRect(const Point &lowerLeft, const Point &upperRight, const sim_mob::Agent *refAgent) const = 0;
+    ///Return the Agents within a given rectangle.
+    virtual std::vector<Agent const *> agentsInRect(const Point &lowerLeft, const Point &upperRight, const sim_mob::Agent *refAgent) const = 0;
 
-	///Return Agents near to a given Position, with offsets (and Lane) taken into account.
-	virtual std::vector<Agent const *> nearbyAgents(const Point &position, const WayPoint &wayPoint, double distanceInFront, double distanceBehind,
-													const sim_mob::Agent *refAgent) const = 0;
+    ///Return Agents near to a given Position, with offsets (and Lane) taken into account.
+    virtual std::vector<Agent const *> nearbyAgents(const Point &position, const WayPoint &wayPoint, double distanceInFront, double distanceBehind,
+                                                    const sim_mob::Agent *refAgent) const = 0;
 };
 
 }

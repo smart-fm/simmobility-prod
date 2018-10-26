@@ -33,15 +33,15 @@ DriverBehavior(), parentBiker(nullptr) {}
 BikerBehavior::~BikerBehavior() {}
 
 void BikerBehavior::frame_init() {
-	throw std::runtime_error("BikerBehavior::frame_init is not implemented yet");
+    throw std::runtime_error("BikerBehavior::frame_init is not implemented yet");
 }
 
 void BikerBehavior::frame_tick() {
-	throw std::runtime_error("BikerBehavior::frame_tick is not implemented yet");
+    throw std::runtime_error("BikerBehavior::frame_tick is not implemented yet");
 }
 
 std::string BikerBehavior::frame_tick_output() {
-	throw std::runtime_error("BikerBehavior::frame_tick_output is not implemented yet");
+    throw std::runtime_error("BikerBehavior::frame_tick_output is not implemented yet");
 }
 
 BikerMovement::BikerMovement() : DriverMovement(), parentBiker(nullptr) {}
@@ -50,30 +50,30 @@ BikerMovement::~BikerMovement() {}
 
 void BikerMovement::frame_init()
 {
-	bool pathInitialized = initializePath();
-	if (pathInitialized)
-	{
-		Vehicle* newVeh = new Vehicle(Vehicle::BIKE, BIKE_LENGTH);
-		VehicleBase* oldBike = parentBiker->getResource();
-		safe_delete_item(oldBike);
-		parentBiker->setResource(newVeh);
-	}
-	else { parentBiker->getParent()->setToBeRemoved(); }
+    bool pathInitialized = initializePath();
+    if (pathInitialized)
+    {
+        Vehicle* newVeh = new Vehicle(Vehicle::BIKE, BIKE_LENGTH);
+        VehicleBase* oldBike = parentBiker->getResource();
+        safe_delete_item(oldBike);
+        parentBiker->setResource(newVeh);
+    }
+    else { parentBiker->getParent()->setToBeRemoved(); }
 }
 
 TruckerBehavior::TruckerBehavior() : DriverBehavior() {}
 TruckerBehavior::~TruckerBehavior() {}
 
 void TruckerBehavior::frame_init() {
-	throw std::runtime_error("TruckerBehavior::frame_init is not implemented yet");
+    throw std::runtime_error("TruckerBehavior::frame_init is not implemented yet");
 }
 
 void TruckerBehavior::frame_tick() {
-	throw std::runtime_error("TruckerBehavior::frame_tick is not implemented yet");
+    throw std::runtime_error("TruckerBehavior::frame_tick is not implemented yet");
 }
 
 std::string TruckerBehavior::frame_tick_output() {
-	throw std::runtime_error("TruckerBehavior::frame_tick_output is not implemented yet");
+    throw std::runtime_error("TruckerBehavior::frame_tick_output is not implemented yet");
 }
 
 TruckerMovement::TruckerMovement() : DriverMovement() {}
@@ -81,30 +81,30 @@ TruckerMovement::~TruckerMovement() {}
 
 void TruckerMovement::frame_init()
 {
-	bool pathInitialized = initializePath();
-	if (pathInitialized)
-	{
-		Vehicle* newVeh = nullptr;
-		switch(parentDriver->roleType)
-		{
-		case Role<Person_MT>::RL_TRUCKER_HGV:
-		{
-			newVeh = new Vehicle(Vehicle::HGV, HGV_LENGTH);
-			break;
-		}
-		case Role<Person_MT>::RL_TRUCKER_LGV:
-		{
-			newVeh = new Vehicle(Vehicle::LGV, LGV_LENGTH);
-			break;
-		}
-		default:
-		{
-			throw std::runtime_error("invalid roleType for Trucker");
-		}
-		}
-		VehicleBase* oldVeh = parentDriver->getResource();
-		safe_delete_item(oldVeh);
-		parentDriver->setResource(newVeh);
-	}
-	else { parentDriver->getParent()->setToBeRemoved(); }
+    bool pathInitialized = initializePath();
+    if (pathInitialized)
+    {
+        Vehicle* newVeh = nullptr;
+        switch(parentDriver->roleType)
+        {
+        case Role<Person_MT>::RL_TRUCKER_HGV:
+        {
+            newVeh = new Vehicle(Vehicle::HGV, HGV_LENGTH);
+            break;
+        }
+        case Role<Person_MT>::RL_TRUCKER_LGV:
+        {
+            newVeh = new Vehicle(Vehicle::LGV, LGV_LENGTH);
+            break;
+        }
+        default:
+        {
+            throw std::runtime_error("invalid roleType for Trucker");
+        }
+        }
+        VehicleBase* oldVeh = parentDriver->getResource();
+        safe_delete_item(oldVeh);
+        parentDriver->setResource(newVeh);
+    }
+    else { parentDriver->getParent()->setToBeRemoved(); }
 }

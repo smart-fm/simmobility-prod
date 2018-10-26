@@ -57,8 +57,6 @@ public:
 	void getAddresses();
 
 private:
-
-
 	/**
 	 * Virtual override.
 	 * Fills the given outObj with all values contained on Row.

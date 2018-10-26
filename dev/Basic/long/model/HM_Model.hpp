@@ -74,7 +74,7 @@ namespace sim_mob
     namespace long_term
     {
 
-    	class HouseholdAgent;
+        class HouseholdAgent;
         /**
          * Class that contains Housing market model logic.
          */
@@ -298,28 +298,28 @@ namespace sim_mob
             {
             public:
 
-            	HouseholdGroup(BigSerial groupId = 0, BigSerial homeTaz = 0, double logsum = .0);
-            	~HouseholdGroup(){};
+                HouseholdGroup(BigSerial groupId = 0, BigSerial homeTaz = 0, double logsum = .0);
+                ~HouseholdGroup(){};
 
-            	HouseholdGroup( HouseholdGroup& source);
-            	HouseholdGroup(const HouseholdGroup& source);
-            	HouseholdGroup& operator=(const HouseholdGroup& source);
-            	HouseholdGroup& operator=( HouseholdGroup& source);
+                HouseholdGroup( HouseholdGroup& source);
+                HouseholdGroup(const HouseholdGroup& source);
+                HouseholdGroup& operator=(const HouseholdGroup& source);
+                HouseholdGroup& operator=( HouseholdGroup& source);
 
 
-            	void	setLogsum(double value);
-            	void	setGroupId(BigSerial value);
-            	void	setHomeTaz( BigSerial value);
+                void    setLogsum(double value);
+                void    setGroupId(BigSerial value);
+                void    setHomeTaz( BigSerial value);
 
-            	double	  getLogsum() const;
-            	BigSerial getGroupId() const;
-            	BigSerial getHomeTaz() const;
+                double    getLogsum() const;
+                BigSerial getGroupId() const;
+                BigSerial getHomeTaz() const;
 
             private:
 
-            	double logsum;
-            	BigSerial homeTaz;
-            	BigSerial groupId;
+                double logsum;
+                BigSerial homeTaz;
+                BigSerial groupId;
             };
 
             std::vector<HouseholdGroup> householdGroupVec;
@@ -343,9 +343,9 @@ namespace sim_mob
 
             Household* getHouseholdById( BigSerial id) const;
             Household* getHouseholdWithBidsById( BigSerial id) const;
-			Individual* getIndividualById( BigSerial id) const;
-			Individual* getPrimaySchoolIndById(BigSerial id) const;
-			Individual* getPreSchoolIndById(BigSerial id) const;
+            Individual* getIndividualById( BigSerial id) const;
+            Individual* getPrimaySchoolIndById(BigSerial id) const;
+            Individual* getPreSchoolIndById(BigSerial id) const;
             Awakening* getAwakeningById( BigSerial id) const;
             Postcode* getPostcodeById(BigSerial id) const;
             Job* getJobById(BigSerial id) const;
@@ -384,17 +384,17 @@ namespace sim_mob
             void resetBAEStatistics(); //BAE is Bids, Awakenings and Exits
 
             void setNumberOfBidders(int number);
-			void setNumberOfSellers(int number);
-			void setNumberOfBTOAwakenings(int number);
-			void incrementNumberOfSellers();
-			void incrementNumberOfBidders();
-			void incrementNumberOfBTOAwakenings();
-			void incrementWaitingToMove();
-			int getNumberOfSellers();
-			int getNumberOfBidders();
-			int getNumberOfBTOAwakenings();
-			int getWaitingToMove();
-			void setWaitingToMove(int number);
+            void setNumberOfSellers(int number);
+            void setNumberOfBTOAwakenings(int number);
+            void incrementNumberOfSellers();
+            void incrementNumberOfBidders();
+            void incrementNumberOfBTOAwakenings();
+            void incrementWaitingToMove();
+            int getNumberOfSellers();
+            int getNumberOfBidders();
+            int getNumberOfBTOAwakenings();
+            int getWaitingToMove();
+            void setWaitingToMove(int number);
 
             void incrementLifestyle1HHs();
             void incrementLifestyle2HHs();
@@ -508,9 +508,9 @@ namespace sim_mob
             IndvidualEmpSecList getIndvidualEmpSecList() const;
             IndvidualEmpSec* getIndvidualEmpSecByIndId(BigSerial indId) const;
 
-			double getlogSqrtFloorAreahdb(int index) { return logSqrtFloorAreahdb[index];}
+            double getlogSqrtFloorAreahdb(int index) { return logSqrtFloorAreahdb[index];}
             double getlogSqrtFloorAreacondo(int index)  { return logSqrtFloorAreacondo[index];}
-			int getlogSqrtFloorAreahdbSize() { return logSqrtFloorAreahdb.size();}
+            int getlogSqrtFloorAreahdbSize() { return logSqrtFloorAreahdb.size();}
             int getlogSqrtFloorAreacondoSize()  { return logSqrtFloorAreacondo.size();}
 
 
@@ -682,7 +682,7 @@ namespace sim_mob
             vector<double> logSqrtFloorAreacondo;
 
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
-	        boost::unordered_map<BigSerial, BigSerial> privatePresaleUnitsMap;
+            boost::unordered_map<BigSerial, BigSerial> privatePresaleUnitsMap;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;
             VehicleOwnershipCoeffMap vehicleOwnershipCoeffsById;
             TaxiAccessCoeffList taxiAccessCoeffs;
@@ -705,7 +705,7 @@ namespace sim_mob
             OwnerTenantMovingRateList ownerTenantMovingRate;
             OwnerTenantMovingRateMap ownerTenantMovingRateById;
 
-            int	initialHHAwakeningCounter;
+            int initialHHAwakeningCounter;
             int numberOfBidders;
             int numberOfSellers;
             int numLifestyle1HHs;
@@ -791,37 +791,37 @@ namespace sim_mob
             LtVersionMap ltVersionById;
 
             WorkersGrpByLogsumParamsList workersGrpByLogsumParams;
-			WorkersGrpByLogsumParamsMap workersGrpByLogsumParamsById;
+            WorkersGrpByLogsumParamsMap workersGrpByLogsumParamsById;
 
-			BuildingMatchList buildingMatch;
-			BuildingMatchMap  buildingMatchById;
+            BuildingMatchList buildingMatch;
+            BuildingMatchMap  buildingMatchById;
 
-			SlaBuildingList slaBuilding;
-			SlaBuildingMap	slaBuildingById;
+            SlaBuildingList slaBuilding;
+            SlaBuildingMap  slaBuildingById;
 
-			int numPrimarySchoolAssignIndividuals;
-			int numPreSchoolAssignIndividuals;
-			TravelTimeMap travelTimeByOriginDestTaz;
+            int numPrimarySchoolAssignIndividuals;
+            int numPreSchoolAssignIndividuals;
+            TravelTimeMap travelTimeByOriginDestTaz;
 
-			StudyAreaList studyAreas;
-			StudyAreaMap studyAreasByTazId;
-			StudyAreaMultiMap  studyAreaByScenario;
+            StudyAreaList studyAreas;
+            StudyAreaMap studyAreasByTazId;
+            StudyAreaMultiMap  studyAreaByScenario;
 
-			JobAssignmentCoeffsList jobAssignmentCoeffs;
+            JobAssignmentCoeffsList jobAssignmentCoeffs;
 
-			JobsByIndustryTypeByTazList jobsByIndustryTypeByTazsList;
-			JobsByIndusrtyTypeByTazMap jobsByIndustryTypeByTazMap;
+            JobsByIndustryTypeByTazList jobsByIndustryTypeByTazsList;
+            JobsByIndusrtyTypeByTazMap jobsByIndustryTypeByTazMap;
 
-			IndLogsumJobAssignmentList indLogsumJobAssignmentList;
-			IndLogsumJobAssignmentByTaz indLogsumJobAssignmentByTaz;
+            IndLogsumJobAssignmentList indLogsumJobAssignmentList;
+            IndLogsumJobAssignmentByTaz indLogsumJobAssignmentByTaz;
 
-			JobsWithTazAndIndustryTypeMap jobsWithTazAndIndustryType;
+            JobsWithTazAndIndustryTypeMap jobsWithTazAndIndustryType;
 
-			int jobAssignIndCount;
-			bool isConnected;
+            int jobAssignIndCount;
+            bool isConnected;
 
-			ResidentialWTP_CoeffsList resWTP_Coeffs;
-			ResidentialWTP_CoeffsMap resWTP_CeoffsByPropertyType;
+            ResidentialWTP_CoeffsList resWTP_Coeffs;
+            ResidentialWTP_CoeffsMap resWTP_CeoffsByPropertyType;
         };
     }
 }

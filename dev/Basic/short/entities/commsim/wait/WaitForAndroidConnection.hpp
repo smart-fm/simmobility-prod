@@ -11,14 +11,14 @@ namespace sim_mob {
 
 class WaitForAndroidConnection: public sim_mob::BrokerBlocker {
 public:
-	WaitForAndroidConnection();
-	virtual ~WaitForAndroidConnection();
+    WaitForAndroidConnection();
+    virtual ~WaitForAndroidConnection();
 
-	void reset(unsigned int numClients);
-	virtual bool calculateWaitStatus(BrokerBase& broker) const;
+    void reset(unsigned int numClients);
+    virtual bool calculateWaitStatus(BrokerBase& broker) const;
 
 private:
-	unsigned int numClients;
+    unsigned int numClients;
 };
 
 }

@@ -16,7 +16,7 @@ namespace sim_mob {
 
         class TravelTime {
         public:
-        	TravelTime(BigSerial origin = INVALID_ID, BigSerial destination = INVALID_ID, double carTravelTime = 0, double publicTravelTime = 0, double numTransfers = 0);
+            TravelTime(BigSerial origin = INVALID_ID, BigSerial destination = INVALID_ID, double carTravelTime = 0, double publicTravelTime = 0, double numTransfers = 0);
 
             virtual ~TravelTime();
 

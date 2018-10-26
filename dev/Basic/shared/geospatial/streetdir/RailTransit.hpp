@@ -21,54 +21,54 @@ namespace sim_mob
 struct RTS_NetworkEdge
 {
 public:
-	RTS_NetworkEdge();
-	virtual ~RTS_NetworkEdge();
+    RTS_NetworkEdge();
+    virtual ~RTS_NetworkEdge();
 
-	double getEdgeTravelTime() const
-	{
-		return edgeTravelTime;
-	}
+    double getEdgeTravelTime() const
+    {
+        return edgeTravelTime;
+    }
 
-	void setEdgeTravelTime(double edgeTravelTime)
-	{
-		this->edgeTravelTime = edgeTravelTime;
-	}
+    void setEdgeTravelTime(double edgeTravelTime)
+    {
+        this->edgeTravelTime = edgeTravelTime;
+    }
 
-	const std::string& getFromStationId() const
-	{
-		return fromStationId;
-	}
+    const std::string& getFromStationId() const
+    {
+        return fromStationId;
+    }
 
-	void setFromStationId(const std::string& fromStationId)
-	{
-		this->fromStationId = fromStationId;
-	}
+    void setFromStationId(const std::string& fromStationId)
+    {
+        this->fromStationId = fromStationId;
+    }
 
-	const std::string& getToStationId() const
-	{
-		return toStationId;
-	}
+    const std::string& getToStationId() const
+    {
+        return toStationId;
+    }
 
-	void setToStationId(const std::string& toStationId)
-	{
-		this->toStationId = toStationId;
-	}
+    void setToStationId(const std::string& toStationId)
+    {
+        this->toStationId = toStationId;
+    }
 
-	bool isTransferEdge() const
-	{
-		return transferEdge;
-	}
+    bool isTransferEdge() const
+    {
+        return transferEdge;
+    }
 
-	void setTransferEdge(bool transferEdge)
-	{
-		this->transferEdge = transferEdge;
-	}
+    void setTransferEdge(bool transferEdge)
+    {
+        this->transferEdge = transferEdge;
+    }
 
 private:
-	std::string fromStationId;
-	std::string toStationId;
-	bool transferEdge;
-	double edgeTravelTime; //in seconds
+    std::string fromStationId;
+    std::string toStationId;
+    bool transferEdge;
+    double edgeTravelTime; //in seconds
 };
 
 
@@ -87,20 +87,20 @@ struct VertexStruct;
 class RailTransit
 {
 private:
-	/** station name is the only property of vertices */
-	typedef boost::property<boost::vertex_name_t, std::string> RT_VertexProperties;
+    /** station name is the only property of vertices */
+    typedef boost::property<boost::vertex_name_t, std::string> RT_VertexProperties;
 
-	/** travel time in seconds is the only property of edges*/
-	typedef boost::property<boost::edge_weight_t, double, boost::property<boost::edge_name_t, bool> > RT_EdgeProperties;
+    /** travel time in seconds is the only property of edges*/
+    typedef boost::property<boost::edge_weight_t, double, boost::property<boost::edge_name_t, bool> > RT_EdgeProperties;
 
-	/**
-	 * The rail transit graph is a directed graph with above defined edge and vertex properties
-	 */
-	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, RT_VertexProperties, RT_EdgeProperties> RailTransitGraph;
+    /**
+     * The rail transit graph is a directed graph with above defined edge and vertex properties
+     */
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, RT_VertexProperties, RT_EdgeProperties> RailTransitGraph;
 
-	typedef RailTransitGraph::vertex_descriptor RT_Vertex;
+    typedef RailTransitGraph::vertex_descriptor RT_Vertex;
 
-	typedef RailTransitGraph::edge_descriptor RT_Edge;
+    typedef RailTransitGraph::edge_descriptor RT_Edge;
 
     /** the adjacency list representing the rail transit system*/
     RailTransitGraph railTransitGraph;
@@ -127,21 +127,21 @@ private:
     class RT_GoalVisitor : public boost::default_dijkstra_visitor
     {
     public:
-    	RT_GoalVisitor(RT_Vertex goal) :
-    			goal(goal)
-    	{
-    	}
+        RT_GoalVisitor(RT_Vertex goal) :
+                goal(goal)
+        {
+        }
 
-    	template<class Graph>
-    	void examine_vertex(RT_Vertex u, const Graph& g)
-    	{
-    		if (u == goal)
-    		{
-    			throw RT_FoundGoal();
-    		}
-    	}
+        template<class Graph>
+        void examine_vertex(RT_Vertex u, const Graph& g)
+        {
+            if (u == goal)
+            {
+                throw RT_FoundGoal();
+            }
+        }
     private:
-    	RT_Vertex goal;
+        RT_Vertex goal;
     };
 
     /**

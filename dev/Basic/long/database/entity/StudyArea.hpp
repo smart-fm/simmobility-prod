@@ -17,26 +17,26 @@ namespace long_term
 class StudyArea
 {
 public:
-	StudyArea( BigSerial id = INVALID_ID,  BigSerial fmTazId = INVALID_ID, std::string studyCode = std::string());
+    StudyArea( BigSerial id = INVALID_ID,  BigSerial fmTazId = INVALID_ID, std::string studyCode = std::string());
 
-	virtual ~StudyArea();
+    virtual ~StudyArea();
 
-	/**
-	 * Getters and Setters
-	 */
-	 BigSerial getId() const;
-	 const std::string& getStudyCode() const;
-	 BigSerial getFmTazId() const;
+    /**
+     * Getters and Setters
+     */
+     BigSerial getId() const;
+     const std::string& getStudyCode() const;
+     BigSerial getFmTazId() const;
 
-	 void setId(BigSerial id);
-	 void setStudyCode(const std::string& studyCode);
-	 void setFmTazId(BigSerial fmTazId);
+     void setId(BigSerial id);
+     void setStudyCode(const std::string& studyCode);
+     void setFmTazId(BigSerial fmTazId);
 
 private:
 
-	 BigSerial id;
-	 BigSerial fmTazId;
-	 std::string studyCode;
+     BigSerial id;
+     BigSerial fmTazId;
+     std::string studyCode;
 };
 }
 }

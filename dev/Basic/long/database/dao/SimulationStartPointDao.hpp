@@ -25,7 +25,7 @@ namespace sim_mob
         class SimulationStartPointDao : public db::SqlAbstractDao<SimulationStartPoint>
         {
         public:
-        	SimulationStartPointDao(db::DB_Connection& connection);
+            SimulationStartPointDao(db::DB_Connection& connection);
             virtual ~SimulationStartPointDao();
             void insertSimulationStartPoint(SimulationStartPoint& objToInsert,std::string schema);
             std::vector<SimulationStartPoint*> getAllSimulationStartPoints(std::string schema);

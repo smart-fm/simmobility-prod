@@ -23,22 +23,22 @@ class ControlManager;
 class CommunicationManager {
 
 public:
-	CommunicationManager(int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr);
-	void start();
-	bool isCommDone() { return CommDone; }
-	void setCommDone(bool b) { CommDone = b; }
-	void setSimulationDone(bool b) { simulationDone = b; }
-	bool isSimulationDone() { return simulationDone; }
+    CommunicationManager(int port, CommunicationDataManager& comDataMgr, ControlManager& ctrlMgr);
+    void start();
+    bool isCommDone() { return CommDone; }
+    void setCommDone(bool b) { CommDone = b; }
+    void setSimulationDone(bool b) { simulationDone = b; }
+    bool isSimulationDone() { return simulationDone; }
 
 private:
-	CommunicationDataManager* comDataMgr;
-	ControlManager* ctrlMgr;
-	boost::asio::io_service io_service;
-	int listenPort;
+    CommunicationDataManager* comDataMgr;
+    ControlManager* ctrlMgr;
+    boost::asio::io_service io_service;
+    int listenPort;
 
 private:
-	bool simulationDone;
-	bool CommDone;
+    bool simulationDone;
+    bool CommDone;
 };
 
 }

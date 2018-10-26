@@ -23,12 +23,12 @@ class BikerMovement;
 class Biker: public medium::Driver
 {
 public:
-	Biker(Person_MT* parent, medium::BikerBehavior* behavior = nullptr, medium::BikerMovement* movement = nullptr, std::string roleName =
-			std::string(), Role<Person_MT>::Type roleType = RL_BIKER);
-	virtual ~Biker();
+    Biker(Person_MT* parent, medium::BikerBehavior* behavior = nullptr, medium::BikerMovement* movement = nullptr, std::string roleName =
+            std::string(), Role<Person_MT>::Type roleType = RL_BIKER);
+    virtual ~Biker();
 
-	//Virtual overrides
-	virtual Role<Person_MT>* clone(Person_MT* parent) const;
+    //Virtual overrides
+    virtual Role<Person_MT>* clone(Person_MT* parent) const;
 };
 
 class TruckerBehavior;
@@ -41,12 +41,12 @@ class TruckerMovement;
 class TruckerLGV: public medium::Driver
 {
 public:
-	TruckerLGV(Person_MT* parent, medium::TruckerBehavior* behavior = nullptr, medium::TruckerMovement* movement = nullptr, std::string roleName =
-			std::string(), Role<Person_MT>::Type roleType = RL_TRUCKER_LGV);
-	virtual ~TruckerLGV();
+    TruckerLGV(Person_MT* parent, medium::TruckerBehavior* behavior = nullptr, medium::TruckerMovement* movement = nullptr, std::string roleName =
+            std::string(), Role<Person_MT>::Type roleType = RL_TRUCKER_LGV);
+    virtual ~TruckerLGV();
 
-	//Virtual overrides
-	virtual Role<Person_MT>* clone(Person_MT* parent) const;
+    //Virtual overrides
+    virtual Role<Person_MT>* clone(Person_MT* parent) const;
 };
 
 /**
@@ -56,12 +56,12 @@ public:
 class TruckerHGV: public medium::Driver
 {
 public:
-	TruckerHGV(Person_MT* parent, medium::TruckerBehavior* behavior = nullptr, medium::TruckerMovement* movement = nullptr, std::string roleName =
-			std::string(), Role<Person_MT>::Type roleType = RL_TRUCKER_HGV);
-	virtual ~TruckerHGV();
+    TruckerHGV(Person_MT* parent, medium::TruckerBehavior* behavior = nullptr, medium::TruckerMovement* movement = nullptr, std::string roleName =
+            std::string(), Role<Person_MT>::Type roleType = RL_TRUCKER_HGV);
+    virtual ~TruckerHGV();
 
-	//Virtual overrides
-	virtual Role<Person_MT>* clone(Person_MT* parent) const;
+    //Virtual overrides
+    virtual Role<Person_MT>* clone(Person_MT* parent) const;
 };
 } //end namespace medium
 } //end namespace sim_mob

@@ -24,19 +24,19 @@ void IndLogsumJobAssignmentDao::fromRow(Row& result, IndLogsumJobAssignment& out
 
 void IndLogsumJobAssignmentDao::toRow(IndLogsumJobAssignment& data, Parameters& outParams, bool update)
 {
-	outParams.push_back(data.getIndividualId());
-	outParams.push_back(data.getTazId());
-	outParams.push_back(data.getLogsum());
+    outParams.push_back(data.getIndividualId());
+    outParams.push_back(data.getTazId());
+    outParams.push_back(data.getLogsum());
 }
 
 std::vector<IndLogsumJobAssignment*> IndLogsumJobAssignmentDao::loadLogsumByIndividualId(BigSerial individualId)
 {
-	const std::string DB_GET_LOGSUMS_BY_INDIVIDUAL_ID      = "SELECT * FROM " + connection.getSchema() + "ind_logsums_job_assignment" + "  WHERE individual_id = :v1;";
-	db::Parameters params;
-	params.push_back(individualId);
-	std::vector<IndLogsumJobAssignment*> logsumList;
-	getByQueryId(DB_GET_LOGSUMS_BY_INDIVIDUAL_ID,params,logsumList);
-	return logsumList;
+    const std::string DB_GET_LOGSUMS_BY_INDIVIDUAL_ID      = "SELECT * FROM " + connection.getSchema() + "ind_logsums_job_assignment" + "  WHERE individual_id = :v1;";
+    db::Parameters params;
+    params.push_back(individualId);
+    std::vector<IndLogsumJobAssignment*> logsumList;
+    getByQueryId(DB_GET_LOGSUMS_BY_INDIVIDUAL_ID,params,logsumList);
+    return logsumList;
 
 }
 

@@ -14,65 +14,65 @@ class WaitBusActivity;
 class WaitBusActivityBehavior: public BehaviorFacet
 {
 protected:
-	WaitBusActivity *parentWaitBusActivity;
-	
+    WaitBusActivity *parentWaitBusActivity;
+    
 public:
-	explicit WaitBusActivityBehavior() :
-	BehaviorFacet(), parentWaitBusActivity(nullptr)
-	{
-	}
-	
-	virtual ~WaitBusActivityBehavior()
-	{
-	}
+    explicit WaitBusActivityBehavior() :
+    BehaviorFacet(), parentWaitBusActivity(nullptr)
+    {
+    }
+    
+    virtual ~WaitBusActivityBehavior()
+    {
+    }
 
-	//Virtual overrides
-	virtual void frame_init()
-	{
-	}
+    //Virtual overrides
+    virtual void frame_init()
+    {
+    }
 
-	virtual void frame_tick()
-	{
-	}
+    virtual void frame_tick()
+    {
+    }
 
-	virtual std::string frame_tick_output()
-	{
-		return std::string();
-	}
+    virtual std::string frame_tick_output()
+    {
+        return std::string();
+    }
 
-	/**
-	 * set parent reference to waiting activity role.
-	 * @param parentWaitBusActivity is pointer to parent waiting activity role
-	 */
-	void setParentWaitBusActivity(WaitBusActivity *parentWaitBusActivity)
-	{
-		this->parentWaitBusActivity = parentWaitBusActivity;
-	}
+    /**
+     * set parent reference to waiting activity role.
+     * @param parentWaitBusActivity is pointer to parent waiting activity role
+     */
+    void setParentWaitBusActivity(WaitBusActivity *parentWaitBusActivity)
+    {
+        this->parentWaitBusActivity = parentWaitBusActivity;
+    }
 };
 
 
 class WaitBusActivityMovement: public MovementFacet
 {
 protected:
-	WaitBusActivity *parentWaitBusActivity;
-	
+    WaitBusActivity *parentWaitBusActivity;
+    
 public:
-	explicit WaitBusActivityMovement();
-	virtual ~WaitBusActivityMovement();
+    explicit WaitBusActivityMovement();
+    virtual ~WaitBusActivityMovement();
 
-	//Virtual overrides
-	virtual void frame_init();
-	virtual void frame_tick();
-	virtual std::string frame_tick_output();
+    //Virtual overrides
+    virtual void frame_init();
+    virtual void frame_tick();
+    virtual std::string frame_tick_output();
 
-	TravelMetric & startTravelTimeMetric();
-	TravelMetric & finalizeTravelTimeMetric();
+    TravelMetric & startTravelTimeMetric();
+    TravelMetric & finalizeTravelTimeMetric();
 
-	/**
-	 * set parent reference to waiting activity role.
-	 * @param parentWaitBusActivity is pointer to parent waiting activity role
-	 */
-	void setParentWaitBusActivity(WaitBusActivity *parentWaitBusActivity);
+    /**
+     * set parent reference to waiting activity role.
+     * @param parentWaitBusActivity is pointer to parent waiting activity role
+     */
+    void setParentWaitBusActivity(WaitBusActivity *parentWaitBusActivity);
 };
 
 }

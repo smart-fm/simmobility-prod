@@ -34,12 +34,12 @@ public:
     KDTreeNode() {}
     KDTreeNode(T& data) : data_(data) {}
     friend std::ostream &operator<<( std::ostream &out, KDTreeNode<T> node) {
-	out << "(";
-	for (int i=0; i<node.data_.dims()-1; i++) {
-	    out << node.data_[i] << ", ";
-	}
-	out << node.data_[node.data_.dims()-1] << ")";
-	return out;
+    out << "(";
+    for (int i=0; i<node.data_.dims()-1; i++) {
+        out << node.data_[i] << ", ";
+    }
+    out << node.data_[node.data_.dims()-1] << ")";
+    return out;
     }
 };
 
@@ -84,14 +84,14 @@ void KDTree<T>::build(std::vector<T> &points) {
     if (points.size() == 0) return;
     int dim = 0;
     try {
-	dim = points[0].dims();
+    dim = points[0].dims();
     } catch (std::exception &e) {
-	std::cout << e.what() << std::endl;
-	throw e;
+    std::cout << e.what() << std::endl;
+    throw e;
     }
 
     if (dim == 0) {
-	throw std::runtime_error("KDTree: T's dims() function not defined or returned 0");
+    throw std::runtime_error("KDTree: T's dims() function not defined or returned 0");
     }
 
     // standard case
@@ -102,9 +102,9 @@ template<typename T>
 std::shared_ptr<KDTreeNode<T>> KDTree<T>::buildTreeHelper(std::vector<T>&points, int low, int high, int depth, int dim) {
     // base case
     if (low == high) {
-	std::shared_ptr<KDTreeNode<T>> pnode = std::make_shared<KDTreeNode<T>>(points[low]);
-	size_++;
-	return pnode;
+    std::shared_ptr<KDTreeNode<T>> pnode = std::make_shared<KDTreeNode<T>>(points[low]);
+    size_++;
+    return pnode;
     }
     if (low > high) return nullptr;
 
@@ -126,7 +126,7 @@ template<typename T>
 T KDTree<T>::findNN(const T &p, double eps) const {
     //set eps to negative or 0 for exact search
     if (!root_) {
-	throw std::runtime_error("KDTree: Build a tree before you can perform a NN search");
+    throw std::runtime_error("KDTree: Build a tree before you can perform a NN search");
     }
     // initialize to root
     double best_dist = sqDist(root_->data_, p);
@@ -139,12 +139,12 @@ template<typename T>
 T KDTree<T>::findNN(const std::vector<double> &x, double eps) const {
     //set eps to negative or 0 for exact search
     if (!root_) {
-	throw std::runtime_error("KDTree: Build a tree before you can perform a NN search");
+    throw std::runtime_error("KDTree: Build a tree before you can perform a NN search");
     }
     // create a data element
     T p;
     for (unsigned int i=0; i<x.size(); i++) {
-	p[i] = x[i];
+    p[i] = x[i];
     }
 
     // return
@@ -153,9 +153,9 @@ T KDTree<T>::findNN(const std::vector<double> &x, double eps) const {
 
 template<typename T>
 void KDTree<T>::findNNHelper(std::shared_ptr<KDTreeNode<T>> root, const T &p, T *best_elem,
-		double *best_dist, int depth, int dim, double eps) const {
+        double *best_dist, int depth, int dim, double eps) const {
     if (!root) {
-	return;
+    return;
     }
 
     int axis = depth % dim;
@@ -164,20 +164,20 @@ void KDTree<T>::findNNHelper(std::shared_ptr<KDTreeNode<T>> root, const T &p, T 
     double dist_dim = sqDist(root->data_, p, axis);
 
     if (dist < *best_dist) {
-	*best_dist = dist;
-	*best_elem = root->data_;
+    *best_dist = dist;
+    *best_elem = root->data_;
     }
 
     // return if we found a completely matching element or are close enough (Approximate search)
     if (*best_dist == 0 || *best_dist < eps) {
-	return;
+    return;
     }
 
     // recurse through the tree
     findNNHelper((p[axis] < root->data_[axis]) ? root->left_ : root->right_, p, best_elem, best_dist, depth+1, dim, eps);
 
     if (*best_dist < dist_dim ) {
-	return;
+    return;
     }
     findNNHelper((p[axis] < root->data_[axis]) ? root->right_ : root->left_, p, best_elem, best_dist, depth+1, dim, eps);
 }
@@ -190,24 +190,24 @@ void KDTree<T>::print(std::ostream &out) {
     int num_curr_level = 1;
 
     while (!q.empty()) {
-	std::shared_ptr<KDTreeNode<T>> pnode = q.front();
-	q.pop();
-	num_curr_level--;
+    std::shared_ptr<KDTreeNode<T>> pnode = q.front();
+    q.pop();
+    num_curr_level--;
 
-	// add children
-	if (pnode) q.push(pnode->left_);
-	if (pnode) q.push(pnode->right_);
+    // add children
+    if (pnode) q.push(pnode->left_);
+    if (pnode) q.push(pnode->right_);
 
-	// print out the node
-	if (pnode) {
-	    std::cout << *pnode << " ";
-	} else {
-	    std::cout << "(NULL) ";
-	}
-	if (num_curr_level == 0) {
-	    std::cout << std::endl;
-	    num_curr_level = q.size();
-	}
+    // print out the node
+    if (pnode) {
+        std::cout << *pnode << " ";
+    } else {
+        std::cout << "(NULL) ";
+    }
+    if (num_curr_level == 0) {
+        std::cout << std::endl;
+        num_curr_level = q.size();
+    }
     }
 }
 
@@ -228,10 +228,10 @@ int KDTree<T>::partition(std::vector<T> &points, int low, int high, int pivot_id
     swap(points, pivot_idx, high);
 
     for (int i = low; i <high; i++) {
-	if (points[i][axis] < points[high][axis] ) {
-	    swap(points, i, part);
-	    part++;
-	}
+    if (points[i][axis] < points[high][axis] ) {
+        swap(points, i, part);
+        part++;
+    }
     }
 
     swap(points, part, high);
@@ -241,19 +241,19 @@ int KDTree<T>::partition(std::vector<T> &points, int low, int high, int pivot_id
 template<typename T>
 int KDTree<T>::quickSelect(std::vector<T> &points, int low, int high, int k, int axis) {
     if (low == high) {
-	return low;
+    return low;
     }
     while (true) {
-	std::uniform_int_distribution<int> urand(low, high);
-	int pivot_idx = urand(generator);
+    std::uniform_int_distribution<int> urand(low, high);
+    int pivot_idx = urand(generator);
 
-	int part = partition(points, low, high, pivot_idx, axis);
-	if (part == k) return part;
-	if (k < part) {
-	    high = part-1;
-	} else {
-	    low = part+1;
-	}
+    int part = partition(points, low, high, pivot_idx, axis);
+    if (part == k) return part;
+    if (k < part) {
+        high = part-1;
+    } else {
+        low = part+1;
+    }
     }
 }
 
@@ -264,14 +264,14 @@ double KDTree<T>::sqDist(const T &a, const T&b, int axis) const {
     int n = a.dims();
     double sum = 0;
     if (axis == -1) {
-	for (int i=0; i<n; i++) {
-	    sum += pow(a[i] - b[i], 2.0);
-	}
+    for (int i=0; i<n; i++) {
+        sum += pow(a[i] - b[i], 2.0);
+    }
     } else {
-	if (axis >= n) {
-	    throw std::runtime_error("KDTree: sqDist: axis is larger than dimension");
-	}
-	sum = pow(a[axis] - b[axis], 2.0);
+    if (axis >= n) {
+        throw std::runtime_error("KDTree: sqDist: axis is larger than dimension");
+    }
+    sum = pow(a[axis] - b[axis], 2.0);
     }
     return sum;
 }

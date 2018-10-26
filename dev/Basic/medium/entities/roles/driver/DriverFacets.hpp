@@ -146,6 +146,8 @@ public:
     * @return
     */
 	bool ifLoopedNode(unsigned int thisNodeId);
+    void onNewDriverVelocitySample(double driverVelocitySample);
+    void onTripCompletion();
 
 protected:
 	std::deque<double> speedCollector;
@@ -476,16 +478,6 @@ protected:
 	 * @return next link for driver
 	 */
 	const Link* getNextLinkForLaneChoice(const SegmentStats* nextSegStats) const;
-
-	//aa{
-	/**
-	 * Update the velocity vector and accomplished the operations required to compute
-	 * the segment energy
-	 */
-	void onNewDriverVelocitySample(double driverVelocitySample);
-	//aa}
-	void onTripCompletion();
-
 	void setPath(std::vector<const SegmentStats*> &path,Node *toNode,std::vector<RoadSegment*>);
 	friend class MesoReroute;
 

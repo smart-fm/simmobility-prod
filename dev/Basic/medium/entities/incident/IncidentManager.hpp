@@ -17,20 +17,20 @@ namespace medium {
 class Person_MT;
 class ReRouteEventArgs : public sim_mob::event::EventArgs {
 public:
-	ReRouteEventArgs(const std::string& stationName, unsigned int time):stationName(stationName),currentTime(time){;}
+    ReRouteEventArgs(const std::string& stationName, unsigned int time):stationName(stationName),currentTime(time){;}
     virtual ~ReRouteEventArgs(){;}
 
     /**
      * Getters for stationName
      */
     const std::string& getStationName() const{
-    	return stationName;
+        return stationName;
     }
     /**
      * Getters for type
      */
     unsigned int getCurrentTime() const{
-    	return currentTime;
+        return currentTime;
     }
 private:
     std::string stationName;
@@ -41,26 +41,26 @@ private:
  */
 class IncidentManager : public sim_mob::Agent {
 private:
-	static IncidentManager * instance;
-	/**disruptions*/
-	std::vector<DisruptionParams> disruptions;
+    static IncidentManager * instance;
+    /**disruptions*/
+    std::vector<DisruptionParams> disruptions;
 public:
-	IncidentManager();
-	/**
-	 * set disruption information
-	 * @param disruptions hold disruption information
-	 */
-	void setDisruptions(std::vector<DisruptionParams>& disruptions);
-	/**
-	 * publish disruption event based on current time
-	 * @param now is current time
-	 */
-	void publishDisruption(timeslice now);
-	Entity::UpdateStatus frame_init(timeslice now);
-	virtual Entity::UpdateStatus frame_tick(timeslice now);
-	virtual void frame_output(timeslice now){}
-	bool isNonspatial();
-	static IncidentManager * getInstance();
+    IncidentManager();
+    /**
+     * set disruption information
+     * @param disruptions hold disruption information
+     */
+    void setDisruptions(std::vector<DisruptionParams>& disruptions);
+    /**
+     * publish disruption event based on current time
+     * @param now is current time
+     */
+    void publishDisruption(timeslice now);
+    Entity::UpdateStatus frame_init(timeslice now);
+    virtual Entity::UpdateStatus frame_tick(timeslice now);
+    virtual void frame_output(timeslice now){}
+    bool isNonspatial();
+    static IncidentManager * getInstance();
 };
 
 }

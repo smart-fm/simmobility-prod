@@ -5,7 +5,7 @@
 /* 
  * File:   Household.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
- * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
+ *         Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  *
  * Created on April 22, 2013, 5:54 PM
  */
@@ -21,21 +21,21 @@
 using namespace sim_mob::long_term;
 
 Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, int adult, double income,
-					  int housingDuration,int workers, int ageOfHead, int pendingStatusId,std::tm pendingFromDate,int unitPending,bool twoRoomHdbEligibility, bool threeRoomHdbEligibility,
-					  bool fourRoomHdbEligibility, int familyType, bool taxiAvailability,  int vehicleOwnershipOptionId, double logsum, double currentUnitPrice, double householdAffordabilityAmount,
-					  int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved, int tenureStatus, int awakenedDay, bool existInDB, int lastAwakenedDay,int lastBidStatus,double randomNum,bool liveInToaPayoh,bool workInToaPayoh,int numWhiteCollars,int numWorkers,int numElderly): id(id), lifestyleId(lifestyleId), unitId(unitId),
-					  ethnicityId(ethnicityId), vehicleCategoryId(vehicleCategoryId),size(size), childUnder4(childUnder4), childUnder15(childUnder15), adult(adult),income(income),  housingDuration(housingDuration),
-					  workers(workers), ageOfHead(ageOfHead), pendingStatusId(pendingStatusId),pendingFromDate(pendingFromDate),unitPending(unitPending),twoRoomHdbEligibility(twoRoomHdbEligibility),
-					  threeRoomHdbEligibility(threeRoomHdbEligibility),  fourRoomHdbEligibility(fourRoomHdbEligibility),familyType(familyType), taxiAvailability(taxiAvailability),
-					  vehicleOwnershipOptionId(vehicleOwnershipOptionId), logsum(logsum), currentUnitPrice(currentUnitPrice),  householdAffordabilityAmount(householdAffordabilityAmount), buySellInterval(buySellInterval),
-					  moveInDate(moveInDate),  timeOnMarket(timeOnMarket),timeOffMarket(timeOffMarket),isBidder(isBidder),isSeller(isSeller),hasMoved(hasMoved), tenureStatus(tenureStatus), awakenedDay(awakenedDay), existInDB(existInDB), lastAwakenedDay(lastAwakenedDay),lastBidStatus(lastBidStatus),randomNum(0),liveInToaPayoh(liveInToaPayoh), workInToaPayoh(workInToaPayoh),numWhiteCollars(numWhiteCollars),numWorkers(numWorkers),
-					  numElderly(numElderly)
-					  {}
+                      int housingDuration,int workers, int ageOfHead, int pendingStatusId,std::tm pendingFromDate,int unitPending,bool twoRoomHdbEligibility, bool threeRoomHdbEligibility,
+                      bool fourRoomHdbEligibility, int familyType, bool taxiAvailability,  int vehicleOwnershipOptionId, double logsum, double currentUnitPrice, double householdAffordabilityAmount,
+                      int buySellInterval, std::tm moveInDate,int timeOnMarket,int timeOffMarket,int isBidder,int isSeller,int hasMoved, int tenureStatus, int awakenedDay, bool existInDB, int lastAwakenedDay,int lastBidStatus,double randomNum,bool liveInToaPayoh,bool workInToaPayoh,int numWhiteCollars,int numWorkers,int numElderly): id(id), lifestyleId(lifestyleId), unitId(unitId),
+                      ethnicityId(ethnicityId), vehicleCategoryId(vehicleCategoryId),size(size), childUnder4(childUnder4), childUnder15(childUnder15), adult(adult),income(income),  housingDuration(housingDuration),
+                      workers(workers), ageOfHead(ageOfHead), pendingStatusId(pendingStatusId),pendingFromDate(pendingFromDate),unitPending(unitPending),twoRoomHdbEligibility(twoRoomHdbEligibility),
+                      threeRoomHdbEligibility(threeRoomHdbEligibility),  fourRoomHdbEligibility(fourRoomHdbEligibility),familyType(familyType), taxiAvailability(taxiAvailability),
+                      vehicleOwnershipOptionId(vehicleOwnershipOptionId), logsum(logsum), currentUnitPrice(currentUnitPrice),  householdAffordabilityAmount(householdAffordabilityAmount), buySellInterval(buySellInterval),
+                      moveInDate(moveInDate),  timeOnMarket(timeOnMarket),timeOffMarket(timeOffMarket),isBidder(isBidder),isSeller(isSeller),hasMoved(hasMoved), tenureStatus(tenureStatus), awakenedDay(awakenedDay), existInDB(existInDB), lastAwakenedDay(lastAwakenedDay),lastBidStatus(lastBidStatus),randomNum(0),liveInToaPayoh(liveInToaPayoh), workInToaPayoh(workInToaPayoh),numWhiteCollars(numWhiteCollars),numWorkers(numWorkers),
+                      numElderly(numElderly)
+                      {}
 
 Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), childUnder4(0), childUnder15(0), adult(0),income(0), housingDuration(0), workers(0), ageOfHead(0),
-						pendingStatusId(0),pendingFromDate(std::tm()),unitPending(0), twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0),taxiAvailability(false),
-						vehicleOwnershipOptionId(0), logsum(0),  currentUnitPrice(0),householdAffordabilityAmount(0),buySellInterval(0), moveInDate(std::tm()),timeOnMarket(0),timeOffMarket(0),isBidder(0),
-						isSeller(0),hasMoved(0), tenureStatus(0), awakenedDay(0),existInDB(false), lastAwakenedDay(-INT_MAX),lastBidStatus(-1),randomNum(0),liveInToaPayoh(false),workInToaPayoh(false),numWhiteCollars(0),numWorkers(0),numElderly(0)
+                        pendingStatusId(0),pendingFromDate(std::tm()),unitPending(0), twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0),taxiAvailability(false),
+                        vehicleOwnershipOptionId(0), logsum(0),  currentUnitPrice(0),householdAffordabilityAmount(0),buySellInterval(0), moveInDate(std::tm()),timeOnMarket(0),timeOffMarket(0),isBidder(0),
+                        isSeller(0),hasMoved(0), tenureStatus(0), awakenedDay(0),existInDB(false), lastAwakenedDay(-INT_MAX),lastBidStatus(-1),randomNum(0),liveInToaPayoh(false),workInToaPayoh(false),numWhiteCollars(0),numWorkers(0),numElderly(0)
 {
 
 }
@@ -52,123 +52,123 @@ void Household::saveData(std::vector<Household*> &households){
 
 std::vector<Household*> Household::loadSerializedData()
 {
-	std::vector<Household*> households;
-	// Restore from saved data and print to verify contents
-	std::vector<Household*> restored_info;
-	{
-		// Create and input archive
-		std::ifstream ifs( filename );
-		boost::archive::binary_iarchive ar( ifs );
+    std::vector<Household*> households;
+    // Restore from saved data and print to verify contents
+    std::vector<Household*> restored_info;
+    {
+        // Create and input archive
+        std::ifstream ifs( filename );
+        boost::archive::binary_iarchive ar( ifs );
 
-		// Load the data
-		ar & restored_info;
-	}
+        // Load the data
+        ar & restored_info;
+    }
 
-	std::vector<Household*>::const_iterator it = restored_info.begin();
-	for (; it != restored_info.end(); ++it)
-	{
-		Household *hh = *it;
-		households.push_back(hh);
-	}
+    std::vector<Household*>::const_iterator it = restored_info.begin();
+    for (; it != restored_info.end(); ++it)
+    {
+        Household *hh = *it;
+        households.push_back(hh);
+    }
 
-	return households;
+    return households;
 
 }
 
 template<class Archive>
 void Household::serialize(Archive & ar,const unsigned int version)
 {
-	ar & id;
-	ar & lifestyleId;
-	ar & unitId ;
-	ar & ethnicityId;
-	ar & vehicleCategoryId;
-	ar & size;
-	ar & childUnder4;
-	ar & childUnder15;
-	ar & adult;
-	ar & income;
-	ar & housingDuration;
-	ar & workers;
-	ar & ageOfHead;
-	ar & pendingStatusId;
-	ar & BOOST_SERIALIZATION_NVP(pendingFromDate.tm_year);
-	ar & BOOST_SERIALIZATION_NVP(pendingFromDate.tm_mon);
-	ar & BOOST_SERIALIZATION_NVP(pendingFromDate.tm_mday);
-	pendingFromDate.tm_year = pendingFromDate.tm_year+1900;
-	ar & unitPending;
-	ar & taxiAvailability;
-	ar & vehicleOwnershipOptionId;
-	ar & logsum;
-	ar & currentUnitPrice;
-	ar & householdAffordabilityAmount;
-	ar & timeOnMarket;
-	ar & timeOffMarket;
-	ar & isBidder;
-	ar & isSeller;
-	ar & buySellInterval;
-	ar & BOOST_SERIALIZATION_NVP(moveInDate.tm_year);
-	ar & BOOST_SERIALIZATION_NVP(moveInDate.tm_mon);
-	ar & BOOST_SERIALIZATION_NVP(moveInDate.tm_mday);
-	moveInDate.tm_year = moveInDate.tm_year+1900;
-	ar & tenureStatus;
-	ar & awakenedDay;
-	ar & individuals;
-	for(size_t i = 0; i < individuals.size(); i++)
-	{
-		ar & individuals[i];
-	}
-	ar & randomNum;
-	ar & liveInToaPayoh;
-	ar & workInToaPayoh;
-	ar & numWhiteCollars;
-	ar & numWorkers;
-	ar & numElderly;
+    ar & id;
+    ar & lifestyleId;
+    ar & unitId ;
+    ar & ethnicityId;
+    ar & vehicleCategoryId;
+    ar & size;
+    ar & childUnder4;
+    ar & childUnder15;
+    ar & adult;
+    ar & income;
+    ar & housingDuration;
+    ar & workers;
+    ar & ageOfHead;
+    ar & pendingStatusId;
+    ar & BOOST_SERIALIZATION_NVP(pendingFromDate.tm_year);
+    ar & BOOST_SERIALIZATION_NVP(pendingFromDate.tm_mon);
+    ar & BOOST_SERIALIZATION_NVP(pendingFromDate.tm_mday);
+    pendingFromDate.tm_year = pendingFromDate.tm_year+1900;
+    ar & unitPending;
+    ar & taxiAvailability;
+    ar & vehicleOwnershipOptionId;
+    ar & logsum;
+    ar & currentUnitPrice;
+    ar & householdAffordabilityAmount;
+    ar & timeOnMarket;
+    ar & timeOffMarket;
+    ar & isBidder;
+    ar & isSeller;
+    ar & buySellInterval;
+    ar & BOOST_SERIALIZATION_NVP(moveInDate.tm_year);
+    ar & BOOST_SERIALIZATION_NVP(moveInDate.tm_mon);
+    ar & BOOST_SERIALIZATION_NVP(moveInDate.tm_mday);
+    moveInDate.tm_year = moveInDate.tm_year+1900;
+    ar & tenureStatus;
+    ar & awakenedDay;
+    ar & individuals;
+    for(size_t i = 0; i < individuals.size(); i++)
+    {
+        ar & individuals[i];
+    }
+    ar & randomNum;
+    ar & liveInToaPayoh;
+    ar & workInToaPayoh;
+    ar & numWhiteCollars;
+    ar & numWorkers;
+    ar & numElderly;
 
 }
 
 Household::Household( const Household &source)
 {
-	this->id = source.id;
-	this->lifestyleId = source.lifestyleId;
-	this->unitId = source.unitId;
-	this->ethnicityId = source.ethnicityId;
-	this->vehicleCategoryId = source.vehicleCategoryId;
-	this->income = source.income;
-	this->size = source.size;
-	this->childUnder4 = source.childUnder15;
-	this->childUnder15 = source.childUnder15;
-	this->adult = source.adult;
-	this->housingDuration = source.housingDuration;
-	this->workers = source.workers;
-	this->ageOfHead = source.ageOfHead;
-	this->pendingStatusId = source.pendingStatusId;
-	this->pendingFromDate = source.pendingFromDate;
-	this->unitPending = source.unitPending;
-	this->taxiAvailability = source.taxiAvailability;
-	this->vehicleOwnershipOptionId = source.vehicleOwnershipOptionId;
-	this->logsum = source.logsum;
-	this->currentUnitPrice = source.currentUnitPrice;
-	this->householdAffordabilityAmount = source.householdAffordabilityAmount;
-	this->timeOnMarket = source.timeOnMarket;
-	this->timeOffMarket = source.timeOffMarket;
-	this->isBidder = source.isBidder;
-	this->isSeller = source.isSeller;
-	this->buySellInterval = source.buySellInterval;
-	this->moveInDate = source.moveInDate;
-	this->tenureStatus = source.tenureStatus;
-	this->awakenedDay = source.awakenedDay;
-	this->randomNum = source.randomNum;
-	this->liveInToaPayoh = source.liveInToaPayoh;
-	this->workInToaPayoh = source.workInToaPayoh;
-	this->numWhiteCollars = source.numWhiteCollars;
-	this->numWorkers = source.numWorkers;
-	this->numElderly = source.numElderly;
-	this->individuals = source.individuals;
-	for(size_t i = 0; i < individuals.size(); i++)
-	{
-		this->individuals[i] = source.individuals[i];
-	}
+    this->id = source.id;
+    this->lifestyleId = source.lifestyleId;
+    this->unitId = source.unitId;
+    this->ethnicityId = source.ethnicityId;
+    this->vehicleCategoryId = source.vehicleCategoryId;
+    this->income = source.income;
+    this->size = source.size;
+    this->childUnder4 = source.childUnder15;
+    this->childUnder15 = source.childUnder15;
+    this->adult = source.adult;
+    this->housingDuration = source.housingDuration;
+    this->workers = source.workers;
+    this->ageOfHead = source.ageOfHead;
+    this->pendingStatusId = source.pendingStatusId;
+    this->pendingFromDate = source.pendingFromDate;
+    this->unitPending = source.unitPending;
+    this->taxiAvailability = source.taxiAvailability;
+    this->vehicleOwnershipOptionId = source.vehicleOwnershipOptionId;
+    this->logsum = source.logsum;
+    this->currentUnitPrice = source.currentUnitPrice;
+    this->householdAffordabilityAmount = source.householdAffordabilityAmount;
+    this->timeOnMarket = source.timeOnMarket;
+    this->timeOffMarket = source.timeOffMarket;
+    this->isBidder = source.isBidder;
+    this->isSeller = source.isSeller;
+    this->buySellInterval = source.buySellInterval;
+    this->moveInDate = source.moveInDate;
+    this->tenureStatus = source.tenureStatus;
+    this->awakenedDay = source.awakenedDay;
+    this->randomNum = source.randomNum;
+    this->liveInToaPayoh = source.liveInToaPayoh;
+    this->workInToaPayoh = source.workInToaPayoh;
+    this->numWhiteCollars = source.numWhiteCollars;
+    this->numWorkers = source.numWorkers;
+    this->numElderly = source.numElderly;
+    this->individuals = source.individuals;
+    for(size_t i = 0; i < individuals.size(); i++)
+    {
+        this->individuals[i] = source.individuals[i];
+    }
 
 
 }
@@ -212,9 +212,9 @@ Household& Household::operator=(const Household& source)
     this->numElderly = source.numElderly;
     this->individuals = source.individuals;
     for(size_t i = 0; i < individuals.size(); i++)
-    	{
-    		this->individuals[i] = source.individuals[i];
-    	}
+        {
+            this->individuals[i] = source.individuals[i];
+        }
 
     return *this;
 }
@@ -241,32 +241,32 @@ int Household::getWorkers() const
 
 const std::tm& Household::getPendingFromDate() const
 {
-	return pendingFromDate;
+    return pendingFromDate;
 }
 
 void Household::setPendingFromDate(const std::tm& pendingFromDate)
 {
-	this->pendingFromDate = pendingFromDate;
+    this->pendingFromDate = pendingFromDate;
 }
 
 int Household::getPendingStatusId() const
 {
-	return pendingStatusId;
+    return pendingStatusId;
 }
 
 void Household::setPendingStatusId(int pendingStatusId)
 {
-	this->pendingStatusId = pendingStatusId;
+    this->pendingStatusId = pendingStatusId;
 }
 
 int Household::getUnitPending() const
 {
-	return unitPending;
+    return unitPending;
 }
 
 void Household::setUnitPending(int unitPending)
 {
-	this->unitPending = unitPending;
+    this->unitPending = unitPending;
 }
 
 void Household::setHousingDuration(int housingDuration)
@@ -311,12 +311,12 @@ int Household::getChildUnder15() const
 
 int Household::getAdult() const
 {
-	return adult;
+    return adult;
 }
 
 void Household::setAdult(int adult)
 {
-	this->adult = adult;
+    this->adult = adult;
 }
 
 void Household::setSize(int size)
@@ -381,304 +381,304 @@ BigSerial Household::getId() const
 
 std::vector<BigSerial> Household::getIndividuals() const
 {
-	return individuals;
+    return individuals;
 }
 
 void Household::setIndividual( BigSerial individual )
 {
-	individuals.push_back( individual );
+    individuals.push_back( individual );
 }
 
 
 bool  Household::getTwoRoomHdbEligibility() const
 {
-	return twoRoomHdbEligibility;
+    return twoRoomHdbEligibility;
 }
 
 bool  Household::getThreeRoomHdbEligibility() const
 {
-	return threeRoomHdbEligibility;
+    return threeRoomHdbEligibility;
 }
 
 bool  Household::getFourRoomHdbEligibility() const
 {
-	return fourRoomHdbEligibility;
+    return fourRoomHdbEligibility;
 }
 
 void  Household::setTwoRoomHdbEligibility(bool eligibility)
 {
-	twoRoomHdbEligibility = true;
+    twoRoomHdbEligibility = true;
 }
 
 void  Household::setThreeRoomHdbEligibility(bool eligibility)
 {
-	threeRoomHdbEligibility = true;
+    threeRoomHdbEligibility = true;
 }
 
 void  Household::setFourRoomHdbEligibility(bool eligibility)
 {
-	fourRoomHdbEligibility = true;
+    fourRoomHdbEligibility = true;
 }
 
 void Household::setFamilyType( int type )
 {
-	familyType = type;
+    familyType = type;
 }
 
 int Household::getFamilyType()
 {
-	return familyType;
+    return familyType;
 }
 
 bool Household::getTaxiAvailability() const
 {
-	return this->taxiAvailability;
+    return this->taxiAvailability;
 }
 
 void Household::setTaxiAvailability(bool taxiAvailable)
 {
-	taxiAvailability = taxiAvailable;
+    taxiAvailability = taxiAvailable;
 }
 
 int Household::getVehicleOwnershipOptionId() const
 {
-	return this->vehicleOwnershipOptionId;
+    return this->vehicleOwnershipOptionId;
 }
 
 void Household::setVehicleOwnershipOptionId(int vehicleOwnershipOption)
 {
-	this->vehicleOwnershipOptionId = vehicleOwnershipOption;
+    this->vehicleOwnershipOptionId = vehicleOwnershipOption;
 }
 
 void Household::setAffordabilityAmount(double value)
 {
-	householdAffordabilityAmount = value;
+    householdAffordabilityAmount = value;
 }
 
 double Household::getAffordabilityAmount() const
 {
-	return householdAffordabilityAmount;
+    return householdAffordabilityAmount;
 }
 
 void Household::setLogsum(double value)
 {
-	logsum = value;
+    logsum = value;
 }
 
 double Household::getLogsum() const
 {
-	return logsum;
+    return logsum;
 }
 
 
 void Household::setCurrentUnitPrice( double value)
 {
-	currentUnitPrice = value;
+    currentUnitPrice = value;
 }
-double	Household::getCurrentUnitPrice() const
+double  Household::getCurrentUnitPrice() const
 {
-	return currentUnitPrice;
+    return currentUnitPrice;
 }
 
 int Household::getLastAwakenedDay()
 {
-	return lastAwakenedDay;
+    return lastAwakenedDay;
 }
 
 void Household::setLastAwakenedDay(int lastAwkenedDate)
 {
-	this->lastAwakenedDay = lastAwkenedDate;
+    this->lastAwakenedDay = lastAwkenedDate;
 }
 
 int Household::getBuySellInterval() const
 {
-	return buySellInterval;
+    return buySellInterval;
 }
 
 void Household::setBuySellInterval(int buyerSellerInterval)
 {
-	this->buySellInterval = buyerSellerInterval;
+    this->buySellInterval = buyerSellerInterval;
 }
 
 int Household::getIsBidder() const
 {
-	return isBidder;
+    return isBidder;
 }
 
 void Household::setIsBidder(int isBidder)
 {
-	this->isBidder = isBidder;
+    this->isBidder = isBidder;
 }
 
 int Household::getIsSeller() const
 {
-	return isSeller;
+    return isSeller;
 }
 
 void Household::setIsSeller(int isSeller)
 {
-	this->isSeller = isSeller;
+    this->isSeller = isSeller;
 }
 
 int Household::getTimeOffMarket() const
 {
-	return timeOffMarket;
+    return timeOffMarket;
 }
 
 void Household::setTimeOffMarket(int timeOffMarket)
 {
-	this->timeOffMarket = timeOffMarket;
+    this->timeOffMarket = timeOffMarket;
 }
 
 int Household::getTimeOnMarket() const
 {
-	return timeOnMarket;
+    return timeOnMarket;
 }
 
 void Household::setTimeOnMarket(int timeOnMarket)
 {
-		this->timeOnMarket = timeOnMarket;
+        this->timeOnMarket = timeOnMarket;
 }
 
 double Household::getHouseholdAffordabilityAmount() const
 {
-	return householdAffordabilityAmount;
+    return householdAffordabilityAmount;
 }
 
 void Household::setHouseholdAffordabilityAmount(double householdAffordabilityAmount)
 {
-	this->householdAffordabilityAmount = householdAffordabilityAmount;
+    this->householdAffordabilityAmount = householdAffordabilityAmount;
 }
 
 const std::tm& Household::getMoveInDate() const
 {
-	return moveInDate;
+    return moveInDate;
 }
 
 void Household::setMoveInDate(const std::tm& moveInDate)
 {
-	this->moveInDate = moveInDate;
+    this->moveInDate = moveInDate;
 }
 
 int Household::getHasMoved() const
 {
-	return this->hasMoved;
+    return this->hasMoved;
 }
 
 void Household::setHasMoved(int hasMove)
 {
-	this->hasMoved = hasMove;
+    this->hasMoved = hasMove;
 }
 
 int Household::getTenureStatus() const
 {
-	return tenureStatus;
+    return tenureStatus;
 }
 
 void Household::setTenureStatus(int val)
 {
-	tenureStatus = val;
+    tenureStatus = val;
 }
 
 int Household::getAwaknedDay() const
 {
-	return this->awakenedDay;
+    return this->awakenedDay;
 }
 
 void Household::setAwakenedDay(int awakenDay)
 {
-	this->awakenedDay = awakenDay;
+    this->awakenedDay = awakenDay;
 }
 
 bool Household::getExistInDB() const
 {
-	return this->existInDB;
+    return this->existInDB;
 }
 
 void Household::setExistInDB(bool exist)
 {
-	this->existInDB = exist;
+    this->existInDB = exist;
 }
 
 int Household::getLastBidStatus() const
 {
-	return lastBidStatus;
+    return lastBidStatus;
 }
 
 void Household::setLastBidStatus(int lastBidStatus)
 {
-	this->lastBidStatus = lastBidStatus;
+    this->lastBidStatus = lastBidStatus;
 }
 
 
 void Household::setHouseholdStats(HouseholdStatistics stats)
 {
-	householdStats = stats;
+    householdStats = stats;
 }
 
 HouseholdStatistics Household::getHouseholdStats()
 {
-	return householdStats;
+    return householdStats;
 }
 
 bool Household::isLiveInToaPayoh() const
 {
-	return liveInToaPayoh;
+    return liveInToaPayoh;
 }
 
 void Household::setLiveInToaPayoh(bool liveInToaPayoh)
 {
-	this->liveInToaPayoh = liveInToaPayoh;
+    this->liveInToaPayoh = liveInToaPayoh;
 }
 
 int Household::getNumElderly() const
 {
-	return numElderly;
+    return numElderly;
 }
 
 void Household::setNumElderly(int numElderly)
 {
-	this->numElderly = numElderly;
+    this->numElderly = numElderly;
 }
 
 int Household::getNumWhiteCollars() const
 {
-	return numWhiteCollars;
+    return numWhiteCollars;
 }
 
 void Household::setNumWhiteCollars(int numWhiteCollars)
 {
-	this->numWhiteCollars = numWhiteCollars;
+    this->numWhiteCollars = numWhiteCollars;
 }
 
 int Household::getNumWorkers() const
 {
-	return numWorkers;
+    return numWorkers;
 }
 
 void Household::setNumWorkers(int numWorkers)
 {
-	this->numWorkers = numWorkers;
+    this->numWorkers = numWorkers;
 }
 
 double Household::getRandomNum() const
 {
-	return randomNum;
+    return randomNum;
 }
 
 void Household::setRandomNum(double randomNum)
 {
-	this->randomNum = randomNum;
+    this->randomNum = randomNum;
 }
 
 bool Household::isWorkInToaPayoh() const
 {
-	return workInToaPayoh;
+    return workInToaPayoh;
 }
 
 void Household::setWorkInToaPayoh(bool workInToaPayoh)
 {
-	this->workInToaPayoh = workInToaPayoh;
+    this->workInToaPayoh = workInToaPayoh;
 }
 
 
@@ -703,8 +703,8 @@ namespace sim_mob
                     << "\"ageOfHead\":\"" << data.ageOfHead << "\""
                     << "\"taxiAvailability\":\"" << data.taxiAvailability << "\","
                     <<"\"vehicleOwnershipOptionId\":\"" << data.vehicleOwnershipOptionId << "\","
-					<<"\"currentUnitPrice\":\"" << data.currentUnitPrice << "\""
-					<<"\"tenureStatus\":\"" << data.tenureStatus << "\""
+                    <<"\"currentUnitPrice\":\"" << data.currentUnitPrice << "\""
+                    <<"\"tenureStatus\":\"" << data.tenureStatus << "\""
                     << "}";
         }
     }

@@ -17,45 +17,45 @@ PolyLine::~PolyLine()
 
 int PolyLine::getPolyLineId() const
 {
-	return polyLineId;
+    return polyLineId;
 }
 
 void PolyLine::setPolyLineId(int polyLineId)
 {
-	this->polyLineId = polyLineId;
+    this->polyLineId = polyLineId;
 }
 
 void PolyLine::setLength(double length)
 {
-	this->length = length;
+    this->length = length;
 }
 
 double PolyLine::getLength() const
 {
-	return length;
+    return length;
 }
 
 const std::vector<PolyPoint>& PolyLine::getPoints() const
 {
-	return points;
+    return points;
 }
 
 const PolyPoint& PolyLine::getFirstPoint() const
 {
-	return points.front();
+    return points.front();
 }
 
 const PolyPoint& PolyLine::getLastPoint() const
 {
-	return points.back();
+    return points.back();
 }
 
 void PolyLine::addPoint(PolyPoint point)
 {
-	this->points.push_back(point);
+    this->points.push_back(point);
 }
 
 std::size_t sim_mob::PolyLine::size() const
 {
-	return points.size();
+    return points.size();
 }

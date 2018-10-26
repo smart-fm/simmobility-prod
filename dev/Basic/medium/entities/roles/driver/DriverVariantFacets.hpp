@@ -23,30 +23,30 @@ class Biker;
 class BikerBehavior: public DriverBehavior
 {
 public:
-	explicit BikerBehavior();
-	virtual ~BikerBehavior();
+    explicit BikerBehavior();
+    virtual ~BikerBehavior();
 
-	//Virtual overrides
-	virtual void frame_init();
-	virtual void frame_tick();
-	virtual std::string frame_tick_output();
+    //Virtual overrides
+    virtual void frame_init();
+    virtual void frame_tick();
+    virtual std::string frame_tick_output();
 
-	medium::Biker* getParentBiker() const
-	{
-		return parentBiker;
-	}
+    medium::Biker* getParentBiker() const
+    {
+        return parentBiker;
+    }
 
-	void setParentBiker(medium::Biker* parentBiker)
-	{
-		if (!parentBiker)
-		{
-			throw std::runtime_error("parentBiker cannot be NULL");
-		}
-		this->parentBiker = parentBiker;
-	}
+    void setParentBiker(medium::Biker* parentBiker)
+    {
+        if (!parentBiker)
+        {
+            throw std::runtime_error("parentBiker cannot be NULL");
+        }
+        this->parentBiker = parentBiker;
+    }
 
 protected:
-	medium::Biker* parentBiker;
+    medium::Biker* parentBiker;
 };
 
 /**
@@ -56,29 +56,29 @@ protected:
 class BikerMovement: public DriverMovement
 {
 public:
-	explicit BikerMovement();
-	virtual ~BikerMovement();
+    explicit BikerMovement();
+    virtual ~BikerMovement();
 
-	//Virtual overrides
-	virtual void frame_init();
+    //Virtual overrides
+    virtual void frame_init();
 
-	medium::Biker* getParentBiker() const
-	{
-		return parentBiker;
-	}
+    medium::Biker* getParentBiker() const
+    {
+        return parentBiker;
+    }
 
-	void setParentBiker(medium::Biker* parentBiker)
-	{
-		if (!parentBiker)
-		{
-			throw std::runtime_error("parentBiker cannot be NULL");
-		}
-		this->parentBiker = parentBiker;
-	}
+    void setParentBiker(medium::Biker* parentBiker)
+    {
+        if (!parentBiker)
+        {
+            throw std::runtime_error("parentBiker cannot be NULL");
+        }
+        this->parentBiker = parentBiker;
+    }
 
 protected:
-	/**pointer to parent freight driver*/
-	medium::Biker* parentBiker;
+    /**pointer to parent freight driver*/
+    medium::Biker* parentBiker;
 };
 
 class TruckerLGV;
@@ -91,13 +91,13 @@ class TruckerHGV;
 class TruckerBehavior: public DriverBehavior
 {
 public:
-	explicit TruckerBehavior();
-	virtual ~TruckerBehavior();
+    explicit TruckerBehavior();
+    virtual ~TruckerBehavior();
 
-	//Virtual overrides
-	virtual void frame_init();
-	virtual void frame_tick();
-	virtual std::string frame_tick_output();
+    //Virtual overrides
+    virtual void frame_init();
+    virtual void frame_tick();
+    virtual std::string frame_tick_output();
 };
 
 /**
@@ -107,11 +107,11 @@ public:
 class TruckerMovement: public DriverMovement
 {
 public:
-	explicit TruckerMovement();
-	virtual ~TruckerMovement();
+    explicit TruckerMovement();
+    virtual ~TruckerMovement();
 
-	//Virtual overrides
-	virtual void frame_init();
+    //Virtual overrides
+    virtual void frame_init();
 };
 
 }

@@ -17,21 +17,21 @@ namespace medium
  * \author Melani
  */
 struct DriverUpdateParams : public UpdateParams {
-	DriverUpdateParams()
-	: UpdateParams(), secondsInTick(0.0), elapsedSeconds(0.0) {}
-	explicit DriverUpdateParams(boost::mt19937& gen)
-	: UpdateParams(gen), secondsInTick(0.0), elapsedSeconds(0.0){}
+    DriverUpdateParams()
+    : UpdateParams(), secondsInTick(0.0), elapsedSeconds(0.0) {}
+    explicit DriverUpdateParams(boost::mt19937& gen)
+    : UpdateParams(gen), secondsInTick(0.0), elapsedSeconds(0.0){}
 
-	/**
-	 * resets this update params.
-	 * @param now current timeslice in which reset is called
-	 */
-	virtual void reset(timeslice now);
+    /**
+     * resets this update params.
+     * @param now current timeslice in which reset is called
+     */
+    virtual void reset(timeslice now);
 
-	/**tickSize in seconds*/
-	double secondsInTick;
-	/**time elapsed in the current tick (in seconds)*/
-	double elapsedSeconds;
+    /**tickSize in seconds*/
+    double secondsInTick;
+    /**time elapsed in the current tick (in seconds)*/
+    double elapsedSeconds;
 };
 }
 }

@@ -16,7 +16,7 @@ namespace sim_mob {
 
         class UnitPriceSum {
         public:
-        	UnitPriceSum( BigSerial fmParcelId = INVALID_ID, double unitPriceSum = 0.0);
+            UnitPriceSum( BigSerial fmParcelId = INVALID_ID, double unitPriceSum = 0.0);
 
             virtual ~UnitPriceSum();
 

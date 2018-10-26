@@ -13,68 +13,68 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		OwnerTenantMovingRate::OwnerTenantMovingRate( BigSerial _id, int _ageCategory, int _ownerPopulation, int _tenantPopulation, int _ownerMovingPercentage,int _tenantMovingPercentage, bool _day_zero)
-		{
-			id = _id;
-			ageCategory = _ageCategory;
-			ownerPopulation = _ownerPopulation;
-			tenantPopulation = _tenantPopulation;
-			ownerMovingPercentage = _ownerMovingPercentage;
-			tenantMovingPercentage = _tenantMovingPercentage;
-			day_zero = _day_zero;
-		}
+    namespace long_term
+    {
+        OwnerTenantMovingRate::OwnerTenantMovingRate( BigSerial _id, int _ageCategory, int _ownerPopulation, int _tenantPopulation, int _ownerMovingPercentage,int _tenantMovingPercentage, bool _day_zero)
+        {
+            id = _id;
+            ageCategory = _ageCategory;
+            ownerPopulation = _ownerPopulation;
+            tenantPopulation = _tenantPopulation;
+            ownerMovingPercentage = _ownerMovingPercentage;
+            tenantMovingPercentage = _tenantMovingPercentage;
+            day_zero = _day_zero;
+        }
 
-		OwnerTenantMovingRate::~OwnerTenantMovingRate() {}
+        OwnerTenantMovingRate::~OwnerTenantMovingRate() {}
 
-		BigSerial OwnerTenantMovingRate::getId() const
-		{
-			return id;
-		}
+        BigSerial OwnerTenantMovingRate::getId() const
+        {
+            return id;
+        }
 
-		int OwnerTenantMovingRate::getAgeCategory() const
-		{
-			return ageCategory;
-		}
+        int OwnerTenantMovingRate::getAgeCategory() const
+        {
+            return ageCategory;
+        }
 
-		double OwnerTenantMovingRate::getOwnerPopulation() const
-		{
-			return ownerPopulation;
-		}
+        double OwnerTenantMovingRate::getOwnerPopulation() const
+        {
+            return ownerPopulation;
+        }
 
-		double OwnerTenantMovingRate::getTenantPopulation() const
-		{
-			return tenantPopulation;
-		}
+        double OwnerTenantMovingRate::getTenantPopulation() const
+        {
+            return tenantPopulation;
+        }
 
-		double OwnerTenantMovingRate::getOwnerMovingPercentage() const
-		{
-			return ownerMovingPercentage;
-		}
+        double OwnerTenantMovingRate::getOwnerMovingPercentage() const
+        {
+            return ownerMovingPercentage;
+        }
 
-		double OwnerTenantMovingRate::getTenantMovingPercentage() const
-		{
-			return tenantMovingPercentage;
-		}
+        double OwnerTenantMovingRate::getTenantMovingPercentage() const
+        {
+            return tenantMovingPercentage;
+        }
 
-		bool OwnerTenantMovingRate::getDayZero() const
-		{
-			return day_zero;
-		}
+        bool OwnerTenantMovingRate::getDayZero() const
+        {
+            return day_zero;
+        }
 
-		std::ostream& operator<<(std::ostream& strm, const OwnerTenantMovingRate& data)
-		{
-			return strm << "{"
-					<< "\"id\":\"" << data.id << "\","
-					<< "\"ageCategory\":\"" << data.ageCategory << "\","
-					<< "\"\"ownerPopulation:\"" << data.ownerPopulation << "\","
-					<< "\"\"tenantPopulation:\"" << data.tenantPopulation << "\","
-					<< "\"\"ownerMovingPercentage:\"" << data.ownerMovingPercentage << "\","
-					<< "\"\"tenantMovingPercentage:\"" << data.tenantMovingPercentage << "\","
-					<< "\"\"day zero:\"" << data.day_zero << "\","
-					<< "}";
-		}
+        std::ostream& operator<<(std::ostream& strm, const OwnerTenantMovingRate& data)
+        {
+            return strm << "{"
+                    << "\"id\":\"" << data.id << "\","
+                    << "\"ageCategory\":\"" << data.ageCategory << "\","
+                    << "\"\"ownerPopulation:\"" << data.ownerPopulation << "\","
+                    << "\"\"tenantPopulation:\"" << data.tenantPopulation << "\","
+                    << "\"\"ownerMovingPercentage:\"" << data.ownerMovingPercentage << "\","
+                    << "\"\"tenantMovingPercentage:\"" << data.tenantMovingPercentage << "\","
+                    << "\"\"day zero:\"" << data.day_zero << "\","
+                    << "}";
+        }
 
-	}
+    }
 } /* namespace sim_mob */

@@ -45,43 +45,43 @@ class Person;
 class BoundaryProcessor {
 public:
 
-	explicit BoundaryProcessor();
-	virtual ~BoundaryProcessor(){}
+    explicit BoundaryProcessor();
+    virtual ~BoundaryProcessor(){}
 
-	/**
-	 * initialization
-	 */
-	virtual void setConfigure(PartitionConfigure* partition_config, SimulationScenario* scenario) CHECK_MPI_THROW ;
+    /**
+     * initialization
+     */
+    virtual void setConfigure(PartitionConfigure* partition_config, SimulationScenario* scenario) CHECK_MPI_THROW ;
 
 
-	/**
-	 * initialization
-	 */
-	virtual void setEntityWorkGroup(WorkGroup* entity_group, WorkGroup* singal_group) CHECK_MPI_THROW ;
+    /**
+     * initialization
+     */
+    virtual void setEntityWorkGroup(WorkGroup* entity_group, WorkGroup* singal_group) CHECK_MPI_THROW ;
 
-	/**
-	 *
-	 */
-	virtual void loadInBoundarySegment(std::string boundary_segment_id, BoundarySegment* boundary) CHECK_MPI_THROW ;
+    /**
+     *
+     */
+    virtual void loadInBoundarySegment(std::string boundary_segment_id, BoundarySegment* boundary) CHECK_MPI_THROW ;
 
-	/**
-	 *
-	 */
-	virtual void initBoundaryTrafficItems() CHECK_MPI_THROW ;
+    /**
+     *
+     */
+    virtual void initBoundaryTrafficItems() CHECK_MPI_THROW ;
 
-	/**
-	 * Service
-	 */
-	virtual std::string boundaryProcessing(int time_step) CHECK_MPI_THROW ;
+    /**
+     * Service
+     */
+    virtual std::string boundaryProcessing(int time_step) CHECK_MPI_THROW ;
 
-//	std::string outputAllEntities(timeslice now) CHECK_MPI_THROW ;
+//  std::string outputAllEntities(timeslice now) CHECK_MPI_THROW ;
 
-	virtual std::string releaseResources() CHECK_MPI_THROW ;
+    virtual std::string releaseResources() CHECK_MPI_THROW ;
 
 private:
 
-	//the Tag for MPI Messages
-	const int BOUNDARY_PROCOSS_TAG;
+    //the Tag for MPI Messages
+    const int BOUNDARY_PROCOSS_TAG;
 
 };
 

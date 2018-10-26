@@ -12,27 +12,27 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class SchoolDesk
-		{
-		public:
-			SchoolDesk(BigSerial schoolDeskId = INVALID_ID, BigSerial schoolId = INVALID_ID);
-			virtual ~SchoolDesk();
+    namespace long_term
+    {
+        class SchoolDesk
+        {
+        public:
+            SchoolDesk(BigSerial schoolDeskId = INVALID_ID, BigSerial schoolId = INVALID_ID);
+            virtual ~SchoolDesk();
 
-			SchoolDesk( const SchoolDesk &source);
-			SchoolDesk& operator=(const SchoolDesk& source);
+            SchoolDesk( const SchoolDesk &source);
+            SchoolDesk& operator=(const SchoolDesk& source);
 
-			BigSerial getSchoolDeskId() const;
-			void setSchoolDeskId(BigSerial schoolDeskId);
+            BigSerial getSchoolDeskId() const;
+            void setSchoolDeskId(BigSerial schoolDeskId);
 
-			BigSerial getSchoolId() const;
-			void setSchoolId(BigSerial schoolId);
+            BigSerial getSchoolId() const;
+            void setSchoolId(BigSerial schoolId);
 
-			BigSerial schoolDeskId;
-			BigSerial schoolId;
+            BigSerial schoolDeskId;
+            BigSerial schoolId;
 
-		};
-	}
+        };
+    }
 
 }

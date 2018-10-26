@@ -9,18 +9,18 @@
 using namespace sim_mob::long_term;
 
 UnitPriceSum::UnitPriceSum(BigSerial fmParcelId,double unitPriceSum):
-		fmParcelId(fmParcelId),unitPriceSum(unitPriceSum) {}
+        fmParcelId(fmParcelId),unitPriceSum(unitPriceSum) {}
 
 UnitPriceSum::~UnitPriceSum() {}
 
 
 BigSerial UnitPriceSum::getFmParcelId() const {
-		return fmParcelId;
-	}
+        return fmParcelId;
+    }
 
 double UnitPriceSum::getUnitPriceSum() const {
-		return unitPriceSum;
-	}
+        return unitPriceSum;
+    }
 
 namespace sim_mob
 {
@@ -29,9 +29,9 @@ namespace sim_mob
         std::ostream& operator<<(std::ostream& strm, const UnitPriceSum& data)
         {
             return strm << "{"
-						<< "\"fmUnitId \":\"" << data.fmParcelId 	<< "\","
-						<< "\"unitPrice \":\"" 	<< data.unitPriceSum 	<< "\","
-						<< "}";
+                        << "\"fmUnitId \":\"" << data.fmParcelId    << "\","
+                        << "\"unitPrice \":\""  << data.unitPriceSum    << "\","
+                        << "}";
         }
     }
 }

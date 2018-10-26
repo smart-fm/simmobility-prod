@@ -24,46 +24,46 @@ StreetDirectory::StreetDirectory() : spImpl(nullptr), sttpImpl(nullptr), ptImpl(
 
 StreetDirectory::~StreetDirectory()
 {
-	if (spImpl)
-	{
-		delete spImpl;
-	}
-	if (sttpImpl)
-	{
-		delete sttpImpl;
-	}
-	if (ptImpl)
-	{
-		delete ptImpl;
-	}
+    if (spImpl)
+    {
+        delete spImpl;
+    }
+    if (sttpImpl)
+    {
+        delete sttpImpl;
+    }
+    if (ptImpl)
+    {
+        delete ptImpl;
+    }
 }
 
 void StreetDirectory::Init(const RoadNetwork& network)
 {
-	if (!spImpl) {
-		spImpl = new A_StarShortestPathImpl(network);
-	}
-	if (!ptImpl && ConfigManager::GetInstance().FullConfig().isPublicTransitEnabled()) {
-		ptImpl = new A_StarPublicTransitShortestPathImpl(PT_NetworkCreater::getInstance().PT_NetworkEdgeMap,PT_NetworkCreater::getInstance().PT_NetworkVertexMap);
-	}
-	if(!sttpImpl && ConfigManager::GetInstance().FullConfig().PathSetMode()){
-		sttpImpl = new A_StarShortestTravelTimePathImpl(network);
-	}
+    if (!spImpl) {
+        spImpl = new A_StarShortestPathImpl(network);
+    }
+    if (!ptImpl && ConfigManager::GetInstance().FullConfig().isPublicTransitEnabled()) {
+        ptImpl = new A_StarPublicTransitShortestPathImpl(PT_NetworkCreater::getInstance().PT_NetworkEdgeMap,PT_NetworkCreater::getInstance().PT_NetworkVertexMap);
+    }
+    if(!sttpImpl && ConfigManager::GetInstance().FullConfig().PathSetMode()){
+        sttpImpl = new A_StarShortestTravelTimePathImpl(network);
+    }
 }
 
 StreetDirectory::ShortestPathImpl* StreetDirectory::getDistanceImpl() const
 {
-	return spImpl;
+    return spImpl;
 }
 
 StreetDirectory::ShortestPathImpl* StreetDirectory::getTravelTimeImpl() const
 {
-	return sttpImpl;
+    return sttpImpl;
 }
 
 StreetDirectory::PublicTransitShortestPathImpl* StreetDirectory::getPublicTransitShortestPathImpl() const
 {
-	return ptImpl;
+    return ptImpl;
 }
 
 }

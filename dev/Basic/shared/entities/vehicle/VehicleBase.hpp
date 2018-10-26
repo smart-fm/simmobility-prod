@@ -33,59 +33,59 @@ const double TAXI_LENGTH = sim_mob::PASSENGER_CAR_UNIT;
 class VehicleBase
 {
 public:
-	enum VehicleType
-	{
-		CAR, BUS, TAXI, BIKE, LGV, HGV, OTHER
-	};
+    enum VehicleType
+    {
+        CAR, BUS, TAXI, BIKE, LGV, HGV, OTHER
+    };
 
-	VehicleBase(const VehicleType vehType, const double length, const double width) :
-			vehicleType(vehType), lengthM(length), widthM(width), moving(true)
-	{
-	}
+    VehicleBase(const VehicleType vehType, const double length, const double width) :
+            vehicleType(vehType), lengthM(length), widthM(width), moving(true)
+    {
+    }
 
-	VehicleBase(const VehicleBase& copy) :
-			vehicleType(copy.vehicleType), lengthM(copy.lengthM), widthM(copy.widthM), moving(copy.moving)
-	{
-	}
+    VehicleBase(const VehicleBase& copy) :
+            vehicleType(copy.vehicleType), lengthM(copy.lengthM), widthM(copy.widthM), moving(copy.moving)
+    {
+    }
 
-	virtual ~VehicleBase()
-	{
-	}
+    virtual ~VehicleBase()
+    {
+    }
 
-	const double getLengthInM() const
-	{
-		return lengthM;
-	}
+    const double getLengthInM() const
+    {
+        return lengthM;
+    }
 
-	const double getWidthInM() const
-	{
-		return widthM;
-	}
+    const double getWidthInM() const
+    {
+        return widthM;
+    }
 
-	const VehicleType getVehicleType() const
-	{
-		return vehicleType;
-	}
+    const VehicleType getVehicleType() const
+    {
+        return vehicleType;
+    }
 
-	bool isMoving() const
-	{
-		return moving;
-	}
+    bool isMoving() const
+    {
+        return moving;
+    }
 
-	void setMoving(bool moving)
-	{
-		this->moving = moving;
-	}
+    void setMoving(bool moving)
+    {
+        this->moving = moving;
+    }
 
 protected:
-	/**length of the vehicle in m*/
-	const double lengthM;
-	/**width of the vehicle in m*/
-	const double widthM;
-	/**type of vehicle*/
-	const VehicleType vehicleType;
-	/**flag to indicate moving status of vehicle*/
-	bool moving;
+    /**length of the vehicle in m*/
+    const double lengthM;
+    /**width of the vehicle in m*/
+    const double widthM;
+    /**type of vehicle*/
+    const VehicleType vehicleType;
+    /**flag to indicate moving status of vehicle*/
+    bool moving;
 };
 
 } // end namespace sim_mob

@@ -16,11 +16,11 @@ namespace sim_mob {
 ///Base class for any item that can be identified by a string ID.
 class Identifiable {
 public:
-	Identifiable(const std::string& id);
-	std::string getId();
+    Identifiable(const std::string& id);
+    std::string getId();
 
 private:
-	std::string id;
+    std::string id;
 };
 
 
@@ -29,45 +29,45 @@ private:
 ///  retrieve Road Network items from a database in the given format.
 class StoredProcedureMap : public Identifiable {
 public:
-	StoredProcedureMap(const std::string& id="");
+    StoredProcedureMap(const std::string& id="");
 
-	std::string dbFormat; //Usually "aimsun"
-	std::map<std::string, std::string> procedureMappings; //key=>value
+    std::string dbFormat; //Usually "aimsun"
+    std::map<std::string, std::string> procedureMappings; //key=>value
 };
 
 
 ///Contains a database description (host, port, db_name). Does not include login credentials.
 class Database : public Identifiable {
 public:
-	Database(const std::string& id="");
+    Database(const std::string& id="");
 
-	std::string host;
-	std::string port;
-	std::string dbName;
+    std::string host;
+    std::string port;
+    std::string dbName;
 };
 
 
 ///Contains login credentials (username+password) for a database. Masks password by default on retrieval.
 class Credential : public Identifiable {
 public:
-	Credential(const std::string& id="");
+    Credential(const std::string& id="");
 
-	std::string getUsername() const;
+    std::string getUsername() const;
 
-	std::string getPassword(bool mask=true) const;
+    std::string getPassword(bool mask=true) const;
 
-	///Load this set of credentials from a file with a given format (documented in, e.g., test_road_network.xml)
-	void LoadFileCredentials(const std::vector<std::string>& paths);
+    ///Load this set of credentials from a file with a given format (documented in, e.g., test_road_network.xml)
+    void LoadFileCredentials(const std::vector<std::string>& paths);
 
-	///Set the credentials manually. Note that this method should only be used for trivial passwords.
-	void SetPlaintextCredentials(const std::string& username, const std::string& password);
+    ///Set the credentials manually. Note that this method should only be used for trivial passwords.
+    void SetPlaintextCredentials(const std::string& username, const std::string& password);
 
 private:
-	//Helper: actually load the file.
-	void LoadCredFile(const std::string& path);
+    //Helper: actually load the file.
+    void LoadCredFile(const std::string& path);
 
-	std::string username;
-	std::string password;
+    std::string username;
+    std::string password;
 };
 
 }

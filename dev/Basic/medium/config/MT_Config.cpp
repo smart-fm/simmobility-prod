@@ -333,7 +333,6 @@ bool MT_Config::RunningMidFullLoop() const
 {
     return (midTermRunMode == MT_Config::MT_FULL);
 }
-
 void MT_Config::setMidTermRunMode(const std::string& runMode)
 {
     if(runMode.empty()) { return; }
@@ -354,6 +353,10 @@ void MT_Config::setMidTermRunMode(const std::string& runMode)
         midTermRunMode = MT_Config::MT_PREDAY_FULL;
     }
 	else if (runMode == "midtermfull")
+	{
+		midTermRunMode = MT_Config::MT_FULL;
+	}
+	else if (runMode == "full")
 	{
 		midTermRunMode = MT_Config::MT_FULL;
 	}

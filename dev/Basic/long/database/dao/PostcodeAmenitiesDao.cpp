@@ -22,8 +22,8 @@ PostcodeAmenitiesDao::~PostcodeAmenitiesDao() {}
 
 void PostcodeAmenitiesDao::fromRow(Row& result, PostcodeAmenities& outObj)
 {
-	outObj.addressId = result.get<BigSerial>("address_id", 0);
-	outObj.tazId = result.get<BigSerial>("taz_id", 0);
+    outObj.addressId = result.get<BigSerial>("address_id", 0);
+    outObj.tazId = result.get<BigSerial>("taz_id", 0);
     outObj.postcode = result.get<std::string>("sla_postcode", EMPTY_STR);
     outObj.mrtStation = result.get<std::string>("mrt_station", EMPTY_STR);
     outObj.distanceToMRT = result.get<double>("distance_mrt", 0);

@@ -21,7 +21,7 @@ namespace sim_mob
         class IndvidualVehicleOwnershipLogsumDao : public db::SqlAbstractDao<IndvidualVehicleOwnershipLogsum>
         {
         public:
-        	IndvidualVehicleOwnershipLogsumDao(db::DB_Connection& connection);
+            IndvidualVehicleOwnershipLogsumDao(db::DB_Connection& connection);
             virtual ~IndvidualVehicleOwnershipLogsumDao();
 
         private:

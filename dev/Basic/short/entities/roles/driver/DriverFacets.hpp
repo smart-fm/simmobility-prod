@@ -47,245 +47,245 @@ class VehicleLoadingModel;
 class DriverBehavior : public BehaviorFacet
 {
 protected:
-	Driver *parentDriver;
+    Driver *parentDriver;
 
 public:
-	explicit DriverBehavior() :
-	BehaviorFacet(), parentDriver(NULL)
-	{
-	}
-	
-	virtual ~DriverBehavior()
-	{
-	}
+    explicit DriverBehavior() :
+    BehaviorFacet(), parentDriver(NULL)
+    {
+    }
+    
+    virtual ~DriverBehavior()
+    {
+    }
 
-	virtual void frame_init()
-	{
-		throw std::runtime_error("Not implemented: DriverBehavior::frame_init()");
-	}
-	
-	virtual void frame_tick()
-	{
-		throw std::runtime_error("Not implemented: DriverBehavior::frame_tick()");
-	}
-	
-	virtual std::string frame_tick_output()
-	{
-		throw std::runtime_error("Not implemented: DriverBehavior::frame_tick_output()");
-	}
+    virtual void frame_init()
+    {
+        throw std::runtime_error("Not implemented: DriverBehavior::frame_init()");
+    }
+    
+    virtual void frame_tick()
+    {
+        throw std::runtime_error("Not implemented: DriverBehavior::frame_tick()");
+    }
+    
+    virtual std::string frame_tick_output()
+    {
+        throw std::runtime_error("Not implemented: DriverBehavior::frame_tick_output()");
+    }
 
-	Driver* getParentDriver() const
-	{
-		return parentDriver;
-	}
+    Driver* getParentDriver() const
+    {
+        return parentDriver;
+    }
 
-	void setParentDriver(Driver *parentDriver)
-	{
-		if (!parentDriver)
-		{
-			throw std::runtime_error("parentDriver cannot be NULL");
-		}
-		safe_delete_item(this->parentDriver);
-		this->parentDriver = parentDriver;
-	}
+    void setParentDriver(Driver *parentDriver)
+    {
+        if (!parentDriver)
+        {
+            throw std::runtime_error("parentDriver cannot be NULL");
+        }
+        safe_delete_item(this->parentDriver);
+        this->parentDriver = parentDriver;
+    }
 } ;
 
 class DriverMovement : public MovementFacet
 {
 private:
-	/**The driver whose movement is being simulated by the DriverMovement object*/
-	Driver *parentDriver;
+    /**The driver whose movement is being simulated by the DriverMovement object*/
+    Driver *parentDriver;
 
-	/**The traffic signal at the approaching intersection. If the intersection is un-signalised, this will be null*/
-	const Signal *trafficSignal;
+    /**The traffic signal at the approaching intersection. If the intersection is un-signalised, this will be null*/
+    const Signal *trafficSignal;
 
-	/**
-	 * The index of the target lane. The target lane is the lane we want to be in after crossing the
-	 * intersection (In short, this is the index of the lane pointed to by nextLaneInNextLink)
-	 */
-	unsigned int targetLaneIndex;
+    /**
+     * The index of the target lane. The target lane is the lane we want to be in after crossing the
+     * intersection (In short, this is the index of the lane pointed to by nextLaneInNextLink)
+     */
+    unsigned int targetLaneIndex;
 
-	/**Map of road segment vs the aggregate vehicle count over the collection interval*/
-	static map<const RoadSegment *, unsigned long> rdSegDensityMap;
+    /**Map of road segment vs the aggregate vehicle count over the collection interval*/
+    static map<const RoadSegment *, unsigned long> rdSegDensityMap;
 
-	/**Mutex to lock the density map*/
-	static boost::mutex densityUpdateMutex;
+    /**Mutex to lock the density map*/
+    static boost::mutex densityUpdateMutex;
 
-	/**
-	 * Sets the distance and the driver of the NearestVehicle object given. The distance is the distance between
-	 * the current driver and the other driver
-	 *
+    /**
+     * Sets the distance and the driver of the NearestVehicle object given. The distance is the distance between
+     * the current driver and the other driver
+     *
      * @param neasrestVeh The object representing the nearest vehicle
      * @param distance The distance between the current vehicle and the nearest vehicle
      * @param otherDriver The driver of the nearest vehicle
      */
-	void setNearestVehicle(NearestVehicle &nearestVeh, double distance, const Driver *otherDriver);
+    void setNearestVehicle(NearestVehicle &nearestVeh, double distance, const Driver *otherDriver);
 
-	/**
-	 * Updates the perceived values
-	 *
+    /**
+     * Updates the perceived values
+     *
      * @param params The parameters to be updated
      */
-	void perceiveParameters(DriverUpdateParams &params);
+    void perceiveParameters(DriverUpdateParams &params);
 
-	/**
-	 * Updates the information that is sensed. Such as, the positions of nearby vehicles, the traffic signal
+    /**
+     * Updates the information that is sensed. Such as, the positions of nearby vehicles, the traffic signal
      *
-	 * @return true, unless the driver has completed the trip
+     * @return true, unless the driver has completed the trip
      */
-	bool updateSensors();
+    bool updateSensors();
 
-	/**
-	 * Moves the vehicle forward according to the accelerations and velocities calculated by the various driver models
+    /**
+     * Moves the vehicle forward according to the accelerations and velocities calculated by the various driver models
      *
-	 * @return true, unless the driver has completed the trip
+     * @return true, unless the driver has completed the trip
      */
-	bool updateMovement();
+    bool updateMovement();
 
-	/**
-	 * Deals with the effect of moving forward - Chooses next lane in next link, checks if we're approaching an
-	 * intersection, calculates the intersection trajectory if we've moved into an intersection
+    /**
+     * Deals with the effect of moving forward - Chooses next lane in next link, checks if we're approaching an
+     * intersection, calculates the intersection trajectory if we've moved into an intersection
      *
-	 * @return true, unless the driver has completed the trip
+     * @return true, unless the driver has completed the trip
      */
-	bool updatePostMovement();
+    bool updatePostMovement();
 
-	/**
-	 * Retrieves a list of the nearby agents and derives information about it
+    /**
+     * Retrieves a list of the nearby agents and derives information about it
      */
-	void updateNearbyAgents();
+    void updateNearbyAgents();
 
-	/**
-	 * Derives and stores information about the nearby driver
-	 *
+    /**
+     * Derives and stores information about the nearby driver
+     *
      * @param nearbyAgent the pointer to the agent which owns the driver role
      * @param nearbyDriver the pointer to the driver role object
      *
-	 * @return
+     * @return
      */
-	bool updateNearbyAgent(const Agent *nearbyAgent, const Driver *nearbyDriver);
+    bool updateNearbyAgent(const Agent *nearbyAgent, const Driver *nearbyDriver);
 
-	/**
-	 * Sets the current traffic signal based on the end node of the current link.
+    /**
+     * Sets the current traffic signal based on the end node of the current link.
      */
-	void setTrafficSignal();
+    void setTrafficSignal();
 
-	/**
-	 * Sets the parameters related to the traffic signal. (Colour, distance to traffic signal)
-	 * 
+    /**
+     * Sets the parameters related to the traffic signal. (Colour, distance to traffic signal)
+     * 
      * @param params the update parameters
      */
-	void setTrafficSignalParams(DriverUpdateParams &params);
+    void setTrafficSignalParams(DriverUpdateParams &params);
 
-	/**
-	 * This method is used to check if there is enough space on the lane where a vehicle from the
-	 * loading queue wants to start its journey.
-	 * 
+    /**
+     * This method is used to check if there is enough space on the lane where a vehicle from the
+     * loading queue wants to start its journey.
+     * 
      * @return true if empty space is found, else false
      */
-	bool findEmptySpaceAhead();
+    bool findEmptySpaceAhead();
 
-	/**
-	 * This method simply increments the vehicle count for the vehicle's current road segment in the RdSegDensityMap  
+    /**
+     * This method simply increments the vehicle count for the vehicle's current road segment in the RdSegDensityMap  
      */
-	void updateDensityMap();
+    void updateDensityMap();
 
-	void startRdSegStat(const RoadSegment* roadSegment, double startTime);
+    void startRdSegStat(const RoadSegment* roadSegment, double startTime);
 
-	void finalizeRdSegStat(const RoadSegment* roadSegment,double endTime, const std::string travelMode);
+    void finalizeRdSegStat(const RoadSegment* roadSegment,double endTime, const std::string travelMode);
 
-	/**
-	 * This method is used to update the travel times of segments passed by the driver during the current frame tick
-	 *
-	 * @param segmentsPassed Segments passed by the driver during the current frame tick
-	 */
-	void updateRoadSegmentTravelTime(const std::vector<const RoadSegment*>& segmentsPassed);
+    /**
+     * This method is used to update the travel times of segments passed by the driver during the current frame tick
+     *
+     * @param segmentsPassed Segments passed by the driver during the current frame tick
+     */
+    void updateRoadSegmentTravelTime(const std::vector<const RoadSegment*>& segmentsPassed);
 
-	/**
-	 * This method updates the values recorded by the traffic sensor
-	 *
-	 * @param oldPos previous vehicle position w.r.t start of segment
-	 * @param newPos current vehicle position w.r.t start of segment
-	 * @param speed the speed of the vehicle
-	 * @param acceleration the acceleration of the vehicle
-	 */
-	void updateTrafficSensor(double oldPos, double newPos, double speed, double acceleration);
+    /**
+     * This method updates the values recorded by the traffic sensor
+     *
+     * @param oldPos previous vehicle position w.r.t start of segment
+     * @param newPos current vehicle position w.r.t start of segment
+     * @param speed the speed of the vehicle
+     * @param acceleration the acceleration of the vehicle
+     */
+    void updateTrafficSensor(double oldPos, double newPos, double speed, double acceleration);
 
 protected:
-	/**Pointer to the lane changing model being used*/
-	LaneChangingModel *lcModel;
+    /**Pointer to the lane changing model being used*/
+    LaneChangingModel *lcModel;
 
-	/**Pointer to the car following model being used*/
-	CarFollowingModel *cfModel;
+    /**Pointer to the car following model being used*/
+    CarFollowingModel *cfModel;
 
-	/**Pointer to the intersection driving model being used*/
-	IntersectionDrivingModel* intModel;
+    /**Pointer to the intersection driving model being used*/
+    IntersectionDrivingModel* intModel;
 
-	/**Pointer to the intersection driving model previously used (and which may be needed again)*/
-	IntersectionDrivingModel* intModelBkUp;
+    /**Pointer to the intersection driving model previously used (and which may be needed again)*/
+    IntersectionDrivingModel* intModelBkUp;
 
-	/**Pointer to the vehicle loading model*/
-	VehicleLoadingModel *vehLoadingModel;
+    /**Pointer to the vehicle loading model*/
+    VehicleLoadingModel *vehLoadingModel;
 
-	/**The speed which the vehicle will try to achieve.*/
-	double targetSpeed;
+    /**The speed which the vehicle will try to achieve.*/
+    double targetSpeed;
 
     const Lane* currLane;
-	/**Iterator pointing to the next surveillance station on the segment*/
-	vector<SurveillanceStation *>::const_iterator nextSurveillanceStn;
+    /**Iterator pointing to the next surveillance station on the segment*/
+    vector<SurveillanceStation *>::const_iterator nextSurveillanceStn;
 
-	/**
-	 * Updates the position of the driver
-	 *
+    /**
+     * Updates the position of the driver
+     *
      * @param params the update parameters
      *
-	 * @return the distance by which we have overflowed into the intersection, 0 otherwise
+     * @return the distance by which we have overflowed into the intersection, 0 otherwise
      */
-	virtual double updatePosition(DriverUpdateParams &params);
+    virtual double updatePosition(DriverUpdateParams &params);
 
-	/**
-	 * Finds an alternate path and re-routes the vehicle from current location to the destination
-	 * 
-	 * @param params the driver parameters
-	 * @param currLane the current lane
-	 */
-	virtual void reRouteToDestination(DriverUpdateParams &params, const Lane *currLane);
-
-	/**
-	 * Applies the driving behaviour models and gets the acceleration
+    /**
+     * Finds an alternate path and re-routes the vehicle from current location to the destination
      * 
-	 * @param params the update parameters
+     * @param params the driver parameters
+     * @param currLane the current lane
      */
-	void applyDrivingModels(DriverUpdateParams &params);
+    virtual void reRouteToDestination(DriverUpdateParams &params, const Lane *currLane);
 
-	/**
-	 * Checks if we need to stop ahead (Bus stop/AMOD pick-up/AMOD Drop-off)
-	 * 
+    /**
+     * Applies the driving behaviour models and gets the acceleration
+     * 
+     * @param params the update parameters
+     */
+    void applyDrivingModels(DriverUpdateParams &params);
+
+    /**
+     * Checks if we need to stop ahead (Bus stop/AMOD pick-up/AMOD Drop-off)
+     * 
      * @param params
      */
-	virtual void checkForStops(DriverUpdateParams &params);
+    virtual void checkForStops(DriverUpdateParams &params);
 
-	/**
-	 * Finds the nearest stopping point with in the perception distance and returns the distance to it
-	 *
+    /**
+     * Finds the nearest stopping point with in the perception distance and returns the distance to it
+     *
      * @param perceptionDistance the look ahead distance
      * 
-	 * @return the distance to the nearest stopping point
+     * @return the distance to the nearest stopping point
      */
-	virtual double getDistanceToStopLocation(double perceptionDistance);
+    virtual double getDistanceToStopLocation(double perceptionDistance);
 
-	/**
-	 * Drives to the new position based on its current location, speed and acceleration. Also updates the speed and acceleration
-	 *
+    /**
+     * Drives to the new position based on its current location, speed and acceleration. Also updates the speed and acceleration
+     *
      * @param params
      *
-	 * @return overflow distance into the intersection if any, 0 otherwise
+     * @return overflow distance into the intersection if any, 0 otherwise
      */
-	double drive(DriverUpdateParams &params);
+    double drive(DriverUpdateParams &params);
 
-	/**
-	 * Calculates the dwell time of a vehicle at a location 
-	 * 
+    /**
+     * Calculates the dwell time of a vehicle at a location 
+     * 
      * @param A
      * @param B
      * @param delta_bay
@@ -293,188 +293,188 @@ protected:
      * @param Pfront
      * @param no_of_passengers
      *
-	 * @return
+     * @return
      */
-	virtual double dwellTimeCalculation(int A, int B, int delta_bay, int delta_full, int Pfront, int no_of_passengers);
+    virtual double dwellTimeCalculation(int A, int B, int delta_bay, int delta_full, int Pfront, int no_of_passengers);
 
-	/**
-	 * Initialises the path of the vehicle from the current location to the next activity location.
-	 * Also, Creates and allocates a new vehicle if requested
-	 *
+    /**
+     * Initialises the path of the vehicle from the current location to the next activity location.
+     * Also, Creates and allocates a new vehicle if requested
+     *
      * @param createVehicle indicates whether a new vehicle is to be created
      *
-	 * @return Returns the new vehicle, if requested to build one
+     * @return Returns the new vehicle, if requested to build one
      */
-	Vehicle* initializePath(bool createVehicle);
+    Vehicle* initializePath(bool createVehicle);
 
-	/**
-	 * Sets the initial values of the parameters at the origin of the trip.
-	 * 
+    /**
+     * Sets the initial values of the parameters at the origin of the trip.
+     * 
      * @param p
      */
-	void setOrigin(DriverUpdateParams &p);
+    void setOrigin(DriverUpdateParams &p);
 
-	/**
-	 * Updates the perceptions of the given nearest vehicle
-	 * 
+    /**
+     * Updates the perceptions of the given nearest vehicle
+     * 
      * @param nearestVehicle the nearest vehicle
      * @param params the driver parameters
      */
-	void perceivedDataProcess(NearestVehicle &nearestVehicle, DriverUpdateParams &params);
+    void perceivedDataProcess(NearestVehicle &nearestVehicle, DriverUpdateParams &params);
 
-	/**
-	 * Returns the angle (orientation) of the vehicle. Used for displaying on the visualiser only
+    /**
+     * Returns the angle (orientation) of the vehicle. Used for displaying on the visualiser only
      * @return
      */
-	double getAngle() const;
+    double getAngle() const;
 
 public:
-	/**The DriverPathMover object*/
-	DriverPathMover fwdDriverMovement;
+    /**The DriverPathMover object*/
+    DriverPathMover fwdDriverMovement;
 
-	/**perform incident response*/
+    /**perform incident response*/
     IncidentPerformer incidentPerformer;
 
-	explicit DriverMovement();
-	virtual ~DriverMovement();
+    explicit DriverMovement();
+    virtual ~DriverMovement();
 
-	/**
-	 * Initialises the driver movement
+    /**
+     * Initialises the driver movement
      */
-	virtual void init();
+    virtual void init();
 
-	/**
-	 * This method is called for the first tick of the agent's role as a driver. The method initialises the path,
-	 * allocates a vehicle to the driver and does other initialisation tasks
+    /**
+     * This method is called for the first tick of the agent's role as a driver. The method initialises the path,
+     * allocates a vehicle to the driver and does other initialisation tasks
      */
-	virtual void frame_init();
+    virtual void frame_init();
 
-	/**
-	 * This method is called every frame tick and is responsible for the driver's movement and all decisions leading to
-	 * the movement during the tick
+    /**
+     * This method is called every frame tick and is responsible for the driver's movement and all decisions leading to
+     * the movement during the tick
      */
-	virtual void frame_tick();
+    virtual void frame_tick();
 
-	/**
-	 * This method outputs the parameters that changed at the end of the tick
+    /**
+     * This method outputs the parameters that changed at the end of the tick
      */
-	virtual std::string frame_tick_output();
+    virtual std::string frame_tick_output();
 
-	/**
-	 * Marks the start time and origin
+    /**
+     * Marks the start time and origin
      * 
-	 * @return the updated travel metric structure
+     * @return the updated travel metric structure
      */
-	virtual TravelMetric & startTravelTimeMetric();
+    virtual TravelMetric & startTravelTimeMetric();
 
-	/**
-	 * Marks the destination and end time and travel time
+    /**
+     * Marks the destination and end time and travel time
      *
-	 * @return the updated travel metric structure
+     * @return the updated travel metric structure
      */
-	virtual TravelMetric & finalizeTravelTimeMetric();
+    virtual TravelMetric & finalizeTravelTimeMetric();
 
-	/**
-	 * This method computes the density at every road segment and outputs it to file
-	 * 
+    /**
+     * This method computes the density at every road segment and outputs it to file
+     * 
      * @param tick the time for which the densities are being output
      */
-	static void outputDensityMap(unsigned int tick);
+    static void outputDensityMap(unsigned int tick);
 
-	/**
-	 * Sets the position of the parent object. This position is used by the AuraManager to build and update the spatial tree
-	 * required for spatial searching
-	 */
-	void setParentBufferedData();
-
-	/**
-	 * Builds a path of way-points consisting of road segments and turning groups using the given way-points, 
-	 * starting road segment and starting lane
-	 *
-     * @param wayPoints The list of way points along the path
-	 * @return the path consisting of segments and turning groups (as way points)
+    /**
+     * Sets the position of the parent object. This position is used by the AuraManager to build and update the spatial tree
+     * required for spatial searching
      */
-	std::vector<WayPoint> buildPath(std::vector<WayPoint> &wayPoints);
+    void setParentBufferedData();
 
-	/**
-	 * Checks if the current segment is the last segment in the link
+    /**
+     * Builds a path of way-points consisting of road segments and turning groups using the given way-points, 
+     * starting road segment and starting lane
      *
-	 * @return true if the segment is the last in the link, else false
+     * @param wayPoints The list of way points along the path
+     * @return the path consisting of segments and turning groups (as way points)
      */
-	bool isLastSegmentInLink() const;
+    std::vector<WayPoint> buildPath(std::vector<WayPoint> &wayPoints);
 
-	/**
-	 * @return the current position of the driver
-	 */
-	Point getPosition();	
+    /**
+     * Checks if the current segment is the last segment in the link
+     *
+     * @return true if the segment is the last in the link, else false
+     */
+    bool isLastSegmentInLink() const;
 
-	/**
-	 * Checks if a connection exists between the given lane and segment, either in the form of a lane connector or a turning path.
-	 *
+    /**
+     * @return the current position of the driver
+     */
+    Point getPosition();    
+
+    /**
+     * Checks if a connection exists between the given lane and segment, either in the form of a lane connector or a turning path.
+     *
      * @param fromLane
      * @param toSegment
-	 * 
+     * 
      * @return true, if the lane is connected to the segment
      */
-	bool isLaneConnectedToSegment(const Lane *fromLane, const RoadSegment *toSegment);
+    bool isLaneConnectedToSegment(const Lane *fromLane, const RoadSegment *toSegment);
 
-	/**
-	 * Identifies the lanes adjacent to the current lane
-	 * 
+    /**
+     * Identifies the lanes adjacent to the current lane
+     * 
      * @param params the driver parameters to be updated with the new information
      */
-	void identifyAdjacentLanes(DriverUpdateParams &params);
+    void identifyAdjacentLanes(DriverUpdateParams &params);
 
-	/**
-	 * Performs the lateral movement done while changing lanes
-	 * 
+    /**
+     * Performs the lateral movement done while changing lanes
+     * 
      * @param params the update parameters
      */
-	void updateLateralMovement(DriverUpdateParams &params);
+    void updateLateralMovement(DriverUpdateParams &params);
 
-	/**
-	 * Synchronises the lane information after completion of lane changing movement
-	 * 
+    /**
+     * Synchronises the lane information after completion of lane changing movement
+     * 
      * @param params the update parameters
      */
-	void syncLaneInfoPostLateralMove(DriverUpdateParams &params);
+    void syncLaneInfoPostLateralMove(DriverUpdateParams &params);
 
-	/**
-	 * Reroutes around a given blacklisted set of links
-	 * 
+    /**
+     * Reroutes around a given blacklisted set of links
+     * 
      * @param blacklisted the blacklisted links
      */
-	void rerouteWithBlacklist(const std::vector<const Link *> &blacklisted);
+    void rerouteWithBlacklist(const std::vector<const Link *> &blacklisted);
 
-	/**
-	 * Reroutes the vehicle from its current position with the given path.
-	 *
+    /**
+     * Reroutes the vehicle from its current position with the given path.
+     *
      * @param path the new path
-	 * @param isPathBuild indicates whether the given path is a path consisting of road-segments and turning groups 
-	 * that can be directly used
+     * @param isPathBuild indicates whether the given path is a path consisting of road-segments and turning groups 
+     * that can be directly used
      */
-	void rerouteWithPath(const std::vector<WayPoint>& path, bool isPathBuilt = false);
+    void rerouteWithPath(const std::vector<WayPoint>& path, bool isPathBuilt = false);
 
-	Driver* getParentDriver() const
-	{
-		return parentDriver;
-	}
+    Driver* getParentDriver() const
+    {
+        return parentDriver;
+    }
 
-	void setParentDriver(Driver* parentDriver)
-	{
-		if (!parentDriver)
-		{
-			throw std::runtime_error("parentDriver cannot be NULL");
-		}
+    void setParentDriver(Driver* parentDriver)
+    {
+        if (!parentDriver)
+        {
+            throw std::runtime_error("parentDriver cannot be NULL");
+        }
 
-		safe_delete_item(this->parentDriver);
-		this->parentDriver = parentDriver;
-	}
+        safe_delete_item(this->parentDriver);
+        this->parentDriver = parentDriver;
+    }
 
-	CarFollowingModel* getCarFollowModel()
-	{
-		return cfModel;
-	}
+    CarFollowingModel* getCarFollowModel()
+    {
+        return cfModel;
+    }
 
     DriverPathMover &getPathMover()
     {

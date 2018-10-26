@@ -21,57 +21,57 @@ class DriverUpdateParams;
 
 class IncidentPerformer {
 public:
-	IncidentPerformer();
-	virtual ~IncidentPerformer();
+    IncidentPerformer();
+    virtual ~IncidentPerformer();
 
-	/**
-	 * get incident status.
-	 * @return incident status object.
-	 */
-	sim_mob::IncidentStatus& getIncidentStatus();
+    /**
+     * get incident status.
+     * @return incident status object.
+     */
+    sim_mob::IncidentStatus& getIncidentStatus();
 
-	/**
-	 * Check current incident status.
-	 * @param paren is pointer to the class Driver
-	 * @param p is reference to the DriverUpdateParam which recording parameters for updating driver
-	 * @param now is current simulation time
-	 * @return void .
-	 */
-	void checkIncidentStatus(DriverUpdateParams& p, timeslice now);
+    /**
+     * Check current incident status.
+     * @param paren is pointer to the class Driver
+     * @param p is reference to the DriverUpdateParam which recording parameters for updating driver
+     * @param now is current simulation time
+     * @return void .
+     */
+    void checkIncidentStatus(DriverUpdateParams& p, timeslice now);
 
-	/**
-	 * response processing when incident happen.
-	 * @param paren is pointer to the class Driver
-	 * @param p is reference to the DriverUpdateParam which recording parameters for updating driver
-	 * @param now is current simulation time
-	 * @return void .
-	 */
-	void responseIncidentStatus( DriverUpdateParams& p, timeslice now);
+    /**
+     * response processing when incident happen.
+     * @param paren is pointer to the class Driver
+     * @param p is reference to the DriverUpdateParam which recording parameters for updating driver
+     * @param now is current simulation time
+     * @return void .
+     */
+    void responseIncidentStatus( DriverUpdateParams& p, timeslice now);
 
 
 private:
-	//incident response plan
-	sim_mob::IncidentStatus incidentStatus;
+    //incident response plan
+    sim_mob::IncidentStatus incidentStatus;
 
 
-	/**
-	 * check whether ahead vehicles exists.
-	 * @param paren is pointer to the class Driver
-	 * @param p is reference to the DriverUpdateParam which recording parameters for updating driver
-	 * @return void .
-	 */
-	void checkAheadVehicles( DriverUpdateParams& p);
+    /**
+     * check whether ahead vehicles exists.
+     * @param paren is pointer to the class Driver
+     * @param p is reference to the DriverUpdateParam which recording parameters for updating driver
+     * @return void .
+     */
+    void checkAheadVehicles( DriverUpdateParams& p);
 
-	/**
-	 * calculate new speed by current acceleration.
-	 * @param curSpeed is current velocity
-	 * @param acc is current acceleration
-	 * @param elapsedSeconds is elapsed time during current frame tick
-	 * @return void .
-	 */
-	inline float calculateSpeedbyAcceleration(float curSpeed, float acc, float elapsedSeconds);
+    /**
+     * calculate new speed by current acceleration.
+     * @param curSpeed is current velocity
+     * @param acc is current acceleration
+     * @param elapsedSeconds is elapsed time during current frame tick
+     * @return void .
+     */
+    inline float calculateSpeedbyAcceleration(float curSpeed, float acc, float elapsedSeconds);
 
-//	friend class Driver;
+//  friend class Driver;
 };
 
 } /* namespace sim_mob */

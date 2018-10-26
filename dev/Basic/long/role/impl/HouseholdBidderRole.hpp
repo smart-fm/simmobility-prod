@@ -155,26 +155,26 @@ namespace sim_mob
             CurrentBiddingEntry biddingEntry;
             HouseholdAgent *parent;
             bool active;
-        	BigSerial unitIdToBeOwned;
-        	int moveInWaitingTimeInDays;
-        	bool bidComplete;
-        	int vehicleBuyingWaitingTimeInDays;
-        	uint32_t day;
-        	int year;
+            BigSerial unitIdToBeOwned;
+            int moveInWaitingTimeInDays;
+            bool bidComplete;
+            int vehicleBuyingWaitingTimeInDays;
+            uint32_t day;
+            int year;
 
             enum EthnicityId
             {
-            	CHINESE = 1, MALAY, INDIAN, OTHERS
+                CHINESE = 1, MALAY, INDIAN, OTHERS
             };
 
             enum CoeffParamId
             {
-            	ASC_NO_CAR = 1, ASC_ONECAR, ASC_TWOplusCAR, B_ABOVE60_ONE_CAR, B_ABOVE60_TWOplusCAR,
-            	B_INC1_ONECAR, B_INC1_TWOplusCAR, B_INC2_ONECAR, B_INC2_TWOplusCAR,B_INC3_ONECAR, B_INC3_TWOplusCAR, B_INC4_ONECAR, B_INC4_TWOplusCAR, B_INC5_ONECAR, B_INC5_TWOplusCAR,
-            	B_INDIAN_ONECAR, B_INDIAN_TWOplusCAR, B_KIDS1_ONECAR, B_KIDS1_TWOplusCAR, B_KIDS2p_ONECAR, B_KIDS2p_TWOplusCAR, B_MALAY_ONECAR, B_MALAY_TWOplusCAR,B_MC_ONECAR,
-            	B_MC_TWOplusCAR,  B_OTHERS_ONECAR, B_OTHERS_TWOplusCAR,B_PRIVATE_ONECAR, B_PRIVATE_TWOplusCAR, B_TAXI_ONECAR, B_TAXI_TWOplusCAR, B_WHITECOLLAR1_ONECAR, B_WHITECOLLAR1_TWOplusCAR, B_WHITECOLLAR2_ONECAR,
-            	B_WHITECOLLAR2_TWOplusCAR, B_distMRT1000_ONECAR, B_distMRT1000_TWOplusCAR, B_distMRT500_ONECAR, B_distMRT500_TWOplusCAR,
-            	B_LOGSUM_ONECAR,B_LOGSUM_TWOplusCAR
+                ASC_NO_CAR = 1, ASC_ONECAR, ASC_TWOplusCAR, B_ABOVE60_ONE_CAR, B_ABOVE60_TWOplusCAR,
+                B_INC1_ONECAR, B_INC1_TWOplusCAR, B_INC2_ONECAR, B_INC2_TWOplusCAR,B_INC3_ONECAR, B_INC3_TWOplusCAR, B_INC4_ONECAR, B_INC4_TWOplusCAR, B_INC5_ONECAR, B_INC5_TWOplusCAR,
+                B_INDIAN_ONECAR, B_INDIAN_TWOplusCAR, B_KIDS1_ONECAR, B_KIDS1_TWOplusCAR, B_KIDS2p_ONECAR, B_KIDS2p_TWOplusCAR, B_MALAY_ONECAR, B_MALAY_TWOplusCAR,B_MC_ONECAR,
+                B_MC_TWOplusCAR,  B_OTHERS_ONECAR, B_OTHERS_TWOplusCAR,B_PRIVATE_ONECAR, B_PRIVATE_TWOplusCAR, B_TAXI_ONECAR, B_TAXI_TWOplusCAR, B_WHITECOLLAR1_ONECAR, B_WHITECOLLAR1_TWOplusCAR, B_WHITECOLLAR2_ONECAR,
+                B_WHITECOLLAR2_TWOplusCAR, B_distMRT1000_ONECAR, B_distMRT1000_TWOplusCAR, B_distMRT500_ONECAR, B_distMRT500_TWOplusCAR,
+                B_LOGSUM_ONECAR,B_LOGSUM_TWOplusCAR
             };
             bool initBidderRole;
         };

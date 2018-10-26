@@ -19,8 +19,8 @@ class ExpandShortTermConfigFile : public boost::noncopyable
 {
 public:
     ExpandShortTermConfigFile(ST_Config& stConfig, ConfigParams& cfg,
-				      std::set<sim_mob::Entity*>& active_agents,
-				      StartTimePriorityQueue& pending_agents);
+                      std::set<sim_mob::Entity*>& active_agents,
+                      StartTimePriorityQueue& pending_agents);
 private:
     void processConfig();
 
@@ -29,7 +29,7 @@ private:
     void setTicks();
     bool setTickFromBaseGran(unsigned int& res, unsigned int tickLenMs);
     void loadNetworkFromDatabase();
-	void loadPublicTransitNetworkFromDatabase();
+    void loadPublicTransitNetworkFromDatabase();
 
     void loadAMOD_Controller();
     void loadFMOD_Controller();
@@ -38,13 +38,13 @@ private:
     void generateXMLAgents(const std::vector<EntityTemplate>& xmlItems);
 
     void printSettings();
-	
-	/**
-	 * Generates the information to be printed about the traffic signals
-	 * @param signals map of id vs traffic signals
-	 * @return information to be printed
-	 */
-	const std::string getSignalsInfo(std::map<unsigned int, Signal *> &signals) const;
+    
+    /**
+     * Generates the information to be printed about the traffic signals
+     * @param signals map of id vs traffic signals
+     * @return information to be printed
+     */
+    const std::string getSignalsInfo(std::map<unsigned int, Signal *> &signals) const;
 
     ST_Config& stConfig;
 

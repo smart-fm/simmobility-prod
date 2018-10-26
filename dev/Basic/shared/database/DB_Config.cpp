@@ -24,22 +24,22 @@ const string PROP_PORT = "port";
 }
 
 DB_Config::DB_Config(const string& file) :
-		PropertyLoader(file, "database"), port(0), host(""), password(""), username(""), databaseName("")
+        PropertyLoader(file, "database"), port(0), host(""), password(""), username(""), databaseName("")
 {
 }
 
 DB_Config::DB_Config(const DB_Config& orig) :
-		PropertyLoader(orig)
+        PropertyLoader(orig)
 {
-	host = orig.host;
-	port = orig.port;
-	username = orig.username;
-	password = orig.password;
-	databaseName = orig.databaseName;
+    host = orig.host;
+    port = orig.port;
+    username = orig.username;
+    password = orig.password;
+    databaseName = orig.databaseName;
 }
 
 DB_Config::DB_Config(std::string& host, std::string& port, std::string& dbname, std::string& username, std::string& password) :
-		PropertyLoader(), port(std::atoi(port.c_str())), host(host), databaseName(dbname), username(username), password(password)
+        PropertyLoader(), port(std::atoi(port.c_str())), host(host), databaseName(dbname), username(username), password(password)
 {
 }
 
@@ -49,59 +49,59 @@ DB_Config::~DB_Config()
 
 const string& DB_Config::getDatabaseName() const
 {
-	return databaseName;
+    return databaseName;
 }
 
 const string& DB_Config::getPassword() const
 {
-	return password;
+    return password;
 }
 
 const string& DB_Config::getUsername() const
 {
-	return username;
+    return username;
 }
 
 const string& DB_Config::getHost() const
 {
-	return host;
+    return host;
 }
 
 unsigned int DB_Config::getPort() const
 {
-	return port;
+    return port;
 }
 
 void DB_Config::setDatabaseName(const string& databaseName)
 {
-	this->databaseName = databaseName;
+    this->databaseName = databaseName;
 }
 
 void DB_Config::setPassword(const string& password)
 {
-	this->password = password;
+    this->password = password;
 }
 
 void DB_Config::setUsername(const string& username)
 {
-	this->username = username;
+    this->username = username;
 }
 
 void DB_Config::setPort(unsigned int port)
 {
-	this->port = port;
+    this->port = port;
 }
 
 void DB_Config::setHost(const string& host)
 {
-	this->host = host;
+    this->host = host;
 }
 
 void DB_Config::loadImpl(const boost::property_tree::ptree& tree)
 {
-	host = tree.get<string>(toProp(getSection(), PROP_HOST));
-	this->port = tree.get<unsigned int>(toProp(getSection(), PROP_PORT));
-	this->username = tree.get<string>(toProp(getSection(), PROP_USER));
-	this->password = tree.get<string>(toProp(getSection(), PROP_PASS));
-	this->databaseName = tree.get<string>(toProp(getSection(), PROP_DB));
+    host = tree.get<string>(toProp(getSection(), PROP_HOST));
+    this->port = tree.get<unsigned int>(toProp(getSection(), PROP_PORT));
+    this->username = tree.get<string>(toProp(getSection(), PROP_USER));
+    this->password = tree.get<string>(toProp(getSection(), PROP_PASS));
+    this->databaseName = tree.get<string>(toProp(getSection(), PROP_DB));
 }

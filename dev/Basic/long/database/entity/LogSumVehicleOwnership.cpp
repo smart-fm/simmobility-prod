@@ -10,25 +10,25 @@
 using namespace sim_mob::long_term;
 
 LogSumVehicleOwnership::LogSumVehicleOwnership(BigSerial householdId,double logsum):
-		householdId(householdId),logsum(logsum) {}
+        householdId(householdId),logsum(logsum) {}
 
 LogSumVehicleOwnership::~LogSumVehicleOwnership() {}
 
 LogSumVehicleOwnership& LogSumVehicleOwnership::operator=(const LogSumVehicleOwnership& source)
 {
-	this->householdId 			= source.householdId;
-	this->logsum	= source.logsum;
+    this->householdId           = source.householdId;
+    this->logsum    = source.logsum;
     return *this;
 }
 
 BigSerial LogSumVehicleOwnership::getHouseholdId() const
 {
-		return this->householdId;
+        return this->householdId;
 }
 
 double LogSumVehicleOwnership::getLogsum() const
 {
-		return this->logsum;
+        return this->logsum;
 }
 
 namespace sim_mob
@@ -38,9 +38,9 @@ namespace sim_mob
         std::ostream& operator<<(std::ostream& strm, const LogSumVehicleOwnership& data)
         {
             return strm << "{"
-						<< "\"householdId \":\"" << data.householdId 	<< "\","
-						<< "\"avgLogsum \":\"" 	<< data.logsum 	<< "\","
-						<< "}";
+                        << "\"householdId \":\"" << data.householdId    << "\","
+                        << "\"avgLogsum \":\""  << data.logsum  << "\","
+                        << "}";
         }
     }
 }

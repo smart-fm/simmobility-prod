@@ -16,40 +16,40 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class AlternativeHedonicPrice
-		{
-		public:
-			AlternativeHedonicPrice( int id = 0, int planning_area_id = 0, std::string planning_area ="", int dwelling_type = 0, double total_price =.0);
+    namespace long_term
+    {
+        class AlternativeHedonicPrice
+        {
+        public:
+            AlternativeHedonicPrice( int id = 0, int planning_area_id = 0, std::string planning_area ="", int dwelling_type = 0, double total_price =.0);
 
-			virtual ~AlternativeHedonicPrice();
+            virtual ~AlternativeHedonicPrice();
 
-			AlternativeHedonicPrice(const AlternativeHedonicPrice& source);
-			AlternativeHedonicPrice& operator=(const AlternativeHedonicPrice& source);
+            AlternativeHedonicPrice(const AlternativeHedonicPrice& source);
+            AlternativeHedonicPrice& operator=(const AlternativeHedonicPrice& source);
 
-			template<class Archive>
-			void serialize(Archive & ar,const unsigned int version);
-			void saveData(std::vector<AlternativeHedonicPrice*> &altHedonicprices);
-			std::vector<AlternativeHedonicPrice*> loadSerializedData();
+            template<class Archive>
+            void serialize(Archive & ar,const unsigned int version);
+            void saveData(std::vector<AlternativeHedonicPrice*> &altHedonicprices);
+            std::vector<AlternativeHedonicPrice*> loadSerializedData();
 
-			int getPlanningAreaId();
-			std::string getPlanningArea();
-			int getDwellingType();
-			double getTotalPrice();
-			int getId();
+            int getPlanningAreaId();
+            std::string getPlanningArea();
+            int getDwellingType();
+            double getTotalPrice();
+            int getId();
 
-		private:
-			friend class AlternativeHedonicPriceDao;
+        private:
+            friend class AlternativeHedonicPriceDao;
 
-			int id;
-			BigSerial planning_area_id;
-			std::string planning_area;
-			int dwelling_type;
-			double total_price;
+            int id;
+            BigSerial planning_area_id;
+            std::string planning_area;
+            int dwelling_type;
+            double total_price;
 
-			static constexpr auto filename = "alternativeHedonicPrice";
-		};
-	}
+            static constexpr auto filename = "alternativeHedonicPrice";
+        };
+    }
 
 }

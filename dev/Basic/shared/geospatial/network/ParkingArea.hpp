@@ -18,33 +18,33 @@ class ParkingSlot;
 class ParkingArea
 {
 private:
-	/**The identifer for the parking area*/
-	unsigned int areaId;
-	
-	/**The collection of parking slots that belong to this area*/
-	std::vector<const ParkingSlot *> parkingSlots;
+    /**The identifer for the parking area*/
+    unsigned int areaId;
+    
+    /**The collection of parking slots that belong to this area*/
+    std::vector<const ParkingSlot *> parkingSlots;
 
 public:
-	ParkingArea(int id);
-	~ParkingArea();
+    ParkingArea(int id);
+    ~ParkingArea();
 
-	const unsigned int getParkingAreaId() const;
-	void setParkingAreaId(unsigned int areaId);
+    const unsigned int getParkingAreaId() const;
+    void setParkingAreaId(unsigned int areaId);
 
-	const std::vector<const ParkingSlot *>& getParkingSlots() const;
+    const std::vector<const ParkingSlot *>& getParkingSlots() const;
 
-	/**
-	 * Returns the parking slot in the area at the given index
-	 * @param index the index of the requested parking slot
-	 * @return pointer to the parking slot in the parking area at the given index
-	 */
-	const ParkingSlot* getParkingSlot(unsigned int index) const;
+    /**
+     * Returns the parking slot in the area at the given index
+     * @param index the index of the requested parking slot
+     * @return pointer to the parking slot in the parking area at the given index
+     */
+    const ParkingSlot* getParkingSlot(unsigned int index) const;
 
-	/**
-	 * Adds a parking slot to the parking area
-	 * @param pkSlot The pointer to the parking slot object to be added
-	 */
-	void addParkingSlot(const ParkingSlot *pkSlot);
+    /**
+     * Adds a parking slot to the parking area
+     * @param pkSlot The pointer to the parking slot object to be added
+     */
+    void addParkingSlot(const ParkingSlot *pkSlot);
 };
 
 }

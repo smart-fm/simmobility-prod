@@ -67,7 +67,7 @@ public:
     /**
      * Destructor
      */
-	virtual ~AMODSimulatorSimMobility();
+    virtual ~AMODSimulatorSimMobility();
 
     /**
      * init
@@ -103,10 +103,10 @@ public:
      */
     virtual amod::ReturnCode dispatchVehicle(amod::World *worldState,
                                              int vehId,
-											 const amod::Position &to,
+                                             const amod::Position &to,
                                              amod::VehicleStatus vehStartStatus = amod::VehicleStatus::BUSY,
                                              amod::VehicleStatus vehEndStatus = amod::VehicleStatus::FREE
-											 );
+                                             );
 
     /**
      * pickupCustomer
@@ -141,7 +141,7 @@ public:
      */
     virtual amod::ReturnCode dropoffCustomer(amod::World *worldState,
                                              int vehId, int custId,
-											 amod::VehicleStatus status = amod::VehicleStatus::DROPPING_OFF,
+                                             amod::VehicleStatus status = amod::VehicleStatus::DROPPING_OFF,
                                              amod::VehicleStatus endStatus = amod::VehicleStatus::FREE);
 
     /**
@@ -160,7 +160,7 @@ public:
      */
     virtual amod::ReturnCode teleportCustomer(amod::World *worldState,
                                              int custId,
-											 const amod::Position &to,
+                                             const amod::Position &to,
                                              amod::CustomerStatus custStartStatus = amod::CustomerStatus::TELEPORTING,
                                              amod::CustomerStatus custEndStatus = amod::CustomerStatus::FREE);
 
@@ -356,9 +356,9 @@ private:
     /// flag to determine whether the distance file should be updated or not
     bool updDistFile;
     
-	// objects in the simulated world (typically vehicles)
-	//std::unordered_map<int, amod::Vehicle> vehicles_;
-	//std::unordered_map<int, amod::Customer> customers_;
+    // objects in the simulated world (typically vehicles)
+    //std::unordered_map<int, amod::Vehicle> vehicles_;
+    //std::unordered_map<int, amod::Customer> customers_;
 
     std::string saveNodesFileName;
 
@@ -369,7 +369,7 @@ private:
     kdt::KDTree<amod::Location> locTree;
 
     /// maps from AIMSUM ids to node and segment objects
-	// std::unordered_map<int,const sim_mob::RoadSegment*> seg_pool_; // store all segs ,key= aimsun id ,value = seg
+    // std::unordered_map<int,const sim_mob::RoadSegment*> seg_pool_; // store all segs ,key= aimsun id ,value = seg
     /// store all nodes ,key= aimsun id ,value = node
     std::map<unsigned int,sim_mob::Node*> nodePool;
 
@@ -384,35 +384,35 @@ private:
     std::string baseErrMsg;
 
     /// structures to manage dispatches, pickups and dropoffs
-	struct Dispatch {
+    struct Dispatch {
         int bookingId; ///0 if manual dispatch
         int vehId;
         int toLocId;
         int fromLocId;
-		amod::Position from;
-		amod::Position to;
-		amod::Position curr;
+        amod::Position from;
+        amod::Position to;
+        amod::Position curr;
         amod::VehicleStatus vehEndStatus;
         bool arrived;
-	};
+    };
 
-	struct Pickup {
+    struct Pickup {
         int bookingId;  ///0 if manual dispatch
         int vehId;
         int custId;
         int locId;
         double pickupTime;
         amod::VehicleStatus vehEndStatus;
-	};
+    };
 
-	struct Dropoff {
+    struct Dropoff {
         int bookingId;  ///0 if manual dispatch
         int vehId;
         int custId;
         int locId;
         double dropoffTime;
         amod::VehicleStatus vehEndStatus;
-	};
+    };
 
     struct TruncatedNormalParams {
         std::normal_distribution<>::param_type par;
@@ -566,7 +566,7 @@ private:
      * @param to - position for which closest node is found
      * @return - closest node id
      */
-	virtual int findClosestNode(const amod::Position &to);
+    virtual int findClosestNode(const amod::Position &to);
 
     /**
      * genRandTruncNormal

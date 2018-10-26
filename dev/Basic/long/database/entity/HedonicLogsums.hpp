@@ -16,7 +16,7 @@ namespace sim_mob {
 
         class HedonicLogsums {
         public:
-        	HedonicLogsums(BigSerial tazId = INVALID_ID,double logsumWeighted = 0);
+            HedonicLogsums(BigSerial tazId = INVALID_ID,double logsumWeighted = 0);
 
             virtual ~HedonicLogsums();
 
@@ -27,8 +27,8 @@ namespace sim_mob {
             double getLogsumWeighted() const;
             BigSerial getTazId() const;
 
-			void setLogsumWeighted(double logsumWeighted);
-			void setTazId(BigSerial tazId);
+            void setLogsumWeighted(double logsumWeighted);
+            void setTazId(BigSerial tazId);
 
         private:
 

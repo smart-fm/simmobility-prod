@@ -22,8 +22,8 @@ MtzTazDao::~MtzTazDao() {}
 
 void MtzTazDao::fromRow(Row& result, MtzTaz& outObj)
 {
-	outObj.mtzId  	= result.get<BigSerial>( "mtz_id", INVALID_ID);
-	outObj.tazId  	= result.get<BigSerial>( "taz_id", INVALID_ID);
+    outObj.mtzId    = result.get<BigSerial>( "mtz_id", INVALID_ID);
+    outObj.tazId    = result.get<BigSerial>( "taz_id", INVALID_ID);
 }
 
 void MtzTazDao::toRow(MtzTaz& data, Parameters& outParams, bool update) {}

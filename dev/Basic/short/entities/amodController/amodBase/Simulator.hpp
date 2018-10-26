@@ -64,10 +64,10 @@ public:
      * one of the amod::ReturnCode error codes.
      */
     virtual amod::ReturnCode dispatchVehicle(amod::World *worldState,
-					     int vehId,
+                         int vehId,
                                              const amod::Position &to,
-					     amod::VehicleStatus startStatus = VehicleStatus::BUSY,
-					     amod::VehicleStatus endStatus = VehicleStatus::FREE) = 0;
+                         amod::VehicleStatus startStatus = VehicleStatus::BUSY,
+                         amod::VehicleStatus endStatus = VehicleStatus::FREE) = 0;
     
     /**
      * pickupCustomer
@@ -83,9 +83,9 @@ public:
      * one of the amod::ReturnCode error codes.
      */
     virtual amod::ReturnCode pickupCustomer(amod::World *worldState,
-					    int vehId, int custId,
-					    amod::VehicleStatus startStatus = VehicleStatus::PICKING_UP,
-					    amod::VehicleStatus endStatus = VehicleStatus::HIRED) = 0;
+                        int vehId, int custId,
+                        amod::VehicleStatus startStatus = VehicleStatus::PICKING_UP,
+                        amod::VehicleStatus endStatus = VehicleStatus::HIRED) = 0;
     
     /**
      * dropoffCustomer
@@ -101,9 +101,9 @@ public:
      * one of the amod::ReturnCode error codes.
      */
     virtual amod::ReturnCode dropoffCustomer(amod::World *worldState,
-					     int vehId, int custId,
+                         int vehId, int custId,
                                              amod::VehicleStatus status = VehicleStatus::DROPPING_OFF,
-					     amod::VehicleStatus endStatus = VehicleStatus::FREE) = 0;
+                         amod::VehicleStatus endStatus = VehicleStatus::FREE) = 0;
     
     
     /**
@@ -121,10 +121,10 @@ public:
      * one of the amod::ReturnCode error codes.
      */
     virtual amod::ReturnCode teleportCustomer(amod::World *worldState,
-					     int custId,
-					     const amod::Position &to,
-					     amod::CustomerStatus custStartStatus = CustomerStatus::TELEPORTING,
-					     amod::CustomerStatus custEndStatus = CustomerStatus::FREE) = 0;
+                         int custId,
+                         const amod::Position &to,
+                         amod::CustomerStatus custStartStatus = CustomerStatus::TELEPORTING,
+                         amod::CustomerStatus custEndStatus = CustomerStatus::FREE) = 0;
 
 
 
@@ -195,7 +195,7 @@ public:
      * @param v
      */
     virtual void setVerbose(bool v) {
-	verbose = v;
+    verbose = v;
     }
     
     /**
@@ -203,7 +203,7 @@ public:
      * @return true if verbose is enabled
      */
     virtual bool getVerbose() {
-	return verbose;
+    return verbose;
     }
     
 protected:

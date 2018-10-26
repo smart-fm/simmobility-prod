@@ -19,17 +19,17 @@ class Section;
 /// \author Seth N. Hetu
 class Turning : public Base {
 public:
-	std::pair<int, int> fromLane;
-	std::pair<int, int> toLane;
-	sim_mob::aimsun::Section* fromSection;
-	sim_mob::aimsun::Section* toSection;
+    std::pair<int, int> fromLane;
+    std::pair<int, int> toLane;
+    sim_mob::aimsun::Section* fromSection;
+    sim_mob::aimsun::Section* toSection;
 
-	Turning() : Base(), fromSection(nullptr), toSection(nullptr), TMP_FromSection(0), TMP_ToSection(0)
-	{}
+    Turning() : Base(), fromSection(nullptr), toSection(nullptr), TMP_FromSection(0), TMP_ToSection(0)
+    {}
 
-	//Temporaries
-	int TMP_FromSection;
-	int TMP_ToSection;
+    //Temporaries
+    int TMP_FromSection;
+    int TMP_ToSection;
 };
 
 

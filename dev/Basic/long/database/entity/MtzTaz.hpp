@@ -16,27 +16,27 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class MtzTaz
-		{
-		public:
-			MtzTaz(BigSerial mtzId =0, BigSerial tazId = 0);
-			virtual ~MtzTaz();
+    namespace long_term
+    {
+        class MtzTaz
+        {
+        public:
+            MtzTaz(BigSerial mtzId =0, BigSerial tazId = 0);
+            virtual ~MtzTaz();
 
-			MtzTaz(const MtzTaz& source);
-			MtzTaz& operator=(const MtzTaz& source);
+            MtzTaz(const MtzTaz& source);
+            MtzTaz& operator=(const MtzTaz& source);
 
-			BigSerial getMtzId() const;
-			BigSerial getTazId() const;
+            BigSerial getMtzId() const;
+            BigSerial getTazId() const;
 
-			friend std::ostream& operator<<(std::ostream& strm, const MtzTaz& data);
+            friend std::ostream& operator<<(std::ostream& strm, const MtzTaz& data);
 
-		private:
-			friend class MtzTazDao;
+        private:
+            friend class MtzTazDao;
 
-			BigSerial mtzId;
-			BigSerial tazId;
-		};
-	}
+            BigSerial mtzId;
+            BigSerial tazId;
+        };
+    }
 } /* namespace sim_mob */

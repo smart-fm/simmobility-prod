@@ -19,7 +19,7 @@ namespace sim_mob {
          */
         class BuildingAvgAgePerParcelDao : public db::SqlAbstractDao<BuildingAvgAgePerParcel> {
         public:
-        	BuildingAvgAgePerParcelDao(db::DB_Connection& connection);
+            BuildingAvgAgePerParcelDao(db::DB_Connection& connection);
             virtual ~BuildingAvgAgePerParcelDao();
 
         private:

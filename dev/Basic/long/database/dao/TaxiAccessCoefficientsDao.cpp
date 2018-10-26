@@ -16,8 +16,8 @@ TaxiAccessCoefficientsDao::~TaxiAccessCoefficientsDao() {}
 
 void TaxiAccessCoefficientsDao::fromRow(Row& result, TaxiAccessCoefficients& outObj)
 {
-    outObj.parameterId 		= result.get<BigSerial>("parameter_id",INVALID_ID);
-    outObj.coefficientEstimate 		= result.get<double>("coeff_estimate",0.0);
+    outObj.parameterId      = result.get<BigSerial>("parameter_id",INVALID_ID);
+    outObj.coefficientEstimate      = result.get<double>("coeff_estimate",0.0);
 }
 
 void TaxiAccessCoefficientsDao::toRow(TaxiAccessCoefficients& data, Parameters& outParams, bool update) {}

@@ -69,7 +69,7 @@ public:
         if (!sim) {
             throw std::runtime_error("Manager::setSimulator: sim is nullptr");
         }
-	simulator = sim;
+    simulator = sim;
     }
 
     /**
@@ -78,7 +78,7 @@ public:
      * @return simulator currently in use
      */
     virtual amod::Simulator* getSimulator() {
-	return simulator;
+    return simulator;
     }
     
     /**
@@ -87,10 +87,10 @@ public:
      * @param logger_ - Logger to be used
      */
     virtual void setLogger(amod::Logger *logger_) {
-	if (!logger_) {
+    if (!logger_) {
             throw std::runtime_error("Manager::setSimulator: logger is nullptr");
         }
-	logger = logger_;
+    logger = logger_;
     }
 
     /**
@@ -98,7 +98,7 @@ public:
      * @return logger currently in use
      */
     virtual amod::Logger* getLogger() {
-	return logger;
+    return logger;
     }
     
     /**
@@ -107,7 +107,7 @@ public:
      * @param v flag
      */
     virtual void setVerbose(bool v) {
-	verbose = v;
+    verbose = v;
     }
     
     /**
@@ -115,7 +115,7 @@ public:
      * @return true if verbose is set, else false
      */
     virtual bool getVerbose() {
-	return verbose;
+    return verbose;
     }
     
 protected:

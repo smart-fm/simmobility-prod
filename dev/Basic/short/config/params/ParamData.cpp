@@ -14,26 +14,26 @@ namespace sim_mob
 
 ParamData::ParamData(const std::string& s)
 {
-	type = ParamData::TypeString;
-	dataString = s;
+    type = ParamData::TypeString;
+    dataString = s;
 }
 
 ParamData::ParamData(double& d)
 {
-	type = ParamData::TypeDouble;
-	dataDouble = d;
+    type = ParamData::TypeDouble;
+    dataDouble = d;
 }
 
 ParamData::ParamData(int& i)
 {
-	type = ParamData::TypeInt;
-	dataInt = i;
+    type = ParamData::TypeInt;
+    dataInt = i;
 }
 
 ParamData::ParamData(bool& b)
 {
-	type = ParamData::TypeBoolean;
-	dataBool = b;
+    type = ParamData::TypeBoolean;
+    dataBool = b;
 }
 
 ParamData::ParamData(const ParamData& source)
@@ -46,30 +46,30 @@ dataBool(source.dataBool), fromWhichFile(source.fromWhichFile)
 
 ParamData::~ParamData()
 {
-	// TODO Auto-generated destructor stub
+    // TODO Auto-generated destructor stub
 }
 
 double ParamData::toDouble()
 {
-	if (type == ParamData::TypeDouble)
-	{
-		return dataDouble;
-	}
-	
-	double res = 0.0;
-	
-	try
-	{
-		res = boost::lexical_cast<double>(dataString.c_str());
-	}
-	catch (boost::bad_lexical_cast&)
-	{
-		std::stringstream s;
-		s << __func__ << ": Parameter value " + dataString + " from file " + fromWhichFile + " could not be converted to type double";
-		throw std::runtime_error(s.str());
-	}
+    if (type == ParamData::TypeDouble)
+    {
+        return dataDouble;
+    }
+    
+    double res = 0.0;
+    
+    try
+    {
+        res = boost::lexical_cast<double>(dataString.c_str());
+    }
+    catch (boost::bad_lexical_cast&)
+    {
+        std::stringstream s;
+        s << __func__ << ": Parameter value " + dataString + " from file " + fromWhichFile + " could not be converted to type double";
+        throw std::runtime_error(s.str());
+    }
 
-	return res;
+    return res;
 }
 
 }

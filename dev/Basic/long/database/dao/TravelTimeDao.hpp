@@ -18,7 +18,7 @@ namespace sim_mob {
          */
         class TravelTimeDao : public db::SqlAbstractDao<TravelTime> {
         public:
-        	TravelTimeDao(db::DB_Connection& connection);
+            TravelTimeDao(db::DB_Connection& connection);
             virtual ~TravelTimeDao();
 
         private:

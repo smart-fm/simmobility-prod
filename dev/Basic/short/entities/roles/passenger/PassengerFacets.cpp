@@ -29,17 +29,17 @@ PassengerBehavior::~PassengerBehavior()
 
 void PassengerBehavior::frame_init()
 {
-	throw std::runtime_error("PassengerBehavior::frame_init is not implemented yet");
+    throw std::runtime_error("PassengerBehavior::frame_init is not implemented yet");
 }
 
 void PassengerBehavior::frame_tick()
 {
-	throw std::runtime_error("PassengerBehavior::frame_tick is not implemented yet");
+    throw std::runtime_error("PassengerBehavior::frame_tick is not implemented yet");
 }
 
 std::string PassengerBehavior::frame_tick_output()
 {
-	throw std::runtime_error("PassengerBehavior::frame_tick_output is not implemented yet");
+    throw std::runtime_error("PassengerBehavior::frame_tick_output is not implemented yet");
 }
 
 PassengerMovement::PassengerMovement() :
@@ -53,39 +53,39 @@ PassengerMovement::~PassengerMovement()
 
 void PassengerMovement::frame_init() 
 {
-	totalTimeToComplete = 0;
-	Person_ST *parent = parentPassenger->getParent();
-	parentPassenger->setStartPoint(parent->currSubTrip->origin);
-	parentPassenger->setEndPoint(parent->currSubTrip->destination);
-	
-	//Tele-port the passenger (other than bus passenger) to the destination with a delay equal to the travel time
-	//Travel time is pre-set based on the historic transit times
-	if(parentPassenger->roleType != Role<Person_ST>::RL_PASSENGER)
-	{
-		totalTimeToComplete = parent->currSubTrip->endTime.getValue();
-		parentPassenger->setTravelTime(totalTimeToComplete);
-		
-		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
-		MessageBus::PostMessage(parent, MSG_WAKEUP_MRT_PAX, MessageBus::MessagePtr(new PersonMessage(parent)), false,
-				totalTimeToComplete / tick);
-	}
+    totalTimeToComplete = 0;
+    Person_ST *parent = parentPassenger->getParent();
+    parentPassenger->setStartPoint(parent->currSubTrip->origin);
+    parentPassenger->setEndPoint(parent->currSubTrip->destination);
+    
+    //Tele-port the passenger (other than bus passenger) to the destination with a delay equal to the travel time
+    //Travel time is pre-set based on the historic transit times
+    if(parentPassenger->roleType != Role<Person_ST>::RL_PASSENGER)
+    {
+        totalTimeToComplete = parent->currSubTrip->endTime.getValue();
+        parentPassenger->setTravelTime(totalTimeToComplete);
+        
+        unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
+        MessageBus::PostMessage(parent, MSG_WAKEUP_MRT_PAX, MessageBus::MessagePtr(new PersonMessage(parent)), false,
+                totalTimeToComplete / tick);
+    }
 
     parent->setStartTime(parent->currTick.ms());
 }
 
 void PassengerMovement::frame_tick() 
 {
-	totalTimeToComplete += ConfigManager::GetInstance().FullConfig().baseGranMS();
-	
-	//If the person has to alight the vehicle, set it to be removed
-	if(parentPassenger->canAlightVehicle())
-	{
-		parentPassenger->setTravelTime(totalTimeToComplete);
-		parentPassenger->getParent()->setToBeRemoved();
-	}
+    totalTimeToComplete += ConfigManager::GetInstance().FullConfig().baseGranMS();
+    
+    //If the person has to alight the vehicle, set it to be removed
+    if(parentPassenger->canAlightVehicle())
+    {
+        parentPassenger->setTravelTime(totalTimeToComplete);
+        parentPassenger->getParent()->setToBeRemoved();
+    }
 }
 
 std::string PassengerMovement::frame_tick_output()
 {
-	return string();
+    return string();
 }

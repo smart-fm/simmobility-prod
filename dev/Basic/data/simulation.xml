@@ -76,7 +76,7 @@
             </plaintext-credential>
             <plaintext-credential id="fm_local">
                 <username value="postgres"/>
-                <password value="xxxxxx"/>
+                <password value="HPCdb@2018"/>
             </plaintext-credential>
 
             <plaintext-credential id="fm_remote_plain">
@@ -87,7 +87,7 @@
 
             <plaintext-credential id="fm_hpchead">
                 <username value="postgres"/>
-                <password value="xxxxxx"/>
+                <password value="xxxxxxxx"/>
             </plaintext-credential>
         </credentials>
     </constructs>
@@ -103,8 +103,7 @@
 
         <!-- Reasonable values for MidTerm -->
         <base_granularity   value="5"   units="seconds"/>
-        <total_runtime      value="720"      units="minutes" />
-
+        <total_runtime      value="1439"      units="minutes" />
         <total_warmup       value="10"     units="seconds" />
         <start_time         value="00:00:00"/>
 
@@ -114,7 +113,7 @@
         <vehicle_operational_cost gasolineCostPerLiter=".66" electricityCostPerKWh="0.11" gasolineICEVeconomyLitersPerKm="0.098" gasolineHEVeconomyLitersPerKm="0.005" BEVeconomyKWhPerKm="0.212"  />
 
         <!--Indicates the percentage of drivers that will use in-simulation travel times rather than the historical travel times-->
-        <in_simulation_travel_time_usage value="100"/>
+        <in_simulation_travel_time_usage value="0"/>
 
         <!-- Strategy for adding new Agents to Workers. -->
         <!-- "roundrobin" assigns in order. (default) -->
@@ -141,6 +140,9 @@
     </simulation>
 
     <generic_props>
+        <!--Specifies the location of the dirver behaviour parameter files-->
+        <property key="driver_behaviour_file" value="data/driver_behavior_model/driver_param.xml"/>
+        <property key="amod_behaviour_file" value="data/driver_behavior_model/amod_driver_param.xml"/>
     </generic_props>
 
 <mobilityServiceController enabled="true" >
@@ -157,46 +159,66 @@ Note: Controller id indicates the subscribed_controller field specified in the t
 
     <!-- Trip Support Modes available
     "Rail_SMS_Pool" "AMOD_Pool" "Rail_SMS" "SMS_Pool" "SMS" "AMOD"-->
-    <controller id="2" type="7" tripSupportMode = "|AMOD|AMOD_Pool|Rail_AMOD_Pool|Rail_AMOD|" scheduleComputationPeriod="1" maxFleetSize="10" maxAggregatedRequests="6" studyAreaEnabledController="false" toleratedExtraTime="1800" maxWaitingTime = "1800" parkingEnabled="false"/>
-    <controller id="5" type="7" tripSupportMode = "|SMS|SMS_Pool|Rail_SMS|Rail_SMS_Pool|" scheduleComputationPeriod="1" maxFleetSize="10" maxAggregatedRequests="6" studyAreaEnabledController="false" toleratedExtraTime="1800" maxWaitingTime = "1800" parkingEnabled="true"/>
-     <controller id="4" type="1" tripSupportMode = "|Taxi|" scheduleComputationPeriod="1" maxFleetSize="0" maxAggregatedRequests="1" studyAreaEnabledController="false" toleratedExtraTime="1800" maxWaitingTime = "1800" parkingEnabled="false"/>
+    <controller 
+	id="5" 
+	type="7" 
+	tripSupportMode = "|SMS|SMS_Pool|Rail_SMS_Pool|Rail_SMS|" 
+	vehicleIds="" 
+	scheduleComputationPeriod="1" 
+	maxFleetSize="5000" 
+	maxAggregatedRequests="4" 
+	studyAreaEnabledController="false" 
+	toleratedExtraTime="1800" 
+	maxWaitingTime = "1800" 
+	parkingEnabled="true"/>
+ <!--   <controller                                                                                                                                                                                                                                        id="4" 
+        type="1"                                                                                                                                                                                                                                       tripSupportMode = "|Taxi|" 
+        vehicleIds="" 
+        scheduleComputationPeriod="1" 
+        maxFleetSize="2000" 
+        maxAggregatedRequests="1" 
+        studyAreaEnabledController="false" 
+        toleratedExtraTime="1800" 
+        maxWaitingTime = "1800" 
+        parkingEnabled="true"/>
+-->
+    <!-- <controller id="5" type="7" tripSupportMode = "|SMS|SMS_Pool|Rail_SMS|Rail_SMS_Pool|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="10" maxAggregatedRequests="6" studyAreaEnabledController="false" toleratedExtraTime="1800" maxWaitingTime = "1800" parkingEnabled="true"/>
+     <controller id="4" type="1" tripSupportMode = "|Taxi|" vehicleIds="" scheduleComputationPeriod="1" maxFleetSize="0" maxAggregatedRequests="1" studyAreaEnabledController="false" toleratedExtraTime="1800" maxWaitingTime = "1800" parkingEnabled="false"/>-->
+</mobilityServiceController><!-- type {1: Public Transit, 2: PrivateBus, 3: Private Car, 4: Sharing, 5: Private bike, 6: Walk, 7: Taxi}-->
+<travel_modes>
+   <mode name="BusTravel" type="1" num_sharing="1"/>
+        <mode name="MRT" type="1" num_sharing="1"/>
+        <mode name="PrivateBus" type="2" num_sharing="1"/>
+        <mode name="Car" type="3" num_sharing="1"/>
+        <mode name="Car Sharing 2" type="4" num_sharing="2"/>
+        <mode name="Car Sharing 3" type="4" num_sharing="3"/>
+        <mode name="Motorcycle" type="5" num_sharing="1"/>
+        <mode name="Walk" type="6" num_sharing="1"/>
+        <mode name="Taxi" type="7" num_sharing="1"/>
+        <mode name="SMS" type="7" num_sharing="1"/>
+        <mode name="Rail_SMS" type="1" num_sharing="1"/>
+        <mode name="Bike" type="5" num_sharing="1"/>
+	<mode name="SMS_Pool" type="7" num_sharing="2"/>
+	<mode name="Rail_SMS_pool" type="1" num_sharing="2"/>
+</travel_modes>
 
-</mobilityServiceController>
+<!-- Activity types can be configured by adding or removing from the list below. -->
+<activity_types>
+    <activity_type name="Work" withinday_mode_choice="wdmw" num_tours="ntw" tour_mode_dest="tmdw" tour_mode="tmw" tour_time_of_day="ttdw" type="1" logsum_table_column="work"/>
+    <activity_type name="Education" withinday_mode_choice="wdme" num_tours="nte" tour_mode_dest="" tour_mode="tme" tour_time_of_day="ttde" type="2" logsum_table_column="education"/>
+    <activity_type name="Shop" withinday_mode_choice="wdmso" num_tours="nts" tour_mode_dest="tmds" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="shop"/>
+    <activity_type name="Other" withinday_mode_choice="wdmso" num_tours="nto" tour_mode_dest="tmdo" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="other"/>
+    <!--<activity_type name="NewType" withinday_mode_choice="wdmso" num_tours="nto" tour_mode_dest="tmdo" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="newtype"/>-->
+</activity_types>
+
     <merge_log_files value="true"/>
 
-<!-- type {1: Public Transit, 2: PrivateBus, 3: Private Car, 4: Sharing, 5: Private bike, 6: Walk, 7: Taxi}-->
-    <travel_modes>
-	    <mode name="BusTravel" type="1" num_sharing="1"/>
-	    <mode name="MRT" type="1" num_sharing="1"/>
-	    <mode name="PrivateBus" type="1" num_sharing="1"/>
-	    <mode name="Car" type="3" num_sharing="1"/>
-	    <mode name="Car Sharing 2" type="4" num_sharing="2"/>
-	    <mode name="Car Sharing 3" type="4" num_sharing="3"/>
-	    <mode name="Motorcycle" type="5" num_sharing="1"/>
-	    <mode name="Walk" type="6" num_sharing="1"/>
-	    <mode name="Taxi" type="7" num_sharing="1"/>
-	    <mode name="SMS" type="7" num_sharing="1"/>
-	    <mode name="Rail_SMS" type="1" num_sharing="1"/>
- 	    <mode name="SMS_pool" type="7" num_sharing="1"/>
-	    <mode name="Rail_SMS_pool" type="1" num_sharing="1"/>
-    </travel_modes>
-
-
-    <!-- Activity types can be configured by adding or removing from the list below. -->
-    <activity_types>
-	    <activity_type name="Work" withinday_mode_choice="wdmw" num_tours="ntw" tour_mode_dest="tmdw" tour_mode="tmw" tour_time_of_day="ttdw" type="1" logsum_table_column="work"/>
-	    <activity_type name="Education" withinday_mode_choice="wdme" num_tours="nte" tour_mode_dest="" tour_mode="tme" tour_time_of_day="ttde" type="2" logsum_table_column="education"/>
-	    <activity_type name="Shop" withinday_mode_choice="wdmso" num_tours="nts" tour_mode_dest="tmds" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="shop"/>
-	    <activity_type name="Other" withinday_mode_choice="wdmso" num_tours="nto" tour_mode_dest="tmdo" tour_mode="" tour_time_of_day="ttdo" type="3" logsum_table_column="other"/>
-
-    </activity_types>
-
-
-    <schemas>
-            <main_schema  value= "virtual_city."/>
-            <calibration_schema value= "calibration2012."/>
-            <public_schema value= "public."/>
-            <demand_schema value= "demand."/>
+    <schemas enabled= "true">
+        <main_schema  value= "virtual_city."/>
+        <calibration_schema value= "calibration2012."/>
+        <public_schema value= "public."/>
+        <demand_schema value= "demand."/>
+	<supply_schema value= "supply."/>
     </schemas>
 
     <table_names>

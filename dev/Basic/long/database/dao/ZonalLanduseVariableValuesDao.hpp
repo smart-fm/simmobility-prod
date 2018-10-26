@@ -24,7 +24,7 @@ namespace sim_mob {
          */
         class ZonalLanduseVariableValuesDao : public db::SqlAbstractDao<ZonalLanduseVariableValues> {
         public:
-        	ZonalLanduseVariableValuesDao(db::DB_Connection& connection);
+            ZonalLanduseVariableValuesDao(db::DB_Connection& connection);
             virtual ~ZonalLanduseVariableValuesDao();
 
         private:

@@ -22,32 +22,32 @@ Point::~Point()
 
 double Point::getX() const
 {
-	return x;
+    return x;
 }
 
 void Point::setX(double x)
 {
-	this->x = x;
+    this->x = x;
 }
 
 double Point::getY() const
 {
-	return y;
+    return y;
 }
 
 void Point::setY(double y)
 {
-	this->y = y;
+    this->y = y;
 }
 
 double Point::getZ() const
 {
-	return z;
+    return z;
 }
 
 void Point::setZ(double z)
 {
-	this->z = z;
+    this->z = z;
 }
 
 PolyPoint::PolyPoint() :
@@ -66,20 +66,20 @@ PolyPoint::~PolyPoint()
 
 unsigned int PolyPoint::getPolyLineId() const
 {
-	return polyLineId;
+    return polyLineId;
 }
 
 void PolyPoint::setPolyLineId(unsigned int polyLineId)
 {
-	this->polyLineId = polyLineId;
+    this->polyLineId = polyLineId;
 }
 
 unsigned int PolyPoint::getSequenceNumber() const
 {
-	return sequenceNumber;
+    return sequenceNumber;
 }
 
 void PolyPoint::setSequenceNumber(unsigned int sequenceNumber)
 {
-	this->sequenceNumber = sequenceNumber;
+    this->sequenceNumber = sequenceNumber;
 }

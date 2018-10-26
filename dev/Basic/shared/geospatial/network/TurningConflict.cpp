@@ -18,90 +18,90 @@ TurningConflict::~TurningConflict()
 
 unsigned int TurningConflict::getConflictId() const
 {
-	return conflictId;
+    return conflictId;
 }
 
 void TurningConflict::setConflictId(unsigned int conflictId)
 {
-	this->conflictId = conflictId;
+    this->conflictId = conflictId;
 }
 
 double TurningConflict::getCriticalGap() const
 {
-	return criticalGap;
+    return criticalGap;
 }
 
 void TurningConflict::setCriticalGap(double criticalGap)
 {
-	this->criticalGap = criticalGap;
+    this->criticalGap = criticalGap;
 }
 
 double TurningConflict::getFirstConflictDistance() const
 {
-	return firstConflictDistance;
+    return firstConflictDistance;
 }
 
 void TurningConflict::setFirstConflictDistance(double firstConflictDistance)
 {
-	this->firstConflictDistance = firstConflictDistance;
+    this->firstConflictDistance = firstConflictDistance;
 }
 
 const TurningPath* TurningConflict::getFirstTurning() const
 {
-	return firstTurning;
+    return firstTurning;
 }
 
 void TurningConflict::setFirstTurning(TurningPath *firstTurning)
 {
-	this->firstTurning = firstTurning;
+    this->firstTurning = firstTurning;
 }
 
 unsigned int TurningConflict::getFirstTurningId() const
 {
-	return firstTurningId;
+    return firstTurningId;
 }
 
 void TurningConflict::setFirstTurningId(unsigned int firstTurningId)
 {
-	this->firstTurningId = firstTurningId;
+    this->firstTurningId = firstTurningId;
 }
 
 void TurningConflict::setPriority(unsigned int priority)
 {
-	this->priority = priority;
+    this->priority = priority;
 }
 
 unsigned int TurningConflict::getPriority() const
 {
-	return priority;
+    return priority;
 }
 
 double TurningConflict::getSecondConflictDistance() const
 {
-	return secondConflictDistance;
+    return secondConflictDistance;
 }
 
 void TurningConflict::setSecondConflictDistance(double secondConflictDistance)
 {
-	this->secondConflictDistance = secondConflictDistance;
+    this->secondConflictDistance = secondConflictDistance;
 }
 
 const TurningPath* TurningConflict::getSecondTurning() const
 {
-	return secondTurning;
+    return secondTurning;
 }
 
 void TurningConflict::setSecondTurning(TurningPath *secondTurning)
 {
-	this->secondTurning = secondTurning;
+    this->secondTurning = secondTurning;
 }
 
 unsigned int TurningConflict::getSecondTurningId() const
 {
-	return secondTurningId;
+    return secondTurningId;
 }
 
 void TurningConflict::setSecondTurningId(unsigned int secondTurningId)
 {
-	this->secondTurningId = secondTurningId;
+    this->secondTurningId = secondTurningId;
 }

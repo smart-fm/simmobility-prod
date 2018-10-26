@@ -30,27 +30,27 @@ void PotentialProjectDao::fromRow(Row& result, PotentialProject& outObj)
 
 void PotentialProjectDao::toRow(PotentialProject& data, Parameters& outParams, bool update)
 {
-	outParams.push_back(data.getFmParcelId());
-	outParams.push_back(data.getProfit());
-	outParams.push_back(data.getConstructionCost());
-	outParams.push_back(data.getDemolitionCost());
-	outParams.push_back(data.getGrosArea());
-	outParams.push_back(data.getInvestmentReturnRatio());
-	outParams.push_back(data.getTotalUnits());
-	outParams.push_back(data.getAcquisitionCost());
-	outParams.push_back(data.getSimulationDate());
+    outParams.push_back(data.getFmParcelId());
+    outParams.push_back(data.getProfit());
+    outParams.push_back(data.getConstructionCost());
+    outParams.push_back(data.getDemolitionCost());
+    outParams.push_back(data.getGrosArea());
+    outParams.push_back(data.getInvestmentReturnRatio());
+    outParams.push_back(data.getTotalUnits());
+    outParams.push_back(data.getAcquisitionCost());
+    outParams.push_back(data.getSimulationDate());
 }
 
 void PotentialProjectDao::insertPotentialProject(PotentialProject& potentialProject,std::string schema)
 {
 
-	const std::string DB_INSERT_POTENTIAL_PROJECT = "INSERT INTO " + schema + ".potential_project"
-										+ " (" + "fm_parcel_id" + ", " + "profit" + ", " + "construction_cost"
-				                		+ ", " + "demolition_cost" + ", " + "gross_area" + ", "
-				                		+ "investment_return_ratio" + ", " + "total_units"  + ", "+ "acquisition_cost" + ", " + "land_value" + ", "
-				                		+ "simulation_date"
-				                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10)";
-	insertViaQuery(potentialProject,DB_INSERT_POTENTIAL_PROJECT);
+    const std::string DB_INSERT_POTENTIAL_PROJECT = "INSERT INTO " + schema + ".potential_project"
+                                        + " (" + "fm_parcel_id" + ", " + "profit" + ", " + "construction_cost"
+                                        + ", " + "demolition_cost" + ", " + "gross_area" + ", "
+                                        + "investment_return_ratio" + ", " + "total_units"  + ", "+ "acquisition_cost" + ", " + "land_value" + ", "
+                                        + "simulation_date"
+                                        + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10)";
+    insertViaQuery(potentialProject,DB_INSERT_POTENTIAL_PROJECT);
 
 }
 

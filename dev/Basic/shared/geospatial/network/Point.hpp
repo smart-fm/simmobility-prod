@@ -9,48 +9,48 @@ namespace sim_mob
 class Point
 {
 protected:
-	/**X coordinate (meters)*/
-	double x;
+    /**X coordinate (meters)*/
+    double x;
 
-	/**Y coordinate (meters)*/
-	double y;
+    /**Y coordinate (meters)*/
+    double y;
 
-	/**Z coordinate (meters)*/
-	double z;
+    /**Z coordinate (meters)*/
+    double z;
 
 public:
-	Point();
-	Point(double x, double y, double z=0);
-	virtual ~Point();
+    Point();
+    Point(double x, double y, double z=0);
+    virtual ~Point();
 
-	double getX() const;
-	void setX(double x);
+    double getX() const;
+    void setX(double x);
 
-	double getY() const;
-	void setY(double y);
+    double getY() const;
+    void setY(double y);
 
-	double getZ() const;
-	void setZ(double z);
+    double getZ() const;
+    void setZ(double z);
 };
 
 class PolyPoint : public Point
 {
 private:
-	/**Indicates the poly-line to which the point belongs*/
-	unsigned int polyLineId;
+    /**Indicates the poly-line to which the point belongs*/
+    unsigned int polyLineId;
 
-	/**Indicates the position of the point in a line*/
-	unsigned int sequenceNumber;
+    /**Indicates the position of the point in a line*/
+    unsigned int sequenceNumber;
 
 public:
-	PolyPoint();
-	PolyPoint(unsigned int id, unsigned int seqNum, double x, double y, double z);
-	virtual ~PolyPoint();
+    PolyPoint();
+    PolyPoint(unsigned int id, unsigned int seqNum, double x, double y, double z);
+    virtual ~PolyPoint();
 
-	unsigned int getPolyLineId() const;
-	void setPolyLineId(unsigned int polyLineId);
+    unsigned int getPolyLineId() const;
+    void setPolyLineId(unsigned int polyLineId);
 
-	unsigned int getSequenceNumber() const;
-	void setSequenceNumber(unsigned int sequenceNumber);
+    unsigned int getSequenceNumber() const;
+    void setSequenceNumber(unsigned int sequenceNumber);
 };
 }

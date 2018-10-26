@@ -15,7 +15,7 @@ using namespace sim_mob;
 
 
 DriverComm::DriverComm(Person_ST *parent, MutexStrategy mtxStrat, DriverBehavior* behavior, DriverCommMovement* movement) :
-	Driver(parent, mtxStrat, behavior, movement)
+    Driver(parent, mtxStrat, behavior, movement)
 {
 }
 
@@ -25,13 +25,13 @@ DriverComm::~DriverComm()
 
 Role<Person_ST>* DriverComm::clone(Person_ST *parent) const
 {
-	DriverBehavior *behavior = new DriverBehavior();
-	DriverCommMovement* movement = new DriverCommMovement();
-	DriverComm *driver = new DriverComm(parent, parent->getMutexStrategy(), behavior, movement);
-	behavior->setParentDriver(driver);
-	movement->setParentDriver(driver);
+    DriverBehavior *behavior = new DriverBehavior();
+    DriverCommMovement* movement = new DriverCommMovement();
+    DriverComm *driver = new DriverComm(parent, parent->getMutexStrategy(), behavior, movement);
+    behavior->setParentDriver(driver);
+    movement->setParentDriver(driver);
 
-	return driver;
+    return driver;
 }
 
 

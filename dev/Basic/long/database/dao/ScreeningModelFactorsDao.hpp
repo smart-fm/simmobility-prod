@@ -16,15 +16,15 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		class ScreeningModelFactorsDao : public db::SqlAbstractDao<ScreeningModelFactors>
-		{
-		public:
-			ScreeningModelFactorsDao( db::DB_Connection& connection );
-			virtual ~ScreeningModelFactorsDao();
+    namespace long_term
+    {
+        class ScreeningModelFactorsDao : public db::SqlAbstractDao<ScreeningModelFactors>
+        {
+        public:
+            ScreeningModelFactorsDao( db::DB_Connection& connection );
+            virtual ~ScreeningModelFactorsDao();
 
-		private:
+        private:
             /**
              * Fills the given outObj with all values contained on Row.
              * @param result row with data to fill the out object.
@@ -39,6 +39,6 @@ namespace sim_mob
              * @param update tells if operation is an Update or Insert.
              */
             void toRow(ScreeningModelFactors& data, db::Parameters& outParams, bool update);
-		};
-	}
+        };
+    }
 }

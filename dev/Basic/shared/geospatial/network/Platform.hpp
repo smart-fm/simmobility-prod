@@ -17,98 +17,98 @@ namespace sim_mob
  */
 enum PlatformType
 {
-	NONTERMINAL=0,
-	TERMINAL
+    NONTERMINAL=0,
+    TERMINAL
 };
 
 class Platform
 {
 private:
-	/**platform No for current platform*/
-	std::string platformNo;
-	/**station No for parent station*/
-	std::string stationNo;
-	/**line id for MRT line*/
-	std::string lineId;
-	/**capacity for current platform*/
-	int capacity;
-	/**the type for current platform*/
-	PlatformType type;
-	/**attached block id*/
-	int attachedBlockId;
-	/**offset for attached block*/
-	double offsetMts;
-	/**length for current platform*/
-	double length;
+    /**platform No for current platform*/
+    std::string platformNo;
+    /**station No for parent station*/
+    std::string stationNo;
+    /**line id for MRT line*/
+    std::string lineId;
+    /**capacity for current platform*/
+    int capacity;
+    /**the type for current platform*/
+    PlatformType type;
+    /**attached block id*/
+    int attachedBlockId;
+    /**offset for attached block*/
+    double offsetMts;
+    /**length for current platform*/
+    double length;
 public:
-	Platform():capacity(0),type(NONTERMINAL),attachedBlockId(0),offsetMts(0.0),length(0.0)
-	{
+    Platform():capacity(0),type(NONTERMINAL),attachedBlockId(0),offsetMts(0.0),length(0.0)
+    {
 
-	}
-	std::string getPlatformNo() const
-	{
-		return platformNo;
-	}
-	void setPlatformNo(const std::string& no)
-	{
-		platformNo = no;
-	}
-	std::string getStationNo() const
-	{
-		return stationNo;
-	}
-	void setStationNo(const std::string& no)
-	{
-		stationNo = no;
-	}
-	std::string getLineId() const
-	{
-		return lineId;
-	}
-	void setLineId(const std::string& id)
-	{
-		lineId = id;
-	}
-	int getCapacity() const
-	{
-		return capacity;
-	}
-	void setCapactiy(int cap)
-	{
-		capacity = cap;
-	}
-	PlatformType getType() const
-	{
-		return type;
-	}
-	void setType(PlatformType t)
-	{
-		type = t;
-	}
-	int getAttachedBlockId() const
-	{
-		return attachedBlockId;
-	}
-	void setAttachedBlockId(const int id)
-	{
-		attachedBlockId = id;
-	}
-	double getOffset() const
-	{
-		return offsetMts;
-	}
-	void setOffset(double off)
-	{
-		offsetMts = off;
-	}
-	double getLength() const
-	{
-		return length;
-	}
-	void setLength(double len)
-	{
-		length = len;
-	}
+    }
+    std::string getPlatformNo() const
+    {
+        return platformNo;
+    }
+    void setPlatformNo(const std::string& no)
+    {
+        platformNo = no;
+    }
+    std::string getStationNo() const
+    {
+        return stationNo;
+    }
+    void setStationNo(const std::string& no)
+    {
+        stationNo = no;
+    }
+    std::string getLineId() const
+    {
+        return lineId;
+    }
+    void setLineId(const std::string& id)
+    {
+        lineId = id;
+    }
+    int getCapacity() const
+    {
+        return capacity;
+    }
+    void setCapactiy(int cap)
+    {
+        capacity = cap;
+    }
+    PlatformType getType() const
+    {
+        return type;
+    }
+    void setType(PlatformType t)
+    {
+        type = t;
+    }
+    int getAttachedBlockId() const
+    {
+        return attachedBlockId;
+    }
+    void setAttachedBlockId(const int id)
+    {
+        attachedBlockId = id;
+    }
+    double getOffset() const
+    {
+        return offsetMts;
+    }
+    void setOffset(double off)
+    {
+        offsetMts = off;
+    }
+    double getLength() const
+    {
+        return length;
+    }
+    void setLength(double len)
+    {
+        length = len;
+    }
 };
 
 } /* namespace sim_mob */

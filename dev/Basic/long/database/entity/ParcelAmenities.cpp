@@ -10,8 +10,8 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 
 ParcelAmenities::ParcelAmenities(): fmParcelId(INVALID_ID), nearestMRT(EMPTY_STR), distanceToMRT(0), distanceToBus(0),
-		distanceToExpress(0),distanceToPMS30(0), distanceToCBD(0), distanceToMall(0), distanceToJob(0),
-		mrt_200m(false), mrt_400m(false), express_200m(false),bus_200m(false), bus_400m(false), pms_1km(false) {}
+        distanceToExpress(0),distanceToPMS30(0), distanceToCBD(0), distanceToMall(0), distanceToJob(0),
+        mrt_200m(false), mrt_400m(false), express_200m(false),bus_200m(false), bus_400m(false), pms_1km(false) {}
 
 ParcelAmenities::~ParcelAmenities() {
 }
@@ -69,11 +69,11 @@ double ParcelAmenities::getDistanceToMRT() const {
 }
 
 const std::string& ParcelAmenities::getNearestMRT() const {
-	return nearestMRT;
+    return nearestMRT;
 }
 
 BigSerial ParcelAmenities::getFmParcelId() const {
-	return fmParcelId;
+    return fmParcelId;
 }
 
 

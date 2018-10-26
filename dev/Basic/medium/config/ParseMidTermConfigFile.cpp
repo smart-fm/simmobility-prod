@@ -733,6 +733,7 @@ void ParseMidTermConfigFile::processRegionRestrictionNode(xercesc::DOMElement* n
 }
 
 
+
 void ParseMidTermConfigFile::processBusStopScheduledTimesNode(xercesc::DOMElement* node)
 {
 	if (!node)

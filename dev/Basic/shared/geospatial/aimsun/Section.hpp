@@ -19,8 +19,8 @@ class RoadSegment;
 
 struct SegmentType
 {
-	std::string id;
-	int type;
+    std::string id;
+    int type;
 };
 namespace aimsun
 {
@@ -35,34 +35,34 @@ class Polyline;
 /// \author Seth N. Hetu
 class Section : public Base {
 public:
-	std::string roadName;
-	int numLanes;
-	double speed;
-	double capacity;
-	double length;
-	Node* fromNode;
-	Node* toNode;
-	std::string serviceCategory;
+    std::string roadName;
+    int numLanes;
+    double speed;
+    double capacity;
+    double length;
+    Node* fromNode;
+    Node* toNode;
+    std::string serviceCategory;
 
-	Section() : Base(), fromNode(nullptr), toNode(nullptr), generatedSegment(nullptr),
-			roadName(std::string()), serviceCategory(std::string()) {}
+    Section() : Base(), fromNode(nullptr), toNode(nullptr), generatedSegment(nullptr),
+            roadName(std::string()), serviceCategory(std::string()) {}
 
-	//Placeholders
-	int TMP_FromNodeID;
-	int TMP_ToNodeID;
+    //Placeholders
+    int TMP_FromNodeID;
+    int TMP_ToNodeID;
 
-	//Decorated data
-	std::vector<Turning*> connectedTurnings;
-	std::vector<Polyline*> polylineEntries;
-	std::map<int, std::vector<Lane*> > laneLinesAtNode; //Arranged by laneID
-	std::vector< std::vector<sim_mob::Point> > lanePolylinesForGenNode;
+    //Decorated data
+    std::vector<Turning*> connectedTurnings;
+    std::vector<Polyline*> polylineEntries;
+    std::map<int, std::vector<Lane*> > laneLinesAtNode; //Arranged by laneID
+    std::vector< std::vector<sim_mob::Point> > lanePolylinesForGenNode;
 
-	//Temporary fixings
-	DynamicVector HACK_LaneLinesStartLineCut;
-	DynamicVector HACK_LaneLinesEndLineCut;
+    //Temporary fixings
+    DynamicVector HACK_LaneLinesStartLineCut;
+    DynamicVector HACK_LaneLinesEndLineCut;
 
-	//Reference to saved object
-	sim_mob::RoadSegment* generatedSegment;
+    //Reference to saved object
+    sim_mob::RoadSegment* generatedSegment;
 };
 
 

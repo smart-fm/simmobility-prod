@@ -21,7 +21,7 @@ namespace sim_mob
         class VehicleOwnershipChangesDao : public db::SqlAbstractDao<VehicleOwnershipChanges>
         {
         public:
-        	VehicleOwnershipChangesDao(db::DB_Connection& connection);
+            VehicleOwnershipChangesDao(db::DB_Connection& connection);
             virtual ~VehicleOwnershipChangesDao();
 
         private:

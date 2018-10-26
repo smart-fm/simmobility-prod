@@ -15,8 +15,8 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-ScreeningModelFactorsDao::ScreeningModelFactorsDao(DB_Connection& connection): SqlAbstractDao<ScreeningModelFactors>(connection, "",	"","", "",
-																													"SELECT * FROM " + connection.getSchema()+"screening_model_factors", "") {}
+ScreeningModelFactorsDao::ScreeningModelFactorsDao(DB_Connection& connection): SqlAbstractDao<ScreeningModelFactors>(connection, "",    "","", "",
+                                                                                                                    "SELECT * FROM " + connection.getSchema()+"screening_model_factors", "") {}
 
 ScreeningModelFactorsDao::~ScreeningModelFactorsDao() {}
 

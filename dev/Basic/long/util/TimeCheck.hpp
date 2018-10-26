@@ -20,22 +20,22 @@ namespace sim_mob
 {
     namespace long_term
     {
-		class TimeCheck
-		{
-		public:
-			TimeCheck();
-			virtual ~TimeCheck();
+        class TimeCheck
+        {
+        public:
+            TimeCheck();
+            virtual ~TimeCheck();
 
-			double getClockTime();
-			double getClockTime_sec();
-			double getProcessTime();
+            double getClockTime();
+            double getClockTime_sec();
+            double getProcessTime();
 
-		private:
+        private:
 
-			time_t  start_clock;
-			clock_t start_process;
-			boost::chrono::system_clock::time_point start;
-		};
+            time_t  start_clock;
+            clock_t start_process;
+            boost::chrono::system_clock::time_point start;
+        };
     }
 }
 

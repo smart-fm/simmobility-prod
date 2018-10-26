@@ -16,7 +16,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 LandUseZoneDao::LandUseZoneDao(DB_Connection& connection): SqlAbstractDao<LandUseZone>( connection, "","", "", "",
-																						"SELECT * FROM " + connection.getSchema()+"land_use_zone", "")
+                                                                                        "SELECT * FROM " + connection.getSchema()+"land_use_zone", "")
 {}
 
 LandUseZoneDao::~LandUseZoneDao() {}

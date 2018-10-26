@@ -37,47 +37,47 @@ namespace sim_mob{
          * \sa normalize(const Vector2D<T>& vector)
          */
         template< typename T >
-	class Vector2D{
+    class Vector2D{
 
-	private:
-		T x;
-		T y;
-	public:
+    private:
+        T x;
+        T y;
+    public:
             /**
              * Default constructor.
              *
              * Creates a Vector2D at the origin.
              */
-	    inline Vector2D() : x(T()), y(T()){}
+        inline Vector2D() : x(T()), y(T()){}
 
             /**
              * Constructor.
              *
              * Creates a Vector2D at the specified \c x and \c y co-ordinates.
              */
-	    inline Vector2D(const T& x, const T& y) : x(x), y(y){}
+        inline Vector2D(const T& x, const T& y) : x(x), y(y){}
 
             /**
              * Copy constructor.
              *
              * Creates a Vector2D that has the same x and y values as the specified \c vector.
              */
-	    inline Vector2D(const Vector2D& vector) : x(vector.getX()), y(vector.getY()){}
+        inline Vector2D(const Vector2D& vector) : x(vector.getX()), y(vector.getY()){}
 
             /**
              * Destructor.
              */
-	    inline ~Vector2D(){}
+        inline ~Vector2D(){}
 
             /** Returns the x value.  */
-	    inline T getX() const {
-	      return x;
-	    }
+        inline T getX() const {
+          return x;
+        }
             /** Returns the y value.  */
-	    inline T getY() const
-	    {
-	      return y;
-	    }
+        inline T getY() const
+        {
+          return y;
+        }
 
             /** Sets the x value.  */
             void setX(const T& x)
@@ -110,43 +110,43 @@ namespace sim_mob{
                 return *this;
             }
 
-	    /**
+        /**
              * Add another vector to this vector.
              *
-	     * Equivalent to <tt>*this = *this + vector</tt>
+         * Equivalent to <tt>*this = *this + vector</tt>
              * \sa operator+(const Vector2D<T>& lhs, const Vector2D<T>& rhs)
              *
              * The return value is a const to prevent
              *     \code
              *     (a += b) = c;
              *     \endcode
-	     */
-	    inline const Vector2D& operator+=(const Vector2D& vector)
-	    {
+         */
+        inline const Vector2D& operator+=(const Vector2D& vector)
+        {
                 x += vector.getX();
                 y += vector.getY();
                 return *this;
-	    }
+        }
 
-	    /**
+        /**
              * Subtract another vector to this vector.
              *
-	     * Equivalent to <tt>*this = *this - vector</tt>
+         * Equivalent to <tt>*this = *this - vector</tt>
              * \sa operator-(const Vector2D<T>& lhs, const Vector2D<T>& rhs)
              *
              * The return value is a const to prevent
              *     \code
              *     (a -= b) = c;
              *     \endcode
-	     */
-	    inline const Vector2D& operator-=(const Vector2D& vector)
-	    {
+         */
+        inline const Vector2D& operator-=(const Vector2D& vector)
+        {
                 x -= vector.getX();
                 y -= vector.getY();
                 return *this;
-	    }
+        }
 
-	    /**
+        /**
              * Expand this vector by the scalar factor \c s.
              *
              * Equivalent to <tt>*this = s * *this</tt>.
@@ -157,16 +157,16 @@ namespace sim_mob{
              *     \code
              *     (vec1 *= s) = vec2;
              *     \endcode
-	     */
+         */
             template< typename U >
-	    inline Vector2D& operator*=(const U& s)
-	    {
+        inline Vector2D& operator*=(const U& s)
+        {
                 x *= s;
                 y *= s;
                 return *this;
-	    }
+        }
 
-	    /**
+        /**
              * Contract this vector by the scalar factor \c s.
              *
              * Equivalent to <tt>*this = *this / s</tt>.
@@ -176,15 +176,15 @@ namespace sim_mob{
              *     \code
              *     (vec1 /= s) = vec2;
              *     \endcode
-	     */
+         */
             template< typename U >
-	    inline Vector2D& operator/=(const U& s)
-	    {
+        inline Vector2D& operator/=(const U& s)
+        {
                 x /= s;
                 y /= s;
                 return *this;
-	    }
-	};
+        }
+    };
 
         /**
          *  Computes the vector sum of two vectors
@@ -301,10 +301,10 @@ namespace sim_mob{
      *  Computes the length of the specified \c vector
      */
         template< typename T >
-	inline double length(const Vector2D<T>& vector)
-	{
-	return std::sqrt(vector * vector);
-	}
+    inline double length(const Vector2D<T>& vector)
+    {
+    return std::sqrt(vector * vector);
+    }
 
     /**
      *  Computes the normalization of the specified \c vector
@@ -313,9 +313,9 @@ namespace sim_mob{
      *  as the specfied \c vector .
      */
         template< typename T >
-	inline Vector2D<T> normalize(const Vector2D<T>& vector)
-	{
-	return vector / length(vector);
-	}
+    inline Vector2D<T> normalize(const Vector2D<T>& vector)
+    {
+    return vector / length(vector);
+    }
 
 }

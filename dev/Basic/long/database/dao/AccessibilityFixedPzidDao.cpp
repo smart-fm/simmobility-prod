@@ -16,18 +16,18 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 AccessibilityFixedPzidDao::AccessibilityFixedPzidDao(DB_Connection& connection): SqlAbstractDao<AccessibilityFixedPzid>( connection, "", "", "", "",
-																														 "SELECT * FROM " + connection.getSchema()+"accessibility_fixed_pzid",
-																														 ""){}
+                                                                                                                         "SELECT * FROM " + connection.getSchema()+"accessibility_fixed_pzid",
+                                                                                                                         ""){}
 
 AccessibilityFixedPzidDao::~AccessibilityFixedPzidDao(){}
 
 void AccessibilityFixedPzidDao::fromRow(Row& result, AccessibilityFixedPzid& outObj)
 {
-	outObj.id				= result.get<BigSerial>( "id", INVALID_ID);
-    outObj.planningAreaId	= result.get<int>( "planning_area_id", INVALID_ID);
-    outObj.dgp 				= result.get<std::string>( "DGP", "");
-    outObj.accTMfg			= result.get<double>( "acc_t_mfg", 0);
-    outObj.accTOff			= result.get<double>( "acc_t_off", 0);
+    outObj.id               = result.get<BigSerial>( "id", INVALID_ID);
+    outObj.planningAreaId   = result.get<int>( "planning_area_id", INVALID_ID);
+    outObj.dgp              = result.get<std::string>( "DGP", "");
+    outObj.accTMfg          = result.get<double>( "acc_t_mfg", 0);
+    outObj.accTOff          = result.get<double>( "acc_t_off", 0);
 }
 
 void AccessibilityFixedPzidDao::toRow(AccessibilityFixedPzid& data, Parameters& outParams, bool update) {}

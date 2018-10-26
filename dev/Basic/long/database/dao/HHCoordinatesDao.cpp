@@ -17,9 +17,9 @@ HHCoordinatesDao::~HHCoordinatesDao(){}
 
 void HHCoordinatesDao::fromRow(Row& result, HHCoordinates& outObj)
 {
-    outObj.houseHoldId	= result.get<BigSerial>( "id", INVALID_ID);
-    outObj.centroidX	= result.get<double>( "centroid_x", 0);
-    outObj.centroidY	= result.get<double>( "centroid_y", 0);
+    outObj.houseHoldId  = result.get<BigSerial>( "id", INVALID_ID);
+    outObj.centroidX    = result.get<double>( "centroid_x", 0);
+    outObj.centroidY    = result.get<double>( "centroid_y", 0);
 
 }
 

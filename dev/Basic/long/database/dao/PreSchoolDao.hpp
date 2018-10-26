@@ -17,7 +17,7 @@ namespace sim_mob {
          */
         class PreSchoolDao : public db::SqlAbstractDao<PreSchool> {
         public:
-        	PreSchoolDao(db::DB_Connection& connection);
+            PreSchoolDao(db::DB_Connection& connection);
             virtual ~PreSchoolDao();
 
         private:

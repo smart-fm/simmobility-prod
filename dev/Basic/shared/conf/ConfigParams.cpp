@@ -22,7 +22,7 @@
 using namespace sim_mob;
 
 sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
-	publicTransitEnabled(false), totalRuntimeTicks(0), totalWarmupTicks(0), numTripsLoaded(0),numTripsSimulated(0), numAgentsKilled(0),
+    publicTransitEnabled(false), totalRuntimeTicks(0), totalWarmupTicks(0), numTripsLoaded(0),numTripsSimulated(0), numAgentsKilled(0),
     using_MPI(false), outNetworkFileName("out.network.txt"),outTrainNetworkFilename("out.train.network.txt"),outSimInfoFileName("out.siminfo.txt"),
     is_simulation_repeatable(false), sealedNetwork(false), controlMgr(nullptr), numTripsCompleted(0), numPathNotFound(0),
     workerPublisherEnabled(false), enabledEdgeTravelTime(false)
@@ -30,63 +30,63 @@ sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
 
 sim_mob::ConfigParams::~ConfigParams()
 {
-	///Delete all pointers
-//	safe_delete_item(commDataMgr);
-	safe_delete_item(controlMgr);
+    ///Delete all pointers
+//  safe_delete_item(commDataMgr);
+    safe_delete_item(controlMgr);
 
-	clear_delete_map(busStopNo_busStops);
-	safe_delete_item(simulation.closedLoop.logger);
+    clear_delete_map(busStopNo_busStops);
+    safe_delete_item(simulation.closedLoop.logger);
 }
 
 sim_mob::Factory<sim_mob::Broker>& sim_mob::ConfigParams::getBrokerFactoryRW()
 {
-	return brokerFact;
+    return brokerFact;
 }
 
 std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword) const
 {
     ///The database.
-	std::string dbKey = networkDatabase.database;
-	std::map<std::string, Database>::const_iterator dbIt = constructs.databases.find(dbKey);
+    std::string dbKey = networkDatabase.database;
+    std::map<std::string, Database>::const_iterator dbIt = constructs.databases.find(dbKey);
     if (dbIt==constructs.databases.end())
     {
-		throw std::runtime_error("Couldn't find default database.");
-	}
+        throw std::runtime_error("Couldn't find default database.");
+    }
 
     ///The credentials
-	std::string credKey = networkDatabase.credentials;
-	std::map<std::string, Credential>::const_iterator credIt = constructs.credentials.find(credKey);
+    std::string credKey = networkDatabase.credentials;
+    std::map<std::string, Credential>::const_iterator credIt = constructs.credentials.find(credKey);
     if (credIt==constructs.credentials.end())
     {
-		Print() << "trying to find " << credKey << " among:" << std::endl;
-		std::map<std::string, Credential>::const_iterator it;
-		for( it = constructs.credentials.begin(); it != constructs.credentials.end() ; ++it)
-		{
-			Print() << it->first << std::endl;
-		}
-		throw std::runtime_error("Couldn't find default credentials..");
-	}
+        Print() << "trying to find " << credKey << " among:" << std::endl;
+        std::map<std::string, Credential>::const_iterator it;
+        for( it = constructs.credentials.begin(); it != constructs.credentials.end() ; ++it)
+        {
+            Print() << it->first << std::endl;
+        }
+        throw std::runtime_error("Couldn't find default credentials..");
+    }
 
     ///Now build the string.
-	std::stringstream res;
+    std::stringstream res;
 
-	res <<"host="   <<dbIt->second.host   <<" "
-		<<"port="   <<dbIt->second.port   <<" "
-		<<"dbname=" <<dbIt->second.dbName <<" "
-		<<"user="   <<credIt->second.getUsername()   <<" "
-		<<"password=" <<credIt->second.getPassword(maskPassword);
-	return res.str();
+    res <<"host="   <<dbIt->second.host   <<" "
+        <<"port="   <<dbIt->second.port   <<" "
+        <<"dbname=" <<dbIt->second.dbName <<" "
+        <<"user="   <<credIt->second.getUsername()   <<" "
+        <<"password=" <<credIt->second.getPassword(maskPassword);
+    return res.str();
 }
 
 StoredProcedureMap sim_mob::ConfigParams::getDatabaseProcMappings() const
 {
-	std::string key = networkDatabase.procedures;
-	std::map<std::string, StoredProcedureMap>::const_iterator it = procedureMaps.find(key);
+    std::string key = networkDatabase.procedures;
+    std::map<std::string, StoredProcedureMap>::const_iterator it = procedureMaps.find(key);
     if (it==procedureMaps.end())
     {
-		throw std::runtime_error("Couldn't find stored procedure key.");
-	}
-	return it->second;
+        throw std::runtime_error("Couldn't find stored procedure key.");
+    }
+    return it->second;
 }
 
 
@@ -94,33 +94,33 @@ StoredProcedureMap sim_mob::ConfigParams::getDatabaseProcMappings() const
 //{
 //    if (!InteractiveMode())
 //    {
-//		throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
-//	}
+//      throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
+//  }
 //    /*if (!commDataMgr)
 //    {
-//		commDataMgr = new CommunicationDataManager();
-//	}
-//	return *commDataMgr;*/
+//      commDataMgr = new CommunicationDataManager();
+//  }
+//  return *commDataMgr;*/
 //}
 
 sim_mob::ControlManager* sim_mob::ConfigParams::getControlMgr() const
 {
     if (!InteractiveMode())
     {
-		throw std::runtime_error("ConfigParams::getControlMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
-	}
+        throw std::runtime_error("ConfigParams::getControlMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
+    }
     ///In this case, ControlManager's constructor performs some logic, so it's best to use a pointer.
     if (!controlMgr)
     {
-		controlMgr = new ControlManager();
-	}
-	return controlMgr;
+        controlMgr = new ControlManager();
+    }
+    return controlMgr;
 }
 
 
 void sim_mob::ConfigParams::sealNetwork()
 {
-	sealedNetwork = true;
+    sealedNetwork = true;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -197,12 +197,12 @@ const DailyTime& sim_mob::ConfigParams::simStartTime() const
 
 const std::string& sim_mob::ConfigParams::getRTTT() const
 {
-	return pathset.RTTT_Conf;
+    return pathset.RTTT_Conf;
 }
 
 const std::string& sim_mob::ConfigParams::getDTT() const
 {
-	return pathset.DTT_Conf;
+    return pathset.DTT_Conf;
 }
 
 unsigned int sim_mob::ConfigParams::totalRuntimeInMilliSeconds() const
@@ -217,12 +217,12 @@ unsigned int sim_mob::ConfigParams::warmupTimeInMilliSeconds() const
 
 std::map<std::string, sim_mob::BusStop*>& sim_mob::ConfigParams::getBusStopNo_BusStops()
 {
-	return busStopNo_busStops;
+    return busStopNo_busStops;
 }
 
 const std::map<std::string, sim_mob::BusStop*>& sim_mob::ConfigParams::getBusStopNo_BusStops() const
 {
-	return busStopNo_busStops;
+    return busStopNo_busStops;
 }
 
 bool sim_mob::ConfigParams::isGenerateBusRoutes() const
@@ -233,7 +233,7 @@ bool sim_mob::ConfigParams::isGenerateBusRoutes() const
 /// use pathset to generate path of driver
 bool sim_mob::ConfigParams::PathSetMode() const
 {
-	return pathset.enabled;
+    return pathset.enabled;
 }
 
 PathSetConf& sim_mob::ConfigParams::getPathSetConf()
@@ -263,7 +263,7 @@ bool ConfigParams::RunningLongTerm() const
 
 const ModelScriptsMap& sim_mob::ConfigParams::getLuaScriptsMap() const
 {
-	return luaScriptsMap;
+    return luaScriptsMap;
 }
 
 void ConfigParams::setWorkerPublisherEnabled(bool value)
@@ -273,7 +273,7 @@ void ConfigParams::setWorkerPublisherEnabled(bool value)
 
 void ConfigParams::setSeedValueForRNG(unsigned int value)
 {
-	simulation.seedValue = value;
+    simulation.seedValue = value;
 }
 
 bool ConfigParams::isWorkerPublisherEnabled() const
@@ -283,7 +283,7 @@ bool ConfigParams::isWorkerPublisherEnabled() const
 
 unsigned int ConfigParams::getSeedValueForRNG() const
 {
-	return simulation.seedValue;
+    return simulation.seedValue;
 }
 
 bool ConfigParams::isPublicTransitEnabled() const{
@@ -292,125 +292,125 @@ bool ConfigParams::isPublicTransitEnabled() const{
 
 void ConfigParams::setPublicTransitEnabled(bool value)
 {
-	publicTransitEnabled = value;
+    publicTransitEnabled = value;
 }
 
 bool ConfigParams::isStudyAreaEnabled() const {
-	return studyAreaEnabled;
+    return studyAreaEnabled;
 }
 
 void ConfigParams::setStudyAreaEnabled(bool value)
 {
-	studyAreaEnabled = value;
+    studyAreaEnabled = value;
 }
 bool ConfigParams::isEnabledEdgeTravelTime() const
 {
-	return enabledEdgeTravelTime;
+    return enabledEdgeTravelTime;
 }
 
 void ConfigParams::setEnabledEdgeTravelTime(bool enabledEdgeTravelTime)
 {
-	this->enabledEdgeTravelTime = enabledEdgeTravelTime;
+    this->enabledEdgeTravelTime = enabledEdgeTravelTime;
 }
 
 const std::string& ConfigParams::getJourneyTimeStatsFilename() const
 {
-	return journeyTimeStatsFilename;
+    return journeyTimeStatsFilename;
 }
 
 const std::string& ConfigParams::getWaitingTimeStatsFilename() const
 {
-	return waitingTimeStatsFilename;
+    return waitingTimeStatsFilename;
 }
 
 void ConfigParams::setJourneyTimeStatsFilename(const std::string& str)
 {
-	journeyTimeStatsFilename = str;
+    journeyTimeStatsFilename = str;
 }
 
 void ConfigParams::setWaitingTimeStatsFilename(const std::string& str)
 {
-	waitingTimeStatsFilename = str;
+    waitingTimeStatsFilename = str;
 }
 
 const std::string& ConfigParams::getWaitingCountStatsFilename() const
 {
-	return waitingCountStatsFilename;
+    return waitingCountStatsFilename;
 }
 
 void ConfigParams::setWaitingCountStatsFilename(const std::string& str)
 {
-	waitingCountStatsFilename = str;
+    waitingCountStatsFilename = str;
 }
 
 unsigned int ConfigParams::getWaitingCountStatsInterval() const
 {
-	return waitingCountStatsStorageInterval;
+    return waitingCountStatsStorageInterval;
 }
 
 void ConfigParams::setWaitingCountStatsInterval(unsigned int interval)
 {
-	waitingCountStatsStorageInterval = interval;
+    waitingCountStatsStorageInterval = interval;
 }
 
 const std::string& ConfigParams::getTravelTimeStatsFilename() const
 {
-	return travelTimeStatsFilename;
+    return travelTimeStatsFilename;
 }
 
 void ConfigParams::setTravelTimeStatsFilename(const std::string& str)
 {
-	travelTimeStatsFilename = str;
+    travelTimeStatsFilename = str;
 }
 
 const std::string& ConfigParams::getPT_StopStatsFilename() const
 {
-	return ptStopStatsFilename;
+    return ptStopStatsFilename;
 }
 
 void ConfigParams::setPT_StopStatsFilename(const std::string& str)
 {
-	ptStopStatsFilename = str;
+    ptStopStatsFilename = str;
 }
 
 const string &ConfigParams::getPT_PersonRerouteFilename() const
 {
-	return ptPersonRerouteFilename;
+    return ptPersonRerouteFilename;
 }
 
 void ConfigParams::setPT_PersonRerouteFilename(const string &ptPersonRerouteFilename)
 {
-	ConfigParams::ptPersonRerouteFilename = ptPersonRerouteFilename;
+    ConfigParams::ptPersonRerouteFilename = ptPersonRerouteFilename;
 }
 
 const string &ConfigParams::getLinkTravelTimesFile() const
 {
-	return linkTravelTimesFile;
+    return linkTravelTimesFile;
 }
 
 void ConfigParams::setLinkTravelTimesFile(const string &linkTravelTimesFile)
 {
-	ConfigParams::linkTravelTimesFile = linkTravelTimesFile;
+    ConfigParams::linkTravelTimesFile = linkTravelTimesFile;
 }
 
 void ConfigParams::setLinkTravelTimeFeedback(const bool value)
 {
-	ConfigParams::linktravelTimeFeedbackEnabled = value;
+    ConfigParams::linktravelTimeFeedbackEnabled = value;
 }
 
 void ConfigParams::setAlphaValueForLinkTTFeedback(const float alpha)
 {
-	ConfigParams::alphaForLinkTTFeedback = alpha;
+    ConfigParams::alphaForLinkTTFeedback = alpha;
 }
 
 bool ConfigParams::isLinkTravelTimeFeedbackEnabled()
 {
-	return ConfigParams::linktravelTimeFeedbackEnabled ;
+    return ConfigParams::linktravelTimeFeedbackEnabled ;
 }
 
 float ConfigParams::getAlphaValueForLinkTTFeedback()
 {
-	return ConfigParams::alphaForLinkTTFeedback ;
+    return ConfigParams::alphaForLinkTTFeedback ;
 }
 
 const std::string &ConfigParams::getTravelModeStr(int travelModeId) const
@@ -459,20 +459,20 @@ const std::unordered_map<StopType, ActivityTypeConfig> &ConfigParams::getActivit
 
 void ConfigParams::setOnCallTaxiTrajectoryEnabled(bool value)
 {
-	onCallTaxiTrajectoryEnabled = value;
+    onCallTaxiTrajectoryEnabled = value;
 }
 
 void ConfigParams::setOnHailTaxiTrajectoryEnabled(bool value)
 {
-	onHailTaxiTrajectoryEnabled = value;
+    onHailTaxiTrajectoryEnabled = value;
 }
 
 bool ConfigParams::isOnCallTaxiTrajectoryEnabled() const
 {
-	return onCallTaxiTrajectoryEnabled;
+    return onCallTaxiTrajectoryEnabled;
 }
 
 bool ConfigParams::isOnHailTaxiTrajectoryEnabled() const
 {
-	return onHailTaxiTrajectoryEnabled;
+    return onHailTaxiTrajectoryEnabled;
 }

@@ -23,7 +23,7 @@ namespace sim_mob
         class BuildingAvgAgePerParcel
         {
         public:
-        	BuildingAvgAgePerParcel( BigSerial fmParcelId = INVALID_ID, int age = 0);
+            BuildingAvgAgePerParcel( BigSerial fmParcelId = INVALID_ID, int age = 0);
 
             virtual ~BuildingAvgAgePerParcel();
 

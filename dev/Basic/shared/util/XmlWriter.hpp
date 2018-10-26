@@ -42,16 +42,16 @@
 ///#defines are usually evil, but we can slim things down a bit by using them for get_id()
 #ifndef SPECIALIZE_GET_ID
 #define SPECIALIZE_GET_ID(classname, function)  template <> \
-	std::string get_id(const classname& item) { \
-		return boost::lexical_cast<std::string>(item.function()); }
+    std::string get_id(const classname& item) { \
+        return boost::lexical_cast<std::string>(item.function()); }
 #endif
 
 ///Create a specialization of get_id() that throws an error at runtime. Used to effectively
 ///  "erase" an item from the "<id>" expander.
 #ifndef ERASE_GET_ID
 #define ERASE_GET_ID(classname)  template <> \
-	std::string get_id(const classname& item) { \
-		throw std::runtime_error("Invalid get_id template for class " #classname); }
+    std::string get_id(const classname& item) { \
+        throw std::runtime_error("Invalid get_id template for class " #classname); }
 #endif
 
 
@@ -115,17 +115,17 @@ namespace {
 template <class T>
 void dispatch_write_xml_request(sim_mob::xml::XmlWriter& write, const std::string& key, const T& val, sim_mob::xml::namer name, sim_mob::xml::expander expand, bool writeValue)
 {
-	//Try to be a little careful of types here, or our simple_prop property may not work right.
-	//TODO: This should really be handled properly by write.prop()'s partial specialization...
-	if (writeValue && name.isEmpty() && expand.isEmpty()) {
-		write.prop(key, val);
-	} else if (writeValue && expand.isEmpty()) {
-		write.prop(key, val, name);
-	} else if (name.isEmpty()) {
-		write.prop(key, val, expand, writeValue);
-	} else {
-		write.prop(key, val, name, expand, writeValue);
-	}
+    //Try to be a little careful of types here, or our simple_prop property may not work right.
+    //TODO: This should really be handled properly by write.prop()'s partial specialization...
+    if (writeValue && name.isEmpty() && expand.isEmpty()) {
+        write.prop(key, val);
+    } else if (writeValue && expand.isEmpty()) {
+        write.prop(key, val, name);
+    } else if (name.isEmpty()) {
+        write.prop(key, val, expand, writeValue);
+    } else {
+        write.prop(key, val, name, expand, writeValue);
+    }
 }
 } //End un-named namespace
 

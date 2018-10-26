@@ -17,15 +17,15 @@ EstablishmentDao::~EstablishmentDao() {}
 
 void EstablishmentDao::fromRow(Row& result, Establishment& outObj)
 {
-    outObj.id 			= result.get<BigSerial>("id", INVALID_ID);
-    outObj.buildingId 	= result.get<BigSerial>("fm_building_id", INVALID_ID);
-    outObj.firmId 		= result.get<BigSerial>("firm_id", INVALID_ID);
-    outObj.firmFoundationYear 	= result.get<BigSerial>("firm_foundation_year",0);
-    outObj.industryTypeId 	= result.get<int>("detailed_industry_type_id",0);
-    outObj.floorArea 		= result.get<double>("floor_area",0);
-    outObj.jobSize 			= result.get<int>("job_size",0);
-    outObj.revenue 			= result.get<double>("revenue",0);
-    outObj.capital 			= result.get<double>("capital",0);
+    outObj.id           = result.get<BigSerial>("id", INVALID_ID);
+    outObj.buildingId   = result.get<BigSerial>("fm_building_id", INVALID_ID);
+    outObj.firmId       = result.get<BigSerial>("firm_id", INVALID_ID);
+    outObj.firmFoundationYear   = result.get<BigSerial>("firm_foundation_year",0);
+    outObj.industryTypeId   = result.get<int>("detailed_industry_type_id",0);
+    outObj.floorArea        = result.get<double>("floor_area",0);
+    outObj.jobSize          = result.get<int>("job_size",0);
+    outObj.revenue          = result.get<double>("revenue",0);
+    outObj.capital          = result.get<double>("capital",0);
     outObj.establishmentLifestyleId = result.get<BigSerial>("establishment_lifestyle_id", 0);
 }
 

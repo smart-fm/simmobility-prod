@@ -23,16 +23,16 @@ namespace sim_mob
 class CostSqlDao : public db::SqlAbstractDao<CostParams>
 {
 public:
-	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
-	CostSqlDao(db::DB_Connection& connection, const std::string& getAllQuery);
-	virtual ~CostSqlDao();
+    typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
+    CostSqlDao(db::DB_Connection& connection, const std::string& getAllQuery);
+    virtual ~CostSqlDao();
 
-	/**
-	 * getAll overload tailored for preday specific structure
-	 * @param outMap 2D map of CostParams indexed by origin and destination zone
-	 * @return true if outMap has been populated with at least 1 element; false otherwise
-	 */
-	bool getAll(boost::unordered_map<int, boost::unordered_map<int, CostParams*> >& outMap);
+    /**
+     * getAll overload tailored for preday specific structure
+     * @param outMap 2D map of CostParams indexed by origin and destination zone
+     * @return true if outMap has been populated with at least 1 element; false otherwise
+     */
+    bool getAll(boost::unordered_map<int, boost::unordered_map<int, CostParams*> >& outMap);
 
 private:
     /**
@@ -62,17 +62,17 @@ class ZoneSqlDao : public db::SqlAbstractDao<ZoneParams>
 {
 public:
 
-	ZoneSqlDao(db::DB_Connection& connection);
-	/*
-	 * Function to check if the incoming zoneId is same as the Zone without node.
-	 * @param zoneId destination zone id to check if the Zone is available or not.
-	 */
-	static bool getZoneWithoutNode(int zoneId);
-	/*
-	 * Unordered set to store unique elements for zones without node.
-	 */
-	static std::unordered_set<int> ZoneWithoutNodeSet;
-	virtual ~ZoneSqlDao();
+    ZoneSqlDao(db::DB_Connection& connection);
+    /*
+     * Function to check if the incoming zoneId is same as the Zone without node.
+     * @param zoneId destination zone id to check if the Zone is available or not.
+     */
+    static bool getZoneWithoutNode(int zoneId);
+    /*
+     * Unordered set to store unique elements for zones without node.
+     */
+    static std::unordered_set<int> ZoneWithoutNodeSet;
+    virtual ~ZoneSqlDao();
 
 private:
     /**
@@ -102,14 +102,14 @@ class ZoneNodeSqlDao : public db::SqlAbstractDao<ZoneNodeParams>
 {
 public:
 
-	ZoneNodeSqlDao(db::DB_Connection& connection);
-	virtual ~ZoneNodeSqlDao();
+    ZoneNodeSqlDao(db::DB_Connection& connection);
+    virtual ~ZoneNodeSqlDao();
 
-	/**
-	 * fetches TAZ code to node map from database
-	 * @param outList output parameter for [TAZ code -> list of simmobility nodes] map
-	 */
-	void getZoneNodeMap(boost::unordered_map<int, std::vector<ZoneNodeParams*> >& outList);
+    /**
+     * fetches TAZ code to node map from database
+     * @param outList output parameter for [TAZ code -> list of simmobility nodes] map
+     */
+    void getZoneNodeMap(boost::unordered_map<int, std::vector<ZoneNodeParams*> >& outList);
 
 private:
     /**
@@ -140,8 +140,8 @@ class TimeDependentTT_SqlDao : public db::SqlAbstractDao<TimeDependentTT_Params>
 {
 public:
 
-	TimeDependentTT_SqlDao(db::DB_Connection& connection);
-	virtual ~TimeDependentTT_SqlDao();
+    TimeDependentTT_SqlDao(db::DB_Connection& connection);
+    virtual ~TimeDependentTT_SqlDao();
 
     /**
      * get one record by OD
@@ -151,21 +151,21 @@ public:
      * @param outObj output object to fill
      * @return true if values were fetched from the database; false otherwise
      */
-	bool getTT_ByOD(TravelTimeMode ttMode, int originZn, int destZn, TimeDependentTT_Params& outObj);
+    bool getTT_ByOD(TravelTimeMode ttMode, int originZn, int destZn, TimeDependentTT_Params& outObj);
 
-	/**
-	 * get ODs for which data is unavailable in the database
-	 * @param ttMode mode type - (public transit / private) for fetching travel time
-	 * @param outVect output vector to be populated with OD list
-	 */
-	void getUnavailableODs(TravelTimeMode ttMode, std::vector<sim_mob::OD_Pair>& outVect);
+    /**
+     * get ODs for which data is unavailable in the database
+     * @param ttMode mode type - (public transit / private) for fetching travel time
+     * @param outVect output vector to be populated with OD list
+     */
+    void getUnavailableODs(TravelTimeMode ttMode, std::vector<sim_mob::OD_Pair>& outVect);
 
 private:
-	/** query to get public transit zone to zone travel time by OD */
-	const std::string ptGetByOD_Query;
+    /** query to get public transit zone to zone travel time by OD */
+    const std::string ptGetByOD_Query;
 
-	/** query to get private traffic zone to zone travel time by OD */
-	const std::string pvtGetByOD_Query;
+    /** query to get private traffic zone to zone travel time by OD */
+    const std::string pvtGetByOD_Query;
 
     /**
      * Virtual override.

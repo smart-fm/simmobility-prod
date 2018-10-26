@@ -30,21 +30,21 @@ void TravelTimeDao::toRow(TravelTime& data, Parameters& outParams, bool update) 
 
 const TravelTime* TravelTimeDao::getTravelTimeByOriginDest(BigSerial origin, BigSerial destination)
 {
-	db::Parameters params;
-	params.push_back(origin);
-	params.push_back(destination);
-	const std::string getTravelTime = "SELECT * FROM " + connection.getSchema() + "travel_time WHERE origin = :v1" + " AND destination = :v2;" ;
-	std::vector<TravelTime*> travelTimeList;
-	getByQueryId(getTravelTime,params,travelTimeList);
-	TravelTime *travelTime;
-	if(travelTimeList.empty())
-	{
-		travelTime = nullptr;
-	}
-	else
-	{
-		travelTime = travelTimeList.at(0);
-	}
-	return travelTime;
+    db::Parameters params;
+    params.push_back(origin);
+    params.push_back(destination);
+    const std::string getTravelTime = "SELECT * FROM " + connection.getSchema() + "travel_time WHERE origin = :v1" + " AND destination = :v2;" ;
+    std::vector<TravelTime*> travelTimeList;
+    getByQueryId(getTravelTime,params,travelTimeList);
+    TravelTime *travelTime;
+    if(travelTimeList.empty())
+    {
+        travelTime = nullptr;
+    }
+    else
+    {
+        travelTime = travelTimeList.at(0);
+    }
+    return travelTime;
 }
 

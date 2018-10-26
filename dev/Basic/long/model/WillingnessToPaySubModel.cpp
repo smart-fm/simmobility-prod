@@ -7,7 +7,7 @@
  *
  *  Created on: 29 Jan 2016
  *  Author: Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
- *  Modelling constants:    Roberto Lopez <rponcelo@mit.edu> 	
+ *  Modelling constants:    Roberto Lopez <rponcelo@mit.edu>    
  */
 
 #include "database/entity/PostcodeAmenities.hpp"
@@ -23,594 +23,594 @@
 
 namespace sim_mob
 {
-	namespace long_term
-	{
-		namespace
-		{
-			inline void printHouseholdGroupLogsum( int homeTaz,  int group, BigSerial hhId, double logsum )
-			{
-				boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % homeTaz % group % hhId % logsum;
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDGROUPLOGSUM,fmtr.str());
-			}
-		}
-
-		WillingnessToPaySubModel::WillingnessToPaySubModel(){}
-
-		WillingnessToPaySubModel::~WillingnessToPaySubModel(){}
-
-		void WillingnessToPaySubModel::FindHDBType( int unitType)
-		{
-			if( unitType == ID_HDB1 || unitType == ID_HDB2 )
-				HDB12 = 1;
-			else
-			if( unitType == ID_HDB3 )
-				HDB3 = 1;
-			else
-			if( unitType == ID_HDB4 )
-				HDB4 = 1;
-			else
-			if( unitType == ID_HDB5 )
-				HDB5 = 1;
-			else
-			if( unitType >= ID_APARTM70 && unitType <= ID_APARTM159 )
-				Apartment = 1;
-			else
-			if( unitType >= ID_CONDO60 && unitType <= ID_CONDO134 )
-				Condo = 1;
-			else
-			if( unitType >= ID_TERRACE180 && unitType <= ID_TERRACE379 )
-				Terrace = 1;
-			else
-			if( unitType >= ID_SEMID230 && unitType <= ID_DETACHED1199 )
-				DetachedAndSemidetaced = 1;
-			else
-			if( unitType == 6 )
-				HDB5 = 1;
-			else
-			if( unitType >= 32 && unitType <= 51 )
-				Condo = 1;
-			else
-			if( unitType == 64 )
-				Apartment = 1;
-			else
-			if( unitType == 65 )
-				HDB5 = 1;
-		}
-
-		void WillingnessToPaySubModel::FindHouseholdSize(const Household *household)
-		{
-			if( household->getSize() == 1)
-				HH_size1 = 1;
-			else
-			if( household->getSize() == 2)
-				HH_size2 = 1;
-			else
-				HH_size3m = 1;
-		}
-
-		void WillingnessToPaySubModel::FindAgeOfUnit(const Unit *unit, int day)
-		{
-			ageOfUnitPrivate = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
-
-			ZZ_ageOfUnitPrivate	 = ageOfUnitPrivate;
-			ZZ_missingAge    = 0;
-			ZZ_freehold 	 = 0;
-
-			if( ageOfUnitPrivate > 50 )
-				ZZ_ageOfUnitPrivate = 50;
-
-			if( ageOfUnitPrivate < 0 )
-				ZZ_ageOfUnitPrivate = 0;
-
-			ZZ_ageOfUnitPrivate = ZZ_ageOfUnitPrivate / 10.0;
-
-			ageOfUnitHDB = HITS_SURVEY_YEAR - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
-			ZZ_ageOfUnitHDB	 = ageOfUnitHDB;
-
-			if( ageOfUnitHDB > 40 )
-				ZZ_ageOfUnitHDB = 40;
-
-			if( ageOfUnitHDB  < 0 )
-				ZZ_ageOfUnitHDB = 0;
-
-			ZZ_ageOfUnitHDB = ZZ_ageOfUnitHDB / 10.0;
-
-		}
-
-		void WillingnessToPaySubModel::GetLogsum(HM_Model *model, const Household *household, int day)
-		{
-			BigSerial homeTaz = 0;
-			BigSerial workTaz = 0;
-			Individual* headOfHousehold = NULL;
-
-			std::vector<BigSerial> householdOccupants = household->getIndividuals();
-
-			for( int n = 0; n < householdOccupants.size(); n++ )
-			{
-				Individual * householdIndividual = model->getIndividualById( householdOccupants[n] );
-
-				if( householdIndividual->getHouseholdHead() )
-				{
-					headOfHousehold = householdIndividual;
-				}
-			}
-
-			//This household does not seem to have an head of household, let's just assign one.
-			if(headOfHousehold == NULL)
-			{
-				int eldestHouseholdMemberAge = 0;
-				for( int n = 0; n < householdOccupants.size(); n++ )
-				{
-					Individual * householdIndividual = model->getIndividualById( householdOccupants[n] );
-					std::tm dob = householdIndividual->getDateOfBirth();
-
-					int age = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - dob.tm_year;
-
-					if( age > eldestHouseholdMemberAge )
-					{
-						age =  eldestHouseholdMemberAge;
-						headOfHousehold = householdIndividual;
-					}
-				}
-			}
+    namespace long_term
+    {
+        namespace
+        {
+            inline void printHouseholdGroupLogsum( int homeTaz,  int group, BigSerial hhId, double logsum )
+            {
+                boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % homeTaz % group % hhId % logsum;
+                AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDGROUPLOGSUM,fmtr.str());
+            }
+        }
+
+        WillingnessToPaySubModel::WillingnessToPaySubModel(){}
+
+        WillingnessToPaySubModel::~WillingnessToPaySubModel(){}
+
+        void WillingnessToPaySubModel::FindHDBType( int unitType)
+        {
+            if( unitType == ID_HDB1 || unitType == ID_HDB2 )
+                HDB12 = 1;
+            else
+            if( unitType == ID_HDB3 )
+                HDB3 = 1;
+            else
+            if( unitType == ID_HDB4 )
+                HDB4 = 1;
+            else
+            if( unitType == ID_HDB5 )
+                HDB5 = 1;
+            else
+            if( unitType >= ID_APARTM70 && unitType <= ID_APARTM159 )
+                Apartment = 1;
+            else
+            if( unitType >= ID_CONDO60 && unitType <= ID_CONDO134 )
+                Condo = 1;
+            else
+            if( unitType >= ID_TERRACE180 && unitType <= ID_TERRACE379 )
+                Terrace = 1;
+            else
+            if( unitType >= ID_SEMID230 && unitType <= ID_DETACHED1199 )
+                DetachedAndSemidetaced = 1;
+            else
+            if( unitType == 6 )
+                HDB5 = 1;
+            else
+            if( unitType >= 32 && unitType <= 51 )
+                Condo = 1;
+            else
+            if( unitType == 64 )
+                Apartment = 1;
+            else
+            if( unitType == 65 )
+                HDB5 = 1;
+        }
+
+        void WillingnessToPaySubModel::FindHouseholdSize(const Household *household)
+        {
+            if( household->getSize() == 1)
+                HH_size1 = 1;
+            else
+            if( household->getSize() == 2)
+                HH_size2 = 1;
+            else
+                HH_size3m = 1;
+        }
+
+        void WillingnessToPaySubModel::FindAgeOfUnit(const Unit *unit, int day)
+        {
+            ageOfUnitPrivate = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
+
+            ZZ_ageOfUnitPrivate  = ageOfUnitPrivate;
+            ZZ_missingAge    = 0;
+            ZZ_freehold      = 0;
+
+            if( ageOfUnitPrivate > 50 )
+                ZZ_ageOfUnitPrivate = 50;
+
+            if( ageOfUnitPrivate < 0 )
+                ZZ_ageOfUnitPrivate = 0;
+
+            ZZ_ageOfUnitPrivate = ZZ_ageOfUnitPrivate / 10.0;
+
+            ageOfUnitHDB = HITS_SURVEY_YEAR - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
+            ZZ_ageOfUnitHDB  = ageOfUnitHDB;
+
+            if( ageOfUnitHDB > 40 )
+                ZZ_ageOfUnitHDB = 40;
+
+            if( ageOfUnitHDB  < 0 )
+                ZZ_ageOfUnitHDB = 0;
+
+            ZZ_ageOfUnitHDB = ZZ_ageOfUnitHDB / 10.0;
+
+        }
+
+        void WillingnessToPaySubModel::GetLogsum(HM_Model *model, const Household *household, int day)
+        {
+            BigSerial homeTaz = 0;
+            BigSerial workTaz = 0;
+            Individual* headOfHousehold = NULL;
+
+            std::vector<BigSerial> householdOccupants = household->getIndividuals();
+
+            for( int n = 0; n < householdOccupants.size(); n++ )
+            {
+                Individual * householdIndividual = model->getIndividualById( householdOccupants[n] );
+
+                if( householdIndividual->getHouseholdHead() )
+                {
+                    headOfHousehold = householdIndividual;
+                }
+            }
+
+            //This household does not seem to have an head of household, let's just assign one.
+            if(headOfHousehold == NULL)
+            {
+                int eldestHouseholdMemberAge = 0;
+                for( int n = 0; n < householdOccupants.size(); n++ )
+                {
+                    Individual * householdIndividual = model->getIndividualById( householdOccupants[n] );
+                    std::tm dob = householdIndividual->getDateOfBirth();
+
+                    int age = HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - dob.tm_year;
+
+                    if( age > eldestHouseholdMemberAge )
+                    {
+                        age =  eldestHouseholdMemberAge;
+                        headOfHousehold = householdIndividual;
+                    }
+                }
+            }
 
-			Job *job = model->getJobById(headOfHousehold->getJobId());
+            Job *job = model->getJobById(headOfHousehold->getJobId());
 
-			BigSerial hometazId = model->getUnitTazId( household->getUnitId() );
-			Taz *homeTazObj = model->getTazById( hometazId );
+            BigSerial hometazId = model->getUnitTazId( household->getUnitId() );
+            Taz *homeTazObj = model->getTazById( hometazId );
 
-			std::string homeTazStr;
-			if( homeTazObj != NULL )
-				homeTazStr = homeTazObj->getName();
+            std::string homeTazStr;
+            if( homeTazObj != NULL )
+                homeTazStr = homeTazObj->getName();
 
-			homeTaz = std::atoi( homeTazStr.c_str() );
+            homeTaz = std::atoi( homeTazStr.c_str() );
 
-			BigSerial worktazId = model->getEstablishmentTazId( job->getEstablishmentId() );
-			Taz *workTazObj = model->getTazById( worktazId );
+            BigSerial worktazId = model->getEstablishmentTazId( job->getEstablishmentId() );
+            Taz *workTazObj = model->getTazById( worktazId );
 
-			std::string workTazStr;
-			if( workTazObj != NULL )
-				workTazStr =  workTazObj->getName();
+            std::string workTazStr;
+            if( workTazObj != NULL )
+                workTazStr =  workTazObj->getName();
 
-			workTaz = std::atoi( workTazStr.c_str());
+            workTaz = std::atoi( workTazStr.c_str());
 
-			if( workTazStr.size() == 0 )
-			{
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "workTaz is empty for person:  %1%.") %  headOfHousehold->getId()).str());
-				workTaz = homeTaz;
-			}
+            if( workTazStr.size() == 0 )
+            {
+                AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "workTaz is empty for person:  %1%.") %  headOfHousehold->getId()).str());
+                workTaz = homeTaz;
+            }
 
-			if( homeTazStr.size() == 0 )
-			{
-				AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "homeTaz is empty for person:  %1%.") %  headOfHousehold->getId()).str());
-				homeTaz = -1;
-				workTaz = -1;
-			}
+            if( homeTazStr.size() == 0 )
+            {
+                AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_ERROR, (boost::format( "homeTaz is empty for person:  %1%.") %  headOfHousehold->getId()).str());
+                homeTaz = -1;
+                workTaz = -1;
+            }
 
-			if( homeTaz == -1 || workTaz == -1 )
-			{
-				ZZ_logsumhh = 0;
-			}
-			else
-			{
-				HouseHoldHitsSample *hitssample = model->getHouseHoldHitsById( household->getId() );
+            if( homeTaz == -1 || workTaz == -1 )
+            {
+                ZZ_logsumhh = 0;
+            }
+            else
+            {
+                HouseHoldHitsSample *hitssample = model->getHouseHoldHitsById( household->getId() );
 
-				for(int n = 0; n < model->householdGroupVec.size(); n++ )
-				{
-					BigSerial thisGroupId = model->householdGroupVec[n].getGroupId();
-					BigSerial thisHomeTaz = model->householdGroupVec[n].getHomeTaz();
+                for(int n = 0; n < model->householdGroupVec.size(); n++ )
+                {
+                    BigSerial thisGroupId = model->householdGroupVec[n].getGroupId();
+                    BigSerial thisHomeTaz = model->householdGroupVec[n].getHomeTaz();
 
-					if( thisGroupId == hitssample->getGroupId() &&  thisHomeTaz == homeTaz )
-					{
-						ZZ_logsumhh = model->householdGroupVec[n].getLogsum();
-						break;
-					}
-				}
+                    if( thisGroupId == hitssample->getGroupId() &&  thisHomeTaz == homeTaz )
+                    {
+                        ZZ_logsumhh = model->householdGroupVec[n].getLogsum();
+                        break;
+                    }
+                }
 
-				if( ZZ_logsumhh == -1 )
-				{
-					PersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz, household->getVehicleOwnershipOptionId() );
-					ZZ_logsumhh = personParam.getDpbLogsum();
+                if( ZZ_logsumhh == -1 )
+                {
+                    PersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz, household->getVehicleOwnershipOptionId() );
+                    ZZ_logsumhh = personParam.getDpbLogsum();
 
-					BigSerial groupId = hitssample->getGroupId();
-					boost::shared_ptr<HM_Model::HouseholdGroup> thisHHGroup(new HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh ));
+                    BigSerial groupId = hitssample->getGroupId();
+                    boost::shared_ptr<HM_Model::HouseholdGroup> thisHHGroup(new HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh ));
 
-					model->householdGroupVec.push_back( *(thisHHGroup.get()));
-
-					printHouseholdGroupLogsum( homeTaz, hitssample->getGroupId(), headOfHousehold->getId(), ZZ_logsumhh );
-				}
+                    model->householdGroupVec.push_back( *(thisHHGroup.get()));
+
+                    printHouseholdGroupLogsum( homeTaz, hitssample->getGroupId(), headOfHousehold->getId(), ZZ_logsumhh );
+                }
 
-				Household* householdT = const_cast<Household*>(household);
-				householdT->setLogsum(ZZ_logsumhh);
+                Household* householdT = const_cast<Household*>(household);
+                householdT->setLogsum(ZZ_logsumhh);
 
-			}
+            }
 
-		}
+        }
 
-		void WillingnessToPaySubModel::GetIncomeAndEthnicity(HM_Model *model, const Household *household, const Unit *unit)
-		{
-			const HM_Model::TazStats *tazstats  = model->getTazStatsByUnitId(unit->getId());
+        void WillingnessToPaySubModel::GetIncomeAndEthnicity(HM_Model *model, const Household *household, const Unit *unit)
+        {
+            const HM_Model::TazStats *tazstats  = model->getTazStatsByUnitId(unit->getId());
 
-			if( tazstats->getChinesePercentage() > 0.76 ) //chetan TODO: add to xml file
-				ZZ_hhchinese = 1;
+            if( tazstats->getChinesePercentage() > 0.76 ) //chetan TODO: add to xml file
+                ZZ_hhchinese = 1;
 
-			if( tazstats->getMalayPercentage() > 0.10 )
-				ZZ_hhmalay 	 = 1;
+            if( tazstats->getMalayPercentage() > 0.10 )
+                ZZ_hhmalay   = 1;
 
-			ZZ_highInc = household->getIncome();
-			ZZ_middleInc = household->getIncome();
-			ZZ_lowInc  =  household->getIncome();
+            ZZ_highInc = household->getIncome();
+            ZZ_middleInc = household->getIncome();
+            ZZ_lowInc  =  household->getIncome();
 
-			if( ZZ_highInc >= 11000 )
-				ZZ_highInc = 1;
-			else
-				ZZ_highInc = 0;
+            if( ZZ_highInc >= 11000 )
+                ZZ_highInc = 1;
+            else
+                ZZ_highInc = 0;
 
 
-			if( ZZ_middleInc >= 2750 && ZZ_middleInc < 11000)
-				ZZ_middleInc = 1;
-			else
-				ZZ_middleInc = 0;
+            if( ZZ_middleInc >= 2750 && ZZ_middleInc < 11000)
+                ZZ_middleInc = 1;
+            else
+                ZZ_middleInc = 0;
 
 
-			if( ZZ_lowInc < 2750 )
-				ZZ_lowInc = 1;
-			else
-				ZZ_lowInc = 0;
+            if( ZZ_lowInc < 2750 )
+                ZZ_lowInc = 1;
+            else
+                ZZ_lowInc = 0;
 
-			ZZ_children = 0;
+            ZZ_children = 0;
 
-			if( household->getChildUnder15() > 0 )
-				ZZ_children = 1;
+            if( household->getChildUnder15() > 0 )
+                ZZ_children = 1;
 
 
-			if( household->getEthnicityId() == 1 )
-				chineseHousehold = 1;
+            if( household->getEthnicityId() == 1 )
+                chineseHousehold = 1;
 
-			if( household->getEthnicityId() == 2 )
-				malayHousehold = 1;
+            if( household->getEthnicityId() == 2 )
+                malayHousehold = 1;
 
-			if( household->getVehicleOwnershipOptionId() > 0)
-				carOwnershipBoolean = 1;
-		}
+            if( household->getVehicleOwnershipOptionId() > 0)
+                carOwnershipBoolean = 1;
+        }
 
 
-		double WillingnessToPaySubModel::CalculateWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e, double day, HM_Model *model)
-		{
-			double V;
+        double WillingnessToPaySubModel::CalculateWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e, double day, HM_Model *model)
+        {
+            double V;
 
-			const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( model->getUnitSlaAddressId( unit->getId() ) );
+            const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( model->getUnitSlaAddressId( unit->getId() ) );
 
-			int unitType = unit->getUnitType();
+            int unitType = unit->getUnitType();
 
-			const double kthird = 0.3;
-			const double khalf = 0.5;
-			const double ktwoFifth = 0.4;
-			const double kthreeFifth = 0.6;
+            const double kthird = 0.3;
+            const double khalf = 0.5;
+            const double ktwoFifth = 0.4;
+            const double kthreeFifth = 0.6;
 
-			int sizeAreaQuantileHDB = 0;
-			int sizeAreaQuantileCondo = 0;
-			double lgsqrtArea = log(sqrt(unit->getFloorArea()));
-			double lowerQuantileCondo = model->getlogSqrtFloorAreacondo( model->getlogSqrtFloorAreacondoSize() * kthird );
-			double upperQuantileCondo = model->getlogSqrtFloorAreacondo( model->getlogSqrtFloorAreacondoSize() * khalf );
-			double lowerQuantileHDB = model->getlogSqrtFloorAreahdb( model->getlogSqrtFloorAreahdbSize() * ktwoFifth );
-			double upperQuantileHDB = model->getlogSqrtFloorAreahdb( model->getlogSqrtFloorAreahdbSize() * kthreeFifth );
+            int sizeAreaQuantileHDB = 0;
+            int sizeAreaQuantileCondo = 0;
+            double lgsqrtArea = log(sqrt(unit->getFloorArea()));
+            double lowerQuantileCondo = model->getlogSqrtFloorAreacondo( model->getlogSqrtFloorAreacondoSize() * kthird );
+            double upperQuantileCondo = model->getlogSqrtFloorAreacondo( model->getlogSqrtFloorAreacondoSize() * khalf );
+            double lowerQuantileHDB = model->getlogSqrtFloorAreahdb( model->getlogSqrtFloorAreahdbSize() * ktwoFifth );
+            double upperQuantileHDB = model->getlogSqrtFloorAreahdb( model->getlogSqrtFloorAreahdbSize() * kthreeFifth );
 
-			if( lgsqrtArea >=  lowerQuantileCondo && lgsqrtArea < upperQuantileCondo )
-			{
-				sizeAreaQuantileCondo = 1;
-			}
+            if( lgsqrtArea >=  lowerQuantileCondo && lgsqrtArea < upperQuantileCondo )
+            {
+                sizeAreaQuantileCondo = 1;
+            }
 
-			if( lgsqrtArea >=  lowerQuantileHDB && lgsqrtArea < upperQuantileHDB )
-			{
-				sizeAreaQuantileHDB = 1;
-			}
+            if( lgsqrtArea >=  lowerQuantileHDB && lgsqrtArea < upperQuantileHDB )
+            {
+                sizeAreaQuantileHDB = 1;
+            }
 
-			//We use a separate list of coefficients for HDB units.
-			if( unitType <= 6  || unitType == 65 )
-			{
-				sde			=  0.02;
-				barea		=  1.3174741336;
-				blogsum		=  5.6119278112;
-				bsizearea	=  0.0182733682;
-				bcar		= -2.9867669658;
-				bcarlgs		=  0.5766951069;
-			}
+            //We use a separate list of coefficients for HDB units.
+            if( unitType <= 6  || unitType == 65 )
+            {
+                sde         =  0.02;
+                barea       =  1.3174741336;
+                blogsum     =  5.6119278112;
+                bsizearea   =  0.0182733682;
+                bcar        = -2.9867669658;
+                bcarlgs     =  0.5766951069;
+            }
 
-			FindHDBType(unitType);
-			FindHouseholdSize(household);
+            FindHDBType(unitType);
+            FindHouseholdSize(household);
 
-			DD_area = log(unit->getFloorArea()/10);
+            DD_area = log(unit->getFloorArea()/10);
 
-			FindAgeOfUnit( unit, day);
+            FindAgeOfUnit( unit, day);
 
-			//GetLogsum(model, household, day);
-			Postcode *unitPostcode = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
-			ZZ_logsumhh = model->ComputeHedonicPriceLogsumFromDatabase( unitPostcode->getTazId() );
+            //GetLogsum(model, household, day);
+            Postcode *unitPostcode = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
+            ZZ_logsumhh = model->ComputeHedonicPriceLogsumFromDatabase( unitPostcode->getTazId() );
 
 
-			vector<BigSerial>ind_hh = household->getIndividuals();
+            vector<BigSerial>ind_hh = household->getIndividuals();
 
-			Individual *thisIndividual;
-			for(int n = 0; n < ind_hh.size();n++)
-			{
-				Individual *tempIndividual = model->getIndividualById(ind_hh[n]);
+            Individual *thisIndividual;
+            for(int n = 0; n < ind_hh.size();n++)
+            {
+                Individual *tempIndividual = model->getIndividualById(ind_hh[n]);
 
-				if( tempIndividual->getHouseholdHead() )
-					thisIndividual = tempIndividual;
-			}
+                if( tempIndividual->getHouseholdHead() )
+                    thisIndividual = tempIndividual;
+            }
 
-			Job *job = model->getJobById(thisIndividual->getJobId());
-			Establishment *establishment = model->getEstablishmentById(	job->getEstablishmentId());
-			int work_tazId = model->getEstablishmentTazId( establishment->getId() );
+            Job *job = model->getJobById(thisIndividual->getJobId());
+            Establishment *establishment = model->getEstablishmentById( job->getEstablishmentId());
+            int work_tazId = model->getEstablishmentTazId( establishment->getId() );
 
-			const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+            const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
-			const double halfStandDeviationLogsum = 0.07808;
-			const double quarterStandDeviationLogsum = 0.03904;
+            const double halfStandDeviationLogsum = 0.07808;
+            const double quarterStandDeviationLogsum = 0.03904;
 
-			if( config.ltParams.scenario.enabled && config.ltParams.scenario.willingnessToPayModel)
-			{
-				std::multimap<string, StudyArea*> scenario = model->getStudyAreaByScenarioName();
-				//We will search for every instance of our scenario name in the scenario multimap
-				//eg: If we are doing a Toa Payoh schenario, itr_range will contain all instances
-				//of that scenario.
-				auto itr_range = scenario.equal_range( config.ltParams.scenario.scenarioName );
+            if( config.ltParams.scenario.enabled && config.ltParams.scenario.willingnessToPayModel)
+            {
+                std::multimap<string, StudyArea*> scenario = model->getStudyAreaByScenarioName();
+                //We will search for every instance of our scenario name in the scenario multimap
+                //eg: If we are doing a Toa Payoh schenario, itr_range will contain all instances
+                //of that scenario.
+                auto itr_range = scenario.equal_range( config.ltParams.scenario.scenarioName );
 
-				bool bWorkTaz = false;
-				bool bHomeTaz = false;
+                bool bWorkTaz = false;
+                bool bHomeTaz = false;
 
-				//dist will contain the total number of occurances of our scenario in the multimap 'scenario'
-				int dist = distance(itr_range.first, itr_range.second);
+                //dist will contain the total number of occurances of our scenario in the multimap 'scenario'
+                int dist = distance(itr_range.first, itr_range.second);
 
-				int tazId = model->getUnitTazId( unit->getId() );
+                int tazId = model->getUnitTazId( unit->getId() );
 
-				for(auto itr = itr_range.first; itr != itr_range.second; itr++)
-				{
-					if( itr->second->getFmTazId()  == work_tazId )
-						bWorkTaz = true;
+                for(auto itr = itr_range.first; itr != itr_range.second; itr++)
+                {
+                    if( itr->second->getFmTazId()  == work_tazId )
+                        bWorkTaz = true;
 
-					if( itr->second->getFmTazId()  == tazId )
-						bHomeTaz = true;
-				}
+                    if( itr->second->getFmTazId()  == tazId )
+                        bHomeTaz = true;
+                }
 
-				if(bWorkTaz)
-					ZZ_logsumhh += quarterStandDeviationLogsum;
+                if(bWorkTaz)
+                    ZZ_logsumhh += quarterStandDeviationLogsum;
 
-				if(bHomeTaz)
-					ZZ_logsumhh += quarterStandDeviationLogsum;
-			}
+                if(bHomeTaz)
+                    ZZ_logsumhh += quarterStandDeviationLogsum;
+            }
 
-			Household* householdT = const_cast<Household*>(household);
-			householdT->setLogsum(ZZ_logsumhh);
+            Household* householdT = const_cast<Household*>(household);
+            householdT->setLogsum(ZZ_logsumhh);
 
-			GetIncomeAndEthnicity(model, household, unit);
+            GetIncomeAndEthnicity(model, household, unit);
 
-			const PostcodeAmenities *amenities = DataManagerSingleton::getInstance().getAmenitiesById( unitPostcode->getAddressId() );
+            const PostcodeAmenities *amenities = DataManagerSingleton::getInstance().getAmenitiesById( unitPostcode->getAddressId() );
 
-			int busDistanceBool = 0;
-			if( amenities->getDistanceToBus() > 200 && amenities->getDistanceToBus() < 400 )
-				busDistanceBool = 1;
+            int busDistanceBool = 0;
+            if( amenities->getDistanceToBus() > 200 && amenities->getDistanceToBus() < 400 )
+                busDistanceBool = 1;
 
-			double mallDistance = amenities->getDistanceToMall();
+            double mallDistance = amenities->getDistanceToMall();
 
             //Chetan. 3 July 2017.
-			//Temp fix cos XiaoHu added some distanceToMall in meters
-			if(mallDistance > 100 )
-				mallDistance = mallDistance / 1000;
+            //Temp fix cos XiaoHu added some distanceToMall in meters
+            if(mallDistance > 100 )
+                mallDistance = mallDistance / 1000;
 
 
-			int mallDistanceBool = 0;
+            int mallDistanceBool = 0;
 
-			if( amenities->getDistanceToMall() > 200 && amenities->getDistanceToMall() < 400 )
-				mallDistanceBool = 1;
+            if( amenities->getDistanceToMall() > 200 && amenities->getDistanceToMall() < 400 )
+                mallDistanceBool = 1;
 
-			double bmall2 = bmall;
+            double bmall2 = bmall;
 
-			double Vpriv = 	(barea		*  DD_area 		) +
-							(blogsum	* ZZ_logsumhh 	) +
-							(bsizearea	 * sizeAreaQuantileCondo) +
-							(bcar * carOwnershipBoolean ) +
-							(bcarlgs * carOwnershipBoolean  * ZZ_logsumhh ) +
-							(bbus2400 * busDistanceBool) +
+            double Vpriv =  (barea      *  DD_area      ) +
+                            (blogsum    * ZZ_logsumhh   ) +
+                            (bsizearea   * sizeAreaQuantileCondo) +
+                            (bcar * carOwnershipBoolean ) +
+                            (bcarlgs * carOwnershipBoolean  * ZZ_logsumhh ) +
+                            (bbus2400 * busDistanceBool) +
 
-							(bapartment  * Apartment ) +
-							(bcondo 	 * Condo 	 ) +
-							(bdetachedAndSemiDetached * DetachedAndSemidetaced ) +
-							(terrace	* Terrace		) +
-							(bmissingAge  			* ZZ_missingAge 	) +
-							(bfreeholdAppartm  		* ZZ_freehold * Apartment 	) +
-							(bfreeholdCondo  		* ZZ_freehold * Condo 		) +
-							(fbreeholdTerrace  		* ZZ_freehold * Terrace 	);
+                            (bapartment  * Apartment ) +
+                            (bcondo      * Condo     ) +
+                            (bdetachedAndSemiDetached * DetachedAndSemidetaced ) +
+                            (terrace    * Terrace       ) +
+                            (bmissingAge            * ZZ_missingAge     ) +
+                            (bfreeholdAppartm       * ZZ_freehold * Apartment   ) +
+                            (bfreeholdCondo         * ZZ_freehold * Condo       ) +
+                            (fbreeholdTerrace       * ZZ_freehold * Terrace     );
 
 
-			double Vhdb = 	(barea		*  DD_area 		) +
-							(blogsum	* ZZ_logsumhh 	) +
-							(bsizearea	 * sizeAreaQuantileHDB) +
-							(bcar * carOwnershipBoolean ) +
-							(bcarlgs * carOwnershipBoolean  * ZZ_logsumhh ) +
-							(bmall * mallDistance) +
-							(bmrt2400m * mallDistanceBool ) +
-							(bhdb12  * HDB12 ) +
-							(bhdb3   * HDB3  ) +
-							(bhdb4 	 * HDB4	 ) +
-							(bhdb5 	 * HDB5	 ) +
-							(bageOfUnit30 * ZZ_ageOfUnitHDB ) +
-							(bageOfUnit30Squared * ZZ_ageOfUnitHDB * ZZ_ageOfUnitHDB );
+            double Vhdb =   (barea      *  DD_area      ) +
+                            (blogsum    * ZZ_logsumhh   ) +
+                            (bsizearea   * sizeAreaQuantileHDB) +
+                            (bcar * carOwnershipBoolean ) +
+                            (bcarlgs * carOwnershipBoolean  * ZZ_logsumhh ) +
+                            (bmall * mallDistance) +
+                            (bmrt2400m * mallDistanceBool ) +
+                            (bhdb12  * HDB12 ) +
+                            (bhdb3   * HDB3  ) +
+                            (bhdb4   * HDB4  ) +
+                            (bhdb5   * HDB5  ) +
+                            (bageOfUnit30 * ZZ_ageOfUnitHDB ) +
+                            (bageOfUnit30Squared * ZZ_ageOfUnitHDB * ZZ_ageOfUnitHDB );
 
-			if( unit->getUnitType() <= 6 || unitType == 65 )
-				V = Vhdb;
-			else
-				V = Vpriv;
+            if( unit->getUnitType() <= 6 || unitType == 65 )
+                V = Vhdb;
+            else
+                V = Vpriv;
 
-			boost::mt19937 rng( clock() );
-			boost::normal_distribution<> nd( 0.0, sde);
-			boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, nd);
-			wtp_e  = var_nor();
+            boost::mt19937 rng( clock() );
+            boost::normal_distribution<> nd( 0.0, sde);
+            boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, nd);
+            wtp_e  = var_nor();
 
-			//needed when wtp model is expressed as log wtp
-			V = exp(V);
+            //needed when wtp model is expressed as log wtp
+            V = exp(V);
 
-			return V;
-		}
+            return V;
+        }
 
-		double WillingnessToPaySubModel::calculateResidentialWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e, double day, HM_Model *model)
-		{
-			double willingnessToPay;
-			int unitTypeId = unit->getUnitType();
-			const ResidentialWTP_Coefs *wtpCoeffs = nullptr;
-			bool nonHDB = false;
+        double WillingnessToPaySubModel::calculateResidentialWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e, double day, HM_Model *model)
+        {
+            double willingnessToPay;
+            int unitTypeId = unit->getUnitType();
+            const ResidentialWTP_Coefs *wtpCoeffs = nullptr;
+            bool nonHDB = false;
 
-			if( (unitTypeId == 1) || (unitTypeId == 2) || (unitTypeId == 3) || (unitTypeId == 65))
-			{
-				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_123");
-			}
-			else if(unitTypeId == 4)
-			{
-				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_4");
-			}
-			else if(unitTypeId == 5 || unitTypeId == 6)
-			{
-				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_5");
-			}
-			else
-			{
-				wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("private");
-				nonHDB = true;
-			}
+            if( (unitTypeId == 1) || (unitTypeId == 2) || (unitTypeId == 3) || (unitTypeId == 65))
+            {
+                wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_123");
+            }
+            else if(unitTypeId == 4)
+            {
+                wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_4");
+            }
+            else if(unitTypeId == 5 || unitTypeId == 6)
+            {
+                wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("hdb_5");
+            }
+            else
+            {
+                wtpCoeffs = model->getResidentialWTP_CoefsByPropertyType("private");
+                nonHDB = true;
+            }
 
-			Postcode *unitPostcode = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
-			BigSerial tazId = unitPostcode->getTazId();
-			double logsumTaz = model->ComputeHedonicPriceLogsumFromDatabase( tazId );
-			Household* householdT = const_cast<Household*>(household);
-			householdT->setLogsum(logsumTaz);
+            Postcode *unitPostcode = model->getPostcodeById( model->getUnitSlaAddressId( unit->getId() ) );
+            BigSerial tazId = unitPostcode->getTazId();
+            double logsumTaz = model->ComputeHedonicPriceLogsumFromDatabase( tazId );
+            Household* householdT = const_cast<Household*>(household);
+            householdT->setLogsum(logsumTaz);
 
-			double missingAge = 0;
-			double ageOfUnit = 0;
-			double carDummy = 0;
-			if(household->getVehicleCategoryId() > 0)
-			{
-				carDummy = 1;
-			}
-			if( (unit->getOccupancyFromDate().tm_year == 8099)|| (unit->getOccupancyFromDate().tm_year == 0))
-			{
-				missingAge = 1;
-			}
-			else
-			{
-				ageOfUnit= HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
-			}
+            double missingAge = 0;
+            double ageOfUnit = 0;
+            double carDummy = 0;
+            if(household->getVehicleCategoryId() > 0)
+            {
+                carDummy = 1;
+            }
+            if( (unit->getOccupancyFromDate().tm_year == 8099)|| (unit->getOccupancyFromDate().tm_year == 0))
+            {
+                missingAge = 1;
+            }
+            else
+            {
+                ageOfUnit= HITS_SURVEY_YEAR  - 1900 + ( day / 365 ) - unit->getOccupancyFromDate().tm_year;
+            }
 
-			if(nonHDB && ageOfUnit > 50)
-			{
-				ageOfUnit = 50;
-			}
-			if(!nonHDB && ageOfUnit > 40)
-			{
-				ageOfUnit = 40;
-			}
+            if(nonHDB && ageOfUnit > 50)
+            {
+                ageOfUnit = 50;
+            }
+            if(!nonHDB && ageOfUnit > 40)
+            {
+                ageOfUnit = 40;
+            }
 
-			ageOfUnit = ageOfUnit/10.0;// (age of unit is divided by 10 in Roberto's model')
+            ageOfUnit = ageOfUnit/10.0;// (age of unit is divided by 10 in Roberto's model')
 
-			const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( model->getUnitSlaAddressId( unit->getId() ) );
-			double distanceMall = pcAmenities->getDistanceToMall();
-			//Chetan. 3 July 2017.
-			//Temp fix cos XiaoHu added some distanceToMall in meters
-			if(distanceMall > 100 )
-				distanceMall = distanceMall / 1000;
+            const PostcodeAmenities *pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( model->getUnitSlaAddressId( unit->getId() ) );
+            double distanceMall = pcAmenities->getDistanceToMall();
+            //Chetan. 3 July 2017.
+            //Temp fix cos XiaoHu added some distanceToMall in meters
+            if(distanceMall > 100 )
+                distanceMall = distanceMall / 1000;
 
-			double distanceToMRT = pcAmenities->getDistanceToMRT();
-			double isMRT_2_400m = 0;
-			if( (distanceToMRT > 0.200) && (distanceToMRT < 0.400))
-			{
-				isMRT_2_400m = 1;
-			}
+            double distanceToMRT = pcAmenities->getDistanceToMRT();
+            double isMRT_2_400m = 0;
+            if( (distanceToMRT > 0.200) && (distanceToMRT < 0.400))
+            {
+                isMRT_2_400m = 1;
+            }
 
-			double freeholdApartment = 0;
-			double freeholdCondo = 0;
-			double freeholdTerrace = 0;
-			double freeholdDetached = 0;
+            double freeholdApartment = 0;
+            double freeholdCondo = 0;
+            double freeholdTerrace = 0;
+            double freeholdDetached = 0;
 
-			if(unitTypeId >=7 && unitTypeId <=11)
-			{
-				freeholdApartment = 1;
-			}
-			else if(unitTypeId >=12 && unitTypeId <= 16)
-			{
-				freeholdCondo = 1;
-			}
-			else if(unitTypeId >= 17 && unitTypeId <= 21)
-			{
-				freeholdTerrace = 1;
-			}
-			else if(unitTypeId >=27 && unitTypeId <=31)
-			{
-				freeholdDetached = 1;
-			}
+            if(unitTypeId >=7 && unitTypeId <=11)
+            {
+                freeholdApartment = 1;
+            }
+            else if(unitTypeId >=12 && unitTypeId <= 16)
+            {
+                freeholdCondo = 1;
+            }
+            else if(unitTypeId >= 17 && unitTypeId <= 21)
+            {
+                freeholdTerrace = 1;
+            }
+            else if(unitTypeId >=27 && unitTypeId <=31)
+            {
+                freeholdDetached = 1;
+            }
 
-			double bus200_400m = 0;
-			if(pcAmenities->getDistanceToBus() >= 0.200 && pcAmenities->getDistanceToBus() <= 0.400)
-			{
-				bus200_400m = 1;
-			}
+            double bus200_400m = 0;
+            if(pcAmenities->getDistanceToBus() >= 0.200 && pcAmenities->getDistanceToBus() <= 0.400)
+            {
+                bus200_400m = 1;
+            }
 
-			double fullTimeWorkers = household->getWorkers();
-			double oneTwoFullTimeWorkers = 0;
-			if(fullTimeWorkers == 1 || fullTimeWorkers == 2)
-			{
-				oneTwoFullTimeWorkers = 1;
-			}
+            double fullTimeWorkers = household->getWorkers();
+            double oneTwoFullTimeWorkers = 0;
+            if(fullTimeWorkers == 1 || fullTimeWorkers == 2)
+            {
+                oneTwoFullTimeWorkers = 1;
+            }
 
-			double logArea = log(unit->getFloorArea()/10);//for the estimation of this coeff, we have to rescale to comparable with other units. - Roberto
-			double hhSizeWorkersDiff = household->getSize()- household->getWorkers();
+            double logArea = log(unit->getFloorArea()/10);//for the estimation of this coeff, we have to rescale to comparable with other units. - Roberto
+            double hhSizeWorkersDiff = household->getSize()- household->getWorkers();
 
-			Taz *taz = model->getTazById(tazId);
-			double mature = 0;
-			double matureOther = 0;
-			if(taz->getHdbTownType().compare("mature") == 0)
-			{
-				mature = 1;
-			}
-			else if (taz->getHdbTownType().compare("mature") == 0)
-			{
-				matureOther = 1;
-			}
+            Taz *taz = model->getTazById(tazId);
+            double mature = 0;
+            double matureOther = 0;
+            if(taz->getHdbTownType().compare("mature") == 0)
+            {
+                mature = 1;
+            }
+            else if (taz->getHdbTownType().compare("mature") == 0)
+            {
+                matureOther = 1;
+            }
 
-			willingnessToPay =  wtpCoeffs->getConstant() +
-								wtpCoeffs->getLogArea() * logArea
-								+ wtpCoeffs->getLogsumTaz() * logsumTaz
-								+ wtpCoeffs->getAge() * ageOfUnit + wtpCoeffs->getAgeSquared() * (ageOfUnit * ageOfUnit)
-								+ wtpCoeffs->getCarDummy() * carDummy + wtpCoeffs->getCarIntoLogsumTaz() * carDummy * logsumTaz
-								+ wtpCoeffs->getDistanceMall() * distanceMall
-								+ wtpCoeffs->getMrt200m400m() * isMRT_2_400m
-								+ wtpCoeffs->getMatureDummy() * mature + wtpCoeffs->getMatureOtherDummy() * matureOther
-								+ wtpCoeffs->getFloorNumber() * unit->getStorey()
-								+ wtpCoeffs->getLogIncome() * log(household->getIncome())
-								+ wtpCoeffs->getLogIncomeIntoLogArea() * log(household->getIncome()) * logArea
-								+ wtpCoeffs->getFreeholdApartment() * freeholdApartment
-								+ wtpCoeffs->getFreeholdCondo() * freeholdCondo
-								+ wtpCoeffs->getFreeholdTerrace() * freeholdTerrace
-								+ wtpCoeffs->getFreeholdDetached() * freeholdDetached
-								+ wtpCoeffs->getBus200m400mDummy() * bus200_400m
-								+ wtpCoeffs->getOneTwoFullTimeWorkerDummy() * oneTwoFullTimeWorkers
-								+ wtpCoeffs->getFullTimeWorkersTwoIntoLogArea() * oneTwoFullTimeWorkers * logArea
-								+ wtpCoeffs->getHhSizeworkersDiff() * hhSizeWorkersDiff;
+            willingnessToPay =  wtpCoeffs->getConstant() +
+                                wtpCoeffs->getLogArea() * logArea
+                                + wtpCoeffs->getLogsumTaz() * logsumTaz
+                                + wtpCoeffs->getAge() * ageOfUnit + wtpCoeffs->getAgeSquared() * (ageOfUnit * ageOfUnit)
+                                + wtpCoeffs->getCarDummy() * carDummy + wtpCoeffs->getCarIntoLogsumTaz() * carDummy * logsumTaz
+                                + wtpCoeffs->getDistanceMall() * distanceMall
+                                + wtpCoeffs->getMrt200m400m() * isMRT_2_400m
+                                + wtpCoeffs->getMatureDummy() * mature + wtpCoeffs->getMatureOtherDummy() * matureOther
+                                + wtpCoeffs->getFloorNumber() * unit->getStorey()
+                                + wtpCoeffs->getLogIncome() * log(household->getIncome())
+                                + wtpCoeffs->getLogIncomeIntoLogArea() * log(household->getIncome()) * logArea
+                                + wtpCoeffs->getFreeholdApartment() * freeholdApartment
+                                + wtpCoeffs->getFreeholdCondo() * freeholdCondo
+                                + wtpCoeffs->getFreeholdTerrace() * freeholdTerrace
+                                + wtpCoeffs->getFreeholdDetached() * freeholdDetached
+                                + wtpCoeffs->getBus200m400mDummy() * bus200_400m
+                                + wtpCoeffs->getOneTwoFullTimeWorkerDummy() * oneTwoFullTimeWorkers
+                                + wtpCoeffs->getFullTimeWorkersTwoIntoLogArea() * oneTwoFullTimeWorkers * logArea
+                                + wtpCoeffs->getHhSizeworkersDiff() * hhSizeWorkersDiff;
 
-				boost::mt19937 rng( clock() );
-				boost::normal_distribution<> nd( 0.0, sde);
-				boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, nd);
-				wtp_e  = var_nor();
+                boost::mt19937 rng( clock() );
+                boost::normal_distribution<> nd( 0.0, sde);
+                boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, nd);
+                wtp_e  = var_nor();
 
-				//needed when wtp model is expressed as log wtp
-				willingnessToPay = exp(willingnessToPay);
-//				if(isinf(willingnessToPay) )
-//				{
-//					PrintOutV("wtp is inf for"<< unit->getId()<<std::endl);
-//				}
+                //needed when wtp model is expressed as log wtp
+                willingnessToPay = exp(willingnessToPay);
+//              if(isinf(willingnessToPay) )
+//              {
+//                  PrintOutV("wtp is inf for"<< unit->getId()<<std::endl);
+//              }
 
-				return willingnessToPay;
+                return willingnessToPay;
 
-		}
-	}
+        }
+    }
 
 }

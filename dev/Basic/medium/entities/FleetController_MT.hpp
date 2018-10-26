@@ -20,28 +20,28 @@ namespace medium
 class FleetController_MT : public FleetController
 {
 private:
-	/**Static fleet manager object*/
-	static FleetController_MT *fleetMgr;
+    /**Static fleet manager object*/
+    static FleetController_MT *fleetMgr;
 
-	FleetController_MT();
-	virtual ~FleetController_MT();
+    FleetController_MT();
+    virtual ~FleetController_MT();
 
-	/**
-	 * Places the current agent into active or pending agents list based on the agent's start time
-	 *
-	 * @param person Pointer to the person object to be added to the list
-	 * @param activeAgents The list of active agents
-	 */
-	void addOrStashTaxis(Person* person, std::set<Entity*>& activeAgents);
+    /**
+     * Places the current agent into active or pending agents list based on the agent's start time
+     *
+     * @param person Pointer to the person object to be added to the list
+     * @param activeAgents The list of active agents
+     */
+    void addOrStashTaxis(Person* person, std::set<Entity*>& activeAgents);
 
 public:
-	static FleetController_MT * getInstance();
+    static FleetController_MT * getInstance();
 
-	/**
-	 *
-	 * @param agentList
-	 */
-	virtual void initialise(std::set<sim_mob::Entity*>& agentList);
+    /**
+     *
+     * @param agentList
+     */
+    virtual void initialise(std::set<sim_mob::Entity*>& agentList);
 };
 
 }

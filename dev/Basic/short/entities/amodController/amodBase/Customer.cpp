@@ -13,12 +13,12 @@ namespace amod {
 
 
 Customer::~Customer() {
-	return;
+    return;
 }
 
 Customer::Customer(int id, const std::string& name, amod::Position pos, int locationId, int assignedVeh, bool inVeh, Customer::Status status_) :
         Entity(id, name, pos), vehId(assignedVeh), status(status_), locId(locationId) {
-	return;
+    return;
 }
 
 void Customer::setStatus(Status s) {

@@ -2,7 +2,21 @@
 Description: Probability computation functions for multinomial and nested logit models
 Author: Harish Loganathan
 ]]
-math.randomseed( os.time() )
+
+-- Taken from https://stackoverflow.com/questions/20154991/generating-uniform-random-numbers-in-lua
+--  Based on the pascal RNG code given by Sergei Mikhailovich Prigarin @ osmf.sscc.ru/~smp/
+local A1=1331
+local A2 =  798405  -- 5^17=D20*A1+A2
+local D20, D40 = 1048576, 1099511627776  -- 2^20, 2^40
+local X1, X2 = 0, 1
+local function myRand()
+	local U = X2*A2
+	local V = (X1*A2 + X2*A1) % D20
+	V = (V*D20 + U) % D40
+	X1 = math.floor(V/D20)
+	X2 = V - X1*D20
+	return V/D40
+end
 
 local function calculate_multinomial_logit_probability(choices, utility, availables)
 	local probability = {}
@@ -105,7 +119,7 @@ function make_final_choice(probability)
 		cum_prob = cum_prob + p
 		table.insert(choices_prob, cum_prob)
 	end
-	idx = binary_search(choices_prob, math.random()) 
+	idx = binary_search(choices_prob, myRand())
 	return choices[idx]
 end
 

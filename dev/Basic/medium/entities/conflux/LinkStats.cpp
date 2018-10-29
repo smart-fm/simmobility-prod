@@ -14,6 +14,11 @@
 #include "geospatial/network/RoadSegment.hpp"
 #include "entities/Person_MT.hpp"
 #include "entities/Vehicle.hpp"
+//aa{
+#include "config/MT_Config.hpp"
+#include "models/TripEnergyModel.hpp"
+//aa}
+
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -22,6 +27,8 @@ namespace
 {
 const double METERS_IN_UNIT_KM = 1000.0;
 }
+
+
 
 LinkStats::LinkStats(const Link* link) : linkId(link->getLinkId()), carCount(0), busCount(0), motorcycleCount(0), taxiCount(0),
         otherVehiclesCount(0), entryCount(0), exitCount(0), density(0), totalLinkLaneLength(0),
@@ -41,6 +48,18 @@ LinkStats::LinkStats(const LinkStats& srcStats) : linkId(srcStats.linkId), carCo
         totalLinkLaneLength(srcStats.totalLinkLaneLength), linkLengthKm(srcStats.linkLengthKm), linkStatsMutex()
 {
 }
+
+//aa{
+double LinkStats::getEnergy()
+{
+	double tot;
+	for(const SegmentStats* seg : segmentsStats)
+	{
+		tot += seg->getEnergy();
+	}
+	return tot/segmentsStats.size();
+}
+//aa}
 
 void LinkStats::resetStats()
 {

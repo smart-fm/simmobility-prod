@@ -4,6 +4,7 @@
 
 #include "OnCallDriver.hpp"
 #include "conf/ConfigManager.hpp"
+#include "config/MT_Config.hpp" //jo
 
 using namespace sim_mob;
 using namespace medium;

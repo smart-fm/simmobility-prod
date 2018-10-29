@@ -25,12 +25,12 @@ namespace sim_mob {
 
 struct Schemas
 {
-    Schemas();
-    bool enabled;
-    std::string main_schema;
-    std::string calibration_schema;
-    std::string public_schema;
-    std::string demand_schema;
+	Schemas();
+	bool enabled;
+	std::string main_schema;
+	std::string calibration_schema;
+	std::string public_schema;
+	std::string demand_schema;
 };
 
 /**
@@ -38,129 +38,129 @@ struct Schemas
  */
 struct LongTermParams
 {
-    LongTermParams();
-    bool enabled;
-    unsigned int workers;
-    unsigned int days;
-    unsigned int tickStep;
-    unsigned int maxIterations;
-    unsigned int year;
-    bool resume;
-    std::string currentOutputSchema;
-    std::string mainSchemaVersion;
-    std::string configSchemaVersion;
-    std::string calibrationSchemaVersion;
-    std::string geometrySchemaVersion;
-    unsigned int opSchemaloadingInterval;
-    bool initialLoading;
-    bool launchBTO;
-    bool launchPrivatePresale;
+	LongTermParams();
+	bool enabled;
+	unsigned int workers;
+	unsigned int days;
+	unsigned int tickStep;
+	unsigned int maxIterations;
+	unsigned int year;
+	bool resume;
+	std::string currentOutputSchema;
+	std::string mainSchemaVersion;
+	std::string configSchemaVersion;
+	std::string calibrationSchemaVersion;
+	std::string geometrySchemaVersion;
+	unsigned int opSchemaloadingInterval;
+	bool initialLoading;
+	bool launchBTO;
+	bool launchPrivatePresale;
 
-    struct DeveloperModel{
-        DeveloperModel();
-        bool enabled;
-        unsigned int timeInterval;
-        int initialPostcode;
-        int initialUnitId;
-        int initialBuildingId;
-        int initialProjectId;
-        double minLotSize;
-        int constructionStartDay;
-        int saleFromDay;
-        int occupancyFromDay;
-        int constructionCompletedDay;
-    } developerModel;
+	struct DeveloperModel{
+		DeveloperModel();
+		bool enabled;
+		unsigned int timeInterval;
+		int initialPostcode;
+		int initialUnitId;
+		int initialBuildingId;
+		int initialProjectId;
+		double minLotSize;
+		int constructionStartDay;
+		int saleFromDay;
+		int occupancyFromDay;
+		int constructionCompletedDay;
+	} developerModel;
 
-    struct HousingModel{
-        HousingModel();
-        bool enabled;
-        unsigned int timeInterval; //time interval before a unit drops its asking price by a certain percentage.
-        unsigned int timeOnMarket; //for units on the housing market
-        unsigned int timeOffMarket;//for units on the housing market
-        bool wtpOffsetEnabled;
-        bool unitsFiltering;
-        float vacantUnitActivationProbability;
-        float housingMarketSearchPercentage;
-        float housingMoveInDaysInterval;
-        int offsetBetweenUnitBuyingAndSelling;
-        int bidderUnitsChoiceSet;
-        int bidderBTOUnitsChoiceSet;
-        int householdBiddingWindow;
-        int householdBTOBiddingWindow;
-        float householdAwakeningPercentageByBTO;
-        int offsetBetweenUnitBuyingAndSellingAdvancedPurchase;
+	struct HousingModel{
+		HousingModel();
+		bool enabled;
+		unsigned int timeInterval; //time interval before a unit drops its asking price by a certain percentage.
+		unsigned int timeOnMarket; //for units on the housing market
+		unsigned int timeOffMarket;//for units on the housing market
+		bool wtpOffsetEnabled;
+		bool unitsFiltering;
+		float vacantUnitActivationProbability;
+		float housingMarketSearchPercentage;
+		float housingMoveInDaysInterval;
+		int offsetBetweenUnitBuyingAndSelling;
+		int bidderUnitsChoiceSet;
+		int bidderBTOUnitsChoiceSet;
+		int householdBiddingWindow;
+		int householdBTOBiddingWindow;
+		float householdAwakeningPercentageByBTO;
+		int offsetBetweenUnitBuyingAndSellingAdvancedPurchase;
 
-        struct BidderUnitChoiceset
-        {
-            BidderUnitChoiceset();
-            bool enabled;
-            bool randomChoiceset;
-            bool shanRobertoChoiceset;
-            int bidderChoicesetSize;
-            int bidderBTOChoicesetSize;
-        } bidderUnitChoiceset;
+		struct BidderUnitChoiceset
+		{
+			BidderUnitChoiceset();
+			bool enabled;
+			bool randomChoiceset;
+			bool shanRobertoChoiceset;
+			int bidderChoicesetSize;
+			int bidderBTOChoicesetSize;
+		} bidderUnitChoiceset;
 
-        struct AwakeningModel
-        {
-            AwakeningModel();
-            int initialHouseholdsOnMarket;
-            int dailyHouseholdAwakenings;
-            bool awakenModelJingsi;
-            bool awakenModelShan;
-            bool awakenModelRandom;
-            int awakeningOffMarketSuccessfulBid;
-            int awakeningOffMarketUnsuccessfulBid;
-        } awakeningModel;
-
-
-        struct HedonicPriceModel
-        {
-            HedonicPriceModel();
-            float a;
-            float b;
-        }hedonicPriceModel;
-
-    } housingModel;
-
-    struct OutputHouseholdLogsums
-    {
-        OutputHouseholdLogsums();
-        bool enabled;
-        bool vehicleOwnership;
-        bool fixedHomeVariableWork;
-        bool fixedWorkVariableHome;
-        bool hitsRun;
-        bool maxcCost;
-        bool maxTime;
-    } outputHouseholdLogsums;
-
-    struct VehicleOwnershipModel{
-        VehicleOwnershipModel();
-        bool enabled;
-        unsigned int vehicleBuyingWaitingTimeInDays;
-    }vehicleOwnershipModel;
-
-    struct TaxiAccessModel{
-        TaxiAccessModel();
-        bool enabled;
-    }taxiAccessModel;
-
-    struct SchoolAssignmentModel{
-        SchoolAssignmentModel();
-        bool enabled;
-        unsigned int schoolChangeWaitingTimeInDays;
-    }schoolAssignmentModel;
-
-    struct JobAssignmentModel{
-        JobAssignmentModel();
-        bool enabled;
-        bool foreignWorkers;
-        }jobAssignmentModel;
+		struct AwakeningModel
+		{
+			AwakeningModel();
+			int initialHouseholdsOnMarket;
+			int dailyHouseholdAwakenings;
+			bool awakenModelJingsi;
+			bool awakenModelShan;
+			bool awakenModelRandom;
+			int awakeningOffMarketSuccessfulBid;
+			int awakeningOffMarketUnsuccessfulBid;
+		} awakeningModel;
 
 
-    struct OutputFiles{
+		struct HedonicPriceModel
+		{
+			HedonicPriceModel();
+			float a;
+			float b;
+		}hedonicPriceModel;
 
-        OutputFiles();
+	} housingModel;
+
+	struct OutputHouseholdLogsums
+	{
+		OutputHouseholdLogsums();
+		bool enabled;
+		bool vehicleOwnership;
+		bool fixedHomeVariableWork;
+		bool fixedWorkVariableHome;
+		bool hitsRun;
+		bool maxcCost;
+		bool maxTime;
+	} outputHouseholdLogsums;
+
+	struct VehicleOwnershipModel{
+		VehicleOwnershipModel();
+		bool enabled;
+		unsigned int vehicleBuyingWaitingTimeInDays;
+	}vehicleOwnershipModel;
+
+	struct TaxiAccessModel{
+		TaxiAccessModel();
+		bool enabled;
+	}taxiAccessModel;
+
+	struct SchoolAssignmentModel{
+		SchoolAssignmentModel();
+		bool enabled;
+		unsigned int schoolChangeWaitingTimeInDays;
+	}schoolAssignmentModel;
+
+	struct JobAssignmentModel{
+		JobAssignmentModel();
+		bool enabled;
+		bool foreignWorkers;
+		}jobAssignmentModel;
+
+
+	struct OutputFiles{
+
+		OutputFiles();
         bool bids;
         bool expectations;
         bool parcels;
@@ -188,82 +188,82 @@ struct LongTermParams
         bool log_out_xx_files;
         bool enabled;
 
-    }outputFiles;
+	}outputFiles;
 
-    struct Scenario
-    {
-        Scenario();
-        bool   enabled;
-        std::string scenarioName;
-        std::string parcelsTable;
-        std::string scenarioSchema;
-        bool hedonicModel;
-        bool willingnessToPayModel;
-    } scenario;
+	struct Scenario
+	{
+		Scenario();
+		bool   enabled;
+		std::string scenarioName;
+		std::string parcelsTable;
+		std::string scenarioSchema;
+		bool hedonicModel;
+		bool willingnessToPayModel;
+	} scenario;
 
 };
 
 ///represent the incident data section of the config file
 struct IncidentParams {
-    IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
-            capFactor(0), startTime(0), duration(0), length(0), compliance(0), accessibility(0){}
+	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
+			capFactor(0), startTime(0), duration(0), length(0),	compliance(0), accessibility(0){}
 
-    struct LaneParams {
-        LaneParams() : laneId(0), speedLimit(0), xLaneStartPos(0), yLaneStartPos(0), xLaneEndPos(0),yLaneEndPos(0){}
-        unsigned int laneId;
-        float speedLimit;
-        float xLaneStartPos;
-        float yLaneStartPos;
-        float xLaneEndPos;
-        float yLaneEndPos;
-    };
+	struct LaneParams {
+		LaneParams() : laneId(0), speedLimit(0), xLaneStartPos(0), yLaneStartPos(0), xLaneEndPos(0),yLaneEndPos(0){}
+		unsigned int laneId;
+		float speedLimit;
+		float xLaneStartPos;
+		float yLaneStartPos;
+		float xLaneEndPos;
+		float yLaneEndPos;
+	};
 
-    unsigned int incidentId;
-    float visibilityDistance;
-    unsigned int segmentId;
-    float position;
-    unsigned int severity;
-    float capFactor;
-    unsigned int startTime;
-    unsigned int duration;
-    float length;
-    float compliance;
-    float accessibility;
-    std::vector<LaneParams> laneParams;
+	unsigned int incidentId;
+	float visibilityDistance;
+	unsigned int segmentId;
+	float position;
+	unsigned int severity;
+	float capFactor;
+	unsigned int startTime;
+	unsigned int duration;
+	float length;
+	float compliance;
+	float accessibility;
+	std::vector<LaneParams> laneParams;
 };
 /**
  * represent disruption data section of the config file
  */
 struct DisruptionParams{
-    DisruptionParams():startTime(0),duration(0),id(0){}
-    unsigned int id;
-    DailyTime startTime;
-    DailyTime duration;
-    std::vector<std::string> platformNames;
-    std::vector<std::string> platformLineIds;
+	DisruptionParams():startTime(0),duration(0),id(0){}
+	unsigned int id;
+	DailyTime startTime;
+	DailyTime duration;
+	std::vector<std::string> platformNames;
+	std::vector<std::string> platformLineIds;
 };
 /**
  * represent walking time in the train station
  */
 struct WalkingTimeParams{
-    std::string stationName;
-    double alpha = 0.0;
-    double beta = 0.0;
+	std::string stationName;
+	double alpha = 0.0;
+	double beta = 0.0;
 };
 /**
  * Represents a Person's Characteristic in the config file. (NOTE: Further documentation needed.)
  */
 struct PersonCharacteristics
 {
-    PersonCharacteristics() : lowerAge(0), upperAge(0), lowerSecs(0), upperSecs(0), walkSpeed(0.0)
-    {
-    }
+	PersonCharacteristics() : lowerAge(0), upperAge(0), lowerSecs(0), upperSecs(0), walkSpeed(0.0)
+	{
+	}
 
-    unsigned int lowerAge; // lowerAge
-    unsigned int upperAge; // upperAge
-    int lowerSecs; // lowerSecs
-    int upperSecs; // upperSecs
-    double walkSpeed; //walking speed in m/s
+	unsigned int lowerAge; // lowerAge
+	unsigned int upperAge; // upperAge
+	int lowerSecs; // lowerSecs
+	int upperSecs; // upperSecs
+	double walkSpeed; //walking speed in m/s
 } ;
 
 /**
@@ -271,17 +271,17 @@ struct PersonCharacteristics
  */
 struct PersonCharacteristicsParams
 {
-    PersonCharacteristicsParams() : lowestAge(100), highestAge(0), DEFAULT_LOWER_SECS(3), DEFAULT_UPPER_SECS(10)
-    {
-    }
+	PersonCharacteristicsParams() : lowestAge(100), highestAge(0), DEFAULT_LOWER_SECS(3), DEFAULT_UPPER_SECS(10)
+	{
+	}
 
-    int lowestAge;
-    int highestAge;
-    const int DEFAULT_LOWER_SECS;
-    const int DEFAULT_UPPER_SECS;
-    
-    ///Some settings for person characteristics(age range, boarding alighting secs)
-    std::map<int, PersonCharacteristics> personCharacteristics;
+	int lowestAge;
+	int highestAge;
+	const int DEFAULT_LOWER_SECS;
+	const int DEFAULT_UPPER_SECS;
+	
+	///Some settings for person characteristics(age range, boarding alighting secs)
+	std::map<int, PersonCharacteristics> personCharacteristics;
 } ;
 
 /**
@@ -299,16 +299,16 @@ public:
 struct ClosedLoopParams
 {
     bool enabled;
-    bool isGuidanceDirectional;
+	bool isGuidanceDirectional;
     int sensorStepSize;
     std::string guidanceFile;
     std::string tollFile;
     std::string incentivesFile;
     std::string sensorOutputFile;
-    BasicLogger *logger;
+	BasicLogger *logger;
 
-    ClosedLoopParams() : enabled(false), isGuidanceDirectional(false), sensorStepSize(0), guidanceFile(""),
-        tollFile(""), incentivesFile(""), sensorOutputFile(""), logger(nullptr)
+	ClosedLoopParams() : enabled(false), isGuidanceDirectional(false), sensorStepSize(0), guidanceFile(""),
+		tollFile(""), incentivesFile(""), sensorOutputFile(""), logger(nullptr)
     {
     }
 };
@@ -338,12 +338,14 @@ public:
     /// Seed value for RNG's
     unsigned int seedValue ;
 
-    /// Operational cost in Dollars/km
-    float operationalCost;
+    /// Operational cost in Dollars/km //joApr30
+    double operationalCostICE; //jo Apr13
+    double operationalCostHEV; //jo Apr13
+    double operationalCostBEV; //jo Apr13
 
     /// When the simulation begins(based on configuration)
     DailyTime simStartTime;
-    
+	
     /// Indicates the percentage of persons which will use in-simulation travel times instead of historical travel times
     unsigned int inSimulationTTUsage;
 
@@ -388,27 +390,27 @@ public:
      * @param scriptFilesPath - path where the scripts are located
      * @param scriptsLang - script language (lua/python..)
      */
-    ModelScriptsMap(const std::string& scriptFilesPath = "", const std::string& scriptsLang = "");
+	ModelScriptsMap(const std::string& scriptFilesPath = "", const std::string& scriptsLang = "");
 
     /**
      * Retrives the scripts file path
      *
      * @return scripts file path
      */
-    const std::string& getPath() const
-    {
-        return path;
-    }
+	const std::string& getPath() const
+	{
+		return path;
+	}
 
     /**
      * Retrieves the script language
      *
      * @return script language
      */
-    const std::string& getScriptLanguage() const
-    {
-        return scriptLanguage;
-    }
+	const std::string& getScriptLanguage() const
+	{
+		return scriptLanguage;
+	}
 
     /**
      * Retrives a script file name given its key
@@ -417,21 +419,21 @@ public:
      *
      * @return script file name
      */
-    std::string getScriptFileName(std::string key) const
-    {
-        try
-        {
-            /// at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
-            return scriptFileNameMap.at(key);
-        }
-        catch(const std::out_of_range& oorx)
-        {
-            std::stringstream msg;
-            msg << scriptLanguage << " file for the model \'" << key << "\' not defined in the <model_scripts> section "
-                << "of the configuration file ";
-            throw std::runtime_error(msg.str());
-        }
-    }
+	std::string getScriptFileName(std::string key) const
+	{
+		try
+		{
+			/// at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
+			return scriptFileNameMap.at(key);
+		}
+		catch(const std::out_of_range& oorx)
+		{
+			std::stringstream msg;
+			msg << scriptLanguage << " file for the model \'" << key << "\' not defined in the <model_scripts> section "
+			    << "of the configuration file ";
+			throw std::runtime_error(msg.str());
+		}
+	}
 
     /**
      * Sets a script file name
@@ -439,22 +441,22 @@ public:
      * @param key
      * @param value filename
      */
-    void addScriptFileName(const std::string& key, const std::string& value)
-    {
-        this->scriptFileNameMap[key] = value;
-    }
+	void addScriptFileName(const std::string& key, const std::string& value)
+	{
+		this->scriptFileNameMap[key] = value;
+	}
 
-    const std::map<std::string, std::string>& getScriptsFileNameMap() const
-    {
-        return this->scriptFileNameMap;
-    }
+	const std::map<std::string, std::string>& getScriptsFileNameMap() const
+	{
+		return this->scriptFileNameMap;
+	}
 
 private:
     /// scripts file path
-    std::string path;
+	std::string path;
 
     /// script language
-    std::string scriptLanguage;
+	std::string scriptLanguage;
 
     /// Scripts file map
     std::map<std::string, std::string> scriptFileNameMap;
@@ -468,42 +470,42 @@ struct PathSetConf
     /**
      * Constructor
      */
-    PathSetConf() : enabled(false), supplyLinkFile(""), RTTT_Conf(""), DTT_Conf(""), psRetrievalWithoutBannedRegion(""), interval(0), recPS(false), reroute(false),
-            perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0),
-            perturbationIteration(0), threadPoolSize(0), maxSegSpeed(0), publickShortestPathLevel(10), simulationApproachIterations(10),
-            publicPathSetEnabled(true), privatePathSetEnabled(true)
-    {}
+	PathSetConf() : enabled(false), supplyLinkFile(""), RTTT_Conf(""), DTT_Conf(""), psRetrievalWithoutBannedRegion(""), interval(0), recPS(false), reroute(false),
+			perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0),
+			perturbationIteration(0), threadPoolSize(0), maxSegSpeed(0), publickShortestPathLevel(10), simulationApproachIterations(10),
+			publicPathSetEnabled(true), privatePathSetEnabled(true)
+	{}
 
     /// Whether pathset enabled
-    bool enabled;
+	bool enabled;
 
     /// Whether private pathset enabled
-    bool privatePathSetEnabled;
+	bool privatePathSetEnabled;
 
     /// pathset operation mode "normal" , "generation"(for bulk pathset generation)
     std::string privatePathSetMode;
 
     /// Whether public pathset enabled
-    bool publicPathSetEnabled;
+	bool publicPathSetEnabled;
 
     /// public pathset mode (normal / generation)
-    std::string publicPathSetMode;
+	std::string publicPathSetMode;
 
     /// public pathset od source table
-    std::string publicPathSetOdSource;
+	std::string publicPathSetOdSource;
 
     /// Public pathset output file
-    std::string publicPathSetOutputFile;
+	std::string publicPathSetOutputFile;
 
     /// Public PathSet Generation Algorithm Configurations
     /// 'k' value for kShortestPathAlgorithm
     int publickShortestPathLevel;
 
     /// Num of simulation approach iterations
-    int simulationApproachIterations;
+	int simulationApproachIterations;
 
     /// thread pool size for pathset generation
-    int threadPoolSize;
+	int threadPoolSize;
 
     /// in case of using pathset manager in "generation" mode, the results will be outputted to this file
     std::string bulkFile;
@@ -529,42 +531,42 @@ struct PathSetConf
     /// travel time recording iterval(in seconds)
     int interval;
 
-    /// recursive pathset Generation
-    bool recPS;
+    ///	recursive pathset Generation
+	bool recPS;
 
-    ///  enable rerouting?
-    bool reroute;
+    ///	 enable rerouting?
+	bool reroute;
 
-    /// number of iterations in random perturbation
-    int perturbationIteration;
+    ///	number of iterations in random perturbation
+	int perturbationIteration;
 
-    /// range of uniform distribution in random perturbation
-    std::pair<unsigned short,unsigned short> perturbationRange;
+    ///	range of uniform distribution in random perturbation
+	std::pair<unsigned short,unsigned short> perturbationRange;
 
     ///k-shortest path level
-    int kspLevel;
+	int kspLevel;
 
     /// Link Elimination types
-    std::vector<std::string> LE;
+	std::vector<std::string> LE;
 
-    /// Utility parameters
-    struct UtilityParams
-    {
-        double highwayBias;
-        UtilityParams()
-        {
-            highwayBias = 0.5;
-        }
-    };
+	/// Utility parameters
+	struct UtilityParams
+	{
+		double highwayBias;
+		UtilityParams()
+		{
+			highwayBias = 0.5;
+		}
+	};
 
     /// represents max_segment_speed attribute in xml, used in travel time based a_star heuristic function
     double maxSegSpeed;
 
     /// Utility Parameters
-    UtilityParams params;
+	UtilityParams params;
 
     /// pt route choice model scripts params
-    ModelScriptsMap ServiceControllerScriptsMap;
+	ModelScriptsMap ServiceControllerScriptsMap;
 
 
 
@@ -594,31 +596,31 @@ struct BusControllerParams
 
  struct TrainDwellTimeInfo
  {
-     double dwellTimeAtNormalStation;
-     double dwellTimeAtInterchanges;
-     double dwellTimeAtTerminalStaions;
-     double maxDwellTime;
-     double firstCoeff;
-     double secondCoeff;
-     double thirdCoeff;
-     double fourthCoeff;
+	 double dwellTimeAtNormalStation;
+	 double dwellTimeAtInterchanges;
+	 double dwellTimeAtTerminalStaions;
+	 double maxDwellTime;
+	 double firstCoeff;
+	 double secondCoeff;
+	 double thirdCoeff;
+	 double fourthCoeff;
  };
 struct TrainProperties
 {
-    TrainProperties() :safeDistance(0), safeHeadway(0),maxCapacity(0)
-    {
+	TrainProperties() :safeDistance(0), safeHeadway(0),maxCapacity(0)
+	{
 
-    }
-    /// safe operation distance;
-    double safeDistance;
-    /// safe operation headway
-    double safeHeadway;
-    /// train capacity
-    unsigned int maxCapacity;
+	}
+	/// safe operation distance;
+	double safeDistance;
+	/// safe operation headway
+	double safeHeadway;
+	/// train capacity
+	unsigned int maxCapacity;
     /// train length
-    double trainLength;
-    double minDistanceTrainBehindForUnscheduledTrain;
-    TrainDwellTimeInfo dwellTimeInfo;
+	double trainLength;
+	double minDistanceTrainBehindForUnscheduledTrain;
+	TrainDwellTimeInfo dwellTimeInfo;
 };
 
 struct TrainControllerParams
@@ -626,9 +628,9 @@ struct TrainControllerParams
     /**
      * Constructor
      */
-    TrainControllerParams() : enabled(false), trainControlType(""),
-            safeDistance(0), safeHeadway(0), miniDwellTime(0),
-            maxDwellTime(0),outputEnabled(false),maxCapacity(0)
+	TrainControllerParams() : enabled(false), trainControlType(""),
+			safeDistance(0), safeHeadway(0), miniDwellTime(0),
+			maxDwellTime(0),outputEnabled(false),maxCapacity(0)
     {}
 
     /// Is train controller enabled?
@@ -649,7 +651,7 @@ struct TrainControllerParams
     /// train capacity
     unsigned int maxCapacity;
 
-    double distanceArrivingAtPlatform;
+	double distanceArrivingAtPlatform;
     std::map<const std::string,TrainProperties> trainLinePropertiesMap;
 };
 
@@ -664,11 +666,11 @@ struct BusStopScheduledTime {
 };
 
 struct TravelTimeConfig {
-    unsigned int intervalMS;
-    std::string fileName;
-    bool enabled;
+	unsigned int intervalMS;
+	std::string fileName;
+	bool enabled;
 
-    TravelTimeConfig() : intervalMS(0), fileName(""), enabled(false) {}
+	TravelTimeConfig() : intervalMS(0), fileName(""), enabled(false) {}
 };
 
 
@@ -693,17 +695,17 @@ struct TravelModeConfig
 
 struct MobilityServiceControllerConfig
 {
-    MobilityServiceControllerType type;
-    unsigned int scheduleComputationPeriod;
-    std::string tripSupportMode;
-    unsigned int maxFleetSize;
+	MobilityServiceControllerType type;
+	unsigned int scheduleComputationPeriod;
+	std::string tripSupportMode;
+	unsigned int maxFleetSize;
     unsigned int maxAggregatedRequests;
-    bool studyAreaEnabledController;
+	bool studyAreaEnabledController;
     unsigned int toleratedExtraTime;
     unsigned int maxWaitingTime;
     bool parkingEnabled;
 
-    MobilityServiceControllerConfig() : type(SERVICE_CONTROLLER_UNKNOWN), scheduleComputationPeriod(0), tripSupportMode(""),maxAggregatedRequests(0),studyAreaEnabledController(false),toleratedExtraTime(0),maxWaitingTime(0),parkingEnabled(false) {}
+	MobilityServiceControllerConfig() : type(SERVICE_CONTROLLER_UNKNOWN), scheduleComputationPeriod(0), tripSupportMode(""),maxAggregatedRequests(0),studyAreaEnabledController(false),toleratedExtraTime(0),maxWaitingTime(0),parkingEnabled(false) {}
 };
 
 /**
@@ -720,13 +722,13 @@ struct MobilityServiceControllerParams
     /// Is vehicle controller enabled?
     bool enabled;
 
-    /// Maps controller IDs to controller configurations
-    std::map<unsigned int, MobilityServiceControllerConfig> enabledControllers;
-    mutable std::string tripSupportModeList;
-    void makeTripSupportModeList(std::string Mode) const
-    {
-        tripSupportModeList.append(Mode);
-    }
+	/// Maps controller IDs to controller configurations
+	std::map<unsigned int, MobilityServiceControllerConfig> enabledControllers;
+	mutable std::string tripSupportModeList;
+	void makeTripSupportModeList(std::string Mode) const
+	{
+		tripSupportModeList.append(Mode);
+	}
 };
 
 /**
@@ -745,14 +747,14 @@ public:
     /**
      * Constructor
      */
-    RawConfigParams();
+	RawConfigParams();
 
     /**
      * Enumerator for simmobility running mode
      */
     enum SimMobRunMode
     {
-        UNKNOWN_RUN_MODE,
+    	UNKNOWN_RUN_MODE,
         SHORT_TERM,
         MID_TERM,
         LONG_TERM
@@ -762,15 +764,15 @@ public:
     SimMobRunMode simMobRunMode;
 
     /// "Constructs" for general re-use.
-    Constructs constructs;
+	Constructs constructs;
 
-    Schemas schemas;
+	Schemas schemas;
 
     /// Settings for Long Term Parameters
-    LongTermParams ltParams;
+	LongTermParams ltParams;
 
     /// pathset configuration file
-    std::string pathsetFile;
+	std::string pathsetFile;
 
     /// If loading from the database, how do we connect?
     DatabaseDetails networkDatabase;
@@ -794,7 +796,7 @@ public:
     TravelTimeConfig odTTConfig;
 
     //OD Travel Time configurations
-    TravelTimeConfig rsTTConfig;
+	TravelTimeConfig rsTTConfig;
 
 
     ///Some settings for bus stop arrivals/departures.
@@ -822,10 +824,10 @@ public:
     std::string subTripLevelTravelTimeOutput;
 
     /// Person characteristics parameters
-    PersonCharacteristicsParams personCharacteristicsParams;
+	PersonCharacteristicsParams personCharacteristicsParams;
 
     /// container for lua scripts
-    ModelScriptsMap luaScriptsMap;
+	ModelScriptsMap luaScriptsMap;
 
     ModelScriptsMap luaScriptsMapTC;
     ModelScriptsMap luaScriptsMapTimeCostPlusOne;
@@ -833,6 +835,12 @@ public:
     ModelScriptsMap luaScriptsMapTCZeroCostConstants;
 
     ModelScriptsMap predayLuaScriptsMap;
+
+    /// key:value (stored procedure name : value string) map
+    std::unordered_map<std::string, std::string> dbStoredProcMap;
+
+    /// key:value (table name : value string) map
+    std::unordered_map<std::string, std::string> dbTableNamesMap;
 
     /// key:value (travel mode id : travel mode string) map
     std::unordered_map<int, TravelModeConfig> travelModeMap;

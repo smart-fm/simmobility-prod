@@ -68,12 +68,28 @@ Role<Person_MT>* OnCallDriver::clone(Person_MT *person) const
     OnCallDriverBehaviour *driverBhvr = new OnCallDriverBehaviour();
     OnCallDriver *driver = new OnCallDriver(person, person->getMutexStrategy(), driverBhvr, driverMvt, "OnCallDriver");
 
-    driverBhvr->setParentDriver(driver);
-    driverBhvr->setOnCallDriver(driver);
-    driverMvt->setParentDriver(driver);
-    driverMvt->setOnCallDriver(driver);
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		PersonParams personInfo;
+//		if (MT_Config::getInstance().getEnergyModel()->getModelType() == "tripenergy")
+//		{
+//			personInfo.getVehicleParams().setVehicleStruct(MT_Config::getInstance().getEnergyModel()->initVehicleStruct("Bus"));
+//		}
+//		else
+		if (MT_Config::getInstance().getEnergyModel()->getModelType() == "simple") //jo
+		{
+			personInfo.getVehicleParams().setDrivetrain("BEV"); //jo
+			personInfo.getVehicleParams().setVehicleStruct(MT_Config::getInstance().getEnergyModel()->initVehicleStruct("BEV"));
+		}
+		driver->parent->setPersonInfo(personInfo);
+	}
 
-    return driver;
+	driverBhvr->setParentDriver(driver);
+	driverBhvr->setOnCallDriver(driver);
+	driverMvt->setParentDriver(driver);
+	driverMvt->setOnCallDriver(driver);
+
+	return driver;
 }
 
 void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message &message)

@@ -309,27 +309,6 @@ public:
      */
     const double& baseGranSecond() const;
 
-	/**
- 	* Retrieves a const reference to operational cost of ICE vehicle in $/km.
-	 *
- 	* @return const reference to operational cost of ICE
- 	*/
-	const double& operationalCostICE() const;
-
-	/**
- 	* Retrieves a const reference to operational cost of ICE vehicle in $/km.
-	 *
- 	* @return const reference to operational cost of ICE
- 	*/
-	const double& operationalCostHEV() const;
-
-	/**
- 	* Retrieves a const reference to operational cost of ICE vehicle in $/km.
-	 *
- 	* @return const reference to operational cost of ICE
- 	*/
-	const double& operationalCostBEV() const;
-
     /**
      * Checks whether to merge log files at the end of simulation
      * If true, we take time to merge the output of the individual log files after the simulation is complete.

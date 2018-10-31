@@ -15,209 +15,149 @@ class MesoReroute;
 class MesoPathMover
 {
 protected:
-	//Note: Be careful if you want to change the container type of Path.
-	//The functions in this class assume that Path is a container with random
-	//access iterators. They perform operations like it+n where n is an integer.
-	//If random access iterators are not available for Path, this class will
-	//not work as expected.
-	typedef std::vector<const SegmentStats*> Path;
-	Path path;
-	Path::iterator currSegStatIt;
+    //Note: Be careful if you want to change the container type of Path.
+    //The functions in this class assume that Path is a container with random
+    //access iterators. They perform operations like it+n where n is an integer.
+    //If random access iterators are not available for Path, this class will
+    //not work as expected.
+    typedef std::vector<const SegmentStats*> Path;
+    Path path;
+    Path::iterator currSegStatIt;
 
-	//representation of position within segment stats
-	double distToSegmentEnd;
+    //representation of position within segment stats
+    double distToSegmentEnd;
 
-	friend MesoReroute;
+    friend MesoReroute;
 
 public:
-	MesoPathMover() :
-			distToSegmentEnd(0)
-//aa{
-	, currSegStatIt(NULL)
-//aa}
-	{
-	}
+    MesoPathMover() :
+            distToSegmentEnd(0)
+    {
+    }
 
+    double getPositionInSegment() const
+    {
+        return this->distToSegmentEnd;
+    }
 
-	struct DriverPathTracker
-	{
-	private:
-		   Path::iterator startSegment;
-		   Path::iterator endSegment;
-#ifndef NDEBUG
-		   double dummyVariable;
-#endif
+    void setPositionInSegment(double distanceToEnd)
+    {
+        this->distToSegmentEnd = distanceToEnd;
+    }
 
+    bool isDrivingPathSet() const
+    {
+        return (!path.empty());
+    }
 
-	public:
-		   double startDistToEndSegment;
-		   double endDistToEndSegment;
-		   Path::iterator getStartSegmentIterator() const {return  startSegment;};
-		   Path::iterator getEndSegmentIterator() const {return  endSegment;};
+    /**
+     * sets path and resets the current iterator
+     * @param path the path to be set
+     */
+    void setPath(const std::vector<const SegmentStats*>& path);
+    const std::vector<const SegmentStats*>  getPath() const;
 
-		   void setStartSegmentIterator( Path::iterator  it)
-		   {
-#ifndef NDEBUG
-			   dummyVariable = (*it)->getLength();
-#endif
-			   startSegment=it;
-		   };
+    /**
+     * resets the path. used when the path changes enroute.
+     * This function changes the path and sets the currSegStatIt to the same
+     * SegmentStats* in the new path.
+     *
+     * @param newPath the new path to be set
+     */
+    void resetPath(const std::vector<const SegmentStats*>& newPath);
 
-		   void setEndSegmentIterator( Path::iterator  it )
-		   {
-//#ifndef NDEBUG //jo
-//			  // dummyVariable = (*it)->getLength();
-//#endif
-			   endSegment=it;
-		   }
+    /**
+     * Converts the given path consisting of way-points (given by route choice) into
+     * the required vector of Segment Stats
+     * @param pathWayPts path consisting of way-points (links)
+     * @param pathSegStats path consisting of segment stats
+     */
+    void buildSegStatsPath(const std::vector<WayPoint>& pathWayPts, std::vector<const SegmentStats*>& pathSegStats);
 
-	};
+    /**
+     * gets the SegmentStats* pointed by currSegStatIt in the path
+     * @return constant pointer to SegmentStats corresponding to currSegStatIt
+     *      or nullptr if currSegStatIt points to the end of the path
+     */
+    const SegmentStats* getCurrSegStats() const;
 
-	DriverPathTracker driverPathTracker;
+    void setSegmentStatIterator(const SegmentStats* currSegStats);
 
-	void initDriverPathTracking();
-	void finalizeDriverPathTracking();
+    /**
+     * gets the SegmentStats* corresponding to the element in path next to currSegStatIt
+     * @param inSameLink indicates whether the next SegmentStats* is requested
+     *      in the same link or adjacent link.
+     * @return constant pointer to SegmentStats corresponding to currSegStatIt+1
+     *      if currSegStatIt and currSegStatIt+1 are not end of path and
+     *      inSameLink condition is satisfied; nullptr otherwise.
+     */
+    const SegmentStats* getNextSegStats(bool inSameLink = true) const;
 
-	double getDistanceCovered() const;
+    /**
+     * gets the SegmentStats* corresponding to the element in path at currSegStatIt+2
+     * @return constant pointer to SegmentStats corresponding to currSegStatIt+1
+     *      if currSegStatIt, currSegStatIt+1 and currSegStatIt+2 are not end of path;
+     *      nullptr otherwise.
+     */
+    const SegmentStats* getSecondSegStatsAhead() const;
 
-	double getPositionInSegment() const
-	{
-		return this->distToSegmentEnd;
-	}
+    /**
+     * gets the SegmentStats* corresponding to the element in path before currSegStatIt
+     * @param inSameLink indicates whether the previous SegmentStats* is requested
+     *      in the same link or adjacent link.
+     * @return constant pointer to SegmentStats corresponding to currSegStatIt-1
+     *      if currSegStatIt is not the first element in path and
+     *      inSameLink condition is satisfied; nullptr otherwise.
+     */
+    const SegmentStats* getPrevSegStats(bool inSameLink = true) const;
 
-	void setPositionInSegment(double distanceToEnd)
-	{
-		this->distToSegmentEnd = distanceToEnd;
-	}
+    /**
+     * tells whether subsequent SegmentStats* in path is in same link or not
+     * @param inSameLink indicates whether the next SegmentStats* is requested
+     *      in the same link or adjacent link
+     * @return true nextSegment is available; false otherwise;
+     */
+    bool hasNextSegStats(bool inSameLink) const;
 
-	bool isDrivingPathSet() const
-	{
-		return (!path.empty());
-	}
+    bool isEndOfPath();
 
-	/**
-	 * sets path and resets the current iterator
-	 * @param path the path to be set
-	 */
-	void setPath(const std::vector<const SegmentStats*>& path);
-	const std::vector<const SegmentStats*>  getPath() const;
+    /**
+     * increments the currSegStatIt
+     */
+    void advanceInPath();
 
-	/**
-	 * resets the path. used when the path changes enroute.
-	 * This function changes the path and sets the currSegStatIt to the same
-	 * SegmentStats* in the new path.
-	 *
-	 * @param newPath the new path to be set
-	 */
-	void resetPath(const std::vector<const SegmentStats*>& newPath);
+    /**
+     * checks if currSegStatIt has reached the end of path
+     * @return (currSegStatIt == path.end())
+     */
+    bool isPathCompleted() const;
 
-	/**
-	 * Converts the given path consisting of way-points (given by route choice) into
-	 * the required vector of Segment Stats
-	 * @param pathWayPts path consisting of way-points (links)
-	 * @param pathSegStats path consisting of segment stats
-	 */
-	void buildSegStatsPath(const std::vector<WayPoint>& pathWayPts, std::vector<const SegmentStats*>& pathSegStats);
+    /**
+     * decrements the distToSegmentEnd by fwdDisplacement
+     * @param fwdDisplacement distance by which the driver has moved forward in segment stat
+     */
+    void moveFwdInSegStats(double fwdDisplacement);
+    void addPathFromCurrentSegmentToEndNodeOfLink();
+    void erasePathAfterCurrenrLink();
+    void appendRoute(std::vector<WayPoint> &routeToTaxiStand);
+    void appendSegmentStats(const std::vector<RoadSegment*>& roadSegments,Conflux *conflux);
+    void eraseFullPath();
 
-	/**
-	 * gets the SegmentStats* pointed by currSegStatIt in the path
-	 * @return constant pointer to SegmentStats corresponding to currSegStatIt
-	 * 		or nullptr if currSegStatIt points to the end of the path
-	 */
-	const SegmentStats* getCurrSegStats() const;
+    /**
+     * prints the seg stats path. useful for debugging
+     */
+    std::string printPath() const;
 
-	void setSegmentStatIterator(const SegmentStats* currSegStats);
+    /**
+     * gets the first segstats in the immediate downstream Link of nextSegStats
+     * @param segStats downstream seg stats for which downstream link is required
+     * @return first segstats in the immediate downstream Link of path
+     */
+    const SegmentStats* getFirstSegStatsInNextLink(const SegmentStats* segStats) const;
 
-	/**
-	 * gets the SegmentStats* corresponding to the element in path next to currSegStatIt
-	 * @param inSameLink indicates whether the next SegmentStats* is requested
-	 * 		in the same link or adjacent link.
-	 * @return constant pointer to SegmentStats corresponding to currSegStatIt+1
-	 * 		if currSegStatIt and currSegStatIt+1 are not end of path and
-	 * 		inSameLink condition is satisfied; nullptr otherwise.
-	 */
-	const SegmentStats* getNextSegStats(bool inSameLink = true) const;
-
-	/**
-	 * gets the SegmentStats* corresponding to the element in path at currSegStatIt+2
-	 * @return constant pointer to SegmentStats corresponding to currSegStatIt+1
-	 * 		if currSegStatIt, currSegStatIt+1 and currSegStatIt+2 are not end of path;
-	 * 		nullptr otherwise.
-	 */
-	const SegmentStats* getSecondSegStatsAhead() const;
-
-	/**
-	 * gets the SegmentStats* corresponding to the element in path before currSegStatIt
-	 * @param inSameLink indicates whether the previous SegmentStats* is requested
-	 * 		in the same link or adjacent link.
-	 * @return constant pointer to SegmentStats corresponding to currSegStatIt-1
-	 * 		if currSegStatIt is not the first element in path and
-	 * 		inSameLink condition is satisfied; nullptr otherwise.
-	 */
-	const SegmentStats* getPrevSegStats(bool inSameLink = true) const;
-
-	/**
-	 * tells whether subsequent SegmentStats* in path is in same link or not
-	 * @param inSameLink indicates whether the next SegmentStats* is requested
-	 * 		in the same link or adjacent link
-	 * @return true nextSegment is available; false otherwise;
-	 */
-	bool hasNextSegStats(bool inSameLink) const;
-
-	bool isEndOfPath();
-
-	/**
-	 * increments the currSegStatIt
-	 */
-	void advanceInPath();
-
-	/**
-	 * checks if currSegStatIt has reached the end of path
-	 * @return (currSegStatIt == path.end())
-	 */
-	bool isPathCompleted() const;
-
-	/**
-	 * decrements the distToSegmentEnd by fwdDisplacement
-	 * @param fwdDisplacement distance by which the driver has moved forward in segment stat
-	 */
-	void moveFwdInSegStats(double fwdDisplacement);
-	void addPathFromCurrentSegmentToEndNodeOfLink();
-	void erasePathAfterCurrenrLink();
-	void appendRoute(std::vector<WayPoint> &routeToTaxiStand);
-	void appendSegmentStats(const std::vector<RoadSegment*>& roadSegments,Conflux *conflux);
-	void eraseFullPath();
-
-	/**
-	 * prints the seg stats path. useful for debugging
-	 */
-	std::string printPath() const;
-
-	/**
-	 * gets the first segstats in the immediate downstream Link of nextSegStats
-	 * @param segStats downstream seg stats for which downstream link is required
-	 * @return first segstats in the immediate downstream Link of path
-	 */
-	const SegmentStats* getFirstSegStatsInNextLink(const SegmentStats* segStats) const;
-
-	//debug
-	///return string of path by aimsun section id
-	static std::string getPathString(const MesoPathMover::Path &path, const Node *node = 0);
-
-
-#ifndef NDEBUG
-	void consistencyChecks() const
-	{
-		if (*currSegStatIt != NULL && ( (currSegStatIt+1) != path.end() || currSegStatIt != path.end() ) )
-		{
-			std::cout<< (*currSegStatIt)->getLength();
-		}
-		//std::cout << "Consistency check for getLength called here; uncomment in MesoPathMover.cpp @ consistencyChecks()" << std::endl;
-	}
-#endif
-
-
-
+    //debug
+    ///return string of path by aimsun section id
+    static std::string getPathString(const MesoPathMover::Path &path, const Node *node = 0);
 };
 }
 }

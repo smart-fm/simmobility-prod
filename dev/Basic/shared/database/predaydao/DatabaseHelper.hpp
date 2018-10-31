@@ -71,10 +71,6 @@ const std::string DB_FIELD_HH_CHILDREN_UNDER_4 = "child_under4";
 const std::string DB_FIELD_HH_CHILDREN_UNDER_15 = "child_under15";
 const std::string DB_FIELD_HH_ADULTS = "adult";
 const std::string DB_FIELD_HH_WORKERS = "workers";
-const std::string DB_FIELD_V_ID = "vehicle_id";
-const std::string DB_FIELD_V_DRIVETRAIN = "vehicle_drivetrain";
-const std::string DB_FIELD_V_MAKE = "vehicle_make";
-const std::string DB_FIELD_V_MODEL = "vehicle_model";
 
 /**
  * Logsum fields
@@ -85,7 +81,6 @@ const std::string DB_FIELD_SHOP_LOGSUM = "shop";
 const std::string DB_FIELD_OTHER_LOGSUM = "other";
 const std::string DB_FIELD_DPT_LOGSUM = "dp_tour";
 const std::string DB_FIELD_DPS_LOGSUM = "dp_stop";
-const std::string DB_FIELD_DPB_LOGSUM = "dp_binary";
 
 const std::string DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT = "low_limit";
 const std::string DB_FIELD_VEHICLE_CATEGORY_NAME = "name";
@@ -159,6 +154,49 @@ const std::string DB_FIELD_TAZ = "taz";
 const std::string DB_FIELD_SUPPLY_NODE_ID = "id";
 
 const std::string DB_FIELD_ZONE_WITHOUT_NODE = "taz";
+/** get all individual ids from long-term population database */
+const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_IDS;
+
+/** load a specific individual by id */
+const std::string DB_GET_PERSON_BY_ID = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY; //argument to be passed
+
+/** load address taz mapping from LT database */
+const std::string DB_GET_ADDRESSES = "SELECT * FROM " + DB_SP_GET_ADDRESSES;
+
+/** load postcode to simmobility node mapping */
+const std::string DB_GET_POSTCODE_NODE_MAP = "SELECT * FROM " + DB_SP_GET_POSTCODE_NODE_MAP;
+
+/** load income categories */
+const std::string DB_GET_INCOME_CATEGORIES = "SELECT * FROM " + DB_TABLE_INCOME_CATEGORIES;
+
+/** load vehicle categories */
+const std::string DB_GET_VEHICLE_OWNERSHIP_STATUS = "SELECT * FROM " + DB_TABLE_VEHICLE_OWNERSHIP_STATUS;
+
+/** load Costs */
+const std::string DB_GET_ALL_AM_COSTS = "SELECT * FROM " + DB_TABLE_AM_COSTS;
+const std::string DB_GET_ALL_PM_COSTS = "SELECT * FROM " + DB_TABLE_PM_COSTS;
+const std::string DB_GET_ALL_OP_COSTS = "SELECT * FROM " + DB_TABLE_OP_COSTS;
+
+/** load zone-zone tt data for a given OD zones **/
+const std::string DB_GET_TCOST_PT_FOR_OD = "SELECT * FROM " + DB_TABLE_TCOST_PT +
+                                            " WHERE " + DB_FIELD_TCOST_ORIGIN + " = :origin"
+                                            "   AND " + DB_FIELD_TCOST_DESTINATION + " = :dest";
+
+const std::string DB_GET_TCOST_PVT_FOR_OD = "SELECT * FROM " + DB_TABLE_TCOST_PVT +
+                                            " WHERE " + DB_FIELD_TCOST_ORIGIN + " = :origin"
+                                            "   AND " + DB_FIELD_TCOST_DESTINATION + " = :dest";
+
+const std::string DB_GET_PUB_UNAVAILABLE_OD = "SELECT "+ DB_FIELD_TCOST_ORIGIN + ", " + DB_FIELD_TCOST_DESTINATION + " FROM " + DB_TABLE_TCOST_PT + " WHERE info_unavailable = TRUE";
+const std::string DB_GET_PVT_UNAVAILABLE_OD = "SELECT "+ DB_FIELD_TCOST_ORIGIN + ", " + DB_FIELD_TCOST_DESTINATION + " FROM " + DB_TABLE_TCOST_PVT + " WHERE info_unavailable = TRUE";
+
+/** load zones */
+const std::string DB_GET_ALL_ZONES = "SELECT * FROM " + DB_TABLE_TAZ;
+
+/** load node to zone mapping */
+const std::string DB_GET_ALL_NODE_ZONE_MAP = "SELECT * FROM " + DB_TABLE_NODE_ZONE_MAP;
+
+/** load zone without node mapping */
+const std::string DB_GET_ZONE_WITHOUT_NODE = "SELECT * FROM " + DB_TABLE_TAZ_WITHOUT_NODE;
 
 
 } // end namespace sim_mob

@@ -5,14 +5,13 @@
 <config>
     <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
     <!-- Admissible values are "logsum","activityschedule","predayfull", "withinday", "supply", and "midtermfull". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.-->
-    <mid_term_run_mode value="supply"/>
+    <mid_term_run_mode value="midtermfull"/>
+
     <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
 
     <db_proc_groups>
-        <!-- SimMobility Virtual City Network -->
-
-        <proc_map id="virtualcity" format="aimsun">
-	    <!-- Road Network Related stored procedures-->
+        <!-- SimMobility Singapore 2030 Network -->
+        <proc_map id="singapore_2030" format="aimsun">
             <mapping name="nodes" procedure="get_nodes()"/>
             <mapping name="links" procedure="get_links()"/>
             <mapping name="turning_groups" procedure="get_turning_groups()"/>
@@ -29,7 +28,7 @@
             <mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
             <mapping name="pt_edges" procedure="get_pt_tr_edges()"/>
             <mapping name="pt_vertices" procedure="get_pt_tr_vertices()"/>
-            <mapping name="pt_pathset" procedure="get_pt_pathset_tr"/>
+            <mapping name="pt_pathset" procedure="get_pt_pathset_full"/>
 	    <!-- Bus supply Related stored procedures-->
             <mapping name="bus_stops" procedure="get_bus_stops()"/>
             <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
@@ -43,15 +42,12 @@
             <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_train_dispatch_freq()"/>
             <mapping name="pt_mrt_block" procedure="get_pt_train_blocks()"/>
             <mapping name="pt_mrt_route" procedure="get_pt_train_route()"/>
-            <!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->
-	    <mapping name="pt_mrt_platform" procedure="get_pt_train_route_platform()"/>
-	    <mapping name="pt_mrt_block_polyline" procedure="get_pt_train_block_polylines()"/>
-	    <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
-	    <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
+            <mapping name="pt_mrt_platform" procedure="get_pt_train_route_platform()"/>
+            <mapping name="pt_mrt_block_polyline" procedure="get_pt_train_block_polylines()"/>
+            <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
+            <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
 	    <mapping name="get_uturn_platforms" procedure="get_pt_uturn_platforms()"/>
-	    <mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
-	    <!-- ERP (Electronic Road Pricing) Related stored procedures-->
-            <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
+            <!-- ERP (Electronic Road Pricing) Related stored procedures-->
             <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
             <mapping name="erp_section" procedure="get_erp_section()"/>
             <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
@@ -59,154 +55,56 @@
             <mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
-            <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
-            <!-- <mapping name="restricted_reg_links" procedure="get_mp_links()"/>-->
+            <mapping name="restricted_reg_nodes" procedure="get_mp_nodes()"/>
+            <mapping name="restricted_reg_links" procedure="get_mp_links()"/>
 	    <!-- Demand Related stored procedures-->
-            <mapping name="day_activity_schedule" procedure="get_persons_between_veh_energy_aditi"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between_das_2030_partial_restriction"/>
             <!-- <mapping name="freight_trips" procedure="get_freight_between"/> -->
 
 
             <!-- Smart Mobility Controller related stored procedures -->
-            <mapping name="taxi_fleet" procedure="get_vehicle_fleet_aditi"/>
-            <mapping name="sms_parking" procedure="get_parking_infra_aditi"/>
-            <mapping name="taxi_stands" procedure="get_taxi_stands()"/>
-            <mapping name="rail_sms_pathset" procedure="get_pt_pathset_railsms"/>
-            <mapping name="rail_sms_edges" procedure="get_pt_tr_edges_railsms()"/>
-            <mapping name="rail_sms_vertices" procedure="get_pt_tr_vertices_railsms()"/>
+            <mapping name="taxi_fleet" procedure="get_taxi_fleet_2030_partial_restriction"/>
+            <mapping name="sms_parking" procedure="get_parking()"/>
+            <mapping name="taxi_stands" procedure="get_taxi_stands_2030()"/>
+            <mapping name="rail_sms_pathset" procedure="get_pt_pathset_railsms_entiresg"/>
+            <mapping name="rail_sms_edges" procedure="get_pt_tr_edges_railsms_entiresg()"/>
+            <mapping name="rail_sms_vertices" procedure="get_pt_tr_vertices_railsms_entiresg()"/>
             <mapping name="loop_nodes" procedure="get_loop_nodes()" />
-            <!--- If the "studyAreaEnabledController" is true in simulation.xml then the following stored proc are required --> 
-            <!--<mapping name="studyArea_nodes" procedure="get_extmp_nodes()"/>
+            <!--- If the "study_area enabled" is true  then the following stored proc are required -->
+            <mapping name="studyArea_nodes" procedure="get_extmp_nodes()"/>
             <mapping name="studyArea_links" procedure="get_extmp_links()"/>
             <mapping name="studyArea_pvt_pathset" procedure="get_pvt_pathset_extmp"/>
 	        <mapping name="studyArea_blackListNodes" procedure="get_extmp_blackListNodes()"/>
 	        <mapping name="studyArea_rail_pathset" procedure="get_pt_pathset_railsms_extmp"/>
 	        <mapping name="studyArea_rail_edges" procedure="get_pt_tr_edges_railsms_extmp()"/>
-            <mapping name="studyArea_rail_vertices" procedure="get_pt_tr_vertices_railsms_extmp()"/>-->
+            <mapping name="studyArea_rail_vertices" procedure="get_pt_tr_vertices_railsms_extmp()"/>
+    </proc_map>
 
-        <!-- Stored Procedures shifted from DatabaseHelper.hpp -->
-            <mapping name="person_ids" procedure="getindividualids()"/>
-            <mapping name="individual_by_id" procedure="getindividualbyidwithvehicle(:_id)"/>
-    	    <mapping name="addresses" procedure="getaddresses()"/>
-            <mapping name="postcode_node_map" procedure="get_postcode_node_map()"/>    
-      
-      </proc_map>
-
-        <!-- Singapore network -->
-
-        <proc_map id="singapore" format="aimsun">
-	    <!-- Road Network Related stored procedures-->
-             <mapping name="nodes" procedure="get_test_singapore_nodes()"/>
-            <mapping name="links" procedure="get_singapore_links()"/>
-            <mapping name="turning_groups" procedure="get_test_singapore_turning_groups()"/>
-            <mapping name="turning_paths" procedure="get_test_singapore_turning_paths()"/>
-            <mapping name="turning_polylines" procedure="get_test_singapore_turning_polylines()"/>
-            <mapping name="turning_conflicts" procedure="get_test_singapore_turning_conflicts()"/>
-            <mapping name="road_segments" procedure="get_test_singapore_road_segments()"/>
-            <mapping name="segment_polylines" procedure="get_test_singapore_segment_polylines()"/>
-            <mapping name="lanes" procedure="get_test_singapore_lanes()"/>
-            <mapping name="lane_polylines" procedure="get_test_singapore_lane_polylines()"/>
-            <mapping name="lane_connectors" procedure="get_test_singapore_lane_connectors()"/>
-            <mapping name="screen_line" procedure="get_screen_line_segments()"/>
-	    <!-- Path Related stored procedures (PRIVATE+PUBLIC)-->
-            <mapping name="pvt_pathset" procedure="get_pvt_pathset"/>
-            <mapping name="pt_vertices" procedure="get_pt_map_trvertices()"/>
-            <mapping name="pt_edges" procedure="get_pt_map_tredges()"/>
-            <mapping name="pt_pathset" procedure="get_pt_pathset_full"/>
-	    <!-- Bus supply Related stored procedures-->
-            <mapping name="bus_stops" procedure="get_singapore_bus_stops_17feb()"/>
-            <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
-            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
-            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
-            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes_17feb()"/>
-            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops_17feb()"/>
-            <mapping name="pt_stop_stats" procedure="get_pt_stop_stats()"/>
-	    <!-- Train Related stored procedures-->
-            <!-- This procedure returns platforms from pt_platform table with many data fields -->
-            <mapping name="pt_platform" procedure="get_pt_platforms_test()"/>
-            <mapping name="pt_mrt_dispatch_freq" procedure="get_pt_mrt_dispatch_freq()"/>
-            <mapping name="pt_mrt_block" procedure="get_pt_blocks_test()"/>
-            <mapping name="pt_mrt_route" procedure="get_pt_mrt_route_test()"/>
-            <!-- This procedure returns platforms from pt_mrt_platform with only lineid,Sequenceno,platformNo fields -->
-            <mapping name="pt_mrt_platform" procedure="get_pt_mrt_platform_test()"/>
-            <mapping name="pt_mrt_block_polyline" procedure="get_pt_block_polylines_test()"/>
-            <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
-            <mapping name="rail_transit_edges" procedure="get_rail_transit_edges()"/>
-            <mapping name="pt_opposite_lines" procedure="get_pt_opposite_lines()"/>
-            <mapping name="get_train_fleet" procedure="get_train_fleet()"/>
-            <mapping name="get_uturn_platforms" procedure="get_pt_uturn_platforms()"/>
-            <mapping name="get_train_line_properties" procedure="get_pt_train_line_properties()"/>
-	    <!-- ERP (Electronic Road Pricing) Related stored procedures-->
-            <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
-            <mapping name="erp_section" procedure="get_erp_section()"/>
-            <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
-	    <!-- Demand Related stored procedures-->
-            <mapping name="day_activity_schedule" procedure="get_persons_between_veh_all"/>
-            <mapping name="freight_trips" procedure="get_testfreight_between"/>
-	    <!-- Restricted Region (if a region needs to be filtered) Related stored procedures-->
-            <!--<mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
-            <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
-            <mapping name="restricted_reg_nodes" procedure="get_changi_nodes()"/>
-            <mapping name="restricted_reg_links" procedure="get_changi_links()"/>-->
-
-        <!-- Stored Procedures shifted from DatabaseHelper.hpp -->
-            <mapping name="person_ids" procedure="getindividualids_100k()"/>
-            <mapping name="individual_by_id" procedure="getindividualbyidforpredaywithvehicle_100k(:_id)"/>
-    	    <mapping name="addresses" procedure="getaddresses()"/>
-            <mapping name="postcode_node_map" procedure="get_postcode_node_map()"/>
-
-	
-        </proc_map> 
+        
     </db_proc_groups>
 
-<db_table_groups>
-        <!-- SimMobility Virtual City Network -->
-        <tablenames_map id="simmobcity" format="aimsun">
-            <mapping name="INCOME_CATEGORIES" tablename="income_category"/>
-            <mapping name="VEHICLE_OWNERSHIP_STATUS" tablename="vehicle_ownership_status"/>
-            <mapping name="AM_COSTS" tablename="learned_amcosts"/>
-            <mapping name="PM_COSTS" tablename="learned_pmcosts"/>
-            <mapping name="OP_COSTS" tablename="learned_opcosts"/>
-            <mapping name="TAZ" tablename="taz_2012"/>
-            <mapping name="TCOST_PVT" tablename="learned_tcost_car"/>
-            <mapping name="TCOST_PT" tablename="learned_tcost_bus"/>
-            <mapping name="NODE_ZONE_MAP" tablename="node_taz_map"/>
-            <mapping name="TAZ_WITHOUT_NODE" tablename="taz_without_node"/>
-            <mapping name="SUPPLY_NODE" tablename="node"/>
-           
-        </tablenames_map>
-
-        <!-- SimMobility Singapore Network -->
-        <tablenames_map id="singapore" format="aimsun">
-            <mapping name="INCOME_CATEGORIES" tablename="income_category"/>
-            <mapping name="VEHICLE_OWNERSHIP_STATUS" tablename="vehicle_ownership_status"/>
-            <mapping name="AM_COSTS" tablename="learned_amcosts"/>
-            <mapping name="PM_COSTS" tablename="learned_pmcosts"/>
-            <mapping name="OP_COSTS" tablename="learned_opcosts"/>
-            <mapping name="TAZ" tablename="taz_2012"/>
-            <mapping name="TCOST_PVT" tablename="learned_tcost_car"/>
-            <mapping name="TCOST_PT" tablename="learned_tcost_bus"/>
-            <mapping name="NODE_ZONE_MAP" tablename="node_taz_map"/>
-            <mapping name="TAZ_WITHOUT_NODE" tablename="taz_without_node"/>
-            <mapping name="SUPPLY_NODE" tablename="node"/>
-           
-        </tablenames_map>
-    </db_table_groups>
+<!-- config used for enabling/Disableing OnCallTaxiTrajectory and OnHailTaxiTrajectory -->
+<onCallTaxiTrajectory enabled="false"/>
+<onHailTaxiTrajectory enabled="false"/>
 
     <!-- location of the config file for loading pathset generation or route choice related info -->
     <pathset_config_file value="data/pathset_config.xml" />
 
-    <system>
-        <!-- If loading from the database, which database, proc_map, and credentials are used? -->
-        <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="virtualcity" tablenames_map="simmobcity"/>
-        <population_database  database="fm_hpchead" credentials="fm_hpchead" proc_map="" tablenames_map="simmobcity"/> 
-        <!-- the config file. This is intended to be used for new or temporary features for quick testing. -->
-        <generic_props>
-            <!-- <property key="sampleproperty" value="samplevalue"/> -->
-        </generic_props>
-    </system>
-    
-    <!-- List of all Worker types and their properties. -->
-    <!-- granularity of each component must be a multiple of the "base" granularity -->
+<system>
+    <!-- If loading from the database, which database, proc_map, and credentials are used? -->
+    <network_database database="fm_hpchead" credentials="fm_hpchead" proc_map="singapore_2030"/>
+        <population_database  database="fm_remote" credentials="fm_local" proc_map=""/>
+
+    <!-- The parser will simply load everything in "generic_props" section into "SystemParams.genericProps".  -->
+    <!-- In other words, you DO NOT need to update the parser just to add a simple string-based configuration parameter to -->
+    <!-- the config file. This is intended to be used for new or temporary features for quick testing. -->
+    <generic_props>
+        <!-- <property key="sampleproperty" value="samplevalue"/> -->
+    </generic_props>
+</system>
+
+<!-- List of all Worker types and their properties. (thread count) -->
+<!-- granularity of each component must be a multiple of the "base" granularity -->
     <!-- default value "base" granularity for mid-term is 5 seconds-->
 <workers>
         <person count="10" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
@@ -259,12 +157,6 @@
 <!-- config used for enabling region restriction for private vehicles. The region must be pre-defined and kept in the database. The corresponding functions must be provided in the proc_map -->
 <region_restriction enabled="false"/>
 
-<!-- config used for enabling/Disableing OnCallTaxiTrajectory and OnHailTaxiTrajectory -->
-<onCallTaxiTrajectory enabled="true"/> <!-- -->
-<onHailTaxiTrajectory enabled="false"/> <!-- -->
-<!-- config used for enabling study Area for private vehicles. The region must be pre-defined and kept in the database. The corresponding functions must be provided in the proc_map -->
-    <study_area enabled = "false"/>
-
 <!-- the time interval in seconds for collection of link travel times -->
 <travel_time_update interval="300" />
 
@@ -290,7 +182,7 @@
     <bus_default_capacity value="100"/>
 
         <!-- the threads number for person loader for Mid Term Supply. -->
-        <thread_number_in_person_loader value="5"/>
+        <thread_number_in_person_loader value="15"/>
 
         <!-- SUPPLY OUTPUT-->
     <!-- file names to output statistics from supply -->
@@ -327,26 +219,22 @@
         <script name="wdmso" file="wdmso.lua"/> <!--within-day mode choice for work shopping and other trips-->
         <script name="rsc" file="rsc.lua"/><!-- rail service controller -->
     </model_scripts>
+</supply>
 
-    	  <!-- flag to control if Energy Model should be run: tripenergy, simple or tripenergySO  -->
-    	  <!-- NOTE: tripenergy methods rely on static library Basic/medium/models/tripEnergySO/libTripEnergySO.a, for use in Tripod project only. -->
-        <energy_model enabled="true" type="simple" params="data/energy_model_params.xml" outputtrips="true" outputtripfile="energy_output.csv" outputlinks="false"/>
-    </supply>                                      
-            
     <!-- ======================= PRE-DAY ======================== -->
     <!-- config specific to PRE-DAY simulator -->
 <preday>
     <!-- Number of threads to create for processing the population in-->
     <!-- the preday demand simulator -->
-        <threads value="10"/>
+        <threads value="1"/>
     <!-- outputs the preday predictions as activity schedule in CSV format if enabled with simulation run_mode -->
     <output_activity_schedule enabled="true"/>
     <!-- prints person ids and tour details in console for each person if enabled -->
     <console_output enabled="true"/>
     <!-- table containing logsums for each individual in the population. NOTE:  -->
-        <logsum_table name="demand.preday_logsum_energy_testing_nishant"/>
+        <logsum_table name="demand.preday_logsum"/>
         <!-- table containing activity schedule of each individual in the population. -->
-        <activity_schedule_table schema="demand" table="das_calib" procedure="update_das_table" fileName="activity_schedule" vehicleTable="virtual_city.vehicle"/>
+        <activity_schedule_table schema="demand" table="das_calib" procedure="update_das_table" fileName="activity_schedule"/>
 
         <!-- model scripts for PRE-DAY -->
         <model_scripts path="scripts/lua/mid/behavior_vc" format="lua">

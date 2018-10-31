@@ -167,7 +167,7 @@ public:
         {
             return "waitTaxiActivity";
         }
-        if (mode == "Motorcycle" || mode == "Bike")
+        if (mode == "Motorcycle")
         {
             return "biker";
         }

@@ -488,6 +488,22 @@ ENDIF (${SIMMOB_PROFILE_ON} MATCHES "ON")
 find_package(Threads REQUIRED)
 LIST(APPEND LibraryList ${CMAKE_THREAD_LIBS_INIT})
 
+# Link to Splinter Library
+#find_package(SPLINTER REQUIRED)
+#include_directories(${SPLINTER_INCLUDE_DIR})
+#LIST(APPEND LibraryList ${SPLINTER_LIBRARY})
+##LIST(APPEND LibraryList /usr/local/lib/libsplinter-3-0.so)
+
+# Link to TripEnergy Library
+# TODO: Write Find module for optional TripEnergy library or configure path from XML (Jimi - Mar12)
+#LIST(APPEND LibraryList ${CMAKE_SOURCE_DIR}/medium/models/tripEnergySO/libTripEnergySO.a)
+#TODO: Put this in private/models and create find module accordingly
+#find_package(TripEnergySO)
+#if(TRIPENERGYSO_FOUND)
+#  include_directories(${TRIPENERGYSO_INCLUDE_DIR})
+#  LIST(APPEND LibraryList ${TRIPENERGYSO_LIBRARY})
+#endif(TRIPENERGYSO_FOUND)
+LIST(APPEND LibraryList ${CMAKE_SOURCE_DIR}/medium/models/tripEnergySO/libTripEnergySO.a)
 
 #Remove duplicates, just in case
 #TODO: We should probably build up a list of IncludeDirs and LibraryDirs too (duplicates removed)

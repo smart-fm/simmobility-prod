@@ -162,6 +162,21 @@ public:
         finalPointDriverDistance = DriverDistance;
     }
 
+    const unsigned long getSharingCount() const
+    {
+        return maxSharingCount;
+    }
+
+    void setSharingCount(const unsigned long currentCount)
+    {
+        maxSharingCount = std::max(maxSharingCount, currentCount);
+    }
+
+    void resetSharingCount()
+    {
+        maxSharingCount = 0;
+    }
+
 private:
     friend class PassengerBehavior;
     friend class PassengerMovement;
@@ -192,6 +207,9 @@ private:
      */
     double startPointDriverDistance =0.0;
     double finalPointDriverDistance=0.0;
+
+    /**Max number of people this person shares an on-call ride with*/
+    unsigned long maxSharingCount = 0;
 };
 
 }

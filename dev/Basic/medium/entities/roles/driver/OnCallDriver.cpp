@@ -4,6 +4,7 @@
 
 #include "OnCallDriver.hpp"
 #include "conf/ConfigManager.hpp"
+#include "config/MT_Config.hpp" //jo
 
 using namespace sim_mob;
 using namespace medium;
@@ -67,12 +68,28 @@ Role<Person_MT>* OnCallDriver::clone(Person_MT *person) const
     OnCallDriverBehaviour *driverBhvr = new OnCallDriverBehaviour();
     OnCallDriver *driver = new OnCallDriver(person, person->getMutexStrategy(), driverBhvr, driverMvt, "OnCallDriver");
 
-    driverBhvr->setParentDriver(driver);
-    driverBhvr->setOnCallDriver(driver);
-    driverMvt->setParentDriver(driver);
-    driverMvt->setOnCallDriver(driver);
+	if (MT_Config::getInstance().isEnergyModelEnabled())
+	{
+		PersonParams personInfo;
+//		if (MT_Config::getInstance().getEnergyModel()->getModelType() == "tripenergy")
+//		{
+//			personInfo.getVehicleParams().setVehicleStruct(MT_Config::getInstance().getEnergyModel()->initVehicleStruct("Bus"));
+//		}
+//		else
+		if (MT_Config::getInstance().getEnergyModel()->getModelType() == "simple") //jo
+		{
+			personInfo.getVehicleParams().setDrivetrain("BEV"); //jo
+			personInfo.getVehicleParams().setVehicleStruct(MT_Config::getInstance().getEnergyModel()->initVehicleStruct("BEV"));
+		}
+		driver->parent->setPersonInfo(personInfo);
+	}
 
-    return driver;
+	driverBhvr->setParentDriver(driver);
+	driverBhvr->setOnCallDriver(driver);
+	driverMvt->setParentDriver(driver);
+	driverMvt->setOnCallDriver(driver);
+
+	return driver;
 }
 
 void OnCallDriver::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message &message)
@@ -569,6 +586,12 @@ void OnCallDriver::pickupPassenger()
     passenger->setStartPointDriverDistance(movement->getTravelMetric().distance);
     passenger->setEndPoint(personPickedUp->currSubTrip->destination);
     passenger->Movement()->startTravelTimeMetric();
+    passenger->resetSharingCount();
+
+    for (auto &p : passengers)
+    {
+        p.second->setSharingCount(getPassengerCount());
+    }
 
     ControllerLog() << "Pickup succeeded for " << passengerId << " at time " << parent->currTick
     << " with startNodeId " << conflux->getConfluxNode()->getNodeId()<<conflux->getConfluxNode()->printIfNodeIsInStudyArea()<<" and  destinationNodeId "
@@ -617,14 +640,18 @@ void OnCallDriver::dropoffPassenger()
     medium::Conflux *conflux = segStats->getParentConflux();
     passengerToBeDroppedOff->setFinalPointDriverDistance(movement->getTravelMetric().distance);
     conflux->dropOffTraveller(person);
+    const auto maxSharingCount = passengerToBeDroppedOff->getSharingCount();
 
     //Remove passenger from vehicle
     passengers.erase(itPassengers);
     ++passengerInteractedDropOff;
     setCurrentNode(conflux->getConfluxNode());
-    ControllerLog() << "Drop-off of user " << person->getDatabaseId() << " at time "
-                    << parent->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()<<conflux->getConfluxNode()->printIfNodeIsInStudyArea()<<"and driverId " <<
-                    getParent()->getDatabaseId() << std::endl;
+	ControllerLog() << "Drop-off of user " << person->getDatabaseId() << " at time "
+	                << parent->currTick << ", destinationNodeId " << conflux->getConfluxNode()->getNodeId()
+                    << conflux->getConfluxNode()->printIfNodeIsInStudyArea()
+                    << "and driverId " << getParent()->getDatabaseId()
+                    << ". This person shared the vehicle with a maximum of "
+                    << maxSharingCount << " people." << std::endl;
 
     auto itemList = sameNodeItems.equal_range(*driverSchedule.getCurrScheduleItem());
 

@@ -11,6 +11,7 @@
 #include "behavioral/params/ZoneCostParams.hpp"
 #include "behavioral/PredayUtils.hpp"
 #include <unordered_set>
+#include "conf/ConfigManager.hpp"
 
 namespace sim_mob
 {

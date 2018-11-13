@@ -51,10 +51,9 @@ void OnCallDriverMovement::frame_init()
     onCallDriver->subscribeToController();
     sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
     const SMSVehicleParking *parking = nullptr;
-    auto controllerIt = config.mobilityServiceController.enabledControllers.begin();
-    while(controllerIt != config.mobilityServiceController.enabledControllers.end() && (*controllerIt).second.type!= SERVICE_CONTROLLER_ON_HAIL)
+    for(auto mobiltyServiveController : onCallDriver->getSubscribedControllers())
     {
-        if ((*controllerIt).second.parkingEnabled)
+        if (mobiltyServiveController->parkingEnabled)
         {
             parking = SMSVehicleParking::smsParkingRTree.searchNearestObject(currNode->getPosX(), currNode->getPosY());
             Schedule schedule;
@@ -94,7 +93,6 @@ void OnCallDriverMovement::frame_init()
  //Begin performing schedule.
         performScheduleItem();
         onCallDriver->getParent()->setCurrSegStats(pathMover.getCurrSegStats());
-        controllerIt++;
     }
 }
 

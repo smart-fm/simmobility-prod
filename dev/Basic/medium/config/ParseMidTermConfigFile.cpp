@@ -99,7 +99,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 		processTripChainOutputNode(GetSingleElementByName(rootNode, "trip_chain_output"));
 		processOnCallTaxiTrajectoryNode(GetSingleElementByName(rootNode, "onCallTaxiTrajectory"));
 		processOnHailTaxiTrajectoryNode(GetSingleElementByName(rootNode, "onHailTaxiTrajectory"));
-
+        processEnergyModelNode(GetSingleElementByName(rootNode, "energy_model", true));
 
 		if (mtCfg.RunningMidFullLoop())
 		{
@@ -151,7 +151,6 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 	processSpeedDensityParamsNode(GetSingleElementByName(node, "speed_density_params", true));
 	cfg.luaScriptsMap = processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
-	processEnergyModelNode(GetSingleElementByName(node, "energy_model", true));
 }
 
 

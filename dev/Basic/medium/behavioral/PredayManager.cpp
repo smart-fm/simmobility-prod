@@ -1014,7 +1014,7 @@ void PredayManager::updateDayActivityScheduleTable()
 	query.execute();
 
 	/// Create the table
-	if (!MT_Config::getInstance().isEnergyModelEnabled())
+	if (!(MT_Config::getInstance().isEnergyModelEnabled()))
     {
 		query = (sql_.prepare << "CREATE TABLE " << tableName
 							  << "(person_id character varying,"
@@ -1053,9 +1053,9 @@ void PredayManager::updateDayActivityScheduleTable()
 									  "prev_stop_zone integer,"
 									  "prev_stop_departure_time numeric,"
 									  "pid bigserial NOT NULL, "
-									  "drivetrain character varying,"
-									  "make character varying,"
-									  "model character varying"
+									  "drivetrain character varying DEFAULT 'ICE',"
+									  "make character varying  DEFAULT ' ',"
+									  "model character varying  DEFAULT ' '"
 									  ") WITH (OIDS=FALSE)");
 	}
 	query.execute();
@@ -1066,11 +1066,19 @@ void PredayManager::updateDayActivityScheduleTable()
 
 	PG_BulkInserter bulkInserter(NUM_INSERTS_PER_QUERY);
 	bulkInserter.setInputFile(mtCfg.dasConfig.fileName);
-
-	std::vector<std::string> columnNames = {"person_id", "tour_no", "tour_type", "stop_no", "stop_type", "stop_location",
-											"stop_zone", "stop_mode", "primary_stop", "arrival_time", "departure_time",
-											"prev_stop_location", "prev_stop_zone", "prev_stop_departure_time"};
-
+    std::vector<std::string> columnNames;
+    if(!(MT_Config::getInstance().isEnergyModelEnabled()))
+    {
+        columnNames = {"person_id", "tour_no", "tour_type", "stop_no", "stop_type", "stop_location",
+                                                "stop_zone", "stop_mode", "primary_stop", "arrival_time", "departure_time",
+                                                "prev_stop_location", "prev_stop_zone", "prev_stop_departure_time"};
+    }
+    else
+    {
+        columnNames = {"person_id", "tour_no", "tour_type", "stop_no", "stop_type", "stop_location",
+                       "stop_zone", "stop_mode", "primary_stop", "arrival_time", "departure_time",
+                       "prev_stop_location", "prev_stop_zone", "prev_stop_departure_time","drivetrain","make","model"};
+    }
 	bulkInserter.buildQuery(tableName, columnNames);
 	bulkInserter.connect(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 	bulkInserter.bulkInsert();

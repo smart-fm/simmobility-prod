@@ -1,19 +1,39 @@
-Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+The SIMMOBILITY Version Control License
+#######################################
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Copyright 2017 Massachusetts Institute of Technology. All Rights Reserved Permission is hereby granted, free of charge, for non-commercial use, to any person obtaining a copy of this software and associated documentation files subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+1. Definitions.
+  - "Package" refers to the Standard Version, modifications of Standard Version and the combination of Standard Version and any modifications and/or respective portions thereof.
+  - "Standard Version" refers to the source code originally made available under this license, including the modifications and/or upgrades to the original source code, by Massachusetts Institute of Technology or by other contributors, if such modifications and/or upgrades were integrated in accordance with the terms of this Agreement.
+  - "Copyright Holder" is whoever is named in the copyright or copyrights for any part of the changing codebase.
+  - "You" means an individual or a legal entity exercising rights under this license to download, copy, install, execute, display or distribute Standard Version and/or Package.
+"Reasonable copying fee" is whatever You can justify on the basis of media cost, duplication charges, time of people involved, and so on. (You will not be required to justify it to the Copyright Holder, but only to the computing community at large as a market that must bear the fee.)
+  - "Freely Available" means that no fee is charged for the item itself, though there may be fees involved in handling the item. It also means that recipients of the item may redistribute it under the same conditions they received it.
+ 
+2. You may make and distribute verbatim copies of the source code of the Standard Version for non-commercial use without restriction, provided that You duplicate all of the original copyright notices and associated disclaimers.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+3. You may otherwise modify Your copy of the Standard Version in any way, provided that You insert a prominent notice in each changed file stating how and when You changed that file, You post Your modifications
+on https://github.com/smart-fm/simmobility-prod/ and provided that You do at least ONE of the following:
+  a. place Your modifications in the Public Domain; or otherwise make them Freely Available and allow the Massachusetts Institute of Technology to include Your modifications in the Standard Version; and if Your modifications are not accepted under the Standard Version, then identify your distribution of the SIMMOBILITY source code as a “Package” under this License 
+  b. use the modified Package only within Your corporation or organization.
+  c. make other distribution arrangements with the Copyright Holder(s).
+
+4. With the Massachusetts Institute of Technology’s written permission, a Package modified in such a way may be included into the Standard Version. The Massachusetts Institute of Technology designates and controls the version number and content of the Standard Version.
+
+5. You may distribute the programs of the Standard Version or of a Package in object code or executable form, provided that You do at least ONE of the following:
+  a. distribute a Standard Version of the executables and library files, together with instructions (in the manual page or equivalent) on where to obtain the source form of the Standard Version.
+  b. accompany the distribution with the source code of Your Package.
+  c. make other distribution arrangements with the Copyright Holder(s).
+  
+6. You may charge a Reasonable Copying Fee for any distribution of Your Package. You may not charge a fee for Your Package itself.
+
+7. The Standard Version or a Package or any part comprising either cannot be commercially sold. Files and data supplied as inputs to or produced as outputs from the Standard Version or Package do not automatically fall under MIT’s copyright, and may be used commercially for business purposes. To support development of new products and services, MIT grants rights to use and reproduce the Standard Version or Package in this limited commercial context provided there is no sale of SimMobility.  Any other commercial use may require additional licenses which may be obtained from MIT’s Technology Licensing Office (www.tlo.mit.edu) 
+
+8. The name of the Copyright Holder(s) may not be used to endorse or promote products derived from this software without specific prior written permission. In addition, You shall not use the name of "Massachusetts Institute of Technology," "SimMobility" or any variation, adaptation, or abbreviation thereof, or of any of its trustees, officers, faculty, students, employees, or agents, or any trademark owned by M.I.T. in any promotional material, naming convention, or other public announcement, endorsement, or disclosure without the prior written consent and approval of M.I.T.
+
+9. THIS PACKAGE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, NOR REPRESENTATION THAT THE PACKAGE DOES NOT INFRINGE THE INTELLECTUAL PROPERTY RIGHTS OF ANY THIRD OARTY.	The Copyright Holder(s) has no obligation to assist in your installation or use of the Package or to provide services or maintenance of any type with respect to the Package. The entire risk as to the quality and performance of the Package is borne by You. You acknowledge that the Package may contain errors or bugs. You must determine whether the Package sufficiently meets your requirements. This disclaimer of warranty constitutes an essential part of this license.
+
+10. IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE TO YOU FOR ANY CLAIM, LOST PROFITS OR OTHER INDIRECT, PUNITIVE, INCIDENTAL OR CONSEQUENTIAL DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR RELATING TO THE SUBJECT MATTER OF THIS AGREEMENT.
+
+If terms differing from those above are desired, please contact the Massachusetts Institute of Technology’s Technology Licensing Office End-Use Software Licensing Coordinator, +1 617-253-6966."

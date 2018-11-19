@@ -10,11 +10,11 @@ SimMoblity is a mobility simulation platform that aims to serve as the nexus of 
 
 ## Installing and using SimMobility
 
-All the informaiton on the intallation, usage, models and code is available at https://github.com/smart-fm/simmobility/wiki
+All the informaiton on the intallation, usage, models and code is available at https://github.com/smart-fm/simmobility-prod/wiki
 
 ## License
 
-By downloading or using SimMobility,you have read and agreed to the Terms in the <a href="https://github.com/smart-fm/simmobility/blob/master/license.txt" download target="_blank">SIMMOBILITY Version Control License</a>
+By downloading or using SimMobility, you have read and agreed to the Terms in the <a href="https://github.com/smart-fm/simmobility-prod/blob/master/license.txt" download target="_blank">SIMMOBILITY Version Control License</a>
 
 ## Getting help
 

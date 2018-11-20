@@ -24,7 +24,12 @@ Contributions can be made by submitting pull requests via GitHub.
 
 ## Citing SimMobility
 
-Missing link to citations.
+* [SimMobility: A Multi-Scale cale Integrated  Agent-based Simulation Platform](https://github.com/kakalibasak/wiki-images/blob/master/SimMobility%20Paper_revised%20version.pdf)
+
+For Individual Level
+* [SimMobility Short-term: An Integrated Microscopic Mobility Simulator](https://github.com/kakalibasak/wiki-images/blob/master/2017_TRR_SimMobility%20Short-term.pdf)
+
+* [SimMobility Mid-Term Simulator: A State of the Art Integrated Agent Based Demand and Supply Model](https://github.com/kakalibasak/wiki-images/blob/master/15-3937-%20TRB%20MT%20PAPER.pdf)
 
 ## Useful Links
 

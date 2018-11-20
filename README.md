@@ -1,7 +1,7 @@
 # SimMobility
 
-[![Build Status]()]()
-[![License]()]()
+![Build Status](https://img.shields.io/shippable/:projectId/:branch.svg)
+[![License]()](https://github.com/smart-fm/simmobility-prod/blob/master/license.txt)
 [![DOI]()]()
 [![Latest Version]()]()
 

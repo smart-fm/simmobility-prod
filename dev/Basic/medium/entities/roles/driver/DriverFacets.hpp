@@ -4,7 +4,6 @@
 
 #pragma once
 #include "../../../../shared/behavioral/params/PersonParams.hpp"
-#include "../../../models/tripEnergySO/tripEnergySO.h"
 #include "conf/settings/DisableMPI.h"
 #include "entities/conflux/Conflux.hpp"
 #include "DriverUpdateParams.hpp"

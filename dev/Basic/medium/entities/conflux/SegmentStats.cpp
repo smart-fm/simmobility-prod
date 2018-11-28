@@ -9,9 +9,6 @@
 #include "entities/BusStopAgent.hpp"
 #include "entities/roles/driver/OnHailDriverFacets.hpp"
 #include "entities/TaxiStandAgent.hpp"
-//aa{
-#include "models/TripEnergyModel.hpp"
-//aa}
 
 
 using std::string;

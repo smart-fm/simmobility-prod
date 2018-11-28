@@ -11,7 +11,6 @@
 #include "behavioral/CalibrationStatistics.hpp"
 #include "models/EnergyModelBase.hpp"
 #include "models/SimpleEnergyModel.hpp"
-#include "models/TripEnergyModel.hpp"
 #include "models/ParseEnergyModelXmlConfig.hpp" //jo - Mar13, needs this to parse params XML
 
 #include "path/ParsePathXmlConfig.hpp"
@@ -343,20 +342,13 @@ void ParseMidTermConfigFile::processEnergyModelNode(xercesc::DOMElement* node)
 			// Set energy model type (currently only Simple and TripEnergy supported)
 			std::string modelType = ParseString(GetNamedAttributeValue(node, "type"), "simple");
 			EnergyModelBase* energyModel;
-			if (modelType == "tripenergy")
+			if (modelType != "simple")
 			{
-				energyModel = new TripEnergyModel();
-				std::cout << "TripEnergy Model Loaded" << std::endl;
+				Warn() << "Invalid Model Type selected. Using default 'Simple' model \n";
+				modelType = "simple";
 			}
-			else
-			{
-				if (modelType != "simple")
-				{
-					Warn() << "Invalid Model Type selected. Using default 'Simple' model \n";
-					modelType = "simple";
-				}
-				energyModel = new SimpleEnergyModel();
-			}
+
+			energyModel = new SimpleEnergyModel();
 			energyModel->setModelType(modelType);
 
 			// Params only used for Simple model at the moment.

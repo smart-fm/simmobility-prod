@@ -12,7 +12,6 @@
 #include "entities/roles/RoleFacets.hpp"
 #include "TrainPathMover.hpp"
 #include "TrainDriver.hpp"
-#include "../../../models/tripEnergySO/tripEnergySO.h"
 //#include "entities/misc/TrainTrip.hpp" //jo Mar27
 
 namespace sim_mob

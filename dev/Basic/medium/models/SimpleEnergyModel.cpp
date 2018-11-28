@@ -107,17 +107,19 @@ double SimpleEnergyModel::computeEnergy(struct0_T& vehicleStruct, const std::vec
 
 	int occupancy = vehicleStruct.occup ;
 
-	const double alpha_0_ICE = 5.66*pow10(-4);
-	const double alpha_1_ICE = 4.64*pow10(-5);
-	const double alpha_2_ICE = 1.0*pow10(-6); // (0.00056575490781253393, 4.6435314306651986e-05, 1.0000000000000002e-06)
 
-	const double alpha_0_CDBUS = 1.66*pow10(-3);	//19XX series, J. Wang 2017
-	const double alpha_1_CDBUS = 8.68*pow10(-5);	//19XX series, J. Wang 2017
 
-	const double alpha_0_HEBUS = 1.0*pow10(-3);			//601X series, J. Wang 2017
-	const double alpha_1_HEBUS = 5.18*pow10(-5);	//601X series, J. Wang 2017
+	const double alpha_0_ICE = 5.66*pow(10,-4);
+	const double alpha_1_ICE = 4.64*pow(10,-5);
+	const double alpha_2_ICE = 1.0*pow(10,-6); // (0.00056575490781253393, 4.6435314306651986e-05, 1.0000000000000002e-06)
 
-	const double alpha_2_BUS = 1.0*pow10(-8);
+	const double alpha_0_CDBUS = 1.66*pow(10,-3);	//19XX series, J. Wang 2017
+	const double alpha_1_CDBUS = 8.68*pow(10,-5);	//19XX series, J. Wang 2017
+
+	const double alpha_0_HEBUS = 1.0*pow(10,-3);			//601X series, J. Wang 2017
+	const double alpha_1_HEBUS = 5.18*pow(10,-5);	//601X series, J. Wang 2017
+
+	const double alpha_2_BUS = 1.0*pow(10,-8);
 
 	const float headEndPower = 0.33*maxHeadEndPower ; // at normal HEP operating level for train, 1/3 of maxHEP is assumed
 	double gasolineConsumed = 0.0;

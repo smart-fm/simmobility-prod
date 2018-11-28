@@ -16,7 +16,6 @@
 #include "entities/Vehicle.hpp"
 //aa{
 #include "config/MT_Config.hpp"
-#include "models/TripEnergyModel.hpp"
 //aa}
 
 

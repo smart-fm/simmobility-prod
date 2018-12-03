@@ -4,12 +4,12 @@
 
 <img src="https://img.shields.io/jenkins/s/https/jenkins.qa.ubuntu.com/view/Precise/view/All%20Precise/job/precise-desktop-amd64_default.svg" title="Build Status"> &emsp; <a href="https://github.com/smart-fm/simmobility-prod/blob/master/license.txt"><img src="https://github.com/smart-fm/simmobility-prod/wiki/images/license_logo.png" title="License" width="63" height="22"></a>
 
-SimMoblity is a mobility simulation platform that aims to serve as the nexus of Future Mobility evaluations. It integrate various mobility-sensitive behavioral models with state-of-the-art scalable simulators to predict the impact of mobility demands on transportation networks, intelligent transportation services and vehicular emissions. The platform enables the simulation of the effects of a portfolio of technology, policy and investment options under alternative future scenarios. Specifically, SimMobility encompasses the modeling of millions of agents, from pedestrians to drivers, from phones and traffic lights to GPS, from cars to buses and trains, from second-by-second to year-by-year simulations, across entire countries. It is being devloped by the Future Urban Mobility Research Group at the Singapore-MIT Alliance for Research and Technology (SMART) and the the Intelligent Transportation System Laboratory at the Massachusetts Institute of Technology.
+SimMobility is a mobility simulation platform that aims to serve as the nexus of Future Mobility evaluations. It integrates various mobility-sensitive behavioral models with state-of-the-art scalable simulators to predict the impact of mobility demands on transportation networks, intelligent transportation services and vehicular emissions. The platform enables the simulation of the effects of a portfolio of technology, policy and investment options under alternative future scenarios. Specifically, SimMobility encompasses the modeling of millions of agents, from pedestrians to drivers, from phones and traffic lights to GPS, from cars to buses and trains, from second-by-second to year-by-year simulations, across entire countries. It is being developed by the Future Urban Mobility Research Group at the Singapore-MIT Alliance for Research and Technology (SMART) and the Intelligent Transportation System Laboratory at the Massachusetts Institute of Technology.
 
 
 ## Installing and using SimMobility
 
-All the informaiton on the intallation, usage, models and code is available at https://github.com/smart-fm/simmobility-prod/wiki
+All the information on the installation, usage, models and code are available at https://github.com/smart-fm/simmobility-prod/wiki
 
 ## License
 
@@ -24,7 +24,7 @@ Contributions can be made by submitting pull requests via GitHub.
 
 ## Citing SimMobility
 
-* [SimMobility: A Multi-Scale cale Integrated  Agent-based Simulation Platform](https://github.com/kakalibasak/wiki-images/blob/master/SimMobility%20Paper_revised%20version.pdf)
+* [SimMobility: A Multi-Scale Integrated Agent-based Simulation Platform](https://github.com/kakalibasak/wiki-images/blob/master/SimMobility%20Paper_revised%20version.pdf)
 
 For Individual Level
 * [SimMobility Short-term: An Integrated Microscopic Mobility Simulator](https://github.com/kakalibasak/wiki-images/blob/master/2017_TRR_SimMobility%20Short-term.pdf)

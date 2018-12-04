@@ -9,7 +9,7 @@
             <database id="fm_remote" dbtype="postgres">
                 <host value="172.25.xxx.xxx"/>
                 <port value="5432"/>
-                <dbname value="simmobcirt"/>
+                <dbname value="simmobcity"/>
             </database>
 
             <database id="fm_hpchead" dbtype="postgres">
@@ -184,7 +184,6 @@ Note: Controller id indicates the subscribed_controller field specified in the t
         <mode name="Taxi" type="7" num_sharing="1"/>
         <mode name="SMS" type="7" num_sharing="1"/>
         <mode name="Rail_SMS" type="1" num_sharing="1"/>
-        <mode name="Bike" type="5" num_sharing="1"/>
 	<mode name="SMS_Pool" type="7" num_sharing="2"/>
 	<mode name="Rail_SMS_pool" type="1" num_sharing="2"/>
 </travel_modes>

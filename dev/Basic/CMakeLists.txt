@@ -503,7 +503,7 @@ LIST(APPEND LibraryList ${CMAKE_THREAD_LIBS_INIT})
 #  include_directories(${TRIPENERGYSO_INCLUDE_DIR})
 #  LIST(APPEND LibraryList ${TRIPENERGYSO_LIBRARY})
 #endif(TRIPENERGYSO_FOUND)
-LIST(APPEND LibraryList ${CMAKE_SOURCE_DIR}/medium/models/tripEnergySO/libTripEnergySO.a)
+#LIST(APPEND LibraryList ${CMAKE_SOURCE_DIR}/medium/models/tripEnergySO/libTripEnergySO.a)
 
 #Remove duplicates, just in case
 #TODO: We should probably build up a list of IncludeDirs and LibraryDirs too (duplicates removed)

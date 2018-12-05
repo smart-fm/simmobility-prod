@@ -1090,11 +1090,11 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 				//todBasedTT is from tcost_bus for modes 1, 2 & 3 and is from tcost_car for modes 4, 5, 6, 7 & 9
 				if(stodParams.getFirstBound())
 				{
-					stodParams.travelTimes.push_back(todBasedTT.getArrivalBasedTT_at(i));
+					stodParams.travelTimes.push_back(todBasedTT.getArrivalBasedTT_at(i-1));
 				}
 				else
 				{
-					stodParams.travelTimes.push_back(todBasedTT.getDepartureBasedTT_at(i));
+					stodParams.travelTimes.push_back(todBasedTT.getDepartureBasedTT_at(i-1));
 				}
 				break;
 			}
@@ -1319,11 +1319,11 @@ double PredaySystem::fetchTravelTime(int origin, int destination, int mode,  boo
 			tcostDao.getTT_ByOD(TravelTimeMode::TT_PUBLIC, origin, destination, todBasedTT);
 			if(arrivalBased)
 			{
-				travelTime = todBasedTT.getArrivalBasedTT_at(timeIdx);
+				travelTime = todBasedTT.getArrivalBasedTT_at(timeIdx-1);
 			}
 			else
 			{
-				travelTime = todBasedTT.getDepartureBasedTT_at(timeIdx);
+				travelTime = todBasedTT.getDepartureBasedTT_at(timeIdx-1);
 			}
 			break;
 		}
@@ -1336,11 +1336,11 @@ double PredaySystem::fetchTravelTime(int origin, int destination, int mode,  boo
 			tcostDao.getTT_ByOD(TravelTimeMode::TT_PRIVATE, origin, destination, todBasedTT);
 			if(arrivalBased)
 			{
-				travelTime = todBasedTT.getArrivalBasedTT_at(timeIdx);
+				travelTime = todBasedTT.getArrivalBasedTT_at(timeIdx-1);
 			}
 			else
 			{
-				travelTime = todBasedTT.getDepartureBasedTT_at(timeIdx);
+				travelTime = todBasedTT.getDepartureBasedTT_at(timeIdx-1);
 			}
 			break;
 		}

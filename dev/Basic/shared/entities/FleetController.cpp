@@ -38,18 +38,6 @@ double getSecondFrmTimeString(const std::string& startTime)
     return (double)pt.time_of_day().ticks() / (double)bt::time_duration::rep_type::ticks_per_second;
 }
 
-bool FleetController::ifLoopedNode(unsigned int thisNodeId)
-{
-    auto loopNodesSet = RoadNetwork::getInstance()->getSetOfLoopNodesInNetwork();
-    bool found = false;
-    std::unordered_set<unsigned int>::const_iterator loopNodeItr;
-    loopNodeItr = loopNodesSet.find(thisNodeId);
-    if (loopNodeItr != loopNodesSet.end())
-    {
-        found = true;
-    }
-    return found;
-}
 const Node* FleetController::chooseRandomNode()
 {
     auto nodeMap = RoadNetwork::getInstance()->getMapOfIdvsNodes();
@@ -59,13 +47,31 @@ const Node* FleetController::chooseRandomNode()
     const Node *result = itRandomNode->second;
 
     //Ensure chosen node is not a source/sink node
-    if(result->getNodeType() == SOURCE_OR_SINK_NODE || result->getNodeType() == NETWORK_EXCLUDED_NODE || ifLoopedNode(result->getNodeId()))
+    if(result->getNodeType() == SOURCE_OR_SINK_NODE || result->getNodeType() == NETWORK_EXCLUDED_NODE || result->ifLoopedNode())
     {
         result = chooseRandomNode();
     }
 
     return result;
 }
+
+const Node* FleetController::chooseRandomNodeFromStudyAreaRegion() const
+{
+    auto nodeMap = RoadNetwork::getInstance()->getMapOfStudyAreaNodes();
+    auto itRandomNode = nodeMap.begin();
+    advance(itRandomNode, Utils::generateInt(0, nodeMap.size() - 1));
+
+    const Node *result = itRandomNode->second;
+
+    //Ensure chosen node is not a source/sink node and also if this is not a black listed Node
+    if(result->getNodeType() == SOURCE_OR_SINK_NODE || result->getNodeType() == NETWORK_EXCLUDED_NODE ||  result->ifNodeBlackListed()|| result->ifLoopedNode())
+    {
+        result = chooseRandomNodeFromStudyAreaRegion();
+    }
+
+    return result;
+}
+
 void FleetController::LoadTaxiFleetFromDB()
 {
     ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
@@ -98,25 +104,18 @@ void FleetController::LoadTaxiFleetFromDB()
             fleetItem.passengerCapacity = r.get<int>(COLUMN_PASSENGER_CAPACITY);
             const RoadNetwork *rdnw = RoadNetwork::getInstance();
             const RoadSegment *roadSegment = rdnw->getById(rdnw->getMapOfIdVsRoadSegments(), fleetItem.segmentId);
-            fleetItem.startNode = roadSegment->getParentLink()->getToNode();
-            if (fleetItem.startNode->getNodeType() == SOURCE_OR_SINK_NODE ||
-                fleetItem.startNode->getNodeType() == NETWORK_EXCLUDED_NODE || ifLoopedNode(fleetItem.startNode->getNodeId()))
-            {
-                Warn()<<"Driver: "<<fleetItem.driverId<<" is started from another random node as is started at the bad node: "<< fleetItem.startNode->getNodeId()<<endl;
-                fleetItem.startNode = chooseRandomNode();
-            }
             const std::string &startTime = r.get<std::string>(COLUMN_SHIFT_START_TIME);
             fleetItem.startTime = getSecondFrmTimeString(startTime);
             int shiftDuration = 3600 * r.get<int>(COLUMN_SHIFT_DURATION);
             fleetItem.endTime = fleetItem.startTime + shiftDuration;
-            fleetItem.controllerSubscription = r.get<int>(COLUMN_CONTROLLER_SUBSCRIPTIONS);
             fleetItem.pcu = r.get<int>(COLUMN_PCU);
             fleetItem.av = r.get<int>(COLUMN_AV);
+            fleetItem.controllerSubscription = r.get<int>(COLUMN_CONTROLLER_SUBSCRIPTIONS);
             std::map<unsigned int, MobilityServiceControllerConfig>::const_iterator controllerIdIt = ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.find(
                     fleetItem.controllerSubscription);
-            try {
-                if (controllerIdIt ==
-                    ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.end())
+            try
+            {
+                if (controllerIdIt == ConfigManager::GetInstance().FullConfig().mobilityServiceController.enabledControllers.end())
                 {
                     throw std::runtime_error("Invalid Controller Subscription Id.");
                 }
@@ -126,6 +125,20 @@ void FleetController::LoadTaxiFleetFromDB()
             {
                 std::cerr<<e.what()<<endl;
                 throw;
+            }
+            fleetItem.startNode = roadSegment->getParentLink()->getToNode();
+            if (fleetItem.startNode->getNodeType() == SOURCE_OR_SINK_NODE ||
+                fleetItem.startNode->getNodeType() == NETWORK_EXCLUDED_NODE || fleetItem.startNode->ifLoopedNode())
+            {
+                Warn()<<"Driver: "<<fleetItem.driverId<<" (vehicle_id: "<<fleetItem.vehicleNo<<" controller_subscription: " <<fleetItem.controllerSubscription<<" ) is started from another random node as is started at the bad node: "<< fleetItem.startNode->getNodeId()<<endl;
+                if(controllerIdIt->second.studyAreaEnabledController)
+                {
+                    fleetItem.startNode = chooseRandomNodeFromStudyAreaRegion();
+                }
+                else
+                {
+                    fleetItem.startNode = chooseRandomNode();
+                }
             }
             taxiFleet.insert(std::pair<unsigned int, FleetItem>(fleetItem.controllerSubscription, fleetItem));
         }

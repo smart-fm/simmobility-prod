@@ -143,6 +143,13 @@ public:
     //aa}
 
     const std::string printIfNodeIsInStudyArea() const ;
+    
+    //for Study Area Black listed Nodes
+    bool ifNodeBlackListed() const;
+    
+    //for looped Node
+    bool ifLoopedNode() const;
+
 
 };
 }

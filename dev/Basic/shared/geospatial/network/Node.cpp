@@ -222,3 +222,31 @@ const std::string Node::printIfNodeIsInStudyArea() const
 #endif
     return "";   // printing SA/NSA (study Area statics only in Debug Mode & only if Study Area Enable)
 }
+
+
+bool Node::ifNodeBlackListed() const
+{
+    auto studyAreablackListedNodesSet = RoadNetwork::getInstance()->getSetOfStudyAreaBlackListedNodes();
+    bool found = false;
+    std::unordered_set<unsigned int>::const_iterator blackListedItr;
+    blackListedItr = studyAreablackListedNodesSet.find(getNodeId());
+    if (blackListedItr != studyAreablackListedNodesSet.end())
+    {
+        found = true;
+    }
+    return found;
+}
+
+
+bool Node::ifLoopedNode() const
+{
+    auto loopNodesSet = RoadNetwork::getInstance()->getSetOfLoopNodesInNetwork();
+    bool found = false;
+    std::unordered_set<unsigned int>::const_iterator loopNodeItr;
+    loopNodeItr = loopNodesSet.find(getNodeId());
+    if (loopNodeItr != loopNodesSet.end())
+    {
+        found = true;
+    }
+    return found;
+}

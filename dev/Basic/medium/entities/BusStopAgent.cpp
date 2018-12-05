@@ -95,6 +95,7 @@ void BusStopAgent::removeWaitingPerson(sim_mob::medium::WaitBusActivity* waiting
 
 void BusStopAgent::addAlightingPerson(sim_mob::medium::Passenger* passenger)
 {
+    passenger->setEndPoint(WayPoint(busStop));
     Person_MT* person = passenger->getParent();
     person->getRole()->collectTravelTime();
     alightingPersons.push_back(passenger);
@@ -159,7 +160,10 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
                 else if (role->roleType == Role<Person_MT>::RL_PEDESTRIAN && val.status == UpdateStatus::RS_CONTINUE)
                 {
                     Conflux* conflux = parentSegmentStats->getParentConflux();
-                    messaging::MessageBus::PostMessage(conflux, sim_mob::medium::MSG_PEDESTRIAN_TRANSFER_REQUEST,
+                    SubTrip &subTrip = *(person->currSubTrip);
+                    double walkTime = subTrip.walkTime; //It will be set from database
+                    role->setTravelTime(walkTime*1000);
+                    messaging::MessageBus::PostMessage(conflux, sim_mob::medium:: MSG_PEDESTRIAN_TRANSFER_REQUEST,
                             messaging::MessageBus::MessagePtr(new PersonMessage(person)));
                     ret = true;
                 }
@@ -336,10 +340,10 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
                 DailyTime current(DailyTime(currentTimeMS).offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
                 person->checkTripChain(current.getValue());
                 Role<Person_MT>* curRole = person->getRole();
-                curRole->setArrivalTime(currentTimeMS);
                 sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
                 if (passenger)
                 {
+                    curRole->setArrivalTime(currentTimeMS);
                     waitingRole->setBusLineForBoardingPassenger(busDriver->getBusLineID());
                     busDriver->addPassenger(passenger);
                     passenger->setStartPoint(WayPoint(busStop));

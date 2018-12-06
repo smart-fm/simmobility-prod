@@ -1858,9 +1858,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 
 				stopNum++;
 				//person_id character,tour_no,tour_type,stop_no integer NOT NULL,stop_type,stop_location,stop_mode,is_primary_stop,arrival_time,departure_time,prev_stop_location,prev_stop_departure_time
-                if(MT_Config::getInstance().isEnergyModelEnabled())
-                {
-                    tourStream << pid << ","
+                tourStream << pid << ","
                                << tourNum << ","
                                << tour.getTourTypeStr() << ","
                                << stopNum << ","
@@ -1877,24 +1875,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
                                << driveTrain<<","
                                << make<<","
                                << model <<"\n";
-                }
-                else
-                {
-                    tourStream << pid << ","
-                               << tourNum << ","
-                               << tour.getTourTypeStr() << ","
-                               << stopNum << ","
-                               << stop->getStopTypeStr() << ","
-                               << currStopNode << ","
-                               << currStopZone << ","
-                               << cfg.getTravelModeStr(stop->getStopMode()) << ","
-                               << (stop->isPrimaryActivity()? "True":"False")  << ","
-                               << getTimeWindowFromIndex(stop->getArrivalTime()) << ","
-                               << currStopEndTime << ","
-                               << prevStopNode << ","
-                               << prevStopZone << ","
-                               << prevStopEndTime <<"\n";
-                }
+                
 				prevStopZone = currStopZone;
 				prevStopNode = currStopNode;
 				prevStopEndTime = currStopEndTime;
@@ -1923,9 +1904,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 								break; // if there is no next node, cut the trip chain for this tour here
 							}
 							currStopEndTime = getTimeWindowFromIndex((*subT_it)->getDepartureTime());
-                            if(MT_Config::getInstance().isEnergyModelEnabled())
-                            {
-                                tourStream << pid << ","
+                            tourStream << pid << ","
                                            << tourNum << ","
                                            << "WorkbasedSubTour" << ","
                                            << ++stopNum << ","
@@ -1943,25 +1922,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
                                            << driveTrain << ","
                                            << make << ","
                                            << model << "\n";
-                            }
-                            else
-                            {
-                                tourStream << pid << ","
-                                           << tourNum << ","
-                                           << "WorkbasedSubTour" << ","
-                                           << ++stopNum << ","
-                                           << "WorkbasedSubTour" << ","
-                                           << currStopNode << ","
-                                           << currStopZone << ","
-                                           << cfg.getTravelModeStr(subT.getTourMode()) << ","
-                                           << ((*subT_it)->isPrimaryActivity() ? "True" : "False")
-                                           << "," //Primary activity for subtour
-                                           << getTimeWindowFromIndex((*subT_it)->getArrivalTime()) << ","
-                                           << currStopEndTime << ","
-                                           << prevStopNode << ","
-                                           << prevStopZone << ","
-                                           << prevStopEndTime << "\n";
-                            }
+                            
 							prevStopZone = currStopZone;
 							prevStopNode = currStopNode;
 							prevStopEndTime = currStopEndTime;
@@ -1969,9 +1930,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 						currStopEndTime = getTimeWindowFromIndex((tour.getPrimaryStop())->getDepartureTime());
 						//Work stop at the end of the Workbased Subtour
 						//person_id character,tour_no,tour_type,stop_no,stop_type,stop_location,stop_mode,is_primary_stop,arrival_time,departure_time,prev_stop_location,prev_stop_departure_time
-                        if(MT_Config::getInstance().isEnergyModelEnabled())
-                        {
-                            tourStream << pid << ","
+                        tourStream << pid << ","
                                        << tourNum << ","
                                        << "WorkbasedSubTour"  << ","
                                        << ++stopNum << ","
@@ -1988,25 +1947,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
                                        << driveTrain<<","
                                        << make<<","
                                        << model  << "\n";
-                        }
-                        else
-                        {
-                            tourStream << pid << ","
-                                       << tourNum << ","
-                                       << "WorkbasedSubTour"  << ","
-                                       << ++stopNum << ","
-                                       << tour.getTourTypeStr() << ","
-                                       << workNode << ","
-                                       << workZone << ","
-                                       << cfg.getTravelModeStr(subT.getTourMode()) << ","
-                                       << "False" << ","
-                                       << getTimeWindowFromIndex(subT.getEndTime()) << ","
-                                       << currStopEndTime << ","
-                                       << prevStopNode << ","
-                                       << prevStopZone << ","
-                                       << prevStopEndTime<<"\n";
-
-                        }
+                        
 						prevStopNode = workNode;
 						prevStopZone = workZone;
 						prevStopEndTime = workbasedST_stopEndTime;
@@ -2022,9 +1963,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 
 				//Home activity
 				//person_id character,tour_no,tour_type,stop_no,stop_type,stop_location,stop_mode,is_primary_stop,arrival_time,departure_time,prev_stop_location,prev_stop_departure_time
-                if(MT_Config::getInstance().isEnergyModelEnabled())
-                {
-                    tourStream << pid << ","
+                tourStream << pid << ","
                                << tourNum << ","
                                << tour.getTourTypeStr() << ","
                                << ++stopNum << ","
@@ -2041,24 +1980,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
                                << driveTrain<<","
                                << make<<","
                                << model << "\n";
-                }
-                else
-                {
-                    tourStream << pid << ","
-                               << tourNum << ","
-                               << tour.getTourTypeStr() << ","
-                               << ++stopNum << ","
-                               << "Home" << ","
-                               << homeNode << ","
-                               << homeZone << ","
-                               << cfg.getTravelModeStr(tour.getTourMode()) << ","
-                               << "False"  << ","
-                               << getTimeWindowFromIndex(tour.getEndTime()) << ","
-                               << homeActivityEndTime << ","
-                               << prevStopNode << ","
-                               << prevStopZone << ","
-                               << prevStopEndTime<<"\n";
-                }
+               
 				outStream << tourStream.str();
 				tourNum++;
 			}

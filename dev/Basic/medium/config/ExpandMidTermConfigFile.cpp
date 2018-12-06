@@ -114,11 +114,7 @@ void ExpandMidTermConfigFile::processConfig()
         RestrictedRegion::getInstance().populate();
     }
 
-    if (cfg.isPublicTransitEnabled())
-    {
-        loadPublicTransitNetworkFromDatabase();
-    }
-
+    loadPublicTransitNetworkFromDatabase();
     cfg.sealNetwork();
 
     //Initialize the street directory.

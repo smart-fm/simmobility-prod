@@ -185,7 +185,7 @@ Note: Controller id indicates the subscribed_controller field specified in the t
         <mode name="SMS" type="7" num_sharing="1"/>
         <mode name="Rail_SMS" type="1" num_sharing="1"/>
 	<mode name="SMS_Pool" type="7" num_sharing="2"/>
-	<mode name="Rail_SMS_pool" type="1" num_sharing="2"/>
+	<mode name="Rail_SMS_Pool" type="1" num_sharing="2"/>
 </travel_modes>
 
 <!-- Activity types can be configured by adding or removing from the list below. -->

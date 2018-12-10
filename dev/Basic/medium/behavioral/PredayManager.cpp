@@ -734,7 +734,7 @@ void sim_mob::medium::PredayManager::loadCosts()
 
 		TABLE_NAME = ConfigManager::GetInstanceRW().FullConfig().dbTableNamesMap["OP_cost_table"];
 		const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(DEMAND_SCHEMA, TABLE_NAME);
-		const std::string DB_GET_ALL_OP_COSTS = "SELECT * FROM " + DB_TABLE_AM_COSTS;
+		const std::string DB_GET_ALL_OP_COSTS = "SELECT * FROM " + DB_TABLE_OP_COSTS;
 		CostSqlDao opCostDao(simmobConn, DB_GET_ALL_OP_COSTS);
 		opCostDao.getAll(opCostMap);
 		Print() << "OP costs loaded\n";

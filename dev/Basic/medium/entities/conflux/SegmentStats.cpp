@@ -97,7 +97,6 @@ SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, dou
 		if (!(*laneIt)->isPedestrianLane())
 		{
 			numVehicleLanes++;
-			outermostLane = *laneIt;
 		}
 		lnStats->setParentStats(this);
 		laneIt++;
@@ -388,9 +387,9 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 		}
 	}
 
-	//insert lane infinity persons at the tail of mergedPersonList
-	LaneStats* lnInfStats =  laneStatsMap[laneInfinity];
-	mergedPersonList.insert(mergedPersonList.end(), lnInfStats->laneAgents.begin(), lnInfStats->laneAgents.end());
+	//lane infinity persons handled in a separate update case
+	//LaneStats* lnInfStats =  laneStatsMap[laneInfinity];
+	//mergedPersonList.insert(mergedPersonList.end(), lnInfStats->laneAgents.begin(), lnInfStats->laneAgents.end());
 }
 
 std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const Lane* lane) const
@@ -828,6 +827,7 @@ void LaneStats::initLaneParams(double vehSpeed, const double capacity)
 	}
 
 	updateOutputCounter();
+	updateInputCounter();
 	updateAcceptRate(vehSpeed, numLanes);
 }
 
@@ -851,6 +851,12 @@ void LaneStats::updateOutputCounter()
 	{
 		laneParams->outputCounter = tmp;
 	}
+}
+
+void LaneStats::updateInputCounter()
+{
+	double advanceInterval = ConfigManager::GetInstance().FullConfig().baseGranSecond();
+	laneParams->inputCounter = (int)((length - totalLength) / PASSENGER_CAR_UNIT + laneParams->outputFlowRate * advanceInterval);
 }
 
 void LaneStats::updateAcceptRate(double speed, unsigned int numLanes)
@@ -914,6 +920,7 @@ void SegmentStats::restoreLaneParams(const Lane* lane)
 	LaneStats* laneStats = laneIt->second;
 	laneStats->updateOutputFlowRate(getLaneParams(lane)->origOutputFlowRate);
 	laneStats->updateOutputCounter();
+	laneStats->updateInputCounter();
 	segDensity = getDensity(true);
 	double upSpeed = speedDensityFunction(segDensity);
 	laneStats->updateAcceptRate(upSpeed, numVehicleLanes);
@@ -929,6 +936,7 @@ void SegmentStats::updateLaneParams(const Lane* lane, double newOutputFlowRate)
 	LaneStats* laneStats = laneIt->second;
 	laneStats->updateOutputFlowRate(newOutputFlowRate);
 	laneStats->updateOutputCounter();
+	laneStats->updateInputCounter();
 	segDensity = getDensity(true);
 	double upSpeed = speedDensityFunction(segDensity);
 	laneStats->updateAcceptRate(upSpeed, numVehicleLanes);
@@ -948,8 +956,34 @@ void SegmentStats::updateLaneParams(timeslice frameNumber)
 			LaneStats *laneStats = it->second;
 			laneStats->setLaneVehSpeed(speedDensityFunction(laneStats->getDensity()));
 			laneStats->updateOutputCounter();
+			// input counter will be updated every frame tick, no need to update here
 			laneStats->updateAcceptRate(segVehicleSpeed, numVehicleLanes);
 			laneStats->setInitialQueueLength(laneStats->getQueueLength());
+		}
+	}
+}
+
+void SegmentStats::updateInitialQLength(timeslice frameNumber)
+{
+	for (auto &it : laneStatsMap)
+	{
+		//filtering out the pedestrian lanes for now
+		if (!it.first->isPedestrianLane())
+		{
+			LaneStats *laneStats = it.second;
+			laneStats->setInitialQueueLength(laneStats->getQueueLength());
+		}
+	}
+}
+
+void SegmentStats::updateLaneInputCounter()
+{
+	for (auto &it : laneStatsMap)
+	{
+		//filtering out the pedestrian lanes for now
+		if (!it.first->isPedestrianLane())
+		{
+			it.second->updateInputCounter();
 		}
 	}
 }
@@ -1458,9 +1492,13 @@ void LaneParams::decrementOutputCounter()
 	{
 		outputCounter--;
 	}
-	else
+}
+
+void LaneParams::decrementInputCounter()
+{
+	if (inputCounter > 0)
 	{
-		throw std::runtime_error("cannot allow vehicles beyond output capacity.");
+		inputCounter--;
 	}
 }
 

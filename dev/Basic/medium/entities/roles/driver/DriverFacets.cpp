@@ -626,7 +626,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			currSegStat->getParentConflux()->setLinkTravelTimes(linkExitTime, currLink);
 			parentDriver->parent->currLinkTravelStats.reset();
 			currSegStat->getParentConflux()->getLinkStats(currLink).removeEntitiy(parentDriver->parent);
-			setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
+			decrementOutputCounter(currLane, currSegStat);
 			currLane = nullptr;
 			parentDriver->parent->setToBeRemoved();
 			// linkExitTime and segmentExitTime are equal for the last segment in the path.
@@ -635,15 +635,16 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		return false;
 	}
 
+	const SegmentStats* nextToNextSegStat = pathMover.getSecondSegStatsAhead();
+	const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
+
 	if (isNewLinkNext)
 	{
 		parentDriver->parent->requestedNextSegStats = nxtSegStat;
+		parentDriver->parent->requestedNextLane = laneInNextSegment;
 		parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 		return false; // return whenever a new link is to be entered. Seek permission from Conflux.
 	}
-
-	const SegmentStats* nextToNextSegStat = pathMover.getSecondSegStatsAhead();
-	const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
 
 	double departTime = getLastAccept(laneInNextSegment, nxtSegStat);
 /*	if(!nxtSegStat->isShortSegment())
@@ -668,7 +669,8 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			removeFromQueue();
 		}
 
-		setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat); // decrement from the currLane before updating it
+		decrementOutputCounter(currLane, currSegStat); // decrement from the currLane before updating it
+		decrementInputCounter(laneInNextSegment, nxtSegStat);
 		const Lane *prevLane = currLane;
 		currLane = laneInNextSegment;
 		pathMover.advanceInPath();
@@ -986,8 +988,16 @@ bool DriverMovement::advanceQueuingVehicle(DriverUpdateParams& params)
 	double finalTimeSpent = 0.0;
 	double finalDistToSegEnd = 0.0;
 
-	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
+	int inOutCounter = getOutputCounter(currLane, pathMover.getCurrSegStats());
 	double outRate = getOutputFlowRate(currLane);
+
+	const SegmentStats* nxtSegStat = pathMover.getNextSegStats(false);
+	if (nxtSegStat)
+	{
+		const SegmentStats* nextToNextSegStat = pathMover.getSecondSegStatsAhead();
+		const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
+		inOutCounter = std::min(inOutCounter, getInputCounter(laneInNextSegment, nxtSegStat));
+	}
 
 	//The following line of code assumes vehicle length is in cm;
 	//vehicle length and outrate cannot be 0.
@@ -995,7 +1005,7 @@ bool DriverMovement::advanceQueuingVehicle(DriverUpdateParams& params)
 	//its purpose was not clear to anyone.~Harish
 	finalTimeSpent = initialTimeSpent + initialDistToSegEnd / (PASSENGER_CAR_UNIT * outRate);
 
-	if (output > 0 && finalTimeSpent < params.secondsInTick
+	if (inOutCounter > 0 && finalTimeSpent < params.secondsInTick
 			&& pathMover.getCurrSegStats()->getPositionOfLastUpdatedAgentInLane(currLane) == -1)
 	{
 		res = moveToNextSegment(params);
@@ -1033,7 +1043,15 @@ bool DriverMovement::advanceMovingVehicle(DriverUpdateParams& params)
 	//We can infer that the path is not completed if this function is called.
 	//Therefore currSegStats cannot be NULL. It is safe to use it in this function.
 	double velocity = laneStats->getLaneVehSpeed(true);
-	double output = getOutputCounter(currLane, currSegStats);
+	int inOutCounter = getOutputCounter(currLane, currSegStats);
+	const SegmentStats* nxtSegStat = pathMover.getNextSegStats(false);
+
+	if (nxtSegStat)
+	{
+		const SegmentStats* nextToNextSegStat = pathMover.getSecondSegStatsAhead();
+		const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
+		inOutCounter = std::min(inOutCounter, getInputCounter(laneInNextSegment, nxtSegStat));
+	}
 
 	// add driver to queue if required
 	double laneQueueLength = getQueueLength(currLane);
@@ -1072,7 +1090,7 @@ bool DriverMovement::advanceMovingVehicle(DriverUpdateParams& params)
 		finalTimeSpent = initialTimeSpent + initialDistToSegEnd / velocity;
 		if (finalTimeSpent < params.secondsInTick)
 		{
-			if (output > 0)
+			if (inOutCounter > 0)
 			{
 				pathMover.setPositionInSegment(0.0);
 				params.elapsedSeconds = finalTimeSpent;
@@ -1111,8 +1129,16 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& params
 	const LaneStats *laneStats = pathMover.getCurrSegStats()->getLaneStats().find(currLane)->second;
 	double velocity = laneStats->getLaneVehSpeed(true);
 
-	double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
+	int inOutCounter = getOutputCounter(currLane, pathMover.getCurrSegStats());
 	double outRate = getOutputFlowRate(currLane);
+
+	const SegmentStats* nxtSegStat = pathMover.getNextSegStats(false);
+	if (nxtSegStat)
+	{
+		const SegmentStats* nextToNextSegStat = pathMover.getSecondSegStatsAhead();
+		const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
+		inOutCounter = std::min(inOutCounter, getInputCounter(laneInNextSegment, nxtSegStat));
+	}
 
 	//The following line of code assumes vehicle length is in cm;
 	//vehicle length and outrate cannot be 0.
@@ -1124,7 +1150,7 @@ bool DriverMovement::advanceMovingVehicleWithInitialQ(DriverUpdateParams& params
 
 	if (finalTimeSpent < params.secondsInTick)
 	{
-		if (output > 0)
+		if (inOutCounter > 0)
 		{
 			pathMover.setPositionInSegment(0.0);
 			params.elapsedSeconds = finalTimeSpent;
@@ -1163,9 +1189,19 @@ int DriverMovement::getOutputCounter(const Lane* lane, const SegmentStats* segSt
 	return segStats->getLaneParams(lane)->getOutputCounter();
 }
 
-void DriverMovement::setOutputCounter(const Lane* lane, int count, const SegmentStats* segStats)
+void DriverMovement::decrementOutputCounter(const Lane* lane, const SegmentStats* segStats)
 {
-	return segStats->getLaneParams(lane)->setOutputCounter(count);
+	return segStats->getLaneParams(lane)->decrementOutputCounter();
+}
+
+int DriverMovement::getInputCounter(const Lane* lane, const SegmentStats* segStats)
+{
+	return segStats->getLaneParams(lane)->getInputCounter();
+}
+
+void DriverMovement::decrementInputCounter(const Lane* lane, const SegmentStats* segStats)
+{
+	return segStats->getLaneParams(lane)->decrementInputCounter();
 }
 
 double DriverMovement::getOutputFlowRate(const Lane* lane)
@@ -1227,7 +1263,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 
 	//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
 	double departTime = getLastAccept(laneInNextSegment, currSegStats);
-	if(!currSegStats->isShortSegment())
+	/*if(!currSegStats->isShortSegment())
 	{
 		if(currSegStats->hasQueue())
 		{
@@ -1237,7 +1273,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		{
 			departTime += (PASSENGER_CAR_UNIT / laneInNextSegStats->getLaneVehSpeed(true));
 		}
-	}
+	}*/
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 
@@ -1332,8 +1368,12 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 	const Lane* minLane = nullptr;
 	double minQueueLength = std::numeric_limits<double>::max();
 	double minLength = std::numeric_limits<double>::max();
+	int outputCounter = 0;
+	int maxOutputCounter = 0;
 	double queueLength = 0.0;
 	double totalLength = 0.0;
+	int hasInputCounter = 0;
+	int curHasinputCounter = 0;
 
 	const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
 	const std::vector<const Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
@@ -1353,8 +1393,25 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 
 			totalLength = nextSegStats->getLaneTotalVehicleLength(lane);
 			queueLength = nextSegStats->getLaneQueueLength(lane);
+			outputCounter = nextSegStats->getLaneParams(lane)->getOutputCounter();
+			curHasinputCounter = nextSegStats->getLaneParams(lane)->getInputCounter() > 0 ? 1 : 0;
+			if ((curHasinputCounter > hasInputCounter) ||
+				((curHasinputCounter == hasInputCounter) &&
+				 (minLength > totalLength || (minLength == totalLength && outputCounter > maxOutputCounter))))
+			{
+				//Choose lane with lower number of vehicles on it as both temp chosen lane
+				// current lane have no queue
+				minLength = totalLength;
+				minQueueLength = queueLength;
+				minLane = lane;
+				maxOutputCounter = outputCounter;
+				if (curHasinputCounter > hasInputCounter)
+				{
+					hasInputCounter = curHasinputCounter;
+				}
+			}
 
-			if(queueLength == 0)
+			/*if(queueLength == 0)
 			{
 				if (minQueueLength == 0)
 				{
@@ -1406,7 +1463,7 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 						minLane = lane;
 					}
 				}
-			}
+			}*/
 		}
 	}
 

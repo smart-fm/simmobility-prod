@@ -60,16 +60,16 @@ const std::string& getModeString(int idx)
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
 : Person(src, mtxStrat, id, databaseID),
 isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), remainingTimeThisTick(0.0),
-requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), currSegStats(nullptr), currLane(nullptr),
-prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
+requestedNextSegStats(nullptr), requestedNextLane(nullptr), canMoveToNextSegment(NONE), currSegStats(nullptr),
+currLane(nullptr), prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 {
 }
 
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
 : Person(src, mtxStrat, tc),
 isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), remainingTimeThisTick(0.0),
-requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), currSegStats(nullptr), currLane(nullptr),
-prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
+requestedNextSegStats(nullptr), requestedNextLane(nullptr), canMoveToNextSegment(NONE), currSegStats(nullptr),
+currLane(nullptr), prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numTicksStuck(0)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	std::string ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];

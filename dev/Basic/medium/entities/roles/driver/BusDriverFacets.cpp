@@ -374,99 +374,11 @@ const Lane* BusDriverMovement::getBestTargetLane(const SegmentStats* nextSegStat
 	 */
 	if(nextStop && nextSegStats->hasBusStop(nextStop))
 	{
-		return nextSegStats->getOutermostLane();
+		return nextSegStats->getInnermostLane();
 	}
 	else
 	{
-		const Lane* minLane = nullptr;
-		double minQueueLength = std::numeric_limits<double>::max();
-		double minLength = std::numeric_limits<double>::max();
-		double totalLength = 0.0 ;
-		double queueLength = 0.0 ;
-
-		const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
-		const std::vector<const Lane *> &lanes = nextSegStats->getRoadSegment()->getLanes();
-		for (vector<const Lane *>::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
-		{
-			const Lane* lane = *lnIt;
-			if (!lane->isPedestrianLane())
-			{
-				if (!laneConnectorOverride
-					&& nextToNextSegStats
-					&& !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())
-					&& nextLink
-					&& !nextSegStats->isConnectedToDownstreamLink(nextLink, lane))
-				{
-					continue;
-				}
-
-				totalLength = nextSegStats->getLaneTotalVehicleLength(lane);
-				queueLength = nextSegStats->getLaneQueueLength(lane);
-
-				if(queueLength == 0)
-				{
-					if (minQueueLength == 0)
-					{
-						if (minLength > totalLength)
-						{
-							//Choose lane with lower number of vehicles on it as both temp chosen lane
-							// current lane have no queue
-							minLength = totalLength;
-							minQueueLength = queueLength;
-							minLane = lane;
-						}
-					}
-					else
-					{
-						// as the temp chosen lane has queue and the current lane does not
-						// we choose current one
-						minLength = totalLength;
-						minQueueLength = queueLength;
-						minLane = lane;
-					}
-				}
-				else
-				{
-					// current lane has a queue
-					if(minQueueLength > queueLength)
-					{
-						//Choose lane with lower queue length
-						minLength = totalLength;
-						minQueueLength = queueLength;
-						minLane = lane;
-					}
-					else if(minQueueLength == queueLength)
-					{
-						//In case of a tie, use the one with smaller total length
-						if(minLength > totalLength)
-						{
-							minLength = totalLength;
-							minQueueLength = queueLength;
-							minLane = lane;
-						}
-					}
-				}
-			}
-		}
-		if(!minLane)
-		{
-			Print() << "\nCurrent Path " << pathMover.getPath().size() << std::endl;
-			Print() << MesoPathMover::getPathString(pathMover.getPath());
-
-			std::ostringstream out("");
-			out << "best target lane was not set!" << "\nCurrent Segment: "
-			    << pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
-			    << " =>" << nextSegStats->getRoadSegment()->getRoadSegmentId()
-			    << " =>" << nextToNextSegStats->getRoadSegment()->getRoadSegmentId() << std::endl;
-			out << "firstSegInNextLink:" << (nextLink ? nextLink->getRoadSegments().front()->getRoadSegmentId() : 0)
-			    << "|NextLink: " << (nextLink ? nextLink->getLinkId() : 0)
-			    << "|downstreamLinks of " << nextSegStats->getRoadSegment()->getRoadSegmentId() << std::endl;
-
-			Print() << out.str();
-			nextSegStats->printDownstreamLinks();
-			throw std::runtime_error(out.str());
-		}
-		return minLane;
+		return DriverMovement::getBestTargetLane(nextSegStats, nextToNextSegStats);
 	}
 }
 
@@ -741,7 +653,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				currSegStat->getParentConflux()->setLinkTravelTimes(linkExitTime, currLink);
 				parentBusDriver->parent->currLinkTravelStats.reset();
 				currSegStat->getParentConflux()->getLinkStats(currLink).removeEntitiy(parentBusDriver->parent);
-				setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat);
+				decrementOutputCounter(currLane, currSegStat);
 				currLane = nullptr;
 				parentBusDriver->parent->setToBeRemoved();
 
@@ -758,15 +670,16 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			return true;
 		}
 
+		const SegmentStats* nextToNextSegStat = pathMover.getSecondSegStatsAhead();
+		const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
+
 		if (isNewLinkNext)
 		{
 			parentBusDriver->parent->requestedNextSegStats = nxtSegStat;
+			parentBusDriver->parent->requestedNextLane = laneInNextSegment;
 			parentBusDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 			return false; // return whenever a new link is to be entered. Seek permission from Conflux.
 		}
-
-		const SegmentStats* nextToNextSegStat = pathMover.getSecondSegStatsAhead();
-		const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
 
 		double departTime = getLastAccept(laneInNextSegment, nxtSegStat);
 /*		if(!nxtSegStat->isShortSegment())
@@ -791,7 +704,8 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				removeFromQueue();
 			}
 
-			setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat) - 1), currSegStat); // decrement from the currLane before updating it
+			decrementOutputCounter(currLane, currSegStat); // decrement from the currLane before updating it
+			decrementInputCounter(laneInNextSegment, nxtSegStat);
 			currLane = laneInNextSegment;
 			pathMover.advanceInPath();
 			pathMover.setPositionInSegment(nxtSegStat->getLength());

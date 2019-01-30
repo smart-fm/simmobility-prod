@@ -105,13 +105,15 @@ private:
 	double outputFlowRate; //vehicles/s
 	double origOutputFlowRate; //vehicles/s
 	int outputCounter;
+	int inputCounter;
 	double acceptRate;
 	double fraction;
 	double lastAcceptTime;
 
 public:
 	LaneParams() :
-			outputFlowRate(0.0), origOutputFlowRate(0.0), outputCounter(0), acceptRate(0.0), fraction(0.0), lastAcceptTime(0.0)
+			outputFlowRate(0.0), origOutputFlowRate(0.0), outputCounter(0), inputCounter(0),
+			acceptRate(0.0), fraction(0.0), lastAcceptTime(0.0)
 	{
 	}
 
@@ -123,16 +125,16 @@ public:
 	{
 		return outputCounter;
 	}
+	int getInputCounter()
+	{
+		return inputCounter;
+	}
 	double getAcceptRate()
 	{
 		return acceptRate;
 	}
-
-	void setOutputCounter(int count)
-	{
-		outputCounter = count;
-	}
 	void decrementOutputCounter();
+	void decrementInputCounter();
 	void setOutputFlowRate(double output)
 	{
 		outputFlowRate = output;
@@ -288,6 +290,11 @@ public:
 	 * updates the output counter of lane
 	 */
 	void updateOutputCounter();
+
+	/**
+	 * updates the input counter of lane
+	 */
+	void updateInputCounter();
 
 	/**
 	 * updates the output flow rate of lane
@@ -460,14 +467,6 @@ protected:
 	/**taxiStandAgents for taxi-stand agents in this segment stats*/
 	std::vector<TaxiStandAgent*> taxiStandAgents;
 
-	/**
-	 * outermost lane in this segment stats.
-	 * This is a proper lane in the segment which is chosen by buses, taxis and
-	 * other vehicles (before moving into the virtual stopping lane) when they
-	 * have to stop in this segment stats.
-	 */
-	const Lane* outermostLane;
-
 	/** length of this SegmentStats in m */
 	double length;
 
@@ -564,9 +563,9 @@ public:
 		return statsNumberInSegment;
 	}
 
-	const Lane* getOutermostLane() const
+	const Lane* getInnermostLane() const
 	{
-		return outermostLane;
+		return *roadSegment->getLanes().begin();
 	}
 
 	double getSegSpeed(bool hasVehicle) const
@@ -874,6 +873,17 @@ public:
 	 * @param frameNumber the timeslice of current frame
 	 */
 	void updateLaneParams(timeslice frameNumber);
+
+	/**
+	 * update the initial queue length for a frame tick
+	 * @param frameNumber the timeslice of current frame
+	 */
+	void updateInitialQLength(timeslice frameNumber);
+
+	/**
+	 * update the input counter of lane for a frame tick
+	 */
+	void updateLaneInputCounter();
 
 	/**
 	 * report the statistics of this segment stats in string format

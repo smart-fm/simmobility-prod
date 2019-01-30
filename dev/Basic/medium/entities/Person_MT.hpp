@@ -19,6 +19,7 @@
 namespace sim_mob
 {
 
+class Lane;
 namespace medium
 {
 class Conflux;
@@ -116,6 +117,7 @@ public:
 
 	//Used by confluxes and movement facet of roles to move this person in the medium term
 	const SegmentStats* requestedNextSegStats;
+	const Lane* requestedNextLane;
 	bool laneUpdated = false;
 	const Lane * updatedLane = nullptr;
 	const SegmentStats * beforeUpdateSegStat = nullptr;

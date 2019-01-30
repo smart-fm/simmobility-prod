@@ -427,6 +427,13 @@ UpdateStatus Conflux::update(timeslice frameNumber)
     }
     case 2:
     {
+        processStartingAgents();
+        numUpdatesThisTick = 3;
+        return UpdateStatus::ContinueIncomplete;
+
+    }
+    case 3:
+    {
         updateAndReportSupplyStats(currFrame);
         //reportLinkTravelTimes(currFrame);
         resetLinkTravelTimes(currFrame);
@@ -1073,6 +1080,9 @@ void Conflux::updateAndReportSupplyStats(timeslice frameNumber)
             {
                 segStats->updateLaneParams(frameNumber);
             }
+            segStats->updateInitialQLength(frameNumber);
+            /// input counter to be updated every frame tick
+            segStats->updateLaneInputCounter();
         }
         if(updateThisTick && outputEnabled)
         {
@@ -1648,13 +1658,36 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
             if (currentFrame > nxtConflux->getLastUpdatedFrame())
             {
                 // nxtConflux is not processed for the current tick yet
-                if (nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getParentLink(), person->numTicksStuck) && currLnParams->getOutputCounter() > 0)
+                int inOutCounter = currLnParams->getOutputCounter();
+                LaneParams * nxtLaneParams = person->requestedNextSegStats->getLaneParams(person->requestedNextLane);
+
+                // get maximum input counter among the lanes
+                LaneParams * laneToDecrement = nullptr;
+                int maxInputCounter = -1;
+                for (const auto& lane : person->requestedNextSegStats->getRoadSegment()->getLanes())
+                {
+                    if (!lane->isPedestrianLane())
+                    {
+                        LaneParams * laneCurrent = person->requestedNextSegStats->getLaneParams(lane);
+                        int curInputCounter = laneCurrent->getInputCounter();
+                        if (curInputCounter > maxInputCounter)
+                        {
+                            laneToDecrement = laneCurrent;
+                            maxInputCounter = curInputCounter;
+                        }
+                    }
+                }
+                inOutCounter = std::min(inOutCounter, maxInputCounter);
+
+                if (/*nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getParentLink(), person->numTicksStuck) && */inOutCounter > 0)
                 {
                     currLnParams->decrementOutputCounter();
+                    laneToDecrement->decrementInputCounter();
                     person->setCurrSegStats(person->requestedNextSegStats);
                     person->lastReqSegStats = person->requestedNextSegStats;
                     person->setCurrLane(nullptr); // so that the updateAgent function will add this agent to the virtual queue
                     person->requestedNextSegStats = nullptr;
+                    person->requestedNextLane = nullptr;
 
                     //if the person is trying to move to requestedNextSegStats from a bus stop in current segment, we need to
                     //notify the corresponding bus stop agent and update moving status
@@ -1669,21 +1702,27 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
                 {
                     person->canMoveToNextSegment = Person_MT::DENIED;
                     person->requestedNextSegStats = nullptr;
+                    person->requestedNextLane = nullptr;
                 }
             }
             else if (currentFrame == nxtConflux->getLastUpdatedFrame())
             {
                 // nxtConflux is processed for the current tick. Can move to the next link.
                 // already handled by setting person->canMoveToNextSegment = GRANTED
-                if (currLnParams->getOutputCounter() > 0)
+                int inOutCounter = currLnParams->getOutputCounter();
+                LaneParams * nxtLaneParams = person->requestedNextSegStats->getLaneParams(person->requestedNextLane);
+                inOutCounter = std::min(inOutCounter, nxtLaneParams->getInputCounter());
+                if (inOutCounter > 0)
                 {
                     currLnParams->decrementOutputCounter();
+                    nxtLaneParams->decrementInputCounter();
                 }
                 else
                 {
                     person->canMoveToNextSegment = Person_MT::DENIED;
                 }
                 person->requestedNextSegStats = nullptr;
+                person->requestedNextLane = nullptr;
             }
             else
             {

@@ -318,13 +318,29 @@ protected:
 	int getOutputCounter(const Lane* lane, const SegmentStats* segStats);
 
 	/**
-	 * set number of vehicles that can move out of a lane in this tick
+	 * decrement number of vehicles that can move out of a lane in this tick
 	 *
 	 * @param l lane in segment
-	 * @param count new value of outpur counter
 	 * @param segStats segStats segment stats corresponding to lane l's segment
 	 */
-	void setOutputCounter(const Lane* lane, int count, const SegmentStats* segStats);
+	void decrementOutputCounter(const Lane* lane, const SegmentStats* segStats);
+
+	/**
+	 * get the number of vehicles that can move into a lane in this tick
+	 *
+	 * @param l lane in segment
+	 * @param segStats segment stats corresponding to lane l's segment
+	 * @return num. of vehicles that can move in
+	 */
+	int getInputCounter(const Lane* lane, const SegmentStats* segStats);
+
+	/**
+	 * decrement number of vehicles that can move into a lane in this tick
+	 *
+	 * @param l lane in segment
+	 * @param segStats segStats segment stats corresponding to lane l's segment
+	 */
+	void decrementInputCounter(const Lane* lane, const SegmentStats* segStats);
 
 	double getOutputFlowRate(const Lane* lane);
 	double getAcceptRate(const Lane* lane, const SegmentStats* segStats);

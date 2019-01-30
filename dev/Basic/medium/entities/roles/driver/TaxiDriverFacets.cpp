@@ -146,7 +146,7 @@ TaxiDriverMovement::getBestTargetLane(const SegmentStats *nextSegStats, const Se
 	if (mobilityServiceDriverStatus == DRIVE_TO_TAXISTAND && destinationTaxiStand && nextSegStats->hasTaxiStand(
 			destinationTaxiStand))
 	{
-		return nextSegStats->getOutermostLane();
+		return nextSegStats->getInnermostLane();
 	}
 	else
 	{

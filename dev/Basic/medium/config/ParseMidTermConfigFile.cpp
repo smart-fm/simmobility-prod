@@ -307,6 +307,11 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 	child = GetSingleElementByName(node, "pt_stop_stats", true);
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
 	cfg.setPT_StopStatsFilename(value);
+	cfg.setPTStopStatsFeedback(ParseBoolean(GetNamedAttributeValue(child, "feedback")));
+	if (cfg.isPTStopStatsFeedbackEnabled())
+	{
+		cfg.setAlphaValueForPTStopStatsFeedback(ParseFloat(GetNamedAttributeValue(child, "alpha")));
+	}
 
 	child = GetSingleElementByName(node, "subtrip_metrics");
 	processSubtripTravelMetricsOutputNode(child);

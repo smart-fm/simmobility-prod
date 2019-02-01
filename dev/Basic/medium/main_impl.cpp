@@ -689,6 +689,28 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		}
 	}
 
+	// updating the ptstopstats table tables if feed back is enabled
+	if (cfg.isPTStopStatsFeedbackEnabled())
+	{
+
+		std::string ptStopStatsTableName = "supply.pt_bus_stop_stats";
+		std::string ptStopStatsFile = cfg.getPT_StopStatsFilename();
+		float alpha = cfg.getAlphaValueForLinkTTFeedback();
+
+		Print() << "Update PT stop stats: Started\n";
+		std::string linkTTupdateCmd = "python2.7 scripts/python/upsert_PT_stop_stats.py " +
+				ptStopStatsFile + " " + ptStopStatsTableName + " " + std::to_string(alpha);
+		int res = std::system(linkTTupdateCmd.c_str());
+
+		if (res == 0 )
+		{
+			Print() << "Update PT stop stats table: Completed\n";
+		}
+		else
+		{
+			throw std::runtime_error("Error in updating PT Stop Stats\n ");
+		}
+	}
 	//Delete our profile pointer (if it exists)
 	safe_delete_item(prof);
 	return true;

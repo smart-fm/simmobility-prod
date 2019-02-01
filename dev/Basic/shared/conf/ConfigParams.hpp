@@ -280,8 +280,14 @@ private:
     /**whether link travel time feedback is enabled*/
     bool linktravelTimeFeedbackEnabled;
 
+    /**whether PTStopStat feedback is enabled*/
+    bool ptStopStatsFeedbackEnabled;
+
     /**value of alpha for link travel time feedback*/
     float alphaForLinkTTFeedback;
+
+    /**value of alpha for pt stop stats feedback*/
+    float alphaForPTStopStatsFeedback;
 
 public:
     /////////////////////////////////////////////////////////////////////////////////////
@@ -573,6 +579,20 @@ public:
     void setLinkTravelTimeFeedback(const bool value);
 
     /**
+     * sets the value of alpha for PTStopStats feedback
+     *
+     * @param alpha: value of alpha as read from the config file
+     */
+    void setAlphaValueForPTStopStatsFeedback(const float alpha);
+
+    /**
+     * Sets the pt stop stats feedback true or false
+     *
+     * @param value true or false to be sent
+    */
+    void setPTStopStatsFeedback(const bool value);
+
+    /**
      * sets the value of alpha for link travel time feedback
      *
      * @param alpha: value of alpha as read from the config file
@@ -592,6 +612,13 @@ public:
      * @return true if link travel travel feedback is enabled
      */
     bool isLinkTravelTimeFeedbackEnabled();
+
+    /**
+     * Returns whether the ptstopstats feedback is enabled or disabled
+     *
+     * @return true if ptstopstats feedback is enabled
+     */
+    bool isPTStopStatsFeedbackEnabled();
 
     /**
      * Returns value of alpha for link travel time feedback

@@ -236,7 +236,7 @@
             <waiting_time file="waitingtime.csv"/>
             <waiting_count file="waitingcount.csv"/>
             <travel_time file="traveltime.csv"/>
-            <pt_stop_stats file="ptstopstats.csv"/>
+            <pt_stop_stats file="ptstopstats.csv" feedback="false" alpha="0.5"/>
             <subtrip_metrics file="subtrip_metrics.csv" enabled="true" feedback="false"/>
             <screen_line_count file="screen_line_count.csv" enabled="true" interval="900"/>
             <pt_reroute file=""/>

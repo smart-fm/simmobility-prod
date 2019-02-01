@@ -408,6 +408,21 @@ bool ConfigParams::isLinkTravelTimeFeedbackEnabled()
     return ConfigParams::linktravelTimeFeedbackEnabled ;
 }
 
+void ConfigParams::setPTStopStatsFeedback(const bool value)
+{
+    ConfigParams::ptStopStatsFeedbackEnabled = value;
+}
+
+void ConfigParams::setAlphaValueForPTStopStatsFeedback(const float alpha)
+{
+    ConfigParams::alphaForPTStopStatsFeedback= alpha;
+}
+
+bool ConfigParams::isPTStopStatsFeedbackEnabled()
+{
+    return ConfigParams::ptStopStatsFeedbackEnabled ;
+}
+
 float ConfigParams::getAlphaValueForLinkTTFeedback()
 {
     return ConfigParams::alphaForLinkTTFeedback ;

@@ -1,11 +1,12 @@
-# inputs passed as arguments to the script:
+# This script updates 4 variables in total: avg_wait_time, avg_dwell_time, num_bus_arrivals and num_persons_boarding 
 
-# argument 1 : path to the generated_link_TT_file to be pushed
-# argument 2 : name of the table in the database
-# argument 3: alpha value (updated link travel time is calculated as :  (1-alpha)* <old_TT> + (alpha)*<new_TT> )
+# inputs passed as arguments to the script:
+# argument 1 : path to the generated pt_stop_stats file 
+# argument 2 : name of the ptstopstats table in the database, along with the schema name
+# argument 3: alpha value (updated variables are calculated as :  (1-alpha)* <old_Value> + (alpha)*<new_Value> )
 
 # Example of usage:
-### python upsert_link_travel_time.py link_travel_time.csv link_travel_time 0.4
+### python2.7 upsert_PT_stop_stats.py ptstopstats.csv supply.pt_bus_stop_stats 0.4
 
 import argparse
 import datetime
@@ -16,7 +17,7 @@ import os
 import time
 import numpy as np
 
-# inserting into the .48 server database
+# inserting into the correct database, the connection details must be entered here
 DB_HOST = 'localhost'
 DB_PORT = '5432'
 DB_USER = 'postgres'

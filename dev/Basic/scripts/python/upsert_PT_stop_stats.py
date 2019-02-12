@@ -32,37 +32,46 @@ generated_link_TT_file = sys.argv[1]
 table_name_in_DB = sys.argv[2] 
 alpha = float(sys.argv[3])
 
-
-# create the connection
-connection_string = "dbname='" + DB_NAME + "' user='" + DB_USER + "' host='" + DB_HOST + "' port='" + DB_PORT + "' password='" + DB_PASSWORD + "'"
-conn = psycopg2.connect(connection_string)
-cur = conn.cursor()
+try:
+    # create the connection
+    connection_string = "dbname='" + DB_NAME + "' user='" + DB_USER + "' host='" + DB_HOST + "' port='" + DB_PORT + "' password='" + DB_PASSWORD + "'"
+    conn = psycopg2.connect(connection_string)
+    cur = conn.cursor()
+except Exception, e:
+    print "Please check database connection details\n", str(e)
+    sys.exit(0)
 
 generated_ptstop_stats_TT_file = sys.argv[1]
 
 # change delimiter to commas
 res = os.system('sed -i \'s/;/,/g\' ' + generated_link_TT_file)
 if res != 0 :
-    print 'Cannot find the link travel time file named :', generated_ptstop_stats_TT_file
+    print 'Cannot find the pt stop stats file named :', generated_ptstop_stats_TT_file
     sys.exit(0)
 
-# read old values from the DB
-retrieve_Old_Values = " \
-    select * \
-    from " + sys.argv[2]
-outputquery = "COPY ({0}) TO STDOUT WITH CSV HEADER".format(retrieve_Old_Values)
-with open('old_pt_stop_stat_values', 'w') as f:
-    cur.copy_expert(outputquery, f)
+try:
+    # read old values from the DB
+    retrieve_Old_Values = " \
+        select * \
+        from " + sys.argv[2]
+    outputquery = "COPY ({0}) TO STDOUT WITH CSV HEADER".format(retrieve_Old_Values)
+    print outputquery
+    with open('old_pt_stop_stat_values', 'w') as f:
+        cur.copy_expert(outputquery, f)
+        # conn.commit()
+except Exception, e:
+    print "Please check database and table name\n", str(e)
+    sys.exit(0)    
 
 
-# Read the values from the simulated link travel time file and put them in a dictionary
+# Read the values from the simulated pt_stop_stats table and put them in a dictionary
 newVals = {}
 with open(generated_ptstop_stats_TT_file) as f:
     for row in f:
         listed = row.split(',')
         newVals[(listed[0] , listed[1] , listed[2] )] = np.array ( [ float(listed[3]), float(listed[4]), float(listed[5]), float(listed[6]) ])
 
-# Read the values from the historical link travel time from the DB and put them in a dictionary
+# Read the values from the historical pt_stop_stats table from the DB and put them in a dictionary
 oldVals = {}
 with open('old_pt_stop_stat_values') as f:
     f.next()
@@ -86,10 +95,16 @@ for key in oldVals:
     else:
         updatedVals[key] = oldVals[key]
 
-rmsnForPTStopStatsUpdate = np.sqrt(np.mean(np.square(differenceOfValues),1)) / (np.mean(oldValsForMean,1))
-print 'RMSN value for link travel time update: ', rmsnForPTStopStatsUpdate
-with open('RMSN_records_pt_stop_stats.txt','a') as f:
-    f.write("RMSN value for differences in PT stop stats :"+ str( rmsnForPTStopStatsUpdate ) + "\n")
+differenceOfValues = np.array(differenceOfValues)
+oldValsForMean = np.array(oldValsForMean)
+
+try:
+    rmsnForPTStopStatsUpdate = np.sqrt(np.mean(np.square(differenceOfValues),1)) / (np.mean(oldValsForMean,1))
+    print 'RMSN value for link travel time update: ', rmsnForPTStopStatsUpdate
+    with open('RMSN_records_pt_stop_stats.txt','a') as f:
+        f.write("RMSN value for differences in PT stop stats :"+ str( rmsnForPTStopStatsUpdate ) + "\n")
+except Exception, e:
+	print ("Could not compute RMSN Error. No common keys found between New and Old values. Ignoring")	
 
 for key in newVals:
     if key not in oldVals:
@@ -136,6 +151,4 @@ with open('updated_table_temp.csv') as f:
     cur.copy_from(f,table_name_in_DB,sep = ',')
 
 print ('PT_Stop_Stats_calib_table in DB created.. Updated values pushed')
-
 conn.commit()
-

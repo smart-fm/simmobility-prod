@@ -161,7 +161,7 @@ def getCountOfTripsByTimeOfDay(stopType):
         y.append(round(countOfTrips[key]*100.0/c,2))
     plt.plot(x,y, linewidth = 3 )
     plt.xlabel('Time of day (in 24 hours format)', fontsize=18)
-    plt.xlabel('Percentage of trips', fontsize=18)
+    plt.ylabel('Percentage of trips', fontsize=18)
     plt.grid(True)
     plt.savefig(stopType + '_time_of_Day.png')
     plt.clf()

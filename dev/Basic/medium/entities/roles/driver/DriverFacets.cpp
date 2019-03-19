@@ -876,7 +876,9 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 			nextSegStats = pathMover.getNextSegStats(false);
 			nextToNextSegStats = pathMover.getSecondSegStatsAhead();
 			currLane = getBestTargetLane(nextSegStats, nextToNextSegStats);
+			parentDriver->parent->requestedNextLane = currLane;
 
+			parentDriver->parent->setCurrSegStats(nextSegStats);
 			parentDriver->parent->setCurrLane(currLane);
 			isRouteChangedInVQ = true;
 			return;

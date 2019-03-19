@@ -262,7 +262,6 @@ void sim_mob::WorkGroupManager::waitAllGroups_DistributeMessages(std::set<Entity
             if (ConfigManager::GetInstance().FullConfig().RunningMidTerm())
             {
                 (*it)->processMultiUpdateEntities(removedEntities); // VQ
-                (*it)->processMultiUpdateEntities(removedEntities); // process agents in lane infinity
                 (*it)->processMultiUpdateEntities(removedEntities); // output & reset for next tick
             }
             else if (ConfigManager::GetInstance().FullConfig().RunningShortTerm())

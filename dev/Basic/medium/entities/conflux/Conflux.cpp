@@ -427,13 +427,6 @@ UpdateStatus Conflux::update(timeslice frameNumber)
     }
     case 2:
     {
-        processStartingAgents();
-        numUpdatesThisTick = 3;
-        return UpdateStatus::ContinueIncomplete;
-
-    }
-    case 3:
-    {
         updateAndReportSupplyStats(currFrame);
         //reportLinkTravelTimes(currFrame);
         resetLinkTravelTimes(currFrame);
@@ -1659,7 +1652,6 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
             {
                 // nxtConflux is not processed for the current tick yet
                 int inOutCounter = currLnParams->getOutputCounter();
-                LaneParams * nxtLaneParams = person->requestedNextSegStats->getLaneParams(person->requestedNextLane);
 
                 // get maximum input counter among the lanes
                 LaneParams * laneToDecrement = nullptr;

@@ -387,9 +387,9 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 		}
 	}
 
-	//lane infinity persons handled in a separate update case
-	//LaneStats* lnInfStats =  laneStatsMap[laneInfinity];
-	//mergedPersonList.insert(mergedPersonList.end(), lnInfStats->laneAgents.begin(), lnInfStats->laneAgents.end());
+	//insert lane infinity persons at the tail of mergedPersonList
+	LaneStats* lnInfStats =  laneStatsMap[laneInfinity];
+	mergedPersonList.insert(mergedPersonList.end(), lnInfStats->laneAgents.begin(), lnInfStats->laneAgents.end());
 }
 
 std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const Lane* lane) const

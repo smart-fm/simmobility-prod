@@ -869,16 +869,14 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 			 * in the person object (the one we have permission to move to)
 			 * We must now, get permission for the the new next segment
 			 */
-			parentDriver->parent->requestedNextSegStats = pathMover.getNextSegStats(false);
+			nextSegStats = pathMover.getNextSegStats(false);
+			parentDriver->parent->requestedNextSegStats = nextSegStats;
+			parentDriver->parent->requestedNextLane = getBestTargetLane(nextSegStats, pathMover.getSecondSegStatsAhead());
 			parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
 
-			//Choose the current lane for the new next segment
-			nextSegStats = pathMover.getNextSegStats(false);
-			nextToNextSegStats = pathMover.getSecondSegStatsAhead();
-			currLane = getBestTargetLane(nextSegStats, nextToNextSegStats);
-			parentDriver->parent->requestedNextLane = currLane;
-
-			parentDriver->parent->setCurrSegStats(nextSegStats);
+			// set current lane and segment stats back to pathMover's current
+			currLane = getBestTargetLane(pathMover.getCurrSegStats(), nextSegStats);
+			parentDriver->parent->setCurrSegStats(pathMover.getCurrSegStats());
 			parentDriver->parent->setCurrLane(currLane);
 			isRouteChangedInVQ = true;
 			return;

@@ -10,8 +10,11 @@ Authors - Siyu Li, Harish Loganathan
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 
---!! see the documentation on the definition of AM,PM and OP table!!
-local beta_cons_bus = -7.5
+-------------------------------------------------
+-- The variables having name format as [ beta_cons_<modeName> ] are used to store the Alternate Specific Constants(also called ASCs)
+-- These constants are added into the utility calculation later
+-- An increase in the [ beta_cons_<modeName> ] for any mode will result in an increase in the percentage of mode shares being increased for this model
+blocal beta_cons_bus = -7.5
 local beta_cons_mrt = - 8
 local beta_cons_privatebus= -8.02
 local beta_cons_drive1= 2.252
@@ -259,8 +262,8 @@ local function computeUtilities(params,dbparams)
 	local cost_SMS_Pool_2=3.4+((d2*(d2>10 and 1 or 0)-10*(d2>10 and 1 or 0))/0.35+(d2*(d2<=10 and 1 or 0)+10*(d2>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second + central_dummy*3
 	local cost_SMS_Pool=(cost_SMS_1+cost_SMS_2)*0.72*0.7 + cost_increase
 	
-	local aed_1 = (5*tt_public_walk_first) -- Access egress distance
-	local aed_2 = (5*tt_public_walk_second) -- Access egress distance
+	local aed_1 = (5*tt_public_walk_first) -- Access egress distance (AED1)
+	local aed_2 = (5*tt_public_walk_second) -- Access egress distance (AED2)
 	
 	-- Cost of Rail_SMS calculated similar to SMS but by using AED in place of walking distance 	
 	local cost_Rail_SMS_AE_1 = 3.4+((aed_1*(aed_1>10 and 1 or 0)-10*(aed_1>10 and 1 or 0))/0.35+(aed_1*(aed_1<=10 and 1 or 0)+10*(aed_1>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first + central_dummy*3

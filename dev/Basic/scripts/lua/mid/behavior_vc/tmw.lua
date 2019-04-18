@@ -50,8 +50,8 @@ bundled_variables.beta_tt_SMS_Pool = -1.17
 
 
 -------------------------------------------------
--- The variables having name format as  [ beta_<modeNumber>1_tt ]  are coefficients for travel cost
--- The variables having name format as  [ beta_<modeNumber>2_tt ]  are coefficients for travel cost over income(travel_cost/income)
+-- The variables having name format as  [ beta_<modeNumber>_2_cost ]  are coefficients for travel cost
+-- The variables having name format as  [ beta_<modeNumber>_1_cost ]  are coefficients for travel cost over income(travel_cost/income)
 local beta4_1_cost = -8.06
 local beta4_2_cost = -0.0375
 local beta5_1_cost = -9.58
@@ -462,7 +462,7 @@ local function computeUtilities(params,dbparams)
 	local average_transfer_number = dbparams.average_transfer_number
 
 
-    -- Vehicle ownership dummies
+    -- Converting vehicle ownership category id to dummy variables (dummy variables can take value 1 or 0)
 	local zero_car,one_plus_car,two_plus_car,three_plus_car, zero_motor,one_plus_motor,two_plus_motor,three_plus_motor = 0,0,0,0,0,0,0,0
 	local veh_own_cat = params.vehicle_ownership_category
 	if veh_own_cat == 0 or veh_own_cat == 1 or veh_own_cat == 2 then

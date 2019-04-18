@@ -14,7 +14,7 @@ Authors - Siyu Li, Harish Loganathan
 -- The variables having name format as [ beta_cons_<modeName> ] are used to store the Alternate Specific Constants(also called ASCs)
 -- These constants are added into the utility calculation later
 -- An increase in the [ beta_cons_<modeName> ] for any mode will result in an increase in the percentage of mode shares being increased for this model
-blocal beta_cons_bus = -7.5
+local beta_cons_bus = -7.5
 local beta_cons_mrt = - 8
 local beta_cons_privatebus= -8.02
 local beta_cons_drive1= 2.252
@@ -48,8 +48,9 @@ local beta_tt_SMS_Pool = -2.84
 
 
 -------------------------------------------------
--- The variables having name format as  [ beta_<modeNumber>_tt ]  are coefficients for travel cost 
--- These are multiplied by the travel cost for the respective modes
+-- The variables having name format as  [ beta_cost ]  are coefficients for travel cost 
+-- These are multiplied by the travel cost for the respective modes; 
+-- In the case of tme, all the modes have a common cost coefficient 
 local beta_cost = 0
 
 
@@ -268,14 +269,12 @@ local function computeUtilities(params,dbparams)
 	-- Cost of Rail_SMS calculated similar to SMS but by using AED in place of walking distance 	
 	local cost_Rail_SMS_AE_1 = 3.4+((aed_1*(aed_1>10 and 1 or 0)-10*(aed_1>10 and 1 or 0))/0.35+(aed_1*(aed_1<=10 and 1 or 0)+10*(aed_1>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first + central_dummy*3
 	local cost_Rail_SMS_AE_2 = 3.4+((aed_2*(aed_2>10 and 1 or 0)-10*(aed_2>10 and 1 or 0))/0.35+(aed_2*(aed_2<=10 and 1 or 0)+10*(aed_2>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second + central_dummy*3
-	
 	local cost_Rail_SMS = cost_public_first + cost_public_second + cost_increase + (cost_Rail_SMS_AE_1 + cost_Rail_SMS_AE_2) * 0.72	
 	
 	
     -- Cost of Rail_SMS_Pool defined as a percentage of cost of Rail_SMS (70 % in the example below)
 	local cost_Rail_SMS_AE_Pool_1 = 3.4+((aed_1*(aed_1>10 and 1 or 0)-10*(aed_1>10 and 1 or 0))/0.35+(aed_1*(aed_1<=10 and 1 or 0)+10*(aed_1>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first + central_dummy*3
 	local cost_Rail_SMS_AE_Pool_2 = 3.4+((aed_2*(aed_2>10 and 1 or 0)-10*(aed_2>10 and 1 or 0))/0.35+(aed_2*(aed_2<=10 and 1 or 0)+10*(aed_2>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second + central_dummy*3
-	
 	local cost_Rail_SMS_Pool = cost_public_first + cost_public_second + cost_increase + (cost_Rail_SMS_AE_Pool_1 + cost_Rail_SMS_AE_Pool_2) * 0.72 * 0.7	
 	
 	
@@ -350,7 +349,6 @@ local function computeUtilities(params,dbparams)
 	local veh_own_cat = params.vehicle_ownership_category
 	if veh_own_cat == 0 or veh_own_cat == 1 or veh_own_cat ==2 then 
 		zero_car = 1 
-	
 	end
 	if veh_own_cat == 3 or veh_own_cat == 4 or veh_own_cat == 5  then 
 		one_plus_car = 1 
@@ -358,7 +356,6 @@ local function computeUtilities(params,dbparams)
 	if veh_own_cat == 5  then 
 		two_plus_car = 1 
 	end
-	
 	if veh_own_cat == 5  then 
 		three_plus_car = 1 
 	end
@@ -368,11 +365,9 @@ local function computeUtilities(params,dbparams)
 	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
 		one_plus_motor = 1 
 	end
-	
 	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
 		two_plus_motor = 1 
 	end
-	
 	if veh_own_cat == 1 or veh_own_cat == 2 or veh_own_cat == 4 or veh_own_cat == 5  then 
 		three_plus_motor = 1 
 	end
@@ -383,9 +378,10 @@ local function computeUtilities(params,dbparams)
 	local education_op = dbparams.education_op          -- Number of schools in the zone
 	local origin_area = dbparams.origin_area            -- Area of Origin Taz
 	local destination_area = dbparams.destination_area  -- Area of Destination Taz
-
 	local residential_size=resident_size/origin_area/10000.0        -- derived variable
 	local school_attraction=education_op/destination_area/10000.0   -- derived variable
+
+
 
 	utility[1] = beta_cons_bus + beta1_1_tt * tt_bus_ivt + beta1_2_tt * tt_bus_walk + beta1_3_tt * tt_bus_wait + beta_cost * cost_bus + beta_central_bus * central_dummy + beta_transfer * average_transfer_number + beta_female_bus * female_dummy + age_over_15 * beta_age_over_15_bus + university_student * beta_university_student_bus
 	utility[2] = beta_cons_mrt + beta1_1_tt * tt_mrt_ivt + beta1_2_tt * tt_mrt_walk + beta1_3_tt * tt_mrt_wait + beta_cost * cost_mrt + beta_central_mrt * central_dummy + beta_transfer * average_transfer_number + beta_female_mrt * female_dummy + age_over_15 * beta_age_over_15_mrt + university_student * beta_university_student_mrt

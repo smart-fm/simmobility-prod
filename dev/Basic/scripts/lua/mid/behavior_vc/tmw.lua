@@ -52,6 +52,7 @@ bundled_variables.beta_tt_SMS_Pool = -1.17
 -------------------------------------------------
 -- The variables having name format as  [ beta_<modeNumber>_2_cost ]  are coefficients for travel cost
 -- The variables having name format as  [ beta_<modeNumber>_1_cost ]  are coefficients for travel cost over income(travel_cost/income)
+-- An increase in these cooefficients will increase the cost sensitivity of modes, implying people will be more likely to select cheaper modes
 local beta4_1_cost = -8.06
 local beta4_2_cost = -0.0375
 local beta5_1_cost = -9.58

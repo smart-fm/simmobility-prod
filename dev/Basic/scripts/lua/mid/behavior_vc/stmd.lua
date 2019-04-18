@@ -10,8 +10,9 @@ Authors - Siyu Li, Harish Loganathan, Olga Petrik
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 
---!! see the documentation on the definition of AM,PM and OP table!!
 
+-------------------------------------------------
+-- The variables having name format as  [ beta_cost_<modeNumber> ]  are coefficients for travel cost
 local beta_cost_bus_mrt_1 = -0.19
 local beta_cost_Rail_SMS_1 = -0.19
 local beta_cost_Rail_SMS_Pool_1 = -0.19
@@ -24,6 +25,11 @@ local beta_cost_taxi_1 = 0
 local beta_cost_SMS_1 = 0
 local beta_cost_SMS_Pool_1 = 0
 
+
+
+-------------------------------------------------
+-- The variables having name format as  [ beta_tt_<modeName> ]  are coefficients for travel time 
+-- These are multiplied by the travel time for the respective modes
 local beta_tt_bus_mrt = -3.78
 local beta_tt_Rail_SMS = -3.78
 local beta_tt_Rail_SMS_Pool = -3.78
@@ -38,11 +44,16 @@ local beta_tt_SMS = 0
 local beta_tt_SMS_Pool = 0
 
 
-local beta_log = 0.775
-local beta_area = 0
-local beta_population = 0 
-local beta_employment = 0
+local beta_log = 0.775              -- coefficient for derived variable log_area
+local beta_area = 0                 -- coefficient for area of destination zone
+local beta_population = 0           -- coefficient for population of destination zone
+local beta_employment = 0           -- coefficient for number of people who work in the destination zone
+    
 
+
+-------------------------------------------------
+-- The variables having name format as  [ beta_central_<modeName> ]  are coefficients for centralDummy
+-- centralDummy is a dummy varible taking values 0 or 1 based on whether the O/D is in the CBD region of the city
 local beta_central_bus_mrt = 0
 local beta_central_Rail_SMS = 0
 local beta_central_Rail_SMS_Pool = 0
@@ -56,6 +67,11 @@ local beta_central_taxi = 0
 local beta_central_SMS = 0
 local beta_central_SMS_Pool = 0
 
+
+
+-------------------------------------------------
+-- The variables having name format as  [ beta_distance_<modeName> ]  are coefficients for walk distance
+-- <More comments will be added here clarifying the usage of walk distance>
 local beta_distance_bus_mrt = 0
 local beta_distance_Rail_SMS = 0
 local beta_distance_Rail_SMS_Pool = 0
@@ -69,6 +85,12 @@ local beta_distance_taxi = 0
 local beta_distance_SMS = 0
 local beta_distance_SMS_Pool = 0
 
+
+
+-------------------------------------------------
+-- The variables having name format as [ beta_cons_<modeName> ] are used to store the Alternate Specific Constants(also called ASCs)
+-- These constants are added into the utility calculation later
+-- An increase in the [ beta_cons_<modeName> ] for any mode will result in an increase in the percentage of mode shares being increased for this model
 local beta_cons_bus = -2.892
 local beta_cons_mrt = -3.358
 local beta_cons_Rail_SMS = -9.768
@@ -83,6 +105,11 @@ local beta_cons_taxi = -9.075
 local beta_cons_SMS = -8.575
 local beta_cons_SMS_Pool = -12.168
 
+
+
+-------------------------------------------------
+-- The variables having name format as  [ beta_female_<modeName> ]  are joint coefficients for femaleDummy and mode name variables
+-- femaleDummy is a dummy varible taking values 0 or 1 based on whether the individual is a female or not
 local beta_female_bus = 0
 local beta_female_mrt = 0
 local beta_female_Rail_SMS = 0
@@ -97,6 +124,11 @@ local beta_female_SMS = 0
 local beta_female_SMS_Pool = 0
 local beta_female_walk = 0
 
+
+
+-------------------------------------------------
+-- The variables having name format as  [ beta_mode_<modeName> ]  are coefficients for [ mode_work_<modeName> ] variables
+-- [ mode_work_<modeName> ] are dummy varibles taking values 0 or 1 based on whether the individual is took the <modeName> as the main mode while going to work
 local beta_mode_work_bus = 0
 local beta_mode_work_mrt = 0
 local beta_mode_work_Rail_SMS = 0
@@ -108,18 +140,31 @@ local beta_mode_work_share3 = 0
 local beta_mode_work_motor = 0
 local beta_mode_work_walk= 0
 
+
+
 --choice set
+-- choice set contains the set of choices(mode,taz combinations) which are available in this model 
+-- The serial number of modes in the choice set corresponds the order of modes as listed in the config file data/simulation.xml
+-- Number of taz (traffic analysis zones in Virtual city) = 24
+-- Number of modes = 13; Thus total number of mode zone combinations = 24 * 13
+
 local choice = {}
 for i = 1, 24*13 do 
 	choice[i] = i
 end
 
---utility
+
+
+--utility is a lua table which will store the computed utilities for various (modes,taz) combinations
 -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
 -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
+-- 10 for SMS, 11 for Rail_SMS; 12 for SMS_Pool, 13 for Rail_SMS_Pool
 local utility = {}
 local function computeUtilities(params,dbparams)
-	local female_dummy = params.female_dummy
+	local female_dummy = params.female_dummy                 -- takes value 1 or 0 based on the individual is a female or not
+	
+	
+	-- [ mode_work_<modeName> ] are dummy varibles taking values 0 or 1 based on whether the individual is took the <modeName> as the main mode while going to work
 	local mode_work_bus = dbparams.mode_to_work == 1 and 1 or 0
 	local mode_work_mrt = dbparams.mode_to_work == 2 and 1 or 0
 	local mode_work_Rail_SMS = dbparams.mode_to_work == 2 and 1 or 0
@@ -131,6 +176,9 @@ local function computeUtilities(params,dbparams)
 	local mode_work_motor = dbparams.mode_to_work == 7 and 1 or 0
 	local mode_work_walk = dbparams.mode_to_work == 8 and 1 or 0
 
+	
+
+    -- Variable initialisations for time and cost calculations
 	local cost_bus = {}
 	local cost_mrt = {}
 	local cost_Rail_SMS = {}
@@ -141,7 +189,6 @@ local function computeUtilities(params,dbparams)
 	local cost_Rail_SMS_AE_Pool_1 = {}
 	local cost_Rail_SMS_AE_Pool_2 = {}
 	local cost_Rail_SMS_AE_Pool_avg = {}
-	
 	local cost_private_bus = {}
 	local cost_drive1 = {}
 	local cost_share2 = {}
@@ -150,18 +197,14 @@ local function computeUtilities(params,dbparams)
 	local cost_taxi={}
 	local cost_taxi_1 = {}
 	local cost_taxi_2 = {}
-	
 	local cost_SMS={}
 	local cost_SMS_1 = {}
 	local cost_SMS_2 = {}
 	local cost_SMS_Pool={}
 	local cost_SMS_Pool_1 = {}
 	local cost_SMS_Pool_2 = {}
-
-
 	local central_dummy={}
-
-	local tt_bus = {}
+    local tt_bus = {}
 	local tt_mrt = {}
 	local tt_Rail_SMS = {}
 	local tt_Rail_SMS_Pool = {}
@@ -177,64 +220,78 @@ local function computeUtilities(params,dbparams)
 	local tt_car_ivt = {}
 	local tt_public_ivt = {}
 	local tt_public_out = {}
-
 	local employment = {}
 	local population = {}
 	local area = {}
 	local shop = {}
-
 	local d1 = {}
 	local d2 = {}
 	
 
 	
-	--for each area
+    -- Iterating over the taz's (traffic analysis zones)
 	for i =1,24 do
 		d1[i] = dbparams:walk_distance1(i)
 		d2[i] = dbparams:walk_distance2(i)
-		
+		central_dummy[i] = dbparams:central_dummy(i)	-- takes value 1 if the destination taz is in the central business district (CBD) of the city	
+
+        -------------------------------------------------
+		-- Expressions for calculating travel costs of various modes
+		-- first: first half tour; -- second: second half tour
 		cost_bus[i] = dbparams:cost_public_first(i) + dbparams:cost_public_second(i)
 		cost_mrt[i] = cost_bus[i]
-		
-		cost_private_bus[i] = cost_bus[i]
-
+       	cost_private_bus[i] = cost_bus[i]
 		cost_drive1[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)
 		cost_share2[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)/2
 		cost_share3[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)/3
 		cost_motor[i] = 0.5*(dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i))+0.65*dbparams:cost_car_parking(i)
 		
-		central_dummy[i] = dbparams:central_dummy(i)
 		
-
+		
+        -- Cost of travelling by taxi is computed using three components: an initial flag down cost (3.4), a fixed rate per km, upto 10 kms and another rate per km after 10 kms travelled 
 		cost_taxi_1[i] = 3.4+((d1[i]*(d1[i]>10 and 1 or 0)-10*(d1[i]>10 and 1 or 0))/0.35+(d1[i]*(d1[i]<=10 and 1 or 0)+10*(d1[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_first(i) + central_dummy[i]*3
 		cost_taxi_2[i] = 3.4+((d2[i]*(d2[i]>10 and 1 or 0)-10*(d2[i]>10 and 1 or 0))/0.35+(d2[i]*(d2[i]<=10 and 1 or 0)+10*(d2[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i) + central_dummy[i]*3
 		cost_taxi[i] = cost_taxi_1[i] + cost_taxi_2[i]
 		
+		
+		
+		-- Cost of SMS defined as a percentage of cost of Taxi (72% in the example below)
 		cost_SMS_1[i] = 3.4+((d1[i]*(d1[i]>10 and 1 or 0)-10*(d1[i]>10 and 1 or 0))/0.35+(d1[i]*(d1[i]<=10 and 1 or 0)+10*(d1[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_first(i) + central_dummy[i]*3
 		cost_SMS_2[i] = 3.4+((d2[i]*(d2[i]>10 and 1 or 0)-10*(d2[i]>10 and 1 or 0))/0.35+(d2[i]*(d2[i]<=10 and 1 or 0)+10*(d2[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i) + central_dummy[i]*3
 		cost_SMS[i] = (cost_SMS_1[i] + cost_SMS_2[i])*0.72
 		
+		
+	   	-- Cost of SMS_Pool defined as a percentage of cost of SMS (70 % in the example below)		
 		cost_SMS_Pool_1[i] = 3.4+((d1[i]*(d1[i]>10 and 1 or 0)-10*(d1[i]>10 and 1 or 0))/0.35+(d1[i]*(d1[i]<=10 and 1 or 0)+10*(d1[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_first(i) + central_dummy[i]*3
 		cost_SMS_Pool_2[i] = 3.4+((d2[i]*(d2[i]>10 and 1 or 0)-10*(d2[i]>10 and 1 or 0))/0.35+(d2[i]*(d2[i]<=10 and 1 or 0)+10*(d2[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i) + central_dummy[i]*3
 		cost_SMS_Pool[i] = (cost_SMS_Pool_1[i] + cost_SMS_Pool_2[i])*0.72*0.7
 		
-		local aed = 2.0 -- Access egress distance
+		
+		local aed = 2.0 -- Access egress distance (AED)
+		
+		
+        -- Cost of Rail_SMS calculated similar to SMS but by using AED in place of walking distance 		
 		cost_Rail_SMS_AE_1[i] = 3.4+((aed*(aed>10 and 1 or 0)-10*(aed>10 and 1 or 0))/0.35+(aed*(aed<=10 and 1 or 0)+10*(aed>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_first(i) + central_dummy[i]*3
 		cost_Rail_SMS_AE_2[i] = 3.4+((aed*(aed>10 and 1 or 0)-10*(aed>10 and 1 or 0))/0.35+(aed*(aed<=10 and 1 or 0)+10*(aed>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i) + central_dummy[i]*3
 		cost_Rail_SMS_AE_avg[i] = (cost_Rail_SMS_AE_1[i] + cost_Rail_SMS_AE_2[i])/2
-
 		cost_Rail_SMS[i] = cost_mrt[i] + cost_Rail_SMS_AE_avg[i]*0.72
-		
+
+
+    	-- Cost of Rail_SMS_Pool defined as a percentage of cost of Rail_SMS (70 % in the example below)				
 		cost_Rail_SMS_AE_Pool_1[i] = 3.4+((aed*(aed>10 and 1 or 0)-10*(aed>10 and 1 or 0))/0.35+(aed*(aed<=10 and 1 or 0)+10*(aed>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_first(i) + central_dummy[i]*3
 		cost_Rail_SMS_AE_Pool_2[i] = 3.4+((aed*(aed>10 and 1 or 0)-10*(aed>10 and 1 or 0))/0.35+(aed*(aed<=10 and 1 or 0)+10*(aed>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i) + central_dummy[i]*3
 		cost_Rail_SMS_AE_Pool_avg[i] = (cost_Rail_SMS_AE_Pool_1[i] + cost_Rail_SMS_AE_Pool_2[i])/2
-
 		cost_Rail_SMS_Pool[i] = cost_mrt[i] + cost_Rail_SMS_AE_Pool_avg[i]*0.72*0.7
 
+
+
+        -- ivt: in-vehicle time;  
+        -- first: first half tour; -- second: second half tour
+        -- public: name of mode
+        -- public_walk : time spent in walking if the public mode chosen   
 		tt_car_ivt[i] = dbparams:tt_car_ivt_first(i) + dbparams:tt_car_ivt_second(i)
 		tt_public_ivt[i] = dbparams:tt_public_ivt_first(i) + dbparams:tt_public_ivt_second(i)
 		tt_public_out[i] = dbparams:tt_public_out_first(i) + dbparams:tt_public_out_second(i)
-
 		tt_bus[i] = tt_public_ivt[i]+ tt_public_out[i]
 		tt_mrt[i] = tt_public_ivt[i]+ tt_public_out[i]
 		tt_Rail_SMS[i] = tt_public_ivt[i]+ tt_public_out[i]/6.0
@@ -249,10 +306,13 @@ local function computeUtilities(params,dbparams)
 		tt_SMS[i] = tt_car_ivt[i] + 1.0/6
 		tt_SMS_Pool[i] = tt_car_ivt[i] + 1.0/6+ 1/10+(d1[i]+d2[i])/2/60 + 1.0/6
 
-		employment[i] = dbparams:employment(i)
-		population[i] = dbparams:population(i)
-		area[i] = dbparams:area(i)
-		shop[i] = dbparams:shop(i)
+
+        -- Variables to store attributes of the destination taz in question (i-th taz)        		
+		employment[i] = dbparams:employment(i)  -- number of people working in the i-th taz
+		population[i] = dbparams:population(i)  -- number of people living in the i-th taz
+		area[i] = dbparams:area(i)              -- area of the i-th taz
+		shop[i] = dbparams:shop(i)              -- number of shops in the i-th taz
+
 	end
 
 	local exp = math.exp
@@ -350,6 +410,7 @@ local function computeAvailabilities(params,dbparams)
 end
 
 --scale
+--scale can be used to control the variance of selection of choices
 local scale = 1 -- for all choices
 
 function choose_stmd(params,dbparams)

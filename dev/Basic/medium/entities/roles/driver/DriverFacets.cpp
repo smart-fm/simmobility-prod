@@ -1289,7 +1289,11 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		double actualT = params.elapsedSeconds + (convertToSeconds(params.now.ms()));
 		try
 		{
-			parentDriver->parent->currLinkTravelStats.start(currSegStats->getRoadSegment()->getParentLink(), actualT);
+			if (getParentDriver()->roleType != Role<Person_MT>::RL_BUSDRIVER)
+			{
+				// buses do not factor into link travel time calculations
+				parentDriver->parent->currLinkTravelStats.start(currSegStats->getRoadSegment()->getParentLink(), actualT);
+			}
 		}
 		catch (const std::runtime_error &e)
 		{

@@ -648,10 +648,10 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 			{
 				const Link* currLink = currSegStat->getRoadSegment()->getParentLink();
 				double linkExitTime = params.elapsedSeconds + (params.now.ms()/1000.0);
-				parentBusDriver->parent->currLinkTravelStats.finalize(currLink, linkExitTime, nullptr);
-				TravelTimeManager::getInstance()->addTravelTime(parentBusDriver->parent->currLinkTravelStats); //in seconds
-				currSegStat->getParentConflux()->setLinkTravelTimes(linkExitTime, currLink);
-				parentBusDriver->parent->currLinkTravelStats.reset();
+				//parentBusDriver->parent->currLinkTravelStats.finalize(currLink, linkExitTime, nullptr);
+				//TravelTimeManager::getInstance()->addTravelTime(parentBusDriver->parent->currLinkTravelStats); //in seconds
+				//currSegStat->getParentConflux()->setLinkTravelTimes(linkExitTime, currLink);
+				//parentBusDriver->parent->currLinkTravelStats.reset();
 				currSegStat->getParentConflux()->getLinkStats(currLink).removeEntitiy(parentBusDriver->parent);
 				decrementOutputCounter(currLane, currSegStat);
 				currLane = nullptr;

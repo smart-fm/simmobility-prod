@@ -184,13 +184,6 @@ class TT_Aggregator:
 		self.amPubIvtCount[orgZid][desZid] = self.amPubIvtCount[orgZid][desZid] + 1
 		return
 
-	def addAMPubWtt(self, origin, destination, value):
-		orgZid = self.zoneId[origin] - 1
-		desZid = self.zoneId[destination] - 1
-		self.amPubWtt[orgZid][desZid] = self.amPubWtt[orgZid][desZid] + value
-		self.amPubWttCount[orgZid][desZid] = self.amPubWttCount[orgZid][desZid] + 1
-		return
-
 	def addAMPubWalkt(self, origin, destination, value):
 		orgZid = self.zoneId[origin] - 1
 		desZid = self.zoneId[destination] - 1
@@ -212,13 +205,6 @@ class TT_Aggregator:
 		self.pmPubIvtCount[orgZid][desZid] = self.pmPubIvtCount[orgZid][desZid] + 1
 		return
 
-	def addPMPubWtt(self, origin, destination, value):
-		orgZid = self.zoneId[origin] - 1
-		desZid = self.zoneId[destination] - 1
-		self.pmPubWtt[orgZid][desZid] = self.pmPubWtt[orgZid][desZid] + value
-		self.pmPubWttCount[orgZid][desZid] = self.pmPubWttCount[orgZid][desZid] + 1
-		return
-
 	def addPMPubWalkt(self, origin, destination, value):
 		orgZid = self.zoneId[origin] - 1
 		desZid = self.zoneId[destination] - 1
@@ -238,13 +224,6 @@ class TT_Aggregator:
 		desZid = self.zoneId[destination] - 1
 		self.opPubIvt[orgZid][desZid] = self.opPubIvt[orgZid][desZid] + value
 		self.opPubIvtCount[orgZid][desZid] = self.opPubIvtCount[orgZid][desZid] + 1
-		return
-
-	def addOPPubWtt(self, origin, destination, value):
-		orgZid = self.zoneId[origin] - 1
-		desZid = self.zoneId[destination] - 1
-		self.opPubWtt[orgZid][desZid] = self.opPubWtt[orgZid][desZid] + value
-		self.opPubWttCount[orgZid][desZid] = self.opPubWttCount[orgZid][desZid] + 1
 		return
 
 	def addOPPubWalkt(self, origin, destination, value):
@@ -298,16 +277,10 @@ class TT_Aggregator:
 			elif mode == "BusTravel" or mode == "MRT":
 				if isAM(tripStartTime):
 					self.addAMPubIvt(orgZ, desZ, travelTime)
-					#self.addAMPubWtt(orgZ, desZ, float(row[6]))
-					#self.addAMPubWalkt(orgZ, desZ, float(row[7]))
 				elif isPM(tripStartTime):
 					self.addPMPubIvt(orgZ, desZ, travelTime)
-					#self.addPMPubWtt(orgZ, desZ, float(row[6]))
-					#self.addPMPubWalkt(orgZ, desZ, float(row[7]))
 				else:
 					self.addOPPubIvt(orgZ, desZ, travelTime)
-					#self.addOPPubWtt(orgZ, desZ, float(row[6]))
-					#self.addOPPubWalkt(orgZ, desZ, float(row[7]))
 				self.addTTBus(orgZ, desZ, tripStartTime, tripEndTime, travelTime)
 			else:
 				#print 'ignoring record with mode ' + mode

@@ -233,7 +233,7 @@
     <!-- file names to output statistics from supply -->
     <output_statistics>
             <journey_time file="journeytime.csv"/>
-            <waiting_time file="waitingtime.csv"/>
+            <waiting_time file="waitingtime.csv" feedback="true" alpha="0.5"/>
             <waiting_count file="waitingcount.csv"/>
             <travel_time file="traveltime.csv"/>
             <pt_stop_stats file="ptstopstats.csv" feedback="false" alpha="0.5"/>

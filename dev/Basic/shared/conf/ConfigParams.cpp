@@ -413,9 +413,19 @@ void ConfigParams::setPTStopStatsFeedback(const bool value)
     ConfigParams::ptStopStatsFeedbackEnabled = value;
 }
 
+void ConfigParams::setWaitingTimeFeedback(const bool value)
+{
+    ConfigParams::waitingTimeFeedbackEnabled = value;
+}
+
 void ConfigParams::setAlphaValueForPTStopStatsFeedback(const float alpha)
 {
     ConfigParams::alphaForPTStopStatsFeedback= alpha;
+}
+
+void ConfigParams::setAlphaValueForWaitingTimeFeedback(const float alpha)
+{
+    ConfigParams::alphaForWaitingTimeFeedback= alpha;
 }
 
 bool ConfigParams::isPTStopStatsFeedbackEnabled()
@@ -423,9 +433,19 @@ bool ConfigParams::isPTStopStatsFeedbackEnabled()
     return ConfigParams::ptStopStatsFeedbackEnabled ;
 }
 
+bool ConfigParams::isWaitingTimeFeedbackEnabled()
+{
+    return ConfigParams::waitingTimeFeedbackEnabled ;
+}
+
 float ConfigParams::getAlphaValueForLinkTTFeedback()
 {
     return ConfigParams::alphaForLinkTTFeedback ;
+}
+
+float ConfigParams::getAlphaValueForWaitingTimeFeedback()
+{
+    return ConfigParams::alphaForWaitingTimeFeedback ;
 }
 
 const std::string &ConfigParams::getTravelModeStr(int travelModeId) const

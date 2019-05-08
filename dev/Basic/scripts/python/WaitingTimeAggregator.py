@@ -1,29 +1,43 @@
+"""
+Script to update the waiting times in the zone to zone learned am/pm/op cost tables
+Usage: python2.7 WaitingTimeAggregator.py traveltime.csv 0.5 \
+More details on the usage in the constants section 
+
+ Author: Nishant Kumar
+ Date: 06.05.2019
+ 
+
+"""
+import sys
 import argparse
 import datetime
 import csv
 import psycopg2
 import time
 import numpy
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ constants ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-DB_HOST = '172.25.184.48'
+DB_HOST = '127.0.0.1'
 DB_PORT = '5432'
 DB_USER = 'postgres'
-DB_PASSWORD = '5M_S1mM0bility'
+DB_PASSWORD = 'postgres'
 DB_NAME = 'simmobcity'
 
 ZONE_TABLE = 'demand.taz_2012'
-AM_COSTS_TABLE = 'demand.learned_amcosts'
-PM_COSTS_TABLE = 'demand.learned_pmcosts'
-OP_COSTS_TABLE = 'demand.learned_opcosts'
-TCOST_CAR_TABLE = 'demand.learned_tcost_car'
-TCOST_BUS_TABLE = 'demand.learned_tcost_bus'
-TRAVEL_TIME_TABLE_NAME = 'output.traveltime'
-NODE_ZONE_MAP_TABLE = 'demand.nodeZoneMap'
-listOfAllowedModesForWaitingTime = ['SMS']
+
+# the list COSTS_TABLE_FORMAT is a quick fix solution to specify a format of the names for the zone to zone tables
+COSTS_TABLE_FORMAT = ['demand.learned_', 'am/pm/op', 'costs_nishant']
+
+
+TRAVEL_TIME_TABLE_NAME = 'output.traveltime'   
+NODE_ZONE_MAP_TABLE = 'demand.node_taz_map'
+listOfAllowedModesForWaitingTime = ['WAIT_SMS','WAIT_SMS_Pool']
 
 
 # update rule:  (1-alpha)* <old_TT> + (alpha)*<new_TT> )
-ALPHA = 0.25
+ALPHA = float(sys.argv[2])
+print ('ALPHA VALUE: ', ALPHA) 
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ helper functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -110,26 +124,57 @@ class WT_Aggregator:
             
             
        # fetch node-zone map
-        fetch_nodezone_map_query = "SELECT node_id, zone_code FROM " + NODE_ZONE_MAP_TABLE
+        fetch_nodezone_map_query = "SELECT node_id, taz FROM " + NODE_ZONE_MAP_TABLE
         cur.execute(fetch_nodezone_map_query)
-
         self.nodeZoneMap = {}
+        rows = cur.fetchall()
         for row in rows:
             node_id = int(row[0])
             zone_code = int(row[1])
             self.nodeZoneMap[node_id] = zone_code
+            
 
         # truncate existing travel time  table
-        truncate_script = "truncate table " + TRAVEL_TIME_TABLE
+        truncate_script = "DROP TABLE IF EXISTS " + TRAVEL_TIME_TABLE_NAME
         cur.execute(truncate_script)
+        print ("Old travel time table dropped")
+            
+            
+            
+        # create table output.traveltime
+        create_table_query = "CREATE TABLE " + TRAVEL_TIME_TABLE_NAME + "( \
+        person_id character varying,                \
+        trip_origin_id integer,                     \
+        trip_dest_id integer,                       \
+        subtrip_origin_id character varying,                  \
+        subtrip_dest_id character varying,          \
+        subtrip_origin_type character varying,      \
+        subtrip_dest_type character varying,        \
+        travel_mode character varying,              \
+        arrival_time character varying,             \
+        travel_time double precision  )"             
+        # subtrip_dest_id and subtrip_origin_id is character varying because for Public Transit it can take alphanumeric values
+        cur.execute(create_table_query)
+        print ("New travel time table created")
+        
+
+        # creating an intermediate tables to retain the first 10 columns in the travel time csv 
+        with open('intermediateFile','w') as fw:
+            csvwriter = csv.writer(fw)
+            with open(inputFile,'r') as fr:
+                for row in fr:
+                    csvwriter.writerow(row.strip().split(',')[0:10])  # using comma as the delimiter since the travel time csv file is comma separated
+                    
 
         # copy csv data into table
-        csvFile = open(str(args.csv_name), 'r')
-        cur.copy_from(csvFile, TRAVEL_TIME_TABLE, ',')
+        csvFile = open('intermediateFile', 'r')
+        cur.copy_from(csvFile, TRAVEL_TIME_TABLE_NAME, ',')
         csvFile.close()
 
-        # load aggregate records from copied table
-        fetch_agg_tt_query = "SELECT origin_taz, destination_taz, min(mode) as mode, min(start_time) as start_time, max(end_time) as end_time, sum(travel_time) as travel_time FROM " + SUBTRIP_METRICS_TABLE + " GROUP BY person_id, trip_id, origin_taz, destination_taz"
+
+       
+        # load aggregate records from copied table 
+        fetch_agg_tt_query = "SELECT trip_origin_id, trip_dest_id, travel_mode as mode, arrival_time as end_time, travel_time FROM " + TRAVEL_TIME_TABLE_NAME 
         cur.execute(fetch_agg_tt_query)
         self.inputCsv = cur.fetchall()
 
@@ -145,20 +190,22 @@ class WT_Aggregator:
 
         
         for mode in listOfAllowedModesForWaitingTime:
-            for sectionOfDay in ['AM', 'PM', 'OP']:
-                self.WTT[sectionOfDay] = {}
-                self.WTT[sectionOfDay][mode] = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+            for am_pm_op in ['AM', 'PM', 'OP']:
+                if am_pm_op not in self.WTT:
+                    self.WTT[am_pm_op] = {}
+                self.WTT[am_pm_op][mode] = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
             
                 #to hold number of people who waited for this mode
-                self.WTT_count[sectionOfDay] = {}
-                self.WTT_count[sectionOfDay][mode] = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
-                   
+                if am_pm_op not in self.WTT_count:
+                    self.WTT_count[am_pm_op] = {}
+                self.WTT_count[am_pm_op][mode] = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
                     
     ##functions to add items into the data structures defined above
     def add_WTT(self, origin, destination, value, mode, am_pm_op):
         orgZid = self.zoneId[origin] - 1
         desZid = self.zoneId[destination] - 1
         self.WTT[am_pm_op][mode][orgZid][desZid] += value
+        self.WTT_count[am_pm_op][mode][orgZid][desZid] += 1
         return
 
     
@@ -170,14 +217,14 @@ class WT_Aggregator:
             orgZ = self.nodeZoneMap[int(row[0])]
             desZ = self.nodeZoneMap[int(row[1])]
             mode = str(row[2]).strip()
-            tripWaitingTime = str(row[
+            tripWaitingTime = float(row[4])
             tripStartTime = str(row[3])
             am_pm_op = get_AM_PM_OP(tripStartTime)    
                 
             if mode in listOfAllowedModesForWaitingTime:
                 self.add_WTT(orgZ, desZ, tripWaitingTime, mode, am_pm_op )
             else:
-                print ('ignoring record with mode ' + mode)  #  warning message to keep track of rogue modes
+                # print ('ignoring record with mode ' + mode)  #  warning message to keep track of rogue modes
                 doNothing = 1
         return
 
@@ -186,11 +233,11 @@ class WT_Aggregator:
         for i in range(self.NUM_ZONES):
             for j in range(self.NUM_ZONES):
                 for mode in listOfAllowedModesForWaitingTime:
-                    for sectionOfDay in ['AM', 'PM', 'OP']:
-                        if self.amCarIvtCount[i][j] > 0 :
-                            self.WTT[sectionOfDay][mode][i][j] = (float(self.WTT[sectionOfDay][mode][i][j]/self.WTT_count[sectionOfDay][mode][i][j]))
+                    for am_pm_op in ['AM', 'PM', 'OP']:
+                        if self.WTT[am_pm_op][mode][i][j] > 0 :  # implying if there was an output in the latest simulation corresponding to this time <window-mode-OD> combination
+                            self.WTT[am_pm_op][mode][i][j] = (float(self.WTT[am_pm_op][mode][i][j]/self.WTT_count[am_pm_op][mode][i][j]))
                         else:
-                            self.WTT[sectionOfDay][mode][i][j] = 0 
+                            self.WTT[am_pm_op][mode][i][j] = 0 
         return
                 
 
@@ -201,33 +248,36 @@ class WT_Aggregator:
 
         listOfModesFor_SQL_Query = ''
         for mode in listOfAllowedModesForWaitingTime:
-            listOfModesFor_SQL_Query.append( 'wait_time_'+ mode + ', ')
-                
+            listOfModesFor_SQL_Query +=  (mode + ', ') 
+        listOfModesFor_SQL_Query = listOfModesFor_SQL_Query[0:-2] # removing the last comma and trailing space
+
+        
         
         self.oldValsWTT = {}
         for am_pm_op in ['AM','PM','OP']:
-            queryToRetrieveOlderValues = 'SELECT origin_zone,destination_zone,' + listOfModesFor_SQL_Query ' FROM ' + am_pm_op+ 'COSTS_TABLE'
+            queryToRetrieveOlderValues = 'SELECT origin_zone, destination_zone,' + listOfModesFor_SQL_Query + ' FROM '+  ( COSTS_TABLE_FORMAT[0] + am_pm_op + COSTS_TABLE_FORMAT[2]) 
             cur.execute(queryToRetrieveOlderValues)
             self.querydump = cur.fetchall()
-            self.oldValsWTT[am_pm_op] = {}
+            if am_pm_op not in self.oldValsWTT:
+                self.oldValsWTT[am_pm_op] = {}
             for mode in listOfAllowedModesForWaitingTime:
                 self.oldValsWTT[am_pm_op][mode] = {}
-            for row in self.querydump:
-                orgZ = int(row[0])
-                desZ = int(row[1])
-                # The order as specified in listOfModesFor_SQL_Query is preserved
-                count = 0 
-                for mode in listOfAllowedModesForWaitingTime:
-                    self.oldValsWTT[am_pm_op][mode][(orgZ,desZ)] = float(row[2+count])
-                    count += 1
+                modeCount = 0 
+                for row in self.querydump:
+                    orgZ = int(row[0])
+                    desZ = int(row[1])
+                    # The order as specified in listOfModesFor_SQL_Query is preserved
 
-        
+                    self.oldValsWTT[am_pm_op][mode][(orgZ,desZ)] = float(row[2+modeCount])
+                modeCount += 1
+
+            
 
         prevWTTValues = {}
         currentWTTValues = {}
         for mode in listOfAllowedModesForWaitingTime:
             prevWTTValues[mode] = []
-            currentWTTValuesp[mode] = []
+            currentWTTValues[mode] = []
                 
         for am_pm_op in ['AM','PM','OP']:
             for i in range(self.NUM_ZONES):
@@ -239,22 +289,26 @@ class WT_Aggregator:
                     newWTT = {}
                     for mode in listOfAllowedModesForWaitingTime:
                         newWTT[mode] = self.WTT[am_pm_op][mode][i][j]
-
+                        print ("Testing the numbers ", newWTT[mode] , "  mode : ", mode, am_pm_op, i, j)
 
                     if (sum(newWTT.values())) > 0:   # no need to do anything if there is no update in the values
                         comma_required = False
                         update_param_tuple = ()
-                        update_query = "UPDATE " + am_pm_op + '_COSTS_TABLE' + " SET"
+                        update_query = "UPDATE " + ( COSTS_TABLE_FORMAT[0] + am_pm_op + COSTS_TABLE_FORMAT[2])  + " SET "
                         for mode in listOfAllowedModesForWaitingTime:
                             if newWTT[mode] > 0:
-                                update_query = update_query + 'wait_time_'+ mode + "=(%s * %s+ " + am_pm_op + "_COSTS_TABLE + ".wait_time_"+ mode +" * %s)"
-                                update_param_tuple = update_param_tuple + (newWTT[mode], ALPHA, 1- ALPHA)
-                                prevWTTValues[mode].append(self.oldVals[am_pm_op][mode][(orgZ,desZ)])
-                                currentWTTValues.append(newWTT[mode])
-                                comma_required = True
+                                if comma_required:   # adding comma to allow for updates of multiple columns in the update query
+	    					    	update_query = update_query + ","
 
+                                update_query = update_query +  mode + "=(%s * %s+ " + ( COSTS_TABLE_FORMAT[0] + am_pm_op + COSTS_TABLE_FORMAT[2])  + "."+ mode + " * %s)"
+                                update_param_tuple = update_param_tuple + (newWTT[mode], ALPHA, 1- ALPHA)
+                                prevWTTValues[mode].append(self.oldValsWTT[am_pm_op][mode][(orgZ,desZ)])
+                                currentWTTValues[mode].append(newWTT[mode])
+                                comma_required = True
+                        print listOfAllowedModesForWaitingTime
                         update_query = update_query + " WHERE origin_zone=%s and destination_zone=%s"
                         update_param_tuple = update_param_tuple + (orgZ, desZ)
+                        print (update_query)
                         cur.execute(update_query, update_param_tuple)
                         conn.commit()
 
@@ -263,13 +317,13 @@ class WT_Aggregator:
         # calculating the RMSN
         # taking into only those values which are non zeros both in observed and simulated
         for mode in listOfAllowedModesForWaitingTime:
-            prevValues = numpy.array(prevCarIvtValues)
-            currentValues = numpy.array(currentCarIvtValues)
+            prevValues = numpy.array(prevWTTValues[mode])
+            currentValues = numpy.array(currentWTTValues[mode])
             rmsn = {}
             rmsn[mode] = numpy.sqrt(numpy.mean(numpy.square(prevValues - currentValues))) / (numpy.mean(prevValues))
             prevValues = list(prevValues)
             currentValues = list(currentValues)
-            with open(mode + '_WTT'.csv','a') as f:
+            with open(mode + '_WTT.csv','a') as f:
                 csvwriter = csv.writer(f)
                 csvwriter.writerow(['Old Values','New Values'])
                 for i in range(len(prevValues)):
@@ -278,32 +332,30 @@ class WT_Aggregator:
             with open('RMSN_records_zone_to_zone_WTT.txt','a') as f:
                 f.write("RMSN value for differences in zone to zone " + mode + " waiting time "+ str(rmsn[mode]) + "\n")
 
-            print ()"\nRMSN value for differences in zone to zone car ivt:", rmsn[mode])
+            print ("\nRMSN value for differences in zone to zone waiting time for Mode<" + mode + ">: " , rmsn[mode])
         return
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 s = datetime.datetime.now()
-parser = argparse.ArgumentParser()
-parser.add_argument("csv_name", default="traveltime.csv", help="waiting times experienced by persons in withinday")
-args = parser.parse_args()
 
 #1.
-print "1. initializing and loading CSV"
-aggregator = WT_Aggregator(str(args.csv_name))
+print ("1. initializing and loading CSV")
+inputFile = sys.argv[1]
+aggregator = WT_Aggregator(inputFile)
 #2.
-print "2. processing input"
+print ("2. processing input")
 aggregator.processInput()
 #3.
-print "3. computing means"
+print ("3. computing means")
 aggregator.computeMeans()
 
 #4.
-print "4. updating data in postgres db"
+print ("4. updating data in postgres db")
 aggregator.updatePostgres()
 
-print "Done. Exiting Main"
+print ("Done. Exiting Main")
 
 e = datetime.datetime.now()
-print 'Running Time: ' + str((e-s).total_seconds()) + 's'
+print ('Running Time: ' + str((e-s).total_seconds()) + 's')
 

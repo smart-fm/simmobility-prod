@@ -283,8 +283,14 @@ private:
     /**whether PTStopStat feedback is enabled*/
     bool ptStopStatsFeedbackEnabled;
 
+    /**whether PTStopStat feedback is enabled*/
+    bool waitingTimeFeedbackEnabled;
+
     /**value of alpha for link travel time feedback*/
     float alphaForLinkTTFeedback;
+
+    /**value of alpha for waiting time feedback*/
+    float alphaForWaitingTimeFeedback;
 
     /**value of alpha for pt stop stats feedback*/
     float alphaForPTStopStatsFeedback;
@@ -586,11 +592,26 @@ public:
     void setAlphaValueForPTStopStatsFeedback(const float alpha);
 
     /**
+     * sets the value of alpha for waiting time feedback
+     *
+     * @param alpha: value of alpha as read from the config file
+     */
+     void setAlphaValueForWaitingTimeFeedback(const float alpha);
+
+    /**
      * Sets the pt stop stats feedback true or false
      *
      * @param value true or false to be sent
     */
     void setPTStopStatsFeedback(const bool value);
+
+    /**
+    * Sets the waiting time feedback true or false
+    *
+    * @param value true or false to be sent
+    */
+    void setWaitingTimeFeedback(const bool value);
+
 
     /**
      * sets the value of alpha for link travel time feedback
@@ -621,11 +642,25 @@ public:
     bool isPTStopStatsFeedbackEnabled();
 
     /**
+     * Returns whether the waiting time feedback is enabled or disabled
+     *
+     * @return true if waiting time feedback is enabled
+     */
+    bool isWaitingTimeFeedbackEnabled();
+
+    /**
      * Returns value of alpha for link travel time feedback
      *
      * @return the value of alpha
      */
     float getAlphaValueForLinkTTFeedback();
+
+    /**
+    * Returns value of alpha for link travel time feedback
+    *
+    * @return the value of alpha
+    */
+    float getAlphaValueForWaitingTimeFeedback();
 
 };
 

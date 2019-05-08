@@ -295,6 +295,12 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 	child = GetSingleElementByName(node, "waiting_time", true);
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");
 	cfg.setWaitingTimeStatsFilename(value);
+	cfg.setWaitingTimeFeedback(ParseBoolean(GetNamedAttributeValue(child, "feedback")));
+	if (cfg.isWaitingTimeFeedbackEnabled())
+	{
+		cfg.setAlphaValueForWaitingTimeFeedback(ParseFloat(GetNamedAttributeValue(child, "alpha")));
+	}
+
 
 	child = GetSingleElementByName(node, "waiting_count", true);
 	value = ParseString(GetNamedAttributeValue(child, "file"), "");

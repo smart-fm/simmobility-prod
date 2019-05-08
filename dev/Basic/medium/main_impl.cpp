@@ -859,6 +859,23 @@ bool performMidFullLoop(const std::string& configFileName, std::list<std::string
 		}
 	}
 
+	// updating the waiting time tables if feed back is enabled
+	if (cfg.isWaitingTimeFeedbackEnabled())
+	{
+		Print() << "Waiting time feedback: Started\n";
+		std::string stFeedbackCmd = "python2.7 scripts/python/WaitingTimeAggregator.py " + cfg.getTravelTimeStatsFilename() +  " " + to_string(cfg.getAlphaValueForWaitingTimeFeedback());
+		std::cout <<"The python command " <<stFeedbackCmd<<"\n";
+		int res = std::system(stFeedbackCmd.c_str());
+		if (res == 0 )
+		{
+			Print() << "Waiting time feedbacks metrics feedback: Completed\n";
+		}
+		else
+		{
+			throw std::runtime_error("Error in waiting time feedback\n ");
+		}
+	}
+
 	return true;
 }
 

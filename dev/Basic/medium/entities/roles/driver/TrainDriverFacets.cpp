@@ -776,10 +776,7 @@ void TrainMovement::frame_tick()
 				{
 					parentDriver->setIsToBeRemoved(isToBeRemoved);
 				}
-                Platform *nextPlatformAccordingToPosition = nullptr;
-                if(!trainPlatformMover_accpos.isLastPlatform())
-                {
-                    nextPlatformAccordingToPosition = trainPlatformMover_accpos.getNextPlatform(false);
+                    Platform *nextPlatformAccordingToPosition = trainPlatformMover_accpos.getNextPlatform(false);
                     parentDriver->getMovementMutex();
                     moveForward();
                     parentDriver->movementMutexUnlock();
@@ -814,7 +811,7 @@ void TrainMovement::frame_tick()
                                 //log travelTime
                                 sim_mob::BasicLogger &ptMRTtraveltimeLogger = sim_mob::Logger::log(
                                         "TravelTimeBetweenStations.csv");
-                                if (getNextPlatform() == trainPlatformMover_accpos.getFirstPlatform())
+                                if (getNextPlatform() == *(trainPlatformMover_accpos.getPlatforms().begin()))
                                 {
                                     prevPlatformName = " ";
                                 }
@@ -831,7 +828,7 @@ void TrainMovement::frame_tick()
                                     }
                                 }
                                 ptMRTtraveltimeLogger << parentDriver->getTrainLine() << "," << prevPlatformName << ","
-                                                      << trainPlatformMover_accpos.getNextPlatform()->getStationNo() << ","
+					<< (trainPlatformMover_accpos.getNextPlatform()? trainPlatformMover_accpos.getNextPlatform()->getStationNo():"No Platform attached with this blockid") << ","
                                                       << traveTime << endl;
                                 startTimeOfNextStationStretch = params.now.ms();
                                 //update the next platform position wise
@@ -839,17 +836,6 @@ void TrainMovement::frame_tick()
                             }
                         }
                     }
-                }
-                else
-                {
-                    if (trainPlatformMover_accpos.getLastPlatformOnRoute() == trainPlatformMover_accpos.getNextPlatform(
-                            false))
-                    {
-                        parentDriver->getParent()->setToBeRemoved();
-                        arrivalAtEndPlatform();
-                    }
-
-                }
 
 				//This function checks whether the stop point is present,if so then set the required stopping time and stopping status
 				isStopPointPresent();
@@ -2055,7 +2041,7 @@ bool TrainMovement::moveForward()
 
 bool TrainMovement::isAtLastPlaform()
 {
-	return trainPlatformMover.isLastPlatform();
+	return getTrainPlatformMover_AccPos().isLastPlatform();
 }
 
 bool TrainMovement::leaveFromPlaform()

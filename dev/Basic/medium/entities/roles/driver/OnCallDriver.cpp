@@ -254,7 +254,7 @@ const bool OnCallDriver::checkForRepeatedPickups(Schedule &schedule) const
     for (auto itemIt = schedule.begin(); itemIt != schedule.end();)
     {
         if (itemIt->scheduleItemType == ScheduleItemType::PICKUP &&
-                getPassengersId().find(itemIt->tripRequest.userId) != std::string::npos)
+                passengers.find(itemIt->tripRequest.userId) != passengers.end())
         {
             itemIt = schedule.erase(itemIt);
             erased = true;
@@ -276,7 +276,7 @@ void OnCallDriver::immediatelyPerformItem()
     {
     case ScheduleItemType::PICKUP:
     {
-        if (getPassengersId().find(driverSchedule.getCurrScheduleItem()->tripRequest.userId) != std::string::npos)
+        if (passengers.find(driverSchedule.getCurrScheduleItem()->tripRequest.userId) != passengers.end())
         {
             // There is an error in the schedule. The driver is asked to pickup a passenger who is already
             // present in the vehicle. So we simply mark the current pickup item as completed and
@@ -295,7 +295,7 @@ void OnCallDriver::immediatelyPerformItem()
     }
     case ScheduleItemType::DROPOFF:
     {
-        if (getPassengersId().find(driverSchedule.getCurrScheduleItem()->tripRequest.userId) == std::string::npos)
+        if (passengers.find(driverSchedule.getCurrScheduleItem()->tripRequest.userId) == passengers.end())
         {
             // There is an error in the schedule. The driver is asked to dropoff a passenger who isn't
             // present in the vehicle. So we simply mark the current dropoff item as completed and

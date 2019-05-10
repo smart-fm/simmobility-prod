@@ -355,7 +355,7 @@ void OnCallDriverMovement::performScheduleItem()
 		{
 			//currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
 
-            if (onCallDriver->getPassengersId().find(itScheduleItem->tripRequest.userId) != std::string::npos)
+            if (onCallDriver->isPassengerExistInVehicle(itScheduleItem->tripRequest.userId))
             {
                 // There is an error in the schedule. The driver is asked to pickup a passenger who is already
                 // present in the vehicle. So we simply mark the current pickup item as completed and
@@ -377,7 +377,7 @@ void OnCallDriverMovement::performScheduleItem()
 		{
 			//currNode = pathMover.getCurrSegStats()->getRoadSegment()->getParentLink()->getToNode();
 
-            if (onCallDriver->getPassengersId().find(itScheduleItem->tripRequest.userId) == std::string::npos)
+            if (!(onCallDriver->isPassengerExistInVehicle(itScheduleItem->tripRequest.userId)))
             {
                 // There is an error in the schedule. The driver is asked to dropoff a passenger who isn't
                 // present in the vehicle. So we simply mark the current dropoff item as completed and

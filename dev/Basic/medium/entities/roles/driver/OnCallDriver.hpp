@@ -321,6 +321,10 @@ public:
 
     void removeDriverEntryFromAllContainer();
 
+    bool isPassengerExistInVehicle(const std::string& userid) const {
+        return passengers.find(userid) != passengers.end();
+    }
+
 };
 
 }

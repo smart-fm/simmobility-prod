@@ -156,8 +156,9 @@ public:
 
     void updateDayActivityScheduleTable();
 
-    void updateGetPersonBetweenStoredProc();
+    void updateLogsumTable();
 
+    void updateGetPersonBetweenStoredProc();
 
     /**
      * preday calibration function
@@ -209,17 +210,18 @@ private:
      */
     void processPersonsForCalibration(const PersonList::iterator& first, const PersonList::iterator& last, size_t threadNum);
 
-    /**
-     * Threaded logsum computation for LT population
+    /* Threaded logsum computation for LT population
      * Loops through all elements in personIdList within the specified range and
      * invokes logsum computations for each of them.
      *
      * @param first personIdList iterator corresponding to the first person to be
-     *              processed
+     * 				processed
      * @param last personIdList iterator corresponding to the person after the
-     *              last person to be processed
+     * 				last person to be processed
      */
-    void computeLogsumsForLT_Population(const LT_PersonIdList::iterator& firstPersonIdIt, const LT_PersonIdList::iterator& oneAfterLastPersonIdIt);
+    void computeLogsumsForLT_Population(const LT_PersonIdList::iterator& firstPersonIdIt,
+    const LT_PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumLogFileName);
+
 
     /**
      * Threaded logsum computation for calibration
@@ -305,6 +307,8 @@ private:
     ZoneNodeMap zoneNodeMap;
     boost::unordered_map<int, int> zoneIdLookup;
 
+	/* Used to store all the parameters required for preday for the entire population */
+	std::map<std::string,PersonParams> allIndividualData;
     /**
      * Map of AM Costs [origin zone, destination zone] -> CostParams*
      */

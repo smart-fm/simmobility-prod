@@ -56,6 +56,7 @@ public:
 	double getArea(int zone) const;
     //void setDrive1Available(bool drive1Available);
 	int isAvailable_TMD(int choiceId) const;
+	bool areAllTourModeDestinationsUnavailable();
 	int getModeForParentWorkTour() const;
 	void setModeForParentWorkTour(int modeForParentWorkTour);
 	int getCbdDummy(int zone) const;
@@ -95,6 +96,7 @@ public:
 	double getPopulation(int zone) const;
 	double getArea(int zone) const;
 	int isAvailable_IMD(int choiceId) const;
+	bool areAllStopModeDestinationsUnavailable();
 	int isFirstBound() const;
 	int isSecondBound() const;
 	int isCbdOrgZone() const;

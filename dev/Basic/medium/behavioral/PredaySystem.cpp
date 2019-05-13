@@ -370,16 +370,18 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 	}
 }
 
-void PredaySystem::predictTourMode(Tour& tour)
+int PredaySystem::predictTourMode(Tour& tour)
 {
 	TourModeParams tmParams;
 	constructTourModeParams(tmParams, tour.getTourDestination(), tour.getTourType());
-    int mode = PredayLuaProvider::getPredayModel().predictTourMode(personParams, activityTypeConfigMap, tmParams);
-    if(mode < 1 || mode > numModes)
+	int mode = PredayLuaProvider::getPredayModel().predictTourMode(personParams, activityTypeConfigMap, tmParams);
+	if(mode < 1 || mode > numModes)
 	{
 		throw std::runtime_error("Invalid tour mode");
 	}
-	tour.setTourMode(mode);
+tour.setTourMode(mode);
+
+    return 0;
 }
 
 void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
@@ -466,7 +468,7 @@ void PredaySystem::predictSubTourModeDestination(Tour& subTour, const Tour& pare
 	}
 }
 
-void PredaySystem::predictTourModeDestination(Tour& tour)
+int PredaySystem::predictTourModeDestination(Tour& tour)
 {
 	VehicleParams::VehicleDriveTrain powertrain = personParams.getConstVehicleParams().getDrivetrain();
 	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, tour.getTourType(), powertrain, numModes, unavailableODs);
@@ -477,6 +479,9 @@ void PredaySystem::predictTourModeDestination(Tour& tour)
 	{
 		throw std::runtime_error("invalid tour mode");
 	}
+	// if no choice is available, the mode destination models need not be called and the current tour is not scheduled
+	if (tmdParams.areAllTourModeDestinationsUnavailable())
+		return -1 ;
 	tour.setTourMode(mode);
 	int zone_id = tmdParams.getDestination(modeDest);
 	tour.setTourDestination(zoneMap.at(zone_id)->getZoneCode());
@@ -737,15 +742,20 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours,
     if (!testDPS)  { return; }
 
 	Stop* primaryStop = tour.stops.front(); // The only stop at this point is the primary activity stop
+	int primaryStopLocation = primaryStop->getStopLocation();
 
 	//generate all intermediate stops
 	generateIntermediateStops(FIRST_HALF_TOUR, tour, primaryStop, remainingTours);
 	generateIntermediateStops(SECOND_HALF_TOUR, tour, primaryStop, remainingTours);
 
 	StopList& stops = tour.stops;
+
 	if(stops.size() == 1) { return; } //No stops were generated
 	StopList::iterator primaryStopIt = std::find(stops.begin(), stops.end(), primaryStop);
 	if(primaryStopIt==stops.end()) { throw std::runtime_error("primary stop missing stops list"); }
+
+	std::reverse(stops.begin(),(primaryStopIt));   // reversing the ordering of stops for the first half tour
+	primaryStop->setStopLocation(personParams.getHomeLocation());
 
 	//predict mode and destinations for stops
 	//first half tour
@@ -781,7 +791,10 @@ void PredaySystem::constructIntermediateStops(Tour& tour, size_t remainingTours,
 		}
 	}
 
+	primaryStop->setStopLocation(primaryStopLocation);
 	primaryStopIt = std::find(stops.begin(), stops.end(), primaryStop); //find primary stop again
+	std::reverse(stops.begin(),(primaryStopIt));  // reverting back to the original ordering of stops
+
 	if(primaryStopIt==stops.end()) { throw std::runtime_error("primary stop missing stops list"); }
 
 	//second half tour
@@ -1582,21 +1595,27 @@ void PredaySystem::planDay()
 		if (tour.isUsualLocation())
 		{
 			// Predict just the mode for tours to usual location
-			predictTourMode(tour);
+			int result = predictTourMode(tour);
+			if (result == -1)
+				break;
 		}
 		else
 		{
 			// Predict mode and destination for tours to not-usual locations
-			predictTourModeDestination(tour);
+			int result = predictTourModeDestination(tour);
+			if (result == -1)
+				break;
 		}
 
 		int tourMode = tour.getTourMode();
-		if(tourMode == 1 || tourMode == 2) //if chosen mode for primary activity was a PT mode
+		const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+		if(cfg.getTravelModeConfig(tourMode).type == PT_TRAVEL_MODE ) //if chosen mode for primary activity was a PT mode
 		{
 			//block early morning and late night hours where PT trips are rare
 			if(firstAvailableTimeIndex < FIRST_INDEX_FOR_PUBLIC_TANSIT_MODE)
 			{
 				personParams.blockTime(firstAvailableTimeIndex, FIRST_INDEX_FOR_PUBLIC_TANSIT_MODE);
+				personParams.blockTime(LAST_INDEX_FOR_PUBLIC_TANSIT_MODE, LAST_INDEX);
 				firstAvailableTimeIndex = FIRST_INDEX_FOR_PUBLIC_TANSIT_MODE;
 			}
 		}
@@ -1696,7 +1715,7 @@ long sim_mob::medium::PredaySystem::getFirstNodeInZone(const std::vector<ZoneNod
 	return 0;
 }
 
-void sim_mob::medium::PredaySystem::computeLogsums()
+void sim_mob::medium::PredaySystem::computeLogsums(std::stringstream& outStream)
 {
     const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
 
@@ -1725,18 +1744,22 @@ void sim_mob::medium::PredaySystem::computeLogsums()
 
     logStream << "Person: " << personParams.getPersonId() << "|updated logsums- ";
 
+	outStream << personParams.getPersonId();
     for (int i = 1; i <= activityTypeConfigMap.size(); ++i)
     {
         logStream << activityTypeConfigMap.at(i).name << ": " << personParams.getActivityLogsum(i) << ", ";
-    }
+		outStream <<","<<personParams.getActivityLogsum(i) ;
+	}
 
-	logStream << "dpt: " << personParams.getDptLogsum() << ", dps: " << personParams.getDpsLogsum() 
-		<< ", dpb: " << personParams.getDpbLogsum() <<std::endl; //jo
+    logStream << "dpt: " << personParams.getDptLogsum()
+			<< ", dps: " << personParams.getDpsLogsum()<< ", dps: " << personParams.getDpsLogsum() << ", dpb: " << personParams.getDpbLogsum() //jo
+			<<std::endl;
+	outStream <<","<<personParams.getDptLogsum()<<","<< personParams.getDpsLogsum()<<","<<personParams.getDpbLogsum()<<"\n";
 }
 
 void sim_mob::medium::PredaySystem::computeLogsumsForLT(std::stringstream& outStream)
 {
-	computeLogsums();
+	computeLogsums(outStream);
 	PredayLuaProvider::getPredayModel().computeDayPatternBinaryLogsums(personParams);
 	outStream << personParams.getPersonId() << "," << personParams.getHomeLocation()
 		<< "," << personParams.getFixedWorkLocation() << "," << personParams.getHhId()

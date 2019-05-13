@@ -485,6 +485,15 @@ int TourModeDestinationParams::isAvailable_TMD(int choiceId) const
 
 }
 
+bool TourModeDestinationParams::areAllTourModeDestinationsUnavailable()
+{
+    int s = 0 ;
+	int numberOfChoices = modeAvailability.size() * zoneMap.size();
+    for (int i = 1 ; i<= numberOfChoices; i++ )
+        s += (int)isAvailable_TMD(i) ;
+    return s==0 ;
+}
+
 int TourModeDestinationParams::getModeForParentWorkTour() const
 {
 	return modeForParentWorkTour;
@@ -784,6 +793,14 @@ int StopModeDestinationParams::isAvailable_IMD(int choiceId) const
     return 0;
 }
 
+bool StopModeDestinationParams::areAllStopModeDestinationsUnavailable()
+{
+	int s = 0 ;
+	int numberOfChoices = modeAvailability.size() * zoneMap.size();
+	for (int i = 1 ; i<= numberOfChoices; i++ )
+		s += (int)isAvailable_IMD(i) ;
+	return s==0 ;
+}
 int StopModeDestinationParams::isFirstBound() const
 {
 	return firstBound;

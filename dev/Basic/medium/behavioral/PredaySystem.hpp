@@ -55,7 +55,7 @@ private:
 	 *
 	 * @param tour the tour for which the mode is to be predicted
 	 */
-	void predictTourMode(Tour& tour);
+	int predictTourMode(Tour& tour);
 
 	/**
 	 * builds outTourModeParams from destination and stop type
@@ -70,7 +70,7 @@ private:
 	 *
 	 * @param tour the tour for which the mode and destination are to be predicted
 	 */
-	void predictTourModeDestination(Tour& tour);
+	int predictTourModeDestination(Tour& tour);
 
 	/**
 	 * Predicts the time period that will be allotted for the primary activity of a tour.
@@ -315,7 +315,7 @@ public:
 	 * Invokes logsum computation for preday
 	 * Updates the logsums in personParams
 	 */
-	void computeLogsums();
+	void computeLogsums(std::stringstream& outStream);
 
 	/**
 	 * Invokes logsum computation for long term

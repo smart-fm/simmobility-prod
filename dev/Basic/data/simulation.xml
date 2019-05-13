@@ -223,8 +223,7 @@ Note: Controller id indicates the subscribed_controller field specified in the t
 
     <stored_proc_names>
             <stored_proc name="get_individual_id_list" value="getindividualids()" />
-            <!-- The individual_by_id stored proc should be changed to getindividual_vehicle_by_id for the Energy consumption model -->
-            <stored_proc name="individual_by_id" value="getindividualbyidwithvehicle(:_id)" />
+            <stored_proc name="tableIndividualByIdForPreday" value="table_individual_by_id_for_preday_with_energy_columns" />
             <stored_proc name="addresses" value="getaddresses()" />
             <stored_proc name="postcode_node_map" value="get_postcode_node_map()" />
     </stored_proc_names>

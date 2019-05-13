@@ -526,6 +526,7 @@ void mergeCSV_Files(const std::list<std::string>& fileNameList, const std::strin
 		//If src is good, this part's easy.
 		out << src.rdbuf();
 		src.close();
+		std::remove(it->c_str());
 	}
 	out.close();
 
@@ -644,6 +645,7 @@ void sim_mob::medium::PredayManager::loadPersonIds()
 		populationDao.getAddresses();
 		populationDao.getAllIds(ltPersonIdList);
 	}
+	conn.disconnect();
 }
 
 void sim_mob::medium::PredayManager::loadZones()
@@ -771,35 +773,33 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 	{
 		logFileNamePrefix = "activity_schedule";
 	}
+	else if (mtConfig.runningPredayLogsumComputation())
+	{
+		logFileNamePrefix = "logsum";
+	}
 	constructFileNames(numWorkers, logFileNamePrefix, logFileNames);
 
-	if(mtConfig.runningPredayLogsumComputation())
-	{
-		// logsum data source
-		DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
-		simmobConn.connect();
-		if (!simmobConn.isConnected())
-		{
-			throw std::runtime_error("simmobility db connection failure!");
-		}
-		const std::string& logsumTableName = mtConfig.getLogsumTableName();
+	const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+	// construct population dao specially
+    DB_Connection populationConn = getDB_Connection(cfg.populationDatabase);
+    populationConn.connect();
+    if (!populationConn.isConnected())
+    {
+        throw std::runtime_error("population db connection failure!");
+    }
+    PopulationSqlDao populationDao(populationConn);
+	populationDao.loadAllIndividualsForPreday(allIndividualData);
+	populationConn.disconnect();
 
+    if(mtConfig.runningPredayLogsumComputation())
+	{
+
+		const std::string& logsumTableName = mtConfig.getLogsumTableName();
 		const std::unordered_map<StopType, ActivityTypeConfig>& activityTypeConfig = ConfigManager::GetInstance().FullConfig().getActivityTypeConfigMap();
 		std::vector<std::string> activityLogsumColumns;
 		for (int i = 1; i <= activityTypeConfig.size(); ++i)
 		{
 			activityLogsumColumns.push_back(activityTypeConfig.at(i).logsumTableColumn);
-		}
-
-		SimmobSqlDao logsumSqlDao(simmobConn, logsumTableName, activityLogsumColumns);
-		bool truncated = logsumSqlDao.erase(db::EMPTY_PARAMS);
-		if(truncated)
-		{
-			Print() << logsumTableName << " truncated\n";
-		}
-		else
-		{
-			Print() << logsumTableName << " truncation failed!\n";
 		}
 	}
 
@@ -811,7 +811,7 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 		}
 		else if (mtConfig.runningPredayLogsumComputation())
 		{
-			computeLogsumsForLT_Population(ltPersonIdList.begin(), ltPersonIdList.end());
+			computeLogsumsForLT_Population(ltPersonIdList.begin(), ltPersonIdList.end(), logFileNames.front());
 		}
 	}
 	else
@@ -841,7 +841,8 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 			}
 			else if (mtConfig.runningPredayLogsumComputation())
 			{
-				threadGroup.create_thread(boost::bind(&PredayManager::computeLogsumsForLT_Population, this, first, last));
+				threadGroup.create_thread(boost::bind(&PredayManager::computeLogsumsForLT_Population, this, first, last, (*fileNameIt)));
+				fileNameIt++;
 			}
 
 			first = last;
@@ -859,59 +860,54 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 	}
 
 	// merge log files from each thread into 1 file.
-	if (mtConfig.isFileOutputEnabled())
+	mergeCSV_Files(logFileNames, logFileNamePrefix);
+
+
+	if (mtConfig.runningPredayLogsumComputation())
 	{
-		mergeCSV_Files(logFileNames, logFileNamePrefix);
-	}
+    	updateLogsumTable();
+    }
+
 }
+
 
 
 void PredayManager::runLogSumComputation()
 {
-    boost::thread_group threadGroup;
-    unsigned numWorkers = mtConfig.getNumPredayThreads();
-    std::list<std::string> logFileNames;
-    std::string logFileNamePrefix;
-    constructFileNames(numWorkers, logFileNamePrefix, logFileNames);
+	boost::thread_group threadGroup;
+	unsigned numWorkers = mtConfig.getNumPredayThreads();
+	std::list<std::string> logFileNames;
+	std::string logFileNamePrefix;
+	logFileNamePrefix = "logsum";
+	constructFileNames(numWorkers, logFileNamePrefix, logFileNames);
 
-    // logsum data source
-    DB_Connection simmobConn = getDB_Connection(ConfigManager::GetInstance().FullConfig().networkDatabase);
-    simmobConn.connect();
-    if (!simmobConn.isConnected())
-    {
-        throw std::runtime_error("simmobility db connection failure!");
-    }
-    const std::string& logsumTableName = mtConfig.getLogsumTableName();
+	const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+	// construct population dao specially
+	DB_Connection populationConn = getDB_Connection(cfg.populationDatabase);
+	populationConn.connect();
+	if (!populationConn.isConnected())
+	{
+		throw std::runtime_error("population db connection failure!");
+	}
+	PopulationSqlDao populationDao(populationConn);
+	populationDao.loadAllIndividualsForPreday(allIndividualData);
+	populationConn.disconnect();
 
-    const std::unordered_map<StopType, ActivityTypeConfig>& activityTypeConfig = ConfigManager::GetInstance().FullConfig().getActivityTypeConfigMap();
-    std::vector<std::string> activityLogsumColumns;
-    for (int i = 1; i <= activityTypeConfig.size(); ++i)
-    {
-        activityLogsumColumns.push_back(activityTypeConfig.at(i).logsumTableColumn);
-    }
+	const std::string& logsumTableName = mtConfig.getLogsumTableName();
 
-    SimmobSqlDao logsumSqlDao(simmobConn, logsumTableName, activityLogsumColumns);
-    bool truncated = logsumSqlDao.erase(db::EMPTY_PARAMS);
-    if(truncated)
-    {
-        Print() << logsumTableName << " truncated\n";
-    }
-    else
-    {
-        Print() << logsumTableName << " truncation failed!\n";
-    }
+	const std::unordered_map<StopType, ActivityTypeConfig>& activityTypeConfig = ConfigManager::GetInstance().FullConfig().getActivityTypeConfigMap();
 
-    if (numWorkers == 1)
-    { // if single threaded execution was requested
-        computeLogsumsForLT_Population(ltPersonIdList.begin(), ltPersonIdList.end());
-    }
-    else
-    {
-        LT_PersonIdList::size_type numPersons = ltPersonIdList.size();
-        LT_PersonIdList::size_type numPersonsPerThread = numPersons / numWorkers;
-        Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers << "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
+	if (numWorkers == 1)
+	{ // if single threaded execution was requested
+		computeLogsumsForLT_Population(ltPersonIdList.begin(), ltPersonIdList.end(), logFileNames.front());
+	}
+	else
+	{
+		LT_PersonIdList::size_type numPersons = ltPersonIdList.size();
+		LT_PersonIdList::size_type numPersonsPerThread = numPersons / numWorkers;
+		Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers << "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
 
-        /*
+		/*
          * We are passing different iterators on the same list into the threaded
          * function. Each thread will iterate through a mutually exclusive and
          * exhaustive set of persons from the population.
@@ -920,26 +916,30 @@ void PredayManager::runLogSumComputation()
          * start and end iterators. It is therefore important that none of the
          * threads change the personList.
          */
-        LT_PersonIdList::iterator first = ltPersonIdList.begin();
-        LT_PersonIdList::iterator last = ltPersonIdList.begin() + numPersonsPerThread;
-        std::list<std::string>::const_iterator fileNameIt = logFileNames.begin();
-        for (int i = 1; i <= numWorkers; i++)
-        {
-            threadGroup.create_thread(boost::bind(&PredayManager::computeLogsumsForLT_Population, this, first, last));
-            first = last;
-            if (i + 1 == numWorkers)
-            {
-                // if the next iteration is the last take all remaining persons
-                last = ltPersonIdList.end();
-            }
-            else
-            {
-                last = last + numPersonsPerThread;
-            }
-        }
-        threadGroup.join_all();
-    }
+		LT_PersonIdList::iterator first = ltPersonIdList.begin();
+		LT_PersonIdList::iterator last = ltPersonIdList.begin() + numPersonsPerThread;
+		std::list<std::string>::const_iterator fileNameIt = logFileNames.begin();
+		for (int i = 1; i <= numWorkers; i++)
+		{
+			threadGroup.create_thread(boost::bind(&PredayManager::computeLogsumsForLT_Population, this, first, last, (*fileNameIt)));
+			first = last;
+			if (i + 1 == numWorkers)
+			{
+				// if the next iteration is the last take all remaining persons
+				last = ltPersonIdList.end();
+			}
+			else
+			{
+				last = last + numPersonsPerThread;
+			}
+			fileNameIt++ ;
+		}
+		threadGroup.join_all();
+	}
+	// merge log files from each thread into 1 file.
+	mergeCSV_Files(logFileNames, logFileNamePrefix);
 
+	updateLogsumTable();
 
 }
 
@@ -952,6 +952,19 @@ void PredayManager::runPredaySimulation()
     std::string logFileNamePrefix;
     logFileNamePrefix = "activity_schedule";
     constructFileNames(numWorkers, logFileNamePrefix, logFileNames);
+
+    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+	// construct population dao specially
+	DB_Connection populationConn = getDB_Connection(cfg.populationDatabase);
+	populationConn.connect();
+	if (!populationConn.isConnected())
+	{
+		throw std::runtime_error("population db connection failure!");
+	}
+	PopulationSqlDao populationDao(populationConn);
+	populationDao.loadAllIndividualsForPreday(allIndividualData);
+	populationConn.disconnect();
+
     if (numWorkers == 1)
     { // if single threaded execution was requested
         processPersonsForLT_Population(ltPersonIdList.begin(), ltPersonIdList.end(), logFileNames.front());
@@ -998,6 +1011,57 @@ void PredayManager::runPredaySimulation()
     {
         mergeCSV_Files(logFileNames, logFileNamePrefix);
     }
+}
+
+
+void PredayManager::updateLogsumTable()
+{
+	MT_Config& mtCfg = MT_Config::getInstance();
+
+	std::string tableName = mtCfg.getLogsumTableName();
+
+	soci::session sql_(soci::postgresql, ConfigManager::GetInstanceRW().FullConfig().getDatabaseConnectionString(false));
+	/// Delete the table if it already exists
+	soci::statement query = (sql_.prepare << "DROP TABLE  IF EXISTS " << tableName );
+
+	query.execute();
+
+	/// Create the table
+	query = (sql_.prepare << "CREATE TABLE " << tableName
+						  <<  "(person_id bigint,"
+							  "work double precision,"
+							  "education double precision,"
+							  "shop double precision,"
+							  "other double precision,"
+							  "dp_tour double precision,"
+							  "dp_stop double precision,"
+							  "dp_binary double precision"
+							  ") WITH (OIDS=FALSE)");
+
+	query.execute();
+
+	/// Alter table owner
+	query = (sql_.prepare << "ALTER TABLE " << tableName << " OWNER TO postgres");
+	query.execute();
+
+	PG_BulkInserter bulkInserter(NUM_INSERTS_PER_QUERY);
+	bulkInserter.setInputFile("logsum");
+
+	std::vector<std::string> columnNames = {"person_id", "work", "education", "shop", "other", "dp_tour",
+											"dp_stop", "dp_binary"};
+
+	bulkInserter.buildQuery(tableName, columnNames);
+	bulkInserter.connect(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+	bulkInserter.bulkInsert();
+
+	/// Create Indexes and update sharing modes
+	query = (sql_.prepare << "DROP INDEX IF EXISTS " << tableName.substr(0,tableName.find(".")+1) <<"pid_on_" << tableName.substr(tableName.find(".") + 1) );
+	query.execute();
+
+	query = (sql_.prepare << "CREATE INDEX pid_on_"<< tableName.substr(tableName.find(".") + 1) << " ON "<< tableName <<"  USING btree  (person_id);");
+	query.execute();
+
+	sql_.close();
 }
 
 
@@ -1525,14 +1589,7 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 
     const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
 
-	// construct population dao specially
-    DB_Connection populationConn = getDB_Connection(cfg.populationDatabase);
-	populationConn.connect();
-	if (!populationConn.isConnected())
-	{
-		throw std::runtime_error("population db connection failure!");
-	}
-	PopulationSqlDao populationDao(populationConn);
+
 
 	// logsum data source
     DB_Connection simmobConn = getDB_Connection(cfg.networkDatabase);
@@ -1561,7 +1618,7 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 	for (LT_PersonIdList::iterator i = firstPersonIdIt; i != oneAfterLastPersonIdIt; i++)
 	{
 		PersonParams personParams;
-		populationDao.getOneById(*i, personParams);
+		personParams = allIndividualData[boost::lexical_cast<std::string>(*i)];
 		if (personParams.getPersonId().empty())
 		{
 			continue;
@@ -1587,6 +1644,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 {
 	bool consoleOutput = mtConfig.isConsoleOutput();
 	const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+	std::stringstream outstreamForLogsum;
 
 	// time dependent zone-zone travel time data source
 	DB_Connection simmobConn = getDB_Connection(cfg.networkDatabase);
@@ -1602,7 +1660,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 	for (PersonList::iterator i = firstPersonIt; i != oneAfterLastPersonIt; i++)
 	{
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs, activityTypeConfig, cfg.getNumTravelModes());
-		predaySystem.computeLogsums();
+		predaySystem.computeLogsums(outstreamForLogsum);
 		if (consoleOutput)
 		{
 			predaySystem.printLogs();
@@ -1611,19 +1669,16 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 }
 
 void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_PersonIdList::iterator& firstPersonIdIt,
-		const LT_PersonIdList::iterator& oneAfterLastPersonIdIt)
+		const LT_PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumFileLogs )
 {
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
+	// open log file for this thread
+	std::ofstream logsumsLogFile(logsumFileLogs.c_str(), std::ios::trunc | std::ios::out);
+	std::stringstream outstreamForLogsum;
+
 	const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
-	// construct population dao specially
-	DB_Connection populationConn = getDB_Connection(cfg.populationDatabase);
-	populationConn.connect();
-	if (!populationConn.isConnected())
-	{
-		throw std::runtime_error("population db connection failure!");
-	}
-	PopulationSqlDao populationDao(populationConn);
+
 
 	// logsum data source
 	DB_Connection simmobConn = getDB_Connection(cfg.networkDatabase);
@@ -1648,18 +1703,19 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 	for (LT_PersonIdList::iterator i = firstPersonIdIt; i != oneAfterLastPersonIdIt; i++)
 	{
 		PersonParams personParams;
-		populationDao.getOneById(*i, personParams);
+		personParams = allIndividualData[boost::lexical_cast<std::string>(*i)];
 		if (personParams.getPersonId().empty())
 		{
 			continue;
 		} // some persons are not complete in the database
-        PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs, activityTypeConfig, cfg.getNumTravelModes());
-		predaySystem.computeLogsums();
-		logsumSqlDao.insert(personParams);
+		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, tcostDao, unavailableODs, activityTypeConfig, cfg.getNumTravelModes());
+		predaySystem.computeLogsums(outstreamForLogsum);
 		if (consoleOutput)
 		{
 			predaySystem.printLogs();
 		}
+		outputToFile(logsumsLogFile, outstreamForLogsum);
+
 	}
 }
 

@@ -10,7 +10,6 @@
 #include <conf/ConfigParams.hpp>
 #include "DatabaseHelper.hpp"
 #include "logging/Log.hpp"
-//#include "medium/config/MT_Config.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::db;
@@ -89,8 +88,8 @@ void PopulationSqlDao::getAllIds(std::vector<long>& outList)
 		ConfigParams& fullConfig = ConfigManager::GetInstanceRW().FullConfig();
 		Statement query(connection.getSession<soci::session>());
 		const std::string MAIN_SCHEMA = fullConfig.schemas.main_schema;
-		const std::string TABLE_NAME = fullConfig.dbStoredProcMap["get_individual_id_list"];
-		const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA,TABLE_NAME);
+		const std::string STORED_PROC_NAME = fullConfig.dbStoredProcMap["get_individual_id_list"];
+		const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA,STORED_PROC_NAME);
 		const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_IDS;
 		prepareStatement(DB_GET_ALL_PERSON_IDS, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
@@ -101,6 +100,65 @@ void PopulationSqlDao::getAllIds(std::vector<long>& outList)
 		Print() << "Person Ids loaded from LT database: " << outList.size() << std::endl;
 	}
 }
+
+void PopulationSqlDao::loadAllIndividualsForPreday(std::map<std::string,PersonParams>& allIndividualData)
+{
+	if (isConnected())
+	{
+		ConfigParams& fullConfig = ConfigManager::GetInstanceRW().FullConfig();
+		Statement query(connection.getSession<soci::session>());
+		const std::string MAIN_SCHEMA = fullConfig.schemas.main_schema;
+		const std::string TABLE_NAME = fullConfig.dbStoredProcMap["tableIndividualByIdForPreday"];
+		const std::string TABLE_NAME_WITH_SCHEMA = APPLY_SCHEMA(MAIN_SCHEMA,TABLE_NAME);
+		const std::string DB_TABLE_GET_ALL_INDIVIDUAL_DATA = "SELECT * FROM " + TABLE_NAME_WITH_SCHEMA;
+		prepareStatement(DB_TABLE_GET_ALL_INDIVIDUAL_DATA, db::EMPTY_PARAMS, query);
+		ResultSet rs(query);
+		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
+		{
+			PersonParams outObj;
+			outObj.setPersonId(boost::lexical_cast<std::string>((*it).get<BigInt>(DB_FIELD_ID)));
+			outObj.setPersonTypeId((*it).get<BigInt>(DB_FIELD_PERSON_TYPE_ID));
+			outObj.setGenderId((*it).get<BigInt>(DB_FIELD_GENDER_ID));
+			outObj.setStudentTypeId((*it).get<BigInt>(DB_FIELD_STUDENT_TYPE_ID));
+			outObj.setVehicleOwnershipCategory((*it).get<int>(DB_FIELD_VEHICLE_CATEGORY_ID));
+
+			outObj.setAgeId((*it).get<BigInt>(DB_FIELD_AGE_CATEGORY_ID));
+			outObj.setIncomeIdFromIncome((*it).get<double>(DB_FIELD_INCOME));
+			outObj.setWorksAtHome((*it).get<int>(DB_FIELD_WORK_AT_HOME));
+			outObj.setCarLicense((*it).get<int>(DB_FIELD_CAR_LICENSE));
+			outObj.setMotorLicense((*it).get<int>(DB_FIELD_MOTOR_LICENSE));
+			outObj.setVanbusLicense((*it).get<int>(DB_FIELD_VANBUS_LICENSE));
+			outObj.setHasFixedWorkTiming((*it).get<int>(DB_FIELD_WORK_TIME_FLEX));
+			outObj.setHasWorkplace((*it).get<int>(DB_FIELD_HAS_FIXED_WORK_PLACE));
+			outObj.setIsStudent((*it).get<int>(DB_FIELD_IS_STUDENT));
+			outObj.setActivityAddressId((*it).get<BigInt>(DB_FIELD_ACTIVITY_ADDRESS_ID));
+
+			//household related
+			outObj.setHhId(boost::lexical_cast<std::string>((*it).get<BigInt>(DB_FIELD_HOUSEHOLD_ID)));
+			outObj.setHomeAddressId((*it).get<BigInt>(DB_FIELD_HOME_ADDRESS_ID));
+			outObj.setHH_Size((*it).get<int>(DB_FIELD_HH_SIZE));
+			outObj.setHH_NumUnder4((*it).get<int>(DB_FIELD_HH_CHILDREN_UNDER_4));
+			outObj.setHH_NumUnder15((*it).get<int>(DB_FIELD_HH_CHILDREN_UNDER_15));
+			outObj.setHH_NumAdults((*it).get<int>(DB_FIELD_HH_ADULTS));
+			outObj.setHH_NumWorkers((*it).get<int>(DB_FIELD_HH_WORKERS));
+
+			VehicleParams vp;
+			//vehicle related
+			vp.setVehicleId((*it).get<int>(DB_FIELD_V_ID));
+			vp.setDrivetrain((*it).get<std::string>(DB_FIELD_V_DRIVETRAIN));
+			vp.setMake((*it).get<std::string>(DB_FIELD_V_MAKE));
+			vp.setModel((*it).get<std::string>(DB_FIELD_V_MODEL));
+			outObj.setVehicleParams(vp);
+			//infer params
+			outObj.fixUpParamsForLtPerson();
+
+            allIndividualData[boost::lexical_cast<std::string>((*it).get<BigInt>(DB_FIELD_ID))] = outObj;
+		}
+
+		Print() << "Individuals loaded from consolidated table for preday " << std::endl;
+	}
+}
+
 
 void PopulationSqlDao::getAddresses()
 {

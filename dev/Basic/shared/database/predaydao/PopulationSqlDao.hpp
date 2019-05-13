@@ -32,6 +32,14 @@ public:
 	 */
 	void getAllIds(std::vector<long>& outList);
 
+
+	/**
+	 * fetches all data for all individuals and stores it as a map
+	 * @param map with key: <individual id> and value : < corresponding person params >
+	 */
+	void loadAllIndividualsForPreday(std::map<std::string,PersonParams>& allIndividualData );
+
+
 	/**
 	 * fetches data for individual id
 	 * @param id individual id

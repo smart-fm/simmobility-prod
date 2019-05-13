@@ -132,7 +132,7 @@ create_table_query =  \
     avg_dwell_time double precision,                           \
     num_bus_arrivals double precision,                          \
     num_persons_boarding double precision,                       \
-    CONSTRAINT pt_bus_stop_stats_pkey PRIMARY KEY (interval_id, bus_stop_code, bus_line)    \
+    CONSTRAINT '+ table_name_in_DB_without_schema +'_pkey PRIMARY KEY (interval_id, bus_stop_code, bus_line)    \
     )							         \
     WITH (							  \
         OIDS=FALSE						   \

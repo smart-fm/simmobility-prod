@@ -80,7 +80,16 @@ currLane(nullptr), prevRole(nullptr), currRole(nullptr), nextRole(nullptr), numT
 	{
 		TripChainOutput::getInstance().printTripChain(tripChain);
 		convertPublicTransitODsToTrips(PT_NetworkCreater::getInstance(), ptPathsetStoredProcName);
-		convertToTaxiTrips();
+		unsigned maxFleetSize = 0;
+		for (const auto &enabledCtrlrs : cfg.mobilityServiceController.enabledControllers)
+		{
+			maxFleetSize = (enabledCtrlrs.second.maxFleetSize > maxFleetSize)?
+						   enabledCtrlrs.second.maxFleetSize : maxFleetSize;
+		}
+		if (maxFleetSize > 0)
+		{
+			convertToTaxiTrips();
+		}
 		convertToSmartMobilityTrips(PT_NetworkCreater::getInstance(PT_Network::TYPE_RAIL_SMS), PT_NetworkCreater::getInstance(PT_Network::TYPE_RAIL_STUDY_AREA), railFLMPathsetStoredProcName, railFLMStuddyAreaPathsetStoredProcName );
 		insertWaitingActivityToTrip();
 		assignSubtripIds();

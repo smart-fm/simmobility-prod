@@ -173,7 +173,14 @@ void sim_mob::medium::Driver::collectTravelTime()
 
     if (roleType == Role<Person_MT>::RL_DRIVER)
     {
-        personTravelTime.mode = "ON_CAR";
+        if (personTravelTime.mode == "Taxi")
+        {
+            personTravelTime.mode = "ON_TAXI";
+        }
+        else
+        {
+            personTravelTime.mode = "ON_CAR";
+        }
     }
 
     messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),

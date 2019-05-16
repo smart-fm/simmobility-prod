@@ -561,11 +561,28 @@ double TrainPathMover::getDistanceFromStartToPlatform(std::string lineId,Platfor
         }
         else
         {
-            distanceToBlock = distance;
-            distance += platform->getOffset() + platform->getLength();
-            break;
-        }
+          if((*route.begin())->getAttachedPlatform() == (*(route.end()-1))->getAttachedPlatform() && (tempIt == route.begin()|| tempIt == route.end()-1)) //Loop route
+			{
+				if(getTotalCoveredDistance() <=  platform->getOffset() + platform->getLength() || tempIt == route.end()-1)
+				{
+					distance += platform->getOffset() + platform->getLength();
+					break;
+				}
+				else
+				{
+					distance += (*tempIt)->getLength();
+					tempIt++;
+					continue;
 
+				}
+			}
+			
+		else
+	 	{	
+	    	distance += platform->getOffset() + platform->getLength();
+            	break;
+        	}	
+	}
     }
  return distance;
 }

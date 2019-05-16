@@ -745,74 +745,78 @@ void NetworkLoader::loadSMSVehicleParking(const std::string &storedProc)
 {
     sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
     auto controllerIt = config.mobilityServiceController.enabledControllers.begin();
-    while(controllerIt != config.mobilityServiceController.enabledControllers.end())
-    {
-        if((*controllerIt).second.parkingEnabled)
+
+    // proceed to loading parking info only when the Mobility Service Controller exists
+    if(controllerIt != config.mobilityServiceController.enabledControllers.end()){
+        while(controllerIt != config.mobilityServiceController.enabledControllers.end())
         {
-            if (storedProc.empty())
+            if((*controllerIt).second.parkingEnabled)
+            {
+                if (storedProc.empty())
+                {
+                    std::stringstream msg;
+                    msg << "Stored procedure to load Parking Info  not specified in the configuration file."
+                        << "\nParking Info not loaded..." << std::endl;
+                    throw std::runtime_error(msg.str());
+                }
+            }
+            controllerIt++;
+        }
+
+        //SQL statement
+        soci::session sql_(soci::postgresql,config.getDatabaseConnectionString(false));
+        std::stringstream query;
+
+        const SimulationParams &simParams = ConfigManager::GetInstance().FullConfig().simulation;
+
+        query << "select * from " << storedProc << "('" << simParams.simStartTime.getStrRepr().substr(0, 5)
+              << "','" << (DailyTime(simParams.totalRuntimeMS) + simParams.simStartTime).getStrRepr().substr(0, 5) << "')";
+        soci::rowset<soci::row> rs = (sql_.prepare << query.str());
+
+        std::set<SMSVehicleParking*> allParkingLocations;
+
+        for (soci::rowset<soci::row>::const_iterator itParking = rs.begin(); itParking != rs.end(); ++itParking)
+        {
+            //Create new parking detail  and add it to the netowrk
+            SMSVehicleParking *smsVehicleParking = new SMSVehicleParking();
+            smsVehicleParking->setParkingId((*itParking).get<std::string>(PARKING_ID));
+            smsVehicleParking->setParkingType((*itParking).get<int>(PARKING_TYPE));
+            smsVehicleParking->setVehicleType((*itParking).get<int>(VEH_TYPE_ID));
+            smsVehicleParking->setCapacityPCU((*itParking).get<int>(CAPACITY_PCU));
+            smsVehicleParking->setSegmentId((*itParking).get<unsigned int>(SEGMENT_ID));
+            smsVehicleParking->setStartTime(getSecondFrmTimeString((*itParking).get<std::string>(START_TIME)));
+            smsVehicleParking->setEndTime(getSecondFrmTimeString((*itParking).get<std::string>(END_TIME)));
+
+            try
+            {
+                roadNetwork->addSMSVehicleParking(smsVehicleParking);
+                allParkingLocations.insert(smsVehicleParking);
+            }
+            catch(runtime_error &ex)
             {
                 std::stringstream msg;
-                msg << "Stored procedure to load Parking Info  not specified in the configuration file."
-                    << "\nParking Info not loaded..." << std::endl;
+                msg << ex.what() << "\nStored procedure: " << storedProc;
                 throw std::runtime_error(msg.str());
             }
         }
-        controllerIt++;
-    }
 
-    //SQL statement
-    soci::session sql_(soci::postgresql,config.getDatabaseConnectionString(false));
-    std::stringstream query;
+        //Sanity check
+        unsigned long parkingLoaded = roadNetwork->getMapOfIdvsSMSVehicleParking().size();
 
-    const SimulationParams &simParams = ConfigManager::GetInstance().FullConfig().simulation;
-
-    query << "select * from " << storedProc << "('" << simParams.simStartTime.getStrRepr().substr(0, 5)
-          << "','" << (DailyTime(simParams.totalRuntimeMS) + simParams.simStartTime).getStrRepr().substr(0, 5) << "')";
-    soci::rowset<soci::row> rs = (sql_.prepare << query.str());
-
-    std::set<SMSVehicleParking*> allParkingLocations;
-
-    for (soci::rowset<soci::row>::const_iterator itParking = rs.begin(); itParking != rs.end(); ++itParking)
-    {
-        //Create new parking detail  and add it to the netowrk
-        SMSVehicleParking *smsVehicleParking = new SMSVehicleParking();
-        smsVehicleParking->setParkingId((*itParking).get<std::string>(PARKING_ID));
-        smsVehicleParking->setParkingType((*itParking).get<int>(PARKING_TYPE));
-        smsVehicleParking->setVehicleType((*itParking).get<int>(VEH_TYPE_ID));
-        smsVehicleParking->setCapacityPCU((*itParking).get<int>(CAPACITY_PCU));
-        smsVehicleParking->setSegmentId((*itParking).get<unsigned int>(SEGMENT_ID));
-        smsVehicleParking->setStartTime(getSecondFrmTimeString((*itParking).get<std::string>(START_TIME)));
-        smsVehicleParking->setEndTime(getSecondFrmTimeString((*itParking).get<std::string>(END_TIME)));
-
-        try
-        {
-            roadNetwork->addSMSVehicleParking(smsVehicleParking);
-            allParkingLocations.insert(smsVehicleParking);
-        }
-        catch(runtime_error &ex)
+        if(parkingLoaded == 0)
         {
             std::stringstream msg;
-            msg << ex.what() << "\nStored procedure: " << storedProc;
-            throw std::runtime_error(msg.str());
+            msg << storedProc << " returned 0 parking!";
+            throw runtime_error(msg.str());
         }
-    }
 
-    //Sanity check
-    unsigned long parkingLoaded = roadNetwork->getMapOfIdvsSMSVehicleParking().size();
-
-    if(parkingLoaded == 0)
-    {
-        std::stringstream msg;
-        msg << storedProc << " returned 0 parking!";
-        throw runtime_error(msg.str());
-    }
-
-    //Update the R-tree with the parking locations
-    SMSVehicleParking::smsParkingRTree.update(allParkingLocations);
+        //Update the R-tree with the parking locations
+        SMSVehicleParking::smsParkingRTree.update(allParkingLocations);
 
 #ifndef NDEBUG
-    Print() << "Parking Details\t\t\t|\t" << parkingLoaded << "\t\t| " << storedProc << endl;
+        Print() << "Parking Details\t\t\t|\t" << parkingLoaded << "\t\t| " << storedProc << endl;
 #endif
+    }
 }
 
 

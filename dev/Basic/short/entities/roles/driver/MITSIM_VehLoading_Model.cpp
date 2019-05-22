@@ -349,6 +349,9 @@ void VehicleLoadingModel::getLeadAndFollowerVehicles(DriverUpdateParams &params,
             //It is ahead of us if it is on a lane that belongs to the same segment or link we are trying to enter
 
             auto nearbyVehCurrLane = nearbyDriver->getCurrLane();
+            if(!nearbyVehCurrLane)
+                continue;
+
             auto nearbyVehCurrSeg = nearbyVehCurrLane->getParentSegment();
             auto nearbyVehCurrLink = nearbyVehCurrSeg->getParentLink();
 

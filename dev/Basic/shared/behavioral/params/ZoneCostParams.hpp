@@ -343,31 +343,117 @@ public:
         return pubWtt;
     }
 
-    void setPubWtt(double pubWtt)
-    {
-        if (pubWtt != pubWtt)
-        {
-            this->pubWtt = 0;
-        }
-        else
-        {
-            this->pubWtt = pubWtt;
-        }
-    }
+	double getSMSWtt() const
+	{
+		return smsWtt;
+	}
+
+	double getSMSPoolWtt() const
+	{
+		return smsPoolWtt;
+	}
+
+	double getAMODWtt() const
+	{
+		return amodWtt;
+	}
+
+	double getAMODPoolWtt() const
+	{
+		return amodPoolWtt;
+	}
+
+	double getAMODMinibusWtt() const
+	{
+		return amodMinibusWtt;
+	}
+
+	void setPubWtt(double pubWtt)
+	{
+		if (pubWtt != pubWtt)
+		{
+			this->pubWtt = 0;
+		}
+		else
+		{
+			this->pubWtt = pubWtt;
+		}
+	}
+
+	void setSMSWtt(double smsWtt)
+	{
+		if (smsWtt != smsWtt)				// f != f will be true only if f is NaN.
+		{
+			this->smsWtt = 0;
+		}
+		else
+		{
+			this->smsWtt = smsWtt;
+		}
+	}
+	void setSMSPoolWtt(double smsPoolWtt)
+	{
+		if (smsPoolWtt != smsPoolWtt)
+		{
+			this->smsPoolWtt = 0;
+		}
+		else
+		{
+			this->smsPoolWtt = smsPoolWtt;
+		}
+	}
+	void setAMODWtt(double amodWtt)
+	{
+		if (amodWtt != amodWtt)
+		{
+			this->amodWtt = 0;
+		}
+		else
+		{
+			this->amodWtt = amodWtt;
+		}
+	}
+	void setAMODPoolWtt(double amodPoolWtt)
+	{
+		if (amodPoolWtt != amodPoolWtt)
+		{
+			this->amodPoolWtt = 0;
+		}
+		else
+		{
+			this->amodPoolWtt = amodPoolWtt;
+		}
+	}
+	void setAMODMinibusWtt(double amodMinibusWtt)
+	{
+		if (amodMinibusWtt != amodMinibusWtt)
+		{
+			this->amodMinibusWtt = 0;
+		}
+		else
+		{
+			this->amodMinibusWtt = amodMinibusWtt;
+		}
+	}
 
 private:
-    int originZone;
-    int destinationZone;
-    std::string orgDest;
-    double pubWtt;
-    double carIvt;
-    double pubOut;
-    double pubWalkt;
-    double distance;
-    double carCostERP;
-    double pubIvt;
-    double avgTransfer;
-    double pubCost;
+	int originZone;
+	int destinationZone;
+	std::string orgDest;
+	double pubWtt;
+	double carIvt;
+	double pubOut;
+	double pubWalkt;
+	double distance;
+	double carCostERP;
+	double pubIvt;
+	double avgTransfer;
+	double pubCost;
+	double smsWtt;
+	double smsPoolWtt;
+	double amodWtt;
+	double amodPoolWtt;
+	double amodMinibusWtt;
 };
 
 /**

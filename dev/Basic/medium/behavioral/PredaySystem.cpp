@@ -473,15 +473,18 @@ int PredaySystem::predictTourModeDestination(Tour& tour)
 	VehicleParams::VehicleDriveTrain powertrain = personParams.getConstVehicleParams().getDrivetrain();
 	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, tour.getTourType(), powertrain, numModes, unavailableODs);
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
-    int modeDest = PredayLuaProvider::getPredayModel().predictTourModeDestination(personParams, activityTypeConfigMap, tmdParams);
-	int mode = tmdParams.getMode(modeDest);
-    if(mode < 1 || mode > numModes)
-	{
-		throw std::runtime_error("invalid tour mode");
-	}
+
 	// if no choice is available, the mode destination models need not be called and the current tour is not scheduled
 	if (tmdParams.areAllTourModeDestinationsUnavailable())
 		return -1 ;
+
+	int modeDest = PredayLuaProvider::getPredayModel().predictTourModeDestination(personParams, activityTypeConfigMap, tmdParams);
+
+	int mode = tmdParams.getMode(modeDest);
+	if(mode < 1 || mode > numModes)
+	{
+		throw std::runtime_error("invalid tour mode");
+	}
 	tour.setTourMode(mode);
 	int zone_id = tmdParams.getDestination(modeDest);
 	tour.setTourDestination(zoneMap.at(zone_id)->getZoneCode());

@@ -201,7 +201,13 @@ public:
         {
             modeAvailabilityMap[mode] = availability;
         }
-
+	bool areAllModesUnavailable()
+	{
+		int s = 0 ;
+		for (int i = 1 ; i<= modeAvailabilityMap.size(); i++ )
+			s += (int)modeAvailabilityMap[i] ;
+		return (s==0) ;
+	}
         int isModeAvailable(int mode) const
         {
             return modeAvailabilityMap.at(mode);
@@ -225,6 +231,31 @@ public:
     void setTtCarIvtFirst(double ttCarIvtFirst)
     {
         this->ttCarIvtFirst = ttCarIvtFirst;
+    }
+
+    void setWttSMSFirst(double wTTSMSFirst)
+    {
+        this->wTTSMSFirst = wTTSMSFirst;
+    }
+
+    void setWttSMSPoolFirst(double wTTSMSPoolFirst)
+    {
+        this->wTTSMSPoolFirst = wTTSMSPoolFirst;
+    }
+
+    void setWttAMODFirst(double wTTAMODFirst)
+    {
+        this->wTTAMODFirst = wTTAMODFirst;
+    }
+
+    void setWttAMODPoolFirst(double wTTAMODPoolFirst)
+    {
+        this->wTTAMODPoolFirst = wTTAMODPoolFirst;
+    }
+
+    void setWttAMODMinibusFirst(double wTTAMODMinibusFirst)
+    {
+        this->wTTAMODMinibusFirst = wTTAMODMinibusFirst;
     }
 
     double getTtCarIvtSecond() const
@@ -271,6 +302,47 @@ public:
     {
         return ttPublicWaitingSecond;
     }
+    double getWTtSMSFirst() const
+    {
+        return wTTSMSFirst;
+    }
+    double getWTtSMSPoolFirst() const
+    {
+        return wTTSMSPoolFirst;
+    }
+    double getWTtAMODFirst() const
+    {
+        return wTTAMODFirst;
+    }
+    double getWTtAMODPoolFirst() const
+    {
+        return wTTAMODPoolFirst;
+    }
+    double getWTtAMODMinibusFirst() const
+    {
+        return wTTAMODMinibusFirst;
+    }
+
+    double getWTtSMSSecond() const
+    {
+        return wTTSMSSecond;
+    }
+    double getWTtSMSPoolSecond() const
+    {
+        return wTTSMSPoolSecond;
+    }
+    double getWTtAMODSecond() const
+    {
+        return wTTAMODSecond;
+    }
+    double getWTtAMODPoolSecond() const
+    {
+        return wTTAMODPoolSecond;
+    }
+    double getWTtAMODMinibusSecond() const
+    {
+        return wTTAMODMinibusSecond;
+    }
 
     void setTtPublicWaitingSecond(double ttPublicWaitingSecond)
     {
@@ -297,6 +369,30 @@ public:
         this->ttPublicWalkSecond = ttPublicWalkSecond;
     }
 
+    void setWttSMSSecond(double wTTSMSSecond)
+    {
+        this->wTTSMSSecond = wTTSMSSecond;
+    }
+
+    void setWttSMSPoolSecond(double wTTSMSPoolSecond)
+    {
+        this->wTTSMSPoolSecond = wTTSMSPoolSecond;
+    }
+
+    void setWttAMODSecond(double wTTAMODSecond)
+    {
+        this->wTTAMODSecond = wTTAMODSecond;
+    }
+
+    void setWttAMODPoolSecond(double wTTAMODPoolSecond)
+    {
+        this->wTTAMODPoolSecond = wTTAMODPoolSecond;
+    }
+
+    void setWttAMODMinibusSecond(double wTTAMODMinibusSecond)
+    {
+        this->wTTAMODMinibusSecond = wTTAMODMinibusSecond;
+    }
         /*int isWalkAvailable() const
     {
         return walkAvailable;
@@ -425,6 +521,16 @@ private:
     double ttPublicIvtSecond;
     double ttPublicWaitingFirst;
     double ttPublicWaitingSecond;
+    double wTTSMSFirst;
+    double wTTSMSPoolFirst;
+    double wTTAMODFirst;
+    double wTTAMODPoolFirst;
+    double wTTAMODMinibusFirst;
+    double wTTSMSSecond;
+    double wTTSMSPoolSecond;
+    double wTTAMODSecond;
+    double wTTAMODPoolSecond;
+    double wTTAMODMinibusSecond;
     double ttPublicWalkFirst;
     double ttPublicWalkSecond;
     double ttCarIvtFirst;

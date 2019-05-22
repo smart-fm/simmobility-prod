@@ -210,9 +210,9 @@ Note: Controller id indicates the subscribed_controller field specified in the t
     <table_names>
             <table name="income_cat" value="income_category" />
             <table name="vehicle_ownership_status" value="vehicle_ownership_status" />
-            <table name="AM_cost_table" value="learned_amcosts" />
-            <table name="PM_cost_table" value="learned_pmcosts" />
-            <table name="OP_cost_table" value="learned_opcosts" />
+            <table name="AM_cost_table" value="learned_amcosts_modified_for_waiting_time" />
+            <table name="PM_cost_table" value="learned_pmcosts_modified_for_waiting_time" />
+            <table name="OP_cost_table" value="learned_opcosts_modified_for_waiting_time" />
             <table name="taz_table" value="taz_2012" />
             <table name="node_taz_map_table" value="node_taz_map" />
             <table name="taz_without_node_table" value="taz_without_node" />

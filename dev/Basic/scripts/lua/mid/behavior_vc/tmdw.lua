@@ -433,8 +433,10 @@ local function computeUtilities(params,dbparams)
 		tt_motor[i] = tt_car_ivt_first[i] + tt_car_ivt_second[i] + 1.0/6
 		tt_walk[i] = (d1[i]+d2[i])/5
 		tt_taxi[i] = tt_car_ivt_first[i] + tt_car_ivt_second[i] + 1.0/6
-		tt_SMS[i] = tt_car_ivt_first[i] + tt_car_ivt_second[i] + 1.0/6
-		tt_SMS_Pool[i] = tt_car_ivt_first[i] + tt_car_ivt_second[i]+1.0/6 + 1/10+(d1[i]+d2[i])/2/60 + 1.0/6
+		local tt_SMS_out=dbparams:wtt_sms_first(i) + dbparams:wtt_sms_second(i);
+		tt_SMS[i] = tt_car_ivt_first[i] + tt_car_ivt_second[i] + tt_SMS_out
+		local tt_SMS_pool_out=dbparams:wtt_sms_pool_first(i) + dbparams:wtt_sms_pool_second(i);
+		tt_SMS_Pool[i] = tt_car_ivt_first[i] + tt_car_ivt_second[i]+ tt_SMS_pool_out + 1/10+(d1[i]+d2[i])/2/60
 		tt_Rail_SMS_Pool[i] = tt_public_ivt_first[i]+ tt_public_ivt_second[i]+(tt_public_out_first[i]+tt_public_out_second[i])/6 +(aed+aed)/60+1/10
 
 		average_transfer_number[i] = dbparams:average_transfer_number(i)

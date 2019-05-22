@@ -334,10 +334,10 @@ local function computeUtilities(params,dbparams)
 	local tt_taxi_out=1.0/6
 	local tt_taxi_all=tt_cardriver_ivt+tt_cardriver_out
 	local tt_SMS_ivt=tt_ivt_car_first+tt_ivt_car_second
-	local tt_SMS_out=1/6.0
+	local tt_SMS_out=dbparams.wtt_sms_first + dbparams.wtt_sms_second;
 	local tt_SMS_all=tt_cardriver_ivt+tt_cardriver_out
 	local tt_SMS_Pool_ivt=tt_ivt_car_first+tt_ivt_car_second+(d1+d2)/2/60
-	local tt_SMS_Pool_out=1/6.0+1/10
+	local tt_SMS_Pool_out=dbparams.wtt_sms_pool_first + dbparams.wtt_sms_pool_second;
 	local tt_SMS_Pool_all=tt_cardriver_ivt+tt_cardriver_out
 	
 

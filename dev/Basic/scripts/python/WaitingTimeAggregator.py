@@ -1,6 +1,16 @@
 """
 Script to update the waiting times in the zone to zone learned am/pm/op cost tables
-Usage: python2.7 WaitingTimeAggregator.py traveltime.csv 0.5 \
+Usage: python2.7 WaitingTimeAggregator.py traveltime.csv 0.5
+Important: The cost tables have similar names, hence a single variable called COSTS_TABLE_FORMAT
+specifies the name of these. For example:
+COSTS_TABLE_FORMAT = ['demand.learned_', 'am/pm/op', 'costs_modified_for_waiting_time']
+        implies the three table names are:
+            demand.learned_amcosts_modified_for_waiting_time
+            demand.learned_pmcosts_modified_for_waiting_time
+            demand.learned_opcosts_modified_for_waiting_time
+
+
+
 More details on the usage in the constants section 
 
  Author: Nishant Kumar
@@ -27,7 +37,7 @@ DB_NAME = 'simmobcity'
 ZONE_TABLE = 'demand.taz_2012'
 
 # the list COSTS_TABLE_FORMAT is a quick fix solution to specify a format of the names for the zone to zone tables
-COSTS_TABLE_FORMAT = ['demand.learned_', 'am/pm/op', 'costs_nishant']
+COSTS_TABLE_FORMAT = ['demand.learned_', 'am/pm/op', 'costs_modified_for_waiting_time']
 
 
 TRAVEL_TIME_TABLE_NAME = 'output.traveltime'   
@@ -288,8 +298,10 @@ class WT_Aggregator:
 
                     newWTT = {}
                     for mode in listOfAllowedModesForWaitingTime:
-                        newWTT[mode] = self.WTT[am_pm_op][mode][i][j]
-                        print ("Testing the numbers ", newWTT[mode] , "  mode : ", mode, am_pm_op, i, j)
+                        # The new value is divided by 3600 because
+                        # the simulation output generates the waiting time in seconds
+                        # whereas the learned_am/pm/op_cost tables store the waiting time in hours
+                        newWTT[mode] = self.WTT[am_pm_op][mode][i][j]/3600.0
 
                     if (sum(newWTT.values())) > 0:   # no need to do anything if there is no update in the values
                         comma_required = False
@@ -305,7 +317,6 @@ class WT_Aggregator:
                                 prevWTTValues[mode].append(self.oldValsWTT[am_pm_op][mode][(orgZ,desZ)])
                                 currentWTTValues[mode].append(newWTT[mode])
                                 comma_required = True
-                        print listOfAllowedModesForWaitingTime
                         update_query = update_query + " WHERE origin_zone=%s and destination_zone=%s"
                         update_param_tuple = update_param_tuple + (orgZ, desZ)
                         print (update_query)

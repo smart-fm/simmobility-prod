@@ -52,6 +52,11 @@ void CostSqlDao::fromRow(Row& result, CostParams& outObj)
 	outObj.setPubCost(result.get<double>(DB_FIELD_COST_PUB_COST));
 	outObj.setAvgTransfer(result.get<double>(DB_FIELD_COST_AVG_TRANSFER));
 	outObj.setPubOut(result.get<double>(DB_FIELD_COST_PUB_OUT));
+	outObj.setSMSWtt(result.get<double>(DB_FIELD_COST_SMS_WTT));
+	outObj.setSMSPoolWtt(result.get<double>(DB_FIELD_COST_SMS_POOL_WTT));
+	outObj.setAMODWtt(result.get<double>(DB_FIELD_COST_AMOD_WTT));
+	outObj.setAMODPoolWtt(result.get<double>(DB_FIELD_COST_AMOD_POOL_WTT));
+	outObj.setAMODMinibusWtt(result.get<double>(DB_FIELD_COST_AMOD_MINIBUS_WTT));
 }
 
 void CostSqlDao::toRow(CostParams& data, Parameters& outParams, bool update)

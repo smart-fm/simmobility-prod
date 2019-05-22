@@ -320,6 +320,107 @@ double TourModeDestinationParams::getTT_CarIvtSecond(int zoneId) const
 	return pmCostsMap.at(destination).at(origin)->getCarIvt();
 }
 
+double TourModeDestinationParams::getWTtSMSFirst(int zoneId) const
+{
+	int destination = zoneMap.at(zoneId)->getZoneCode();
+	if (origin == destination)
+	{
+		return 0;
+	}
+	return amCostsMap.at(destination).at(origin)->getSMSWtt();
+}
+
+double TourModeDestinationParams::getWTtSMSSecond(int zoneId) const
+{
+	int destination = zoneMap.at(zoneId)->getZoneCode();
+	if (origin == destination)
+	{
+		return 0;
+	}
+	return pmCostsMap.at(destination).at(origin)->getSMSWtt();
+}
+
+double TourModeDestinationParams::getWTtSMSPoolFirst(int zoneId) const
+{
+	int destination = zoneMap.at(zoneId)->getZoneCode();
+	if (origin == destination)
+	{
+		return 0;
+	}
+	return amCostsMap.at(destination).at(origin)->getSMSPoolWtt();
+}
+
+double TourModeDestinationParams::getWTtSMSPoolSecond(int zoneId) const
+{
+	int destination = zoneMap.at(zoneId)->getZoneCode();
+	if (origin == destination)
+	{
+		return 0;
+	}
+	return pmCostsMap.at(destination).at(origin)->getSMSPoolWtt();
+}
+
+
+double TourModeDestinationParams::getWTtAMODFirst(int zoneId) const
+{
+	int destination = zoneMap.at(zoneId)->getZoneCode();
+	if (origin == destination)
+	{
+		return 0;
+	}
+	return amCostsMap.at(destination).at(origin)->getAMODWtt();
+}
+
+double TourModeDestinationParams::getWTtAMODSecond(int zoneId) const
+{
+	int destination = zoneMap.at(zoneId)->getZoneCode();
+	if (origin == destination)
+	{
+		return 0;
+	}
+	return pmCostsMap.at(destination).at(origin)->getAMODWtt();
+}
+
+double TourModeDestinationParams::getWTtAMODPoolFirst(int zoneId) const
+{
+	int destination = zoneMap.at(zoneId)->getZoneCode();
+	if (origin == destination)
+	{
+		return 0;
+	}
+	return amCostsMap.at(destination).at(origin)->getAMODPoolWtt();
+}
+
+double TourModeDestinationParams::getWTtAMODPoolSecond(int zoneId) const
+{
+	int destination = zoneMap.at(zoneId)->getZoneCode();
+	if (origin == destination)
+	{
+		return 0;
+	}
+	return pmCostsMap.at(destination).at(origin)->getAMODPoolWtt();
+}
+
+double TourModeDestinationParams::getWTtAMODMinibusFirst(int zoneId) const
+{
+	int destination = zoneMap.at(zoneId)->getZoneCode();
+	if (origin == destination)
+	{
+		return 0;
+	}
+	return amCostsMap.at(destination).at(origin)->getAMODMinibusWtt();
+}
+
+double TourModeDestinationParams::getWTtAMODMinibusSecond(int zoneId) const
+{
+	int destination = zoneMap.at(zoneId)->getZoneCode();
+	if (origin == destination)
+	{
+		return 0;
+	}
+	return pmCostsMap.at(destination).at(origin)->getAMODMinibusWtt();
+}
+
 double TourModeDestinationParams::getTT_PublicOutFirst(int zoneId) const
 {
 	int destination = zoneMap.at(zoneId)->getZoneCode();
@@ -589,6 +690,53 @@ double StopModeDestinationParams::getTT_CarIvt(int zone) const
 	return ((amCostsMap.at(origin).at(destination)->getCarIvt() + pmCostsMap.at(origin).at(destination)->getCarIvt())/2
 				+(amCostsMap.at(destination).at(homeZone)->getCarIvt() + pmCostsMap.at(destination).at(homeZone)->getCarIvt())/2
 				-(amCostsMap.at(origin).at(homeZone)->getCarIvt() + pmCostsMap.at(origin).at(homeZone)->getCarIvt())/2);
+}
+
+double StopModeDestinationParams::getWTtSMS(int zone) const
+{
+	int destination = zoneMap.at(zone)->getZoneCode();
+	if(origin == destination || destination == homeZone || origin == homeZone)
+	{ return 0; }
+	return ((amCostsMap.at(origin).at(destination)->getSMSWtt() + pmCostsMap.at(origin).at(destination)->getSMSWtt())/2
+			+(amCostsMap.at(destination).at(homeZone)->getSMSWtt() + pmCostsMap.at(destination).at(homeZone)->getSMSWtt())/2
+			-(amCostsMap.at(origin).at(homeZone)->getSMSWtt() + pmCostsMap.at(origin).at(homeZone)->getSMSWtt())/2);
+}
+
+double StopModeDestinationParams::getWTtSMSPool(int zone) const
+{
+	int destination = zoneMap.at(zone)->getZoneCode();
+	if(origin == destination || destination == homeZone || origin == homeZone)
+	{ return 0; }
+	return ((amCostsMap.at(origin).at(destination)->getSMSPoolWtt() + pmCostsMap.at(origin).at(destination)->getSMSPoolWtt())/2
+			+(amCostsMap.at(destination).at(homeZone)->getSMSPoolWtt() + pmCostsMap.at(destination).at(homeZone)->getSMSPoolWtt())/2
+			-(amCostsMap.at(origin).at(homeZone)->getSMSPoolWtt() + pmCostsMap.at(origin).at(homeZone)->getSMSPoolWtt())/2);
+}
+double StopModeDestinationParams::getWTtAMOD(int zone) const
+{
+	int destination = zoneMap.at(zone)->getZoneCode();
+	if(origin == destination || destination == homeZone || origin == homeZone)
+	{ return 0; }
+	return ((amCostsMap.at(origin).at(destination)->getAMODWtt() + pmCostsMap.at(origin).at(destination)->getAMODWtt())/2
+			+(amCostsMap.at(destination).at(homeZone)->getAMODWtt() + pmCostsMap.at(destination).at(homeZone)->getAMODWtt())/2
+			-(amCostsMap.at(origin).at(homeZone)->getAMODWtt() + pmCostsMap.at(origin).at(homeZone)->getAMODWtt())/2);
+}
+double StopModeDestinationParams::getWTtAMODPool(int zone) const
+{
+	int destination = zoneMap.at(zone)->getZoneCode();
+	if(origin == destination || destination == homeZone || origin == homeZone)
+	{ return 0; }
+	return ((amCostsMap.at(origin).at(destination)->getAMODPoolWtt() + pmCostsMap.at(origin).at(destination)->getAMODPoolWtt())/2
+			+(amCostsMap.at(destination).at(homeZone)->getAMODPoolWtt() + pmCostsMap.at(destination).at(homeZone)->getAMODPoolWtt())/2
+			-(amCostsMap.at(origin).at(homeZone)->getAMODPoolWtt() + pmCostsMap.at(origin).at(homeZone)->getAMODPoolWtt())/2);
+}
+double StopModeDestinationParams::getWTtAMODMinibus(int zone) const
+{
+	int destination = zoneMap.at(zone)->getZoneCode();
+	if(origin == destination || destination == homeZone || origin == homeZone)
+	{ return 0; }
+	return ((amCostsMap.at(origin).at(destination)->getAMODMinibusWtt() + pmCostsMap.at(origin).at(destination)->getAMODMinibusWtt())/2
+			+(amCostsMap.at(destination).at(homeZone)->getAMODMinibusWtt() + pmCostsMap.at(destination).at(homeZone)->getAMODMinibusWtt())/2
+			-(amCostsMap.at(origin).at(homeZone)->getAMODMinibusWtt() + pmCostsMap.at(origin).at(homeZone)->getAMODMinibusWtt())/2);
 }
 
 double StopModeDestinationParams::getTT_PubIvt(int zone) const

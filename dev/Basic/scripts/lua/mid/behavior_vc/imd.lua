@@ -347,8 +347,10 @@ local function computeUtilities(params,dbparams)
 		tt_motor[i] = tt_car_ivt[i] + 1.0/12
 		tt_walk[i] = (d1[i]+d2[i])/5/2
 		tt_taxi[i] = tt_car_ivt[i] + 1.0/12
-		tt_SMS[i] = tt_car_ivt[i] + 1.0/12
-		tt_SMS_Pool[i] = tt_car_ivt[i] + 1.0/12 + 1/20+(d1[i]+d2[i])/4/60
+		local tt_SMS_out=dbparams:wtt_sms(i)
+		tt_SMS[i] = tt_car_ivt[i] + tt_SMS_out
+		local tt_SMS_pool_out=dbparams:wtt_sms_pool(i)
+		tt_SMS_Pool[i] = tt_car_ivt[i] + tt_SMS_pool_out + 1/20+(d1[i]+d2[i])/4/60
 
 
 		

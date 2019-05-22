@@ -45,6 +45,16 @@ public:
 	double getTT_PublicIvtSecond(int zoneId) const;
 	double getTT_CarIvtFirst(int zoneId) const;
 	double getTT_CarIvtSecond(int zoneId) const;
+	double getWTtSMSFirst(int zoneId) const;
+	double getWTtSMSSecond(int zoneId) const;
+	double getWTtSMSPoolFirst(int zoneId) const;
+	double getWTtSMSPoolSecond(int zoneId) const;
+	double getWTtAMODFirst(int zoneId) const;
+	double getWTtAMODSecond(int zoneId) const;
+	double getWTtAMODPoolFirst(int zoneId) const;
+	double getWTtAMODPoolSecond(int zoneId) const;
+	double getWTtAMODMinibusFirst(int zoneId) const;
+	double getWTtAMODMinibusSecond(int zoneId) const;
 	double getTT_PublicOutFirst(int zoneId) const;
 	double getTT_PublicOutSecond(int zoneId) const;
 	double getAvgTransferNumber(int zoneId) const;
@@ -85,6 +95,11 @@ public:
 	double getCarCostERP(int zone) const;
 	double getCostPublic(int zone) const;
 	double getTT_CarIvt(int zone) const;
+	double getWTtSMS(int zone) const;
+	double getWTtSMSPool(int zone) const;
+	double getWTtAMOD(int zone) const;
+	double getWTtAMODPool(int zone) const;
+	double getWTtAMODMinibus(int zone) const;
 	double getTT_PubIvt(int zone) const;
 	double getTT_PubOut(int zone) const;
 	double getWalkDistanceFirst(int zone) const;

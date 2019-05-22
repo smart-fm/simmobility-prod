@@ -101,6 +101,11 @@ const std::string DB_FIELD_COST_CAR_ERP = "car_cost_erp";
 const std::string DB_FIELD_COST_PUB_IVT = "pub_ivt";
 const std::string DB_FIELD_COST_AVG_TRANSFER = "avg_transfer";
 const std::string DB_FIELD_COST_PUB_COST = "pub_cost";
+const std::string DB_FIELD_COST_SMS_WTT = "wait_sms";
+const std::string DB_FIELD_COST_SMS_POOL_WTT = "wait_sms_pool";
+const std::string DB_FIELD_COST_AMOD_WTT = "wait_amod";
+const std::string DB_FIELD_COST_AMOD_POOL_WTT = "wait_amod_pool";
+const std::string DB_FIELD_COST_AMOD_MINIBUS_WTT = "wait_amod_minibus";
 
 /**
  * Fields for time dependent zone-zone travel times data (in postgres db)

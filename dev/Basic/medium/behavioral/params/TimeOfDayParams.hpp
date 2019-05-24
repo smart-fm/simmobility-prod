@@ -225,7 +225,8 @@ public:
 
     void setTodHigh(double todHigh)
     {
-        this->todHigh = todHigh;
+        if (this->todHigh > todHigh)
+            this->todHigh = todHigh;
     }
 
     double getTodLow() const
@@ -235,7 +236,8 @@ public:
 
     void setTodLow(double todLow)
     {
-        this->todLow = todLow;
+        if (this->todLow < todLow)
+            this->todLow = todLow;
     }
 
     /**

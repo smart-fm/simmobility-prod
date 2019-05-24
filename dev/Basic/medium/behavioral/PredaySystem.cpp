@@ -1051,7 +1051,7 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 	stodParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin))->getCbdDummy());
 	stodParams.setCbdDestZone(zoneMap.at(zoneIdLookup.at(destination))->getCbdDummy());
 
-    const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+	const ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
 
 	if(origin == destination)
 	{
@@ -1132,6 +1132,12 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 			}
 			}
 		}
+	}
+    int stopModeType = cfg.getTravelModeConfig(stop->getStopMode()).type;
+    if ( stopModeType == PT_TRAVEL_MODE )
+	{
+		stodParams.setTodHigh(LAST_INDEX_FOR_PUBLIC_TANSIT_MODE);
+		stodParams.setTodLow(FIRST_INDEX_FOR_PUBLIC_TANSIT_MODE);
 	}
 
 	// high and low tod

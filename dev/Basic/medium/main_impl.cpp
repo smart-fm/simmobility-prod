@@ -615,14 +615,14 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			}
 		}
 
-		Print() << "\nPersons still in the simulation: " << numPersons << "\n"
-		        << numActivities << " Performing activity,\n" << numBiker << " Bikers,\n"
-		        << numCarPassenger << " Car passengers,\n"
-		        << numDriver << " Drivers,\n" << numPassenger << " Passengers,\n" << numPedestrian << " Pedestrians,\n"
-		        << numPrivBusPassenger << " Private bus passengers,\n" << numTaxiPassenger << " Taxi passengers,\n"
-				<< numTrainPassenger << " Train passengers,\n"
-		        << numTravelPedestrian << " Travel pedestrians,\n" << numWaitBus << " Waiting for bus,\n"
-				<< numWaitTaxi << " Waiting for Taxi,\n" << numWaitTrain << " Waiting for train\n";
+//		Print() << "\nPersons still in the simulation: " << numPersons << "\n"
+//		        << numActivities << " Performing activity,\n" << numBiker << " Bikers,\n"
+//		        << numCarPassenger << " Car passengers,\n"
+//		        << numDriver << " Drivers,\n" << numPassenger << " Passengers,\n" << numPedestrian << " Pedestrians,\n"
+//		        << numPrivBusPassenger << " Private bus passengers,\n" << numTaxiPassenger << " Taxi passengers,\n"
+//				<< numTrainPassenger << " Train passengers,\n"
+//		        << numTravelPedestrian << " Travel pedestrians,\n" << numWaitBus << " Waiting for bus,\n"
+//				<< numWaitTaxi << " Waiting for Taxi,\n" << numWaitTrain << " Waiting for train\n";
 	}
 	(Conflux::activeAgentsLock).unlock();
 

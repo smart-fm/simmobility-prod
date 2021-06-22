@@ -32,6 +32,9 @@ For Individual Level
 
 * [SimMobility Mid-Term Simulator: A State of the Art Integrated Agent Based Demand and Supply Model](https://github.com/kakalibasak/wiki-images/blob/master/15-3937-%20TRB%20MT%20PAPER.pdf)
 
+* [SimMobility Long-Term Simulator: An Integrated Agent Based Model of Housing Market Dynamics](http://dx.doi.org/10.5198/jtlu.2018.1186)
+
+
 ## Useful Links
 
 

@@ -133,7 +133,7 @@
         <property key="amod_behaviour_file" value="data/driver_behavior_model/amod_driver_param.xml"/>
     </generic_props>
 
-<mobilityServiceController enabled="true" >
+<mobilityServiceController enabled="false" >
 <!--  SERVICE_CONTROLLER_UNKNOWN = 0,
       SERVICE_CONTROLLER_ON_HAIL = 1,
       SERVICE_CONTROLLER_GREEDY = 2,

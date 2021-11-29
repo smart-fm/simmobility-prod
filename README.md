@@ -17,8 +17,8 @@ By downloading or using SimMobility, you have read and agreed to the Terms in th
 
 ## Getting help
 
-Join our user's [forum](http://137.132.22.82:15059/vanilla/) for discussions on software related topics.<br>
-For any other queries, please contact <a href="simmobility@mit.edu">SimMobility Team</a>.
+Either ask your questions in our [Discussions](https://github.com/smart-fm/simmobility-prod/discussions) forum, under a relevant category, or<br>
+contact simmobility@mit.edu.
 
 ## Contribute to the development of SimMobility
 Contributions can be made by submitting pull requests via GitHub.

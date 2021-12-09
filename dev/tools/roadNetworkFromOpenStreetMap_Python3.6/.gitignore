@@ -1,0 +1,39 @@
+#Don't ignore gitignore files:
+!.gitignore
+
+#Ignore Visual studio files/folders
+*.vs*
+*.sln
+*.vcxproj*
+*.idea*
+
+#Ignore object files
+*.o
+*.class
+
+#Ignore gedit backup files
+*~
+
+#Ignore vim .swp files.
+.*.swp
+.*.swo
+
+#Ignore python's compiled byte-code, optimized or otherwise.
+*.pyc
+*.pyo
+*.pyd
+*__pycache__*
+*$py.class
+
+#Ignore video files (binary files really mess up git)
+*.mp4
+
+
+#Ignore misc output files generated from running scripts
+write_conn.txt
+Outputs/*.csv
+Outputs/*.cpg
+Outputs/*.dbf
+Outputs/*.shp
+Outputs/*.shx
+Outputs/*.pkl

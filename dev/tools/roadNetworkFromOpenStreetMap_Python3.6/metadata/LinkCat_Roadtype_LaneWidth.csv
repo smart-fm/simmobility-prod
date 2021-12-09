@@ -1,0 +1,8 @@
+LinkCat,CategoryID,Roadtype,RoadtypeDescription,LaneWidth
+A,1,1,Expressway,3.6
+B,2,2,Urban,3.5
+C,3,2,Urban,3.2
+D,4,5,Access,3
+E,5,5,Access,2.8
+SLIPROAD,6,3,Ramp,3
+ROUNDABOUT,7,4,Roundabout,3

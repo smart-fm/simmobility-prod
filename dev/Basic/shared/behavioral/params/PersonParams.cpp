@@ -30,7 +30,7 @@ TimeWindowAvailability::TimeWindowAvailability(double startTime, double endTime,
 }
 
 // Global initialization of static TimeWindowsLookup::timeWindows
-TimeWindowsLookup::TimeWindows TimeWindowsLookup::timeWindows = [&]{
+TimeWindowsLookup::TimeWindows TimeWindowsLookup::timeWindows = []{
 	TimeWindows out;
 	size_t idx = 0;
 	for (double start = 1; start <= intervalsPerDay; start++)

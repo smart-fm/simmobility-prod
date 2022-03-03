@@ -395,6 +395,14 @@ void OnCallDriver::subscribeToController()
             << subscribedCtrlr << ", but no controller of that id is registered";
         throw std::runtime_error(msg.str());
     }
+
+    if (!dynamic_cast<OnCallController *>(*it))
+    {
+        std::stringstream msg;
+        msg << "OnCallDriver " << parent->getDatabaseId() << " wants to subscribe to id "
+            << subscribedCtrlr << ", but controller is not of class OnCallController";
+        throw std::runtime_error(msg.str());
+    }
 #endif
 
     MessageBus::PostMessage(*it, MSG_DRIVER_SUBSCRIBE, MessageBus::MessagePtr(new DriverSubscribeMessage(parent)));
@@ -731,6 +739,7 @@ void OnCallDriver::removeDriverEntryFromAllContainer()
     const vector<MobilityServiceController *> & driverSubscribedToController  = getSubscribedControllers();
     for(auto it = driverSubscribedToController.begin(); it !=driverSubscribedToController.end(); ++it)
     {
+        auto pController = (OnCallController *)(*it);
         if(getDriverStatus()== MobilityServiceDriverStatus::DRIVE_START )
         {
             /* If Person is not yet started  & going to be removed Mean it's call from findStartingConflux is fail & This person will not Loaded to Simulation at all
@@ -744,16 +753,16 @@ void OnCallDriver::removeDriverEntryFromAllContainer()
 
 
         }
-        else if((*it)->getControllerCopyDriverSchedulesMap().find(thisDriver)== (*it)->getControllerCopyDriverSchedulesMap().end())
+        else if(pController->getControllerCopyDriverSchedulesMap().find(thisDriver)== pController->getControllerCopyDriverSchedulesMap().end())
         {
             ControllerLog()<<" Driver "<<thisDriver->getDatabaseId()<<"have  started  to move (Driver_STATUS = CRUISE)." \
                     " Subscription is sent, But Subscription is not recieved yet. In such case we are removing driver's entry from availableDrivers list before deletion."<<endl;
 
-            (*it)->getAvailableDriverSet().erase(thisDriver);
+            pController->getAvailableDriverSet().erase(thisDriver);
         }
         else
         {
-            Schedule &thisDriverScheduleControllerCopy = (*it)->getControllerCopyDriverSchedulesMap().at(thisDriver);
+            Schedule &thisDriverScheduleControllerCopy = pController->getControllerCopyDriverSchedulesMap().at(thisDriver);
             while (!thisDriverScheduleControllerCopy.empty())
             {
                 thisDriverScheduleControllerCopy.pop_back();

@@ -138,16 +138,6 @@ public:
     * @param person Driver to be removed
     */
     virtual void unsubscribeDriver(Person *person);
-
-    virtual std::map<const Person*, Schedule> & getControllerCopyDriverSchedulesMap()
-    {
-        //Do Nothing
-    }
-
-    virtual std::set<const Person *> getAvailableDriverSet()
-    {
-        //Do Nothing
-    }
 };
 
 

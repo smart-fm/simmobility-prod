@@ -13,6 +13,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 #include <boost/thread.hpp>
+#include <iostream>
 
 namespace sim_mob {
 
@@ -75,7 +76,7 @@ bool FMOD_Client::waitMessageInBlocking(std::string& msg, int seconds)
 
 void FMOD_Client::handleWrite(const boost::system::error_code& error, size_t bytesTransferred)
 {
-    if( error == 0 ){
+    if( error.value() == 0 ){
         std::cout << "sent data : "<<messageSnd<<std::endl;
         sendData();
     }
@@ -85,7 +86,7 @@ void FMOD_Client::handleWrite(const boost::system::error_code& error, size_t byt
 }
 void FMOD_Client::handleRead(const boost::system::error_code& error, size_t bytesTransferred)
 {
-    if( error == 0 ){
+    if( error.value() == 0 ){
         std::cout << "receive data : "<<ReceivedBuf.data()<<std::endl;
         msgReceiveQueue.pushMessage(ReceivedBuf.data(), true);
         ReceivedBuf.assign(0);

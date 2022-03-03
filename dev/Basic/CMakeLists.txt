@@ -104,6 +104,64 @@ MACRO (TODAY RESULT)
 ENDMACRO (TODAY)
 
 
+#Option: build tests. Use the cmake gui to change this on a per-user basis.
+option(BUILD_TESTS "Build unit tests." OFF)
+
+#Option: build tests for long term model. Use the cmake gui to change this on a per-user basis.
+option(BUILD_TESTS_LONG "Build unit tests." OFF)
+
+#Option: build short term. Use the cmake gui to change this on a per-user basis.
+option(BUILD_SHORT "Build short-term simulator." ON)
+
+#Option: build medium term. Use the cmake gui to change this on a per-user basis.
+option(BUILD_MEDIUM "Build medium-term simulator." ON)
+
+#Option: build long term. Use the cmake gui to change this on a per-user basis.
+option(BUILD_LONG "Build long-term simulator." ON)
+
+#Option: build short/medium/long as libraries. Use the cmake gui to change this on a per-user basis.
+option(BUILD_LIBS "If true, builds the short, medium, and long-term code as libraries (to be installed in sim_mob_short,sim_mob_mid,sim_mob_long." OFF)
+
+#Option: Static building SimMobility. Currently static building doesn't work with Ubuntu 16.04
+option(BUILD_STATIC "If true, SimMobility is built in static mode." ON)
+
+#Option: Run SimMobility to only produce an input XML file for itself
+option(SIMMOB_XML_WRITER "Sim Mobility will print the network as an XML file." OFF)
+
+#Option: USE XML file as SimMobility input. Note that this uses the partial xml reader by default;
+#        It is not possible to turn on the old XML readers any more (just set this flag in your CMakeCache file).
+#option(SIMMOB_XML_READER "Load from XML, not the database" OFF)
+
+#Option: Turn on Unity (full-file) builds.
+option(SIMMOB_FULL_FAST_BUILD_DEBUG "Turn on full/fast builds in debug mode. This will greatly speed up compilation, but will force a full rebuild each time." OFF)
+option(SIMMOB_FULL_FAST_BUILD_RELEASE "Turn on full/fast builds in release mode. This will greatly speed up compilation, but will force a full rebuild each time." OFF)
+
+#String "option"; allows easier mangling of XML_READER until we get the new Config syntax working.
+#set(SIMMOB_XML_IN_FILE "" CACHE STRING "If non-empty, the XML_READER will attempt to read this instead of whatever is listed in simpleconf.cpp")
+
+#Option: strict error handling. Use the cmake gui to change this on a per-user basis.
+option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." OFF)
+
+#Option: disable output. Use the cmake gui to change this on a per-user basis.
+option (SIMMOB_DISABLE_OUTPUT  "Disable all mutex-locked output and all additional non-trivial output. Avoid all use of mutexes w.r.t. output." OFF)
+
+#Option: disable MPI. Use the cmake gui to change this on a per-user basis.
+option (SIMMOB_DISABLE_MPI  "Disable all included files, libraries, and code segments that require MPI." ON)
+
+#Option: compile with c++0x. Use the cmake gui to change this on a per-user basis.
+option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." ON)
+
+#Option: profiling flags. Use the cmake gui to change this on a per-user basis.
+option(SIMMOB_PROFILE_ON "Turn on profiling. If this flag is off, all SIMMOB_PROFILE_* options will be treated as effectively off." OFF)
+option(SIMMOB_PROFILE_AGENT_UPDATES "Log all Agent update ticks per thread and start time. Useful for debugging parallelization errors, but very slow." OFF)
+option(SIMMOB_PROFILE_WORKER_UPDATES "Log all Worker update ticks, including start and end time. This can be used to measure the real-world cost of threading, but is only likely accurate if frame ticks are relatively large (~100ms). Also very slow." OFF)
+option(SIMMOB_PROFILE_AURAMGR "Log the time taken to update the Aura Manager's spatial index. Usually combined with PROFILE_WORKER_UPDATES. Can be slow." OFF)
+option(SIMMOB_PROFILE_COMMSIM "Log the various stages of the Broker's update phase, including network communication and waiting on Agents. Can be slow." OFF)
+
+#Option: interactive mode flag (for the GUI)
+option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively with the GUI or console." OFF)
+
+
 ##################################################
 ## CPack Configuration
 ##################################################
@@ -188,63 +246,6 @@ IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
   ENDIF()
 ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-
-#Option: build tests. Use the cmake gui to change this on a per-user basis.
-option(BUILD_TESTS "Build unit tests." OFF)
-
-#Option: build tests for long term model. Use the cmake gui to change this on a per-user basis.
-option(BUILD_TESTS_LONG "Build unit tests." OFF)
-
-#Option: build short term. Use the cmake gui to change this on a per-user basis.
-option(BUILD_SHORT "Build short-term simulator." ON)
-
-#Option: build medium term. Use the cmake gui to change this on a per-user basis.
-option(BUILD_MEDIUM "Build medium-term simulator." ON)
-
-#Option: build long term. Use the cmake gui to change this on a per-user basis.
-option(BUILD_LONG "Build long-term simulator." ON)
-
-#Option: build short/medium/long as libraries. Use the cmake gui to change this on a per-user basis.
-option(BUILD_LIBS "If true, builds the short, medium, and long-term code as libraries (to be installed in sim_mob_short,sim_mob_mid,sim_mob_long." OFF)   
-
-#Option: Static building SimMobility. Currently static building doesn't work with Ubuntu 16.04
-option(BUILD_STATIC "If true, SimMobility is built in static mode." ON)
-
-#Option: Run SimMobility to only produce an input XML file for itself
-option(SIMMOB_XML_WRITER "Sim Mobility will print the network as an XML file." OFF)
-
-#Option: USE XML file as SimMobility input. Note that this uses the partial xml reader by default;
-#        It is not possible to turn on the old XML readers any more (just set this flag in your CMakeCache file).
-#option(SIMMOB_XML_READER "Load from XML, not the database" OFF)
-
-#Option: Turn on Unity (full-file) builds. 
-option(SIMMOB_FULL_FAST_BUILD_DEBUG "Turn on full/fast builds in debug mode. This will greatly speed up compilation, but will force a full rebuild each time." OFF)
-option(SIMMOB_FULL_FAST_BUILD_RELEASE "Turn on full/fast builds in release mode. This will greatly speed up compilation, but will force a full rebuild each time." OFF)
-
-#String "option"; allows easier mangling of XML_READER until we get the new Config syntax working.
-#set(SIMMOB_XML_IN_FILE "" CACHE STRING "If non-empty, the XML_READER will attempt to read this instead of whatever is listed in simpleconf.cpp")
-
-#Option: strict error handling. Use the cmake gui to change this on a per-user basis.
-option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." OFF)
-
-#Option: disable output. Use the cmake gui to change this on a per-user basis.
-option (SIMMOB_DISABLE_OUTPUT  "Disable all mutex-locked output and all additional non-trivial output. Avoid all use of mutexes w.r.t. output." OFF)
-
-#Option: disable MPI. Use the cmake gui to change this on a per-user basis.
-option (SIMMOB_DISABLE_MPI  "Disable all included files, libraries, and code segments that require MPI." ON)
-
-#Option: compile with c++0x. Use the cmake gui to change this on a per-user basis.
-option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." ON)
-
-#Option: profiling flags. Use the cmake gui to change this on a per-user basis.
-option(SIMMOB_PROFILE_ON "Turn on profiling. If this flag is off, all SIMMOB_PROFILE_* options will be treated as effectively off." OFF)
-option(SIMMOB_PROFILE_AGENT_UPDATES "Log all Agent update ticks per thread and start time. Useful for debugging parallelization errors, but very slow." OFF)
-option(SIMMOB_PROFILE_WORKER_UPDATES "Log all Worker update ticks, including start and end time. This can be used to measure the real-world cost of threading, but is only likely accurate if frame ticks are relatively large (~100ms). Also very slow." OFF)
-option(SIMMOB_PROFILE_AURAMGR "Log the time taken to update the Aura Manager's spatial index. Usually combined with PROFILE_WORKER_UPDATES. Can be slow." OFF)
-option(SIMMOB_PROFILE_COMMSIM "Log the various stages of the Broker's update phase, including network communication and waiting on Agents. Can be slow." OFF) 
-
-#Option: interactive mode flag (for the GUI)
-option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively with the GUI or console." OFF)
 
 #Force gcc to output single line errors. 
 # This makes it easier for Eclipse to parse and understand each error.

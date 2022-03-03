@@ -69,7 +69,7 @@ void sim_mob::Credential::LoadCredFile(const std::string& path)
     std::ifstream inFile(path.c_str(), std::ifstream::binary);
     if (!reader.parse(inFile, root, false)) {
         Warn() <<"Could not parse json credentials file: " <<path <<std::endl;
-        Warn() <<reader.getFormatedErrorMessages() <<std::endl;
+        Warn() <<reader.getFormattedErrorMessages() <<std::endl;
         return;
     }
 

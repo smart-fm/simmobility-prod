@@ -993,7 +993,7 @@ std::string SegmentStats::reportSegmentStats(uint32_t frameNumber)
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 	{
 		char segStatBuf[100];
-		sprintf(segStatBuf, "seg,%u,%u,%u,%.2f,%u,%.2f,%u,%.2f,%u,%.2f,%u,%.2f,%d,%.2f\n",
+		sprintf(segStatBuf, "seg,%u,%u,%u,%.2f,%u,%.2f,%u,%.2f,%u,%.2f,%u,%.2f,%d,%.2f,%.2f,%.2f,%u\n",
 				frameNumber,
 				roadSegment->getRoadSegmentId(),
 				statsNumberInSegment,

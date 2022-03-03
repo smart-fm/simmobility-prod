@@ -219,6 +219,14 @@ void OnCallDriver::subscribeToController()
         << subscribedCtrlr << ", but no controller of that id is registered";
         throw std::runtime_error(msg.str());
     }
+
+    if (!dynamic_cast<OnCallController *>(*it))
+    {
+        std::stringstream msg;
+        msg << "OnCallDriver " << parent->getDatabaseId() << " wants to subscribe to id "
+            << subscribedCtrlr << ", but controller is not of class OnCallController";
+        throw std::runtime_error(msg.str());
+    }
 #endif
 
     MessageBus::PostMessage(*it, MSG_DRIVER_SUBSCRIBE, MessageBus::MessagePtr(new DriverSubscribeMessage(parent)));

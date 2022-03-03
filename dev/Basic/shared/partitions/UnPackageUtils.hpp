@@ -51,7 +51,7 @@ private:
 
 public:
     UnPackageUtils(std::string data) CHECK_MPI_THROW ;
-    ~UnPackageUtils() CHECK_MPI_THROW ;
+    ~UnPackageUtils() {};
 
     template<class DATA_TYPE>
     void operator>>(DATA_TYPE& value) CHECK_MPI_THROW ;

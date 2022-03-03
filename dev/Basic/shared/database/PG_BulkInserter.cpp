@@ -73,7 +73,7 @@ bool PG_BulkInserter::bulkInsert()
         }
     }
 
-    copyToDB(streamBuf);
+    return copyToDB(streamBuf);
 }
 
 bool PG_BulkInserter::copyToDB(const std::string& buffer)

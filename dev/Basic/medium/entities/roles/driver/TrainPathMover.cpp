@@ -212,6 +212,7 @@ PolyPoint TrainPathMover::GetStopPoint(double distance) const
         }
         curr++;
     }
+    throw std::runtime_error("Error. Unable to find stop point in TrainPathMover::GetStopPoint.");
 }
 double TrainPathMover::calcDistanceBetweenTwoPoints(std::vector<PolyPoint>::const_iterator& currPointItr,std::vector<PolyPoint>::const_iterator& laterPoint,const std::vector<PolyPoint> &points) const
 {

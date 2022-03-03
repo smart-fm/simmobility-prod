@@ -1581,8 +1581,8 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
                 }
             }
         }
-        return 0.0;
     }
+    return 0.0;
 }
 
 int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams &params, const NearestVehicle *fwdVehicle, const NearestVehicle *rearVehicle, double distToStop)

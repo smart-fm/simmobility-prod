@@ -1343,7 +1343,7 @@ int sim_mob::PrivatePathsetGenerator::genK_ShortestPath(boost::shared_ptr<sim_mo
     return kspn;
 }
 
-int sim_mob::PrivatePathsetGenerator::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps, std::vector<PathSetWorkerThread*> &SDLE_Storage)
+void sim_mob::PrivatePathsetGenerator::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps, std::vector<PathSetWorkerThread*> &SDLE_Storage)
 {
     const sim_mob::Link *curLink = nullptr;
     std::set<const Link*> blackList = std::set<const Link*>();
@@ -1398,7 +1398,7 @@ int sim_mob::PrivatePathsetGenerator::genSDLE(boost::shared_ptr<sim_mob::PathSet
     }
 }
 
-int sim_mob::PrivatePathsetGenerator::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps, std::vector<PathSetWorkerThread*> &STTLE_Storage)
+void sim_mob::PrivatePathsetGenerator::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps, std::vector<PathSetWorkerThread*> &STTLE_Storage)
 {
     const sim_mob::Link *curLink = nullptr;
     std::set<const Link*> blackList = std::set<const Link*>();
@@ -1460,7 +1460,7 @@ int sim_mob::PrivatePathsetGenerator::genSTTLE(boost::shared_ptr<sim_mob::PathSe
     } //if sinPathTravelTimeDefault
 }
 
-int sim_mob::PrivatePathsetGenerator::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps, std::vector<PathSetWorkerThread*> &STTHBLE_Storage)
+void sim_mob::PrivatePathsetGenerator::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps, std::vector<PathSetWorkerThread*> &STTHBLE_Storage)
 {
     const sim_mob::Link *curLink = nullptr;
     std::set<const Link*> blackList = std::set<const Link*>();
@@ -1522,7 +1522,7 @@ int sim_mob::PrivatePathsetGenerator::genSTTHBLE(boost::shared_ptr<sim_mob::Path
     } //if sinPathTravelTimeDefault
 }
 
-int sim_mob::PrivatePathsetGenerator::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps, std::vector<PathSetWorkerThread*> &RandPertStorage)
+void sim_mob::PrivatePathsetGenerator::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps, std::vector<PathSetWorkerThread*> &RandPertStorage)
 {
     std::string fromToID(getFromToString(ps->subTrip.origin.node->getNodeId(), ps->subTrip.destination.node->getNodeId()));
     A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*) stdir.getTravelTimeImpl();

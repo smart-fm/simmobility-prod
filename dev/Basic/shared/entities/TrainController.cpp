@@ -394,6 +394,7 @@ namespace sim_mob
         {
             return it->second;
         }
+        return {};
     }
     template<typename PERSON>
     void TrainController<PERSON>::frame_output(timeslice now)
@@ -840,6 +841,7 @@ namespace sim_mob
                 return (*it);
             }
         }
+        return {};
     }
 
     template<typename PERSON>
@@ -1367,8 +1369,8 @@ namespace sim_mob
                 trainIds.erase(trainIds.begin());
             }
             inActivePoolLock.unlock();
-            return trainId;
         }
+        return trainId;
     }
 
     template<typename PERSON>

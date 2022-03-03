@@ -2066,6 +2066,7 @@ bool TrainMovement::leaveFromPlaform()
 		startTimeOfNextStationStretch = params.now.ms() + params.secondsInTick;
 		return true;
 	}
+    return false;
 }
 
 
@@ -2146,6 +2147,7 @@ bool TrainMovement::updatePlatformsList(bool &isToBeRemoved)
 				reAssignTrainsToStationAgent(oldPlatform, next, isToBeRemoved);
 			}
 		}
+        return true;
 	}
 }
 

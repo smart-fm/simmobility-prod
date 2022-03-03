@@ -467,6 +467,7 @@ double SimulatorBasic::getDrivingDistance(int fromLocId, int toLocId) {
     if (fromLocId && toLocId) {
         return getDistance(state.getLocation(fromLocId).getPosition(), state.getLocation(toLocId).getPosition());
     }
+    return 0.0;
 }
 
 double SimulatorBasic::getDistance(const amod::Position &from, const amod::Position &to) {

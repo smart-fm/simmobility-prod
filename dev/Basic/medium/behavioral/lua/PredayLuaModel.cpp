@@ -460,6 +460,7 @@ int sim_mob::medium::PredayLuaModel::predictTourTimeOfDay(PersonParams& personPa
         LuaRef retVal = chooseTTD(&personParams, &tourTimeOfDayParams);
         return retVal.cast<int>();
     }
+    throw std::runtime_error("Error. Empty model name in PredayLuaModel::predictTourTimeOfDay.");
 }
 
 int sim_mob::medium::PredayLuaModel::generateIntermediateStop(PersonParams& personParams, StopGenerationParams& isgParams) const

@@ -235,7 +235,7 @@ private:
       * @param SDLE_Storage output
       * @returns the number of paths generated (0 or 1)
       */
-     int genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &SDLE_Storage);
+     void genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &SDLE_Storage);
 
      /**
       * generate path by shortest travel time link elimination
@@ -243,7 +243,7 @@ private:
       * @param STTLE_Storage output
       * @returns the number of paths generated (0 or 1)
       */
-     int genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTLE_Storage);
+     void genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTLE_Storage);
 
      /**
       * generate path by shortest travel time link elimination with highway bias
@@ -251,7 +251,7 @@ private:
       * @param STTHBLE_Storage output
       * @returns the number of paths generated (0 or 1)
       */
-     int genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTHBLE_Storage);
+     void genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTHBLE_Storage);
 
      /**
       * generate path by random perturbation
@@ -259,7 +259,7 @@ private:
       * @param RandPertStorage output
       * @returns the number of paths generated (0 or 1)
       */
-     int genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &RandPertStorage);
+     void genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &RandPertStorage);
 
      /**
       * set some tags as a result of comparing attributes among paths in a pathset

@@ -301,6 +301,7 @@ std::string BusDriverMovement::frame_tick_output()
         
         return output.str();
     }
+    return {};
 }
 
 void BusDriverMovement::checkForStops(DriverUpdateParams& params)

@@ -114,7 +114,7 @@ bool MesoReroute::doReroute()
 ////    logger << "New Path: " <<  MesoPathMover::printPath(newSS_Path);
 ////    std::cout << "[" << this << "] New Path: " <<  MesoPathMover::printPath(newSS_Path);
 ////    //debug...
-
+    return true;
 }
 
 bool MesoReroute::reroute()
@@ -125,6 +125,7 @@ bool MesoReroute::reroute()
      return false;
     }
 
-    doReroute();
+    bool res = doReroute();
     postReroute();
+    return res;
 }

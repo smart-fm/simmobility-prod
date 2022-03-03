@@ -144,6 +144,7 @@ Trip* MakePseudoTrip(unsigned int personId, const Node *origin, const Node *dest
             msg << "Invalid destination specified for person " << personId;
             throw std::runtime_error(msg.str());
         }
+        return nullptr;
     }
 }
 

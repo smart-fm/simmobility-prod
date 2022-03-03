@@ -156,7 +156,7 @@ public:
 	 * @param key 
 	 * @param val
 	 */
-	std::map<std::string, std::string>& setParams(std::string key,
+	void setParams(std::string key,
 			std::string val) {
 		paramsMapping[key] = val;
 	}

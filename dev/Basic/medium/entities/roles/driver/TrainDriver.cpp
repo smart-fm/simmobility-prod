@@ -119,6 +119,7 @@ Role<Person_MT>* TrainDriver::clone(Person_MT *parent) const
 		movement->setParentDriver(driver);
 		return driver;
 	}
+    return nullptr;
 }
 
 void TrainDriver::setNextDriver(TrainDriver* driver)
@@ -548,6 +549,7 @@ const TrainTrip* TrainDriver::getTrainTrip() const
 		const TrainTrip* trip = dynamic_cast<const TrainTrip*>(*currTrip);
 		return trip ;
 	}
+    return nullptr;
 }
 
 int TrainDriver::getTrainId() const

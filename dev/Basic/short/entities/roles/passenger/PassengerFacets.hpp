@@ -59,11 +59,13 @@ public:
     //mark startTimeand origin
     virtual TravelMetric & startTravelTimeMetric()
     {
+        return travelMetric;
     }
 
     //mark the destination and end time and travel time
     virtual TravelMetric & finalizeTravelTimeMetric()
     {
+        return travelMetric;
     }
 
     Passenger* getParentPassenger() const

@@ -215,6 +215,7 @@ vector<LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, S
 
     return actRes;
 */
+    return {};
 }
 
 

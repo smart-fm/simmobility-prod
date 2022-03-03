@@ -117,13 +117,14 @@ int sim_mob::WithindayLuaModel::chooseMode(const PersonParams& personParams, con
 {
     const std::unordered_map<int, ActivityTypeConfig> &activityTypes = ConfigManager::GetInstance().FullConfig().getActivityTypeConfigMap();
     const std::string& modelName = activityTypes.at(wdModeParams.getTripType()).withinDayModeChoiceModel;
-    if (modelName.empty())
+    if (!modelName.empty())
     {
         std::string luaFunc = "choose_" + modelName;
         LuaRef chooseWDM = getGlobal(state.get(), luaFunc.c_str());
         LuaRef retVal = chooseWDM(&personParams, &wdModeParams);
         return retVal.cast<int>();
     }
+    throw std::runtime_error("Error. Mode name is empty in WithindayLuaModel::chooseMode.");
 }
 
 const WithindayLuaModel& sim_mob::WithindayLuaProvider::getWithindayModel()

@@ -2503,6 +2503,8 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
             return MT_Config::getInstance().getConfluxNodes().begin()->second;
         }
     }
+    default:
+    	throw std::runtime_error("Error. Person role switch case is not defined in Conflux::findStartingConflux.");
     }
 }
 

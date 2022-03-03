@@ -44,6 +44,7 @@ void EnergyModelBase::computeTrainEnergyWithSpeed(const double trainMovement, st
 
 struct0_T EnergyModelBase::initVehicleStruct(const std::string drivetrain)
 {
+    return {};
 }
 
 

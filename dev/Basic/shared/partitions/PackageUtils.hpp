@@ -46,7 +46,7 @@ class PackageUtils {
 
 public:
     PackageUtils() CHECK_MPI_THROW ;
-    ~PackageUtils() CHECK_MPI_THROW ;
+    ~PackageUtils() {};
 public:
     /**
      * DATA_TYPE can be:

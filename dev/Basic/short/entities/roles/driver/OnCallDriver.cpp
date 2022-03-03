@@ -33,9 +33,9 @@ OnCallDriver::~OnCallDriver()
     if(!passengers.empty())
     {
         stringstream msg;
-        msg << "OnCallDriver " << parent->getDatabaseId() << " is being destroyed, but it has "
-            << passengers.size() << " passenger(s).";
-        throw runtime_error(msg.str());
+        Print() << "OnCallDriver " << parent->getDatabaseId() << " is being destroyed, but it has "
+                << passengers.size() << " passenger(s).";
+        //throw runtime_error(msg.str());
     }
 #endif
 }
